@@ -9,12 +9,13 @@ public class Timecode {
   public override string ToString(){return (ms/1000).ToString("0.000");}
 }
 public class Media { public string FilePath; }
+public class Fade { public Timecode Length = new Timecode(0); }
 public class Take { public Media Media; }
 public class TrackEvent {
-  public Timecode Start, Length; public bool Mute; public Take ActiveTake; public Track Track; public double Offset;
+  public Timecode Start, Length; public Fade FadeIn = new Fade(), FadeOut = new Fade(); public bool Mute; public Take ActiveTake; public Track Track; public double Offset;
   public Timecode End { get { return new Timecode(Start.ms+Length.ms);} }
   public TrackEvent Split(Timecode off){
-    var e=(TrackEvent)MemberwiseClone(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms;
+    var e=(TrackEvent)MemberwiseClone(); e.FadeIn=new Fade(); e.FadeOut=FadeOut; FadeOut=new Fade(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms;
     Length=new Timecode(off.ms); Track.Events.Add(e); return e; }
 }
 public class AudioEvent: TrackEvent {} public class VideoEvent: TrackEvent {}

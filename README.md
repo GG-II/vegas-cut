@@ -44,15 +44,32 @@ Detecta las pausas de una o varias pistas de voz y las quita de la línea de tie
 3. Elige el **rango** (todo el proyecto o la selección de tiempo) y pulsa **Analizar**: Vegas
    renderiza cada pista marcada a un WAV temporal y se mide el volumen cada 10 ms.
 4. Ajusta mirando la onda (un carril por pista; en rojo lo que se quitará):
-   - **Umbral**: con el deslizador, arrastrando la línea en la onda o con *Auto*.
-   - **Ritmo**: Calmado, Medido, Dinámico, Enérgico, Agresivo.
-   - **Silencio mínimo**, **voz mínima** (ignora clics y respiraciones), **margen antes** y **después**.
+   - **Umbral por pista**: cada pista recibe su propio umbral según su ruido de fondo y su voz
+     (se separan los dos grupos de niveles con el método de Otsu y el umbral queda entre ambos).
+     Así una pista más baja o con más ruido no arruina la detección de las demás. Arrastra la
+     línea punteada de un carril para ajustar solo esa pista; **Auto** los recalcula todos.
+   - **Sensibilidad**: sube (corta más) o baja (corta menos) todos los umbrales a la vez.
+   - **Perfil**: valores listos para cada tipo de video. Si cambias algo, *Guardar como…* crea
+     un perfil tuyo (marcado con ★); los tuyos se pueden borrar.
+   - **Silencio mínimo**, **voz mínima** (ignora clics y respiraciones), **margen antes** y
+     **después**, **clip mínimo** (no deja pedazos más cortos, evita saltos) y **suavizado**
+     (fundido corto del audio en cada corte para que no se oiga un chasquido).
+
+   | Perfil | Silencio mín. | Voz mín. | Antes | Después | Clip mín. | Suavizado | Sensib. |
+   |---|---|---|---|---|---|---|---|
+   | Narración (video ensayos) | 350 | 150 | 100 | 180 | 700 | 20 | 0 |
+   | Tutorial | 600 | 150 | 150 | 300 | 1000 | 25 | 0 |
+   | Podcast / charla | 900 | 200 | 200 | 350 | 1500 | 30 | 0 |
+   | Gameplay | 1200 | 250 | 250 | 450 | 2000 | 30 | −3 |
+   | Shorts / rápido | 200 | 100 | 50 | 80 | 400 | 15 | +2 |
+
+   Valores en ms (sensibilidad en dB).
 5. Elige qué hacer: **Eliminar** (corta y junta todo), **Dejar huecos** (quita sin mover),
    **Silenciar** (corta y deja mudo) o **Solo marcar** (crea regiones "Silencio" para revisarlas),
    y dónde cortar: **todas las pistas** o **solo las analizadas**.
 6. Todo queda en un solo paso de deshacer: **Ctrl+Z** lo revierte.
 
-Los ajustes se recuerdan en `%APPDATA%\vegas-cut\silencios.ini`.
+Los ajustes se recuerdan en `%APPDATA%\vegas-cut\silencios.ini` y los perfiles propios en `perfiles.ini`, en la misma carpeta.
 
 
 ### `ExportarProyecto.cs`

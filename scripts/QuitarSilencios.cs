@@ -7,7 +7,8 @@
 //   1. Vegas renderiza a un WAV temporal cada pista elegida (las demas se
 //      silencian durante el render y se restauran despues). Asi se analiza el
 //      audio tal como suena, con sus efectos, sin depender de ffmpeg.
-//   2. Se mide el volumen cada 10 ms y se buscan los tramos bajo el umbral.
+//   2. Se mide el volumen cada 10 ms. Cada pista recibe su propio umbral
+//      (metodo de Otsu) y se buscan los tramos donde todas estan bajo el suyo.
 //   3. La ventana muestra la forma de onda con los silencios y permite ajustar
 //      umbral, duraciones y margenes viendo el resultado al instante.
 //   4. Al aplicar, todo queda en un solo paso de deshacer (Ctrl+Z).
@@ -87,14 +88,15 @@ public class EntryPoint
             foreach (Rango r in rangos) total += r.Fin - r.Inicio;
 
             Modo modo = ventana.Ajustes.Modo;
+            double suavizado = ventana.Ajustes.SuavizadoMs / 1000.0;
             using (UndoBlock deshacer = new UndoBlock("Quitar silencios"))
             {
                 if (modo == Modo.Eliminar)
-                    Editor.Eliminar(proyecto, destino, rangos, true, ventana.Ajustes.TodasLasPistas);
+                    Editor.Eliminar(proyecto, destino, rangos, true, ventana.Ajustes.TodasLasPistas, suavizado);
                 else if (modo == Modo.DejarHuecos)
-                    Editor.Eliminar(proyecto, destino, rangos, false, false);
+                    Editor.Eliminar(proyecto, destino, rangos, false, false, suavizado);
                 else if (modo == Modo.Silenciar)
-                    Editor.Silenciar(destino, rangos);
+                    Editor.Silenciar(destino, rangos, suavizado);
                 else
                     Editor.Marcar(proyecto, rangos);
             }
@@ -284,6 +286,24 @@ static class Editor
         return todos;
     }
 
+    // Fundido corto en el audio que empieza o termina en un corte, para que
+    // no se oiga un chasquido.
+    static void Suavizar(List<TrackEvent> eventos, List<Rango> rangos, double segundos)
+    {
+        if (segundos <= 0) return;
+        foreach (TrackEvent e in eventos)
+        {
+            if (!(e is AudioEvent)) continue;
+            double ini = S(e.Start), fin = S(e.End);
+            double largo = Math.Min(segundos, (fin - ini) / 2);
+            foreach (Rango r in rangos)
+            {
+                if (Math.Abs(ini - r.Fin) < Tolerancia) e.FadeIn.Length = TC(largo);
+                if (Math.Abs(fin - r.Inicio) < Tolerancia) e.FadeOut.Length = TC(largo);
+            }
+        }
+    }
+
     static bool DentroDeRango(TrackEvent e, List<Rango> rangos)
     {
         double medio = (S(e.Start) + S(e.End)) / 2;
@@ -312,13 +332,16 @@ static class Editor
 
     // Quita los tramos de los rangos. Con "juntar" mueve lo que sigue para
     // cerrar el hueco; sin el, deja el espacio vacio.
-    public static void Eliminar(Project proyecto, List<Track> pistas, List<Rango> rangos, bool juntar, bool moverMarcadores)
+    public static void Eliminar(Project proyecto, List<Track> pistas, List<Rango> rangos, bool juntar,
+                                bool moverMarcadores, double suavizado)
     {
         foreach (Track pista in pistas)
         {
             List<TrackEvent> eventos = CortarEnBordes(pista, rangos);
+            List<TrackEvent> quedan = new List<TrackEvent>();
             foreach (TrackEvent e in eventos)
-                if (DentroDeRango(e, rangos)) pista.Events.Remove(e);
+                if (DentroDeRango(e, rangos)) pista.Events.Remove(e); else quedan.Add(e);
+            Suavizar(quedan, rangos, suavizado);
             if (!juntar) continue;
 
             List<TrackEvent> restantes = new List<TrackEvent>();
@@ -347,13 +370,16 @@ static class Editor
         }
     }
 
-    public static void Silenciar(List<Track> pistas, List<Rango> rangos)
+    public static void Silenciar(List<Track> pistas, List<Rango> rangos, double suavizado)
     {
         foreach (Track pista in pistas)
         {
             if (!pista.IsAudio()) continue;
-            foreach (TrackEvent e in CortarEnBordes(pista, rangos))
-                if (DentroDeRango(e, rangos)) e.Mute = true;
+            List<TrackEvent> eventos = CortarEnBordes(pista, rangos);
+            List<TrackEvent> suenan = new List<TrackEvent>();
+            foreach (TrackEvent e in eventos)
+                if (DentroDeRango(e, rangos)) e.Mute = true; else suenan.Add(e);
+            Suavizar(suenan, rangos, suavizado);
         }
     }
 
@@ -487,29 +513,78 @@ public static class WavNiveles
 
 public enum Modo { Eliminar, DejarHuecos, Silenciar, Marcar }
 
-public class Ajustes
+// Valores de deteccion. Un perfil es un conjunto de estos valores con nombre.
+public class Valores
 {
-    public double UmbralDb = -40;
-    public int SilencioMinMs = 500;
-    public int HablaMinMs = 150;
-    public int MargenAntesMs = 150;
-    public int MargenDespuesMs = 250;
-    public Modo Modo = Modo.Eliminar;
-    public bool TodasLasPistas = true;
-    public bool UmbralAutomatico = true;
+    public int SilencioMinMs = 500;   // solo se quitan pausas mas largas
+    public int HablaMinMs = 150;      // sonidos mas cortos no cuentan como voz
+    public int MargenAntesMs = 150;   // pausa que queda antes de hablar
+    public int MargenDespuesMs = 250; // pausa que queda al terminar de hablar
+    public int PedazoMinMs = 800;     // no deja clips mas cortos que esto
+    public int SuavizadoMs = 20;      // fundido del audio en cada corte
+    public int Sensibilidad = 0;      // dB que se suman al umbral de cada pista
 
-    static string Ruta
+    public bool Igual(Valores o)
+    {
+        return SilencioMinMs == o.SilencioMinMs && HablaMinMs == o.HablaMinMs &&
+               MargenAntesMs == o.MargenAntesMs && MargenDespuesMs == o.MargenDespuesMs &&
+               PedazoMinMs == o.PedazoMinMs && SuavizadoMs == o.SuavizadoMs && Sensibilidad == o.Sensibilidad;
+    }
+
+    public void CopiarDe(Valores o)
+    {
+        SilencioMinMs = o.SilencioMinMs; HablaMinMs = o.HablaMinMs;
+        MargenAntesMs = o.MargenAntesMs; MargenDespuesMs = o.MargenDespuesMs;
+        PedazoMinMs = o.PedazoMinMs; SuavizadoMs = o.SuavizadoMs; Sensibilidad = o.Sensibilidad;
+    }
+
+    public string Texto()
+    {
+        return "silencioMin=" + SilencioMinMs + "\n" + "hablaMin=" + HablaMinMs + "\n" +
+               "margenAntes=" + MargenAntesMs + "\n" + "margenDespues=" + MargenDespuesMs + "\n" +
+               "pedazoMin=" + PedazoMinMs + "\n" + "suavizado=" + SuavizadoMs + "\n" +
+               "sensibilidad=" + Sensibilidad + "\n";
+    }
+
+    // Devuelve true si la clave era de estos valores.
+    public bool Leer(string k, string v)
+    {
+        int n;
+        if (!int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out n)) return false;
+        switch (k)
+        {
+            case "silencioMin": SilencioMinMs = n; return true;
+            case "hablaMin": HablaMinMs = n; return true;
+            case "margenAntes": MargenAntesMs = n; return true;
+            case "margenDespues": MargenDespuesMs = n; return true;
+            case "pedazoMin": PedazoMinMs = n; return true;
+            case "suavizado": SuavizadoMs = n; return true;
+            case "sensibilidad": Sensibilidad = n; return true;
+        }
+        return false;
+    }
+
+    public static string Carpeta
     {
         get
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "vegas-cut", "silencios.ini");
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut");
         }
     }
+}
+
+public class Ajustes : Valores
+{
+    public Modo Modo = Modo.Eliminar;
+    public bool TodasLasPistas = true;
+    public string Perfil = "Narraci\u00f3n";
+
+    static string Ruta { get { return Path.Combine(Carpeta, "silencios.ini"); } }
 
     public static Ajustes Cargar()
     {
         Ajustes a = new Ajustes();
+        a.CopiarDe(Perfil_.Incluidos[0]);
         try
         {
             if (!File.Exists(Ruta)) return a;
@@ -518,17 +593,12 @@ public class Ajustes
                 int i = linea.IndexOf('=');
                 if (i < 0) continue;
                 string k = linea.Substring(0, i).Trim(), v = linea.Substring(i + 1).Trim();
-                CultureInfo c = CultureInfo.InvariantCulture;
+                if (a.Leer(k, v)) continue;
                 switch (k)
                 {
-                    case "umbral": a.UmbralDb = double.Parse(v, c); break;
-                    case "silencioMin": a.SilencioMinMs = int.Parse(v, c); break;
-                    case "hablaMin": a.HablaMinMs = int.Parse(v, c); break;
-                    case "margenAntes": a.MargenAntesMs = int.Parse(v, c); break;
-                    case "margenDespues": a.MargenDespuesMs = int.Parse(v, c); break;
                     case "modo": a.Modo = (Modo)Enum.Parse(typeof(Modo), v); break;
                     case "todas": a.TodasLasPistas = v == "1"; break;
-                    case "auto": a.UmbralAutomatico = v == "1"; break;
+                    case "perfil": a.Perfil = v; break;
                 }
             }
         }
@@ -540,85 +610,199 @@ public class Ajustes
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(Ruta));
-            CultureInfo c = CultureInfo.InvariantCulture;
-            File.WriteAllText(Ruta,
-                "umbral=" + UmbralDb.ToString(c) + "\n" +
-                "silencioMin=" + SilencioMinMs + "\n" +
-                "hablaMin=" + HablaMinMs + "\n" +
-                "margenAntes=" + MargenAntesMs + "\n" +
-                "margenDespues=" + MargenDespuesMs + "\n" +
+            Directory.CreateDirectory(Carpeta);
+            File.WriteAllText(Ruta, Texto() +
                 "modo=" + Modo + "\n" +
                 "todas=" + (TodasLasPistas ? "1" : "0") + "\n" +
-                "auto=" + (UmbralAutomatico ? "1" : "0") + "\n");
+                "perfil=" + Perfil + "\n", new UTF8Encoding(false));
         }
         catch { }
     }
 }
 
-public class Preset
+// Perfil_ (con guion bajo) para no chocar con nombres de la API de Vegas.
+public class Perfil_ : Valores
 {
-    public string Nombre;
-    public int SilencioMin, HablaMin, Antes, Despues;
-    public Preset(string n, int s, int h, int a, int d) { Nombre = n; SilencioMin = s; HablaMin = h; Antes = a; Despues = d; }
+    public string Nombre, Descripcion;
+    public bool Incluido;
 
-    public static readonly Preset[] Todos = new Preset[]
+    static Perfil_ Nuevo(string nombre, string descripcion, int silencio, int voz, int antes, int despues,
+                         int pedazo, int suavizado, int sensibilidad)
     {
-        new Preset("Calmado",  900, 200, 250, 350),
-        new Preset("Medido",   500, 150, 150, 250),
-        new Preset("Din\u00e1mico", 350, 120, 100, 150),
-        new Preset("En\u00e9rgico", 250, 100,  60, 100),
-        new Preset("Agresivo", 150,  80,  30,  60),
+        Perfil_ p = new Perfil_();
+        p.Nombre = nombre; p.Descripcion = descripcion; p.Incluido = true;
+        p.SilencioMinMs = silencio; p.HablaMinMs = voz; p.MargenAntesMs = antes; p.MargenDespuesMs = despues;
+        p.PedazoMinMs = pedazo; p.SuavizadoMs = suavizado; p.Sensibilidad = sensibilidad;
+        return p;
+    }
+
+    // Valores pensados para cada tipo de video. En tus video ensayos las pausas
+    // que quitas a mano duran 1 a 1.5 s y los pedazos 4 a 7 s.
+    public static readonly Perfil_[] Incluidos = new Perfil_[]
+    {
+        Nuevo("Narraci\u00f3n", "Voz en off y video ensayos: quita casi todas las pausas y deja la voz fluida.",
+              350, 150, 100, 180, 700, 20, 0),
+        Nuevo("Tutorial", "Explicaciones con pantalla: deja respirar para que se entienda cada paso.",
+              600, 150, 150, 300, 1000, 25, 0),
+        Nuevo("Podcast / charla", "Conversaci\u00f3n entre varios: solo quita pausas largas y conserva las reacciones.",
+              900, 200, 200, 350, 1500, 30, 0),
+        Nuevo("Gameplay", "Partidas con voz: quita los silencios largos, deja que el juego respire e ignora clics de teclado.",
+              1200, 250, 250, 450, 2000, 30, -3),
+        Nuevo("Shorts / r\u00e1pido", "Clips cortos y din\u00e1micos: corta hasta las pausas peque\u00f1as.",
+              200, 100, 50, 80, 400, 15, 2),
     };
+
+    static string Ruta { get { return Path.Combine(Carpeta, "perfiles.ini"); } }
+
+    // Perfiles guardados por el usuario, en formato:
+    //   [Nombre]
+    //   silencioMin=...
+    public static List<Perfil_> CargarPropios()
+    {
+        List<Perfil_> lista = new List<Perfil_>();
+        try
+        {
+            if (!File.Exists(Ruta)) return lista;
+            Perfil_ actual = null;
+            foreach (string l in File.ReadAllLines(Ruta, Encoding.UTF8))
+            {
+                string linea = l.Trim();
+                if (linea.StartsWith("[") && linea.EndsWith("]"))
+                {
+                    actual = new Perfil_();
+                    actual.Nombre = linea.Substring(1, linea.Length - 2);
+                    actual.Descripcion = "Perfil guardado por ti.";
+                    lista.Add(actual);
+                    continue;
+                }
+                int i = linea.IndexOf('=');
+                if (actual != null && i > 0) actual.Leer(linea.Substring(0, i).Trim(), linea.Substring(i + 1).Trim());
+            }
+        }
+        catch { }
+        return lista;
+    }
+
+    public static void GuardarPropios(List<Perfil_> propios)
+    {
+        try
+        {
+            Directory.CreateDirectory(Carpeta);
+            StringBuilder sb = new StringBuilder();
+            foreach (Perfil_ p in propios) sb.Append("[" + p.Nombre + "]\n" + p.Texto() + "\n");
+            File.WriteAllText(Ruta, sb.ToString(), new UTF8Encoding(false));
+        }
+        catch { }
+    }
 }
 
 public static class Detector
 {
-    // Umbral sugerido: entre el ruido de fondo y el nivel de voz.
+    // Umbral de una pista por el metodo de Otsu: se hace un histograma de los
+    // niveles (1 dB por barra) y se busca el corte que mejor separa los dos
+    // grupos, ruido de fondo y voz. Asi cada pista tiene su propio umbral
+    // aunque tengan volumenes distintos.
     public static double UmbralAutomatico(float[] db)
     {
-        List<float> v = new List<float>();
-        foreach (float x in db) if (x > -95) v.Add(x);
-        if (v.Count < 10) return -40;
-        v.Sort();
-        double ruido = v[(int)(v.Count * 0.10)];
-        double voz = v[(int)(v.Count * 0.90)];
-        double u = ruido + (voz - ruido) * 0.35;
+        int[] h = new int[101];
+        int total = 0;
+        foreach (float x in db)
+        {
+            if (x <= -99) continue; // silencio digital
+            int i = Math.Max(0, Math.Min(100, 100 + (int)Math.Round(x)));
+            h[i]++;
+            total++;
+        }
+        if (total < 50) return -40;
+
+        double suma = 0;
+        for (int i = 0; i <= 100; i++) suma += (double)i * h[i];
+        double sumaFondo = 0, mejor = -1;
+        long pesoFondo = 0;
+        int corte = 60;
+        for (int i = 0; i <= 100; i++)
+        {
+            pesoFondo += h[i];
+            if (pesoFondo == 0) continue;
+            long pesoVoz = total - pesoFondo;
+            if (pesoVoz == 0) break;
+            sumaFondo += (double)i * h[i];
+            double mFondo = sumaFondo / pesoFondo, mVoz = (suma - sumaFondo) / pesoVoz;
+            double entre = (double)pesoFondo * pesoVoz * (mFondo - mVoz) * (mFondo - mVoz);
+            if (entre > mejor) { mejor = entre; corte = i; }
+        }
+        // Otsu solo separa los grupos; el umbral va a la mitad entre el borde
+        // alto del ruido (percentil 90 del fondo) y el borde bajo de la voz
+        // (percentil 20), para no quedar pegado al ruido.
+        double bordeRuido = Percentil(h, 0, corte, 0.90) - 100;
+        double bordeVoz = Percentil(h, corte + 1, 100, 0.20) - 100;
+        double u = Math.Max(bordeRuido + 3, (bordeRuido + bordeVoz) / 2);
         return Math.Max(-70, Math.Min(-15, Math.Round(u)));
     }
 
-    public static List<Rango> Detectar(Analisis a, Ajustes aj)
+    // Percentil de las barras desde..hasta del histograma (devuelve la barra).
+    static int Percentil(int[] h, int desde, int hasta, double fraccion)
     {
-        float[] db = a.Db;
-        int n = db.Length;
-        double paso = Analisis.Paso;
-        List<Rango> resultado = new List<Rango>();
-        if (n == 0) return resultado;
-
-        // 1. Tramos de voz (sobre el umbral).
-        List<int[]> voz = new List<int[]>();
-        int i = 0;
-        while (i < n)
+        long total = 0;
+        for (int i = desde; i <= hasta; i++) total += h[i];
+        if (total == 0) return hasta;
+        long objetivo = (long)Math.Ceiling(total * fraccion), acumulado = 0;
+        for (int i = desde; i <= hasta; i++)
         {
-            if (db[i] >= aj.UmbralDb)
+            acumulado += h[i];
+            if (acumulado >= objetivo) return i;
+        }
+        return hasta;
+    }
+
+    public static List<Rango> Detectar(Analisis a, double umbral, Valores v)
+    {
+        return Detectar(new List<Analisis> { a }, new List<double> { umbral }, v);
+    }
+
+    // Hay voz en un instante si cualquier pista supera su propio umbral
+    // (mas la sensibilidad general).
+    public static List<Rango> Detectar(List<Analisis> pistas, List<double> umbrales, Valores v)
+    {
+        List<Rango> resultado = new List<Rango>();
+        if (pistas.Count == 0) return resultado;
+        int n = int.MaxValue;
+        foreach (Analisis p in pistas) n = Math.Min(n, p.Db.Length);
+        if (n == 0) return resultado;
+        double paso = Analisis.Paso, inicio = pistas[0].Inicio;
+
+        bool[] hay = new bool[n];
+        for (int k = 0; k < pistas.Count; k++)
+        {
+            float[] db = pistas[k].Db;
+            double u = umbrales[k] + v.Sensibilidad;
+            for (int i = 0; i < n; i++) if (db[i] >= u) hay[i] = true;
+        }
+
+        // 1. Tramos de voz.
+        List<int[]> voz = new List<int[]>();
+        int j = 0;
+        while (j < n)
+        {
+            if (hay[j])
             {
-                int j = i;
-                while (j < n && db[j] >= aj.UmbralDb) j++;
-                voz.Add(new int[] { i, j });
-                i = j;
+                int f = j;
+                while (f < n && hay[f]) f++;
+                voz.Add(new int[] { j, f });
+                j = f;
             }
-            else i++;
+            else j++;
         }
 
         // 2. Descartar voz demasiado corta (clics, respiraciones).
-        int hablaMin = (int)Math.Round(aj.HablaMinMs / 1000.0 / paso);
+        int hablaMin = (int)Math.Round(v.HablaMinMs / 1000.0 / paso);
         List<int[]> vozBuena = new List<int[]>();
         foreach (int[] t in voz) if (t[1] - t[0] >= hablaMin) vozBuena.Add(t);
 
         // 3. Los huecos entre voz son silencios candidatos (incluye inicio y final).
-        int silMin = (int)Math.Round(aj.SilencioMinMs / 1000.0 / paso);
-        int antes = (int)Math.Round(aj.MargenAntesMs / 1000.0 / paso);
-        int despues = (int)Math.Round(aj.MargenDespuesMs / 1000.0 / paso);
+        int silMin = (int)Math.Round(v.SilencioMinMs / 1000.0 / paso);
+        int antes = (int)Math.Round(v.MargenAntesMs / 1000.0 / paso);
+        int despues = (int)Math.Round(v.MargenDespuesMs / 1000.0 / paso);
         int cursor = 0;
         for (int k = 0; k <= vozBuena.Count; k++)
         {
@@ -632,11 +816,36 @@ public static class Detector
                 int a0 = ini + (alInicio ? 0 : despues);
                 int b0 = fin - (alFinal ? 0 : antes);
                 if (b0 - a0 >= 2)
-                    resultado.Add(new Rango(a.Inicio + a0 * paso, a.Inicio + b0 * paso));
+                    resultado.Add(new Rango(inicio + a0 * paso, inicio + b0 * paso));
             }
             if (k < vozBuena.Count) cursor = vozBuena[k][1];
         }
-        return resultado;
+
+        return PedazoMinimo(resultado, inicio, inicio + n * paso, v.PedazoMinMs / 1000.0);
+    }
+
+    // Si entre dos silencios queda un clip mas corto que el minimo, no se
+    // corta el segundo silencio: el clip se une con lo que sigue.
+    static List<Rango> PedazoMinimo(List<Rango> rangos, double inicio, double fin, double minimo)
+    {
+        if (minimo <= 0) return rangos;
+        List<Rango> r = new List<Rango>();
+        double ultimoFin = inicio;
+        foreach (Rango x in rangos)
+        {
+            double pedazo = x.Inicio - ultimoFin;
+            if (pedazo > 0.001 && pedazo < minimo) continue;
+            r.Add(x);
+            ultimoFin = x.Fin;
+        }
+        // El ultimo clip, entre el ultimo silencio y el final.
+        while (r.Count > 0)
+        {
+            double pedazo = fin - r[r.Count - 1].Fin;
+            if (pedazo > 0.001 && pedazo < minimo) r.RemoveAt(r.Count - 1);
+            else break;
+        }
+        return r;
     }
 }
 
@@ -823,7 +1032,8 @@ class Segmentado : ControlBase
 class Deslizador : ControlBase
 {
     public double Minimo = -70, Maximo = -10;
-    double valor = -40;
+    public bool DesdeCentro;
+    double valor = 0;
     bool arrastrando;
     public event EventHandler Cambio;
 
@@ -855,7 +1065,10 @@ class Deslizador : ControlBase
         float cy = Height / 2f, x = X(valor);
         using (GraphicsPath p = Tema.Redondeado(new RectangleF(8, cy - 3, Width - 16, 6), 3))
         using (SolidBrush b = new SolidBrush(Tema.Campo)) g.FillPath(b, p);
-        using (GraphicsPath p = Tema.Redondeado(new RectangleF(8, cy - 3, Math.Max(6, x - 8), 6), 3))
+        float desde = DesdeCentro ? X((Minimo + Maximo) / 2) : 8;
+        if (DesdeCentro)
+            using (SolidBrush b = new SolidBrush(Tema.Borde)) g.FillRectangle(b, desde - 1, cy - 7, 2, 14);
+        using (GraphicsPath p = Tema.Redondeado(new RectangleF(Math.Min(desde, x), cy - 3, Math.Max(6, Math.Abs(x - desde)), 6), 3))
         using (SolidBrush b = new SolidBrush(Tema.Acento)) g.FillPath(b, p);
         float rad = encima || arrastrando ? 9 : 8;
         using (SolidBrush b = new SolidBrush(Color.White)) g.FillEllipse(b, x - rad, cy - rad, rad * 2, rad * 2);
@@ -932,25 +1145,32 @@ class CampoNumero : ControlBase
 
 // Forma de onda con los silencios marcados y el umbral arrastrable.
 // Un carril por pista analizada.
+// Un carril por pista analizada.
 class Carril
 {
     public string Etiqueta;
     public Analisis Datos;
     public Color Color;
+    public double Umbral; // umbral efectivo (ya con la sensibilidad)
 }
 
-// Forma de onda por pista, con los silencios marcados y el umbral arrastrable.
+// Forma de onda por pista, con los silencios marcados y un umbral
+// arrastrable en cada carril.
 class VistaOnda : ControlBase
 {
     const double MinDb = -80, MaxDb = 0;
-    const int AnchoEtiqueta = 44;
+    const int AnchoEtiqueta = 52;
     List<Carril> carriles = new List<Carril>();
     List<Rango> rangos = new List<Rango>();
-    double umbral = -40, inicio, duracion;
-    bool arrastrando;
+    double inicio, duracion;
+    int arrastrando = -1;
     int ratonX = -1;
     public string Mensaje = "Elige las pistas y pulsa Analizar.";
-    public event EventHandler UmbralArrastrado;
+
+    // Carril arrastrado y su nuevo umbral efectivo.
+    public int CarrilArrastrado;
+    public double UmbralArrastrado;
+    public event EventHandler UmbralCambiado;
 
     public static readonly Color[] Colores =
     {
@@ -959,11 +1179,10 @@ class VistaOnda : ControlBase
         Color.FromArgb(255, 150, 190), Color.FromArgb(140, 230, 230),
     };
 
-    public void Mostrar(List<Carril> c, List<Rango> r, double u)
+    public void Mostrar(List<Carril> c, List<Rango> r)
     {
         carriles = c ?? new List<Carril>();
         rangos = r;
-        umbral = u;
         if (carriles.Count > 0)
         {
             inicio = carriles[0].Datos.Inicio;
@@ -972,8 +1191,6 @@ class VistaOnda : ControlBase
         }
         Invalidate();
     }
-
-    public double Umbral { get { return umbral; } }
 
     Rectangle Area { get { return new Rectangle(14 + AnchoEtiqueta, 14, Width - 28 - AnchoEtiqueta, Height - 42); } }
 
@@ -989,42 +1206,45 @@ class VistaOnda : ControlBase
         return (float)((Math.Max(MinDb, Math.Min(MaxDb, db)) - MinDb) / (MaxDb - MinDb)) * (c.Height - 6) / 2f;
     }
 
+    int CarrilEn(int y)
+    {
+        if (carriles.Count == 0) return -1;
+        return Math.Max(0, Math.Min(carriles.Count - 1, (y - Area.Y) / Math.Max(1, AreaCarril(0).Height)));
+    }
+
     bool CercaUmbral(int y)
     {
-        for (int i = 0; i < carriles.Count; i++)
-        {
-            Rectangle c = AreaCarril(i);
-            float centro = c.Y + c.Height / 2f, h = MitadAltura(c, umbral);
-            if (Math.Abs(y - (centro - h)) < 6 || Math.Abs(y - (centro + h)) < 6) return true;
-        }
-        return false;
+        int i = CarrilEn(y);
+        if (i < 0) return false;
+        Rectangle c = AreaCarril(i);
+        float centro = c.Y + c.Height / 2f, h = MitadAltura(c, carriles[i].Umbral);
+        return Math.Abs(y - (centro - h)) < 6 || Math.Abs(y - (centro + h)) < 6;
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        if (carriles.Count > 0 && CercaUmbral(e.Y)) arrastrando = true;
+        if (CercaUmbral(e.Y)) arrastrando = CarrilEn(e.Y);
         base.OnMouseDown(e);
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
         ratonX = e.X;
-        if (arrastrando)
+        if (arrastrando >= 0)
         {
-            // El umbral se lee en el carril donde esta el raton.
-            int i = Math.Max(0, Math.Min(carriles.Count - 1, (e.Y - Area.Y) / Math.Max(1, AreaCarril(0).Height)));
-            Rectangle c = AreaCarril(i);
+            Rectangle c = AreaCarril(arrastrando);
             float centro = c.Y + c.Height / 2f;
             double t = Math.Abs(e.Y - centro) / ((c.Height - 6) / 2.0);
-            umbral = Math.Round(Math.Max(-70, Math.Min(-10, MinDb + t * (MaxDb - MinDb))));
-            if (UmbralArrastrado != null) UmbralArrastrado(this, EventArgs.Empty);
+            CarrilArrastrado = arrastrando;
+            UmbralArrastrado = Math.Round(Math.Max(-75, Math.Min(-5, MinDb + t * (MaxDb - MinDb))));
+            if (UmbralCambiado != null) UmbralCambiado(this, EventArgs.Empty);
         }
-        Cursor = arrastrando || (carriles.Count > 0 && CercaUmbral(e.Y)) ? Cursors.SizeNS : Cursors.Default;
+        Cursor = arrastrando >= 0 || CercaUmbral(e.Y) ? Cursors.SizeNS : Cursors.Default;
         Invalidate();
         base.OnMouseMove(e);
     }
 
-    protected override void OnMouseUp(MouseEventArgs e) { arrastrando = false; base.OnMouseUp(e); }
+    protected override void OnMouseUp(MouseEventArgs e) { arrastrando = -1; base.OnMouseUp(e); }
     protected override void OnMouseLeave(EventArgs e) { ratonX = -1; base.OnMouseLeave(e); }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -1072,8 +1292,12 @@ class VistaOnda : ControlBase
             if (k > 0)
                 using (Pen sep = new Pen(Tema.Borde)) g.DrawLine(sep, a.X - AnchoEtiqueta, c.Y, a.Right, c.Y);
 
+            // Nombre de la pista y su umbral
             TextRenderer.DrawText(g, carril.Etiqueta, Tema.Negrita,
-                new Rectangle(14, c.Y, AnchoEtiqueta - 6, c.Height), carril.Color,
+                new Rectangle(14, (int)centro - 17, AnchoEtiqueta - 4, 18), carril.Color,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            TextRenderer.DrawText(g, carril.Umbral.ToString("0") + " dB", Tema.Pequena,
+                new Rectangle(14, (int)centro + 1, AnchoEtiqueta - 4, 16), Tema.Acento,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
 
             // Onda: el nivel maximo de cada columna de pixeles, espejado.
@@ -1088,13 +1312,13 @@ class VistaOnda : ControlBase
                     for (int i = i0; i < i1 && i < n; i++) if (db[i] > m) m = db[i];
                     float h = MitadAltura(c, m);
                     if (h < 0.5f) continue;
-                    g.DrawLine(m >= umbral ? voz : bajo, a.X + x, centro - h, a.X + x, centro + h);
+                    g.DrawLine(m >= carril.Umbral ? voz : bajo, a.X + x, centro - h, a.X + x, centro + h);
                 }
             }
 
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            float hu = MitadAltura(c, umbral);
-            using (Pen pen = new Pen(Color.FromArgb(200, Tema.Acento), 1.2f))
+            float hu = MitadAltura(c, carril.Umbral);
+            using (Pen pen = new Pen(Color.FromArgb(arrastrando == k ? 255 : 200, Tema.Acento), arrastrando == k ? 2f : 1.2f))
             {
                 pen.DashStyle = DashStyle.Dash;
                 g.DrawLine(pen, a.X, centro - hu, a.Right, centro - hu);
@@ -1103,26 +1327,16 @@ class VistaOnda : ControlBase
             g.SmoothingMode = SmoothingMode.None;
         }
 
-        // Etiqueta del umbral
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        string etiqueta = umbral.ToString("0") + " dB";
-        Size ts = TextRenderer.MeasureText(etiqueta, Tema.Pequena);
-        Rectangle c0 = AreaCarril(0);
-        float yChip = c0.Y + c0.Height / 2f - MitadAltura(c0, umbral) - ts.Height - 4;
-        RectangleF chip = new RectangleF(a.Right - ts.Width - 12, Math.Max(a.Y, yChip), ts.Width + 10, ts.Height + 2);
-        using (GraphicsPath p = Tema.Redondeado(chip, 4))
-        using (SolidBrush b = new SolidBrush(Tema.Acento)) g.FillPath(b, p);
-        TextRenderer.DrawText(g, etiqueta, Tema.Pequena, Rectangle.Round(chip), Color.White,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-
         // Tiempos
         TextRenderer.DrawText(g, Formato.Tiempo(inicio), Tema.Pequena, new Point(a.X, a.Bottom + 8), Tema.TextoSuave);
         string fin = Formato.Tiempo(inicio + duracion);
         Size fs = TextRenderer.MeasureText(fin, Tema.Pequena);
         TextRenderer.DrawText(g, fin, Tema.Pequena, new Point(a.Right - fs.Width, a.Bottom + 8), Tema.TextoSuave);
+        TextRenderer.DrawText(g, "Arrastra la l\u00ednea punteada de cada pista para ajustar su umbral.", Tema.Pequena,
+            new Rectangle(a.X, a.Bottom + 6, a.Width, 18), Tema.TextoSuave, TextFormatFlags.HorizontalCenter);
 
         // Cursor del raton: tiempo y nivel de cada pista
-        if (ratonX >= a.X && ratonX < a.Right && !arrastrando)
+        if (ratonX >= a.X && ratonX < a.Right && arrastrando < 0)
         {
             double t = (ratonX - a.X) / (double)a.Width * duracion;
             using (Pen pen = new Pen(Color.FromArgb(120, 255, 255, 255))) g.DrawLine(pen, ratonX, a.Y, ratonX, a.Bottom);
@@ -1139,6 +1353,30 @@ class VistaOnda : ControlBase
     }
 }
 
+class Combo : ComboBox
+{
+    public Combo()
+    {
+        DropDownStyle = ComboBoxStyle.DropDownList;
+        DrawMode = DrawMode.OwnerDrawFixed;
+        FlatStyle = FlatStyle.Flat;
+        BackColor = Tema.Campo;
+        ForeColor = Tema.Texto;
+        Font = Tema.Fuente(10f, FontStyle.Regular);
+        ItemHeight = 24;
+    }
+
+    protected override void OnDrawItem(DrawItemEventArgs e)
+    {
+        if (e.Index < 0) return;
+        bool sel = (e.State & DrawItemState.Selected) != 0 && (e.State & DrawItemState.ComboBoxEdit) == 0;
+        using (SolidBrush b = new SolidBrush(sel ? Tema.Acento : Tema.Campo)) e.Graphics.FillRectangle(b, e.Bounds);
+        TextRenderer.DrawText(e.Graphics, Items[e.Index].ToString(), Font,
+            new Rectangle(e.Bounds.X + 6, e.Bounds.Y, e.Bounds.Width - 6, e.Bounds.Height),
+            sel ? Color.White : Tema.Texto, TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+    }
+}
+
 class Etiqueta : Label
 {
     public Etiqueta(string texto, Font fuente, Color color)
@@ -1150,13 +1388,62 @@ class Etiqueta : Label
     }
 }
 
+// Pide el nombre para guardar un perfil.
+class DialogoNombre : Form
+{
+    TextBox caja = new TextBox();
+    public string Nombre { get { return caja.Text.Trim(); } }
+
+    public DialogoNombre(string sugerido)
+    {
+        Text = "Guardar perfil";
+        ClientSize = new Size(380, 150);
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false; MinimizeBox = false;
+        StartPosition = FormStartPosition.CenterParent;
+        BackColor = Tema.Fondo;
+        ForeColor = Tema.Texto;
+        Font = Tema.Normal;
+
+        Controls.Add(Pos(new Etiqueta("Nombre del perfil", Tema.Seccion, Tema.Texto), 20, 16, 340, 22));
+        Panel marco = new Panel();
+        marco.BackColor = Tema.Campo;
+        marco.Padding = new Padding(10, 8, 10, 6);
+        caja.BorderStyle = BorderStyle.None;
+        caja.BackColor = Tema.Campo;
+        caja.ForeColor = Tema.Texto;
+        caja.Font = Tema.Fuente(10f, FontStyle.Regular);
+        caja.Dock = DockStyle.Fill;
+        caja.Text = sugerido;
+        marco.Controls.Add(caja);
+        Controls.Add(Pos(marco, 20, 46, 340, 34));
+
+        Boton guardar = new Boton("Guardar", EstiloBoton.Primario);
+        Boton cancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+        Controls.Add(Pos(cancelar, 150, 100, 100, 34));
+        Controls.Add(Pos(guardar, 260, 100, 100, 34));
+        guardar.Click += delegate { if (Nombre.Length > 0) { DialogResult = DialogResult.OK; Close(); } };
+        cancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        caja.KeyDown += delegate (object s, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && Nombre.Length > 0) { DialogResult = DialogResult.OK; Close(); }
+            if (e.KeyCode == Keys.Escape) { DialogResult = DialogResult.Cancel; Close(); }
+        };
+        Shown += delegate { caja.Focus(); caja.SelectAll(); };
+    }
+
+    static Control Pos(Control c, int x, int y, int w, int h) { c.SetBounds(x, y, w, h); return c; }
+}
+
 public class VentanaSilencios : Form
 {
     readonly FuncionAnalizar analizar;
     readonly string[] nombres;
-    // Analisis ya hechos por pista (indice en la lista de pistas de audio).
+    // Analisis ya hechos por pista (indice en la lista de pistas de audio) y su
+    // umbral base: el automatico o el que el usuario arrastro.
     Dictionary<int, Analisis> cache = new Dictionary<int, Analisis>();
-    Analisis combinado;
+    Dictionary<int, double> umbralBase = new Dictionary<int, double>();
+    List<Perfil_> perfiles = new List<Perfil_>();
     bool cargando;
 
     public Ajustes Ajustes;
@@ -1166,12 +1453,16 @@ public class VentanaSilencios : Form
     Segmentado segRango = new Segmentado(new string[] { "Todo el proyecto", "Selecci\u00f3n de tiempo" });
     Boton btnAnalizar = new Boton("Analizar", EstiloBoton.Secundario);
     VistaOnda onda = new VistaOnda();
+    Combo comboPerfil = new Combo();
+    Boton btnGuardarPerfil = new Boton("Guardar como\u2026", EstiloBoton.Secundario);
+    Boton btnBorrarPerfil = new Boton("Borrar", EstiloBoton.Secundario);
+    Etiqueta lblPerfil = new Etiqueta("", Tema.Pequena, Tema.TextoSuave);
     Deslizador deslizador = new Deslizador();
-    Etiqueta lblUmbral = new Etiqueta("", Tema.Negrita, Tema.Texto);
-    Boton btnAuto = new Boton("Auto", EstiloBoton.Chip);
-    List<Boton> chips = new List<Boton>();
+    Etiqueta lblSensibilidad = new Etiqueta("", Tema.Negrita, Tema.Texto);
+    Boton btnAuto = new Boton("Auto", EstiloBoton.Secundario);
     CampoNumero numSilencio = new CampoNumero(), numHabla = new CampoNumero();
     CampoNumero numAntes = new CampoNumero(), numDespues = new CampoNumero();
+    CampoNumero numPedazo = new CampoNumero(), numSuavizado = new CampoNumero();
     Segmentado segModo = new Segmentado(new string[] { "Eliminar", "Dejar huecos", "Silenciar", "Solo marcar" });
     Segmentado segPistas = new Segmentado(new string[] { "Todas las pistas", "Solo las analizadas" });
     Etiqueta lblResumen = new Etiqueta("", Tema.Normal, Tema.TextoSuave);
@@ -1248,41 +1539,38 @@ public class VentanaSilencios : Form
         Controls.Add(Pos(btnAnalizar, m + ancho - 170, y, 170, 34));
         y += 34 + 14;
 
-        // Onda: un carril por pista, mas alta si hay varias
-        int altoOnda = 200;
-        Controls.Add(Pos(onda, m, y, ancho, altoOnda));
-        y += altoOnda + 20;
+        // Onda: un carril por pista
+        Controls.Add(Pos(onda, m, y, ancho, 210));
+        y += 210 + 20;
 
-        // Deteccion
-        Controls.Add(Pos(new Etiqueta("Umbral de ruido", Tema.Seccion, Tema.Texto), m, y, 200, 22));
-        Controls.Add(Pos(new Etiqueta("Lo que quede debajo cuenta como silencio. Tambi\u00e9n puedes arrastrar la l\u00ednea.",
-            Tema.Pequena, Tema.TextoSuave), m, y + 22, 480, 18));
-        Controls.Add(Pos(deslizador, m - 4, y + 48, 330, 30));
-        Controls.Add(Pos(lblUmbral, m + 334, y + 48, 64, 30));
-        Controls.Add(Pos(btnAuto, m + 400, y + 50, 64, 26));
+        // Perfil
+        Controls.Add(Pos(new Etiqueta("Perfil", Tema.Seccion, Tema.Texto), m, y, 200, 22));
+        Controls.Add(Pos(comboPerfil, m, y + 28, 230, 30));
+        Controls.Add(Pos(btnGuardarPerfil, m + 238, y + 26, 130, 32));
+        Controls.Add(Pos(btnBorrarPerfil, m + 374, y + 26, 76, 32));
+        Controls.Add(Pos(lblPerfil, m, y + 62, 450, 32));
+        lblPerfil.TextAlign = ContentAlignment.TopLeft;
 
-        Controls.Add(Pos(new Etiqueta("Ritmo", Tema.Seccion, Tema.Texto), m + 500, y, 200, 22));
-        Controls.Add(Pos(new Etiqueta("Valores r\u00e1pidos; luego puedes afinar.", Tema.Pequena, Tema.TextoSuave), m + 500, y + 22, 312, 18));
-        int px = m + 500, py = y + 48;
-        for (int i = 0; i < Preset.Todos.Length; i++)
-        {
-            Boton c = new Boton(Preset.Todos[i].Nombre, EstiloBoton.Chip);
-            Preset pr = Preset.Todos[i];
-            c.Click += delegate { AplicarPreset(pr); };
-            chips.Add(c);
-            int w = TextRenderer.MeasureText(c.Text, Tema.Normal).Width + 22;
-            if (px + w > m + ancho) { px = m + 500; py += 34; }
-            Controls.Add(Pos(c, px, py, w, 28));
-            px += w + 6;
-        }
-        y += 130;
+        // Sensibilidad general
+        int sx = m + 490;
+        Controls.Add(Pos(new Etiqueta("Sensibilidad", Tema.Seccion, Tema.Texto), sx, y, 200, 22));
+        Controls.Add(Pos(new Etiqueta("Sube todos los umbrales para cortar m\u00e1s; b\u00e1jalos para cortar menos.",
+            Tema.Pequena, Tema.TextoSuave), sx, y + 62, ancho - 490, 32));
+        deslizador.Minimo = -10; deslizador.Maximo = 10; deslizador.DesdeCentro = true;
+        Controls.Add(Pos(deslizador, sx - 4, y + 28, 190, 30));
+        Controls.Add(Pos(lblSensibilidad, sx + 190, y + 28, 56, 30));
+        Controls.Add(Pos(btnAuto, sx + 250, y + 27, ancho - 490 - 250, 32));
+        ayuda.SetToolTip(btnAuto, "Recalcula el umbral de cada pista seg\u00fan su ruido de fondo y su voz.");
+        y += 104;
 
         // Tiempos
-        int col = (ancho - 36) / 4;
-        CampoTiempo(numSilencio, "Silencio m\u00ednimo", "Quita pausas m\u00e1s largas", m, y, col);
-        CampoTiempo(numHabla, "Voz m\u00ednima", "Ignora ruidos m\u00e1s cortos", m + (col + 12), y, col);
-        CampoTiempo(numAntes, "Margen antes", "Pausa que queda antes de hablar", m + (col + 12) * 2, y, col);
-        CampoTiempo(numDespues, "Margen despu\u00e9s", "Pausa que queda al terminar", m + (col + 12) * 3, y, col);
+        int col = (ancho - 5 * 10) / 6;
+        CampoTiempo(numSilencio, "Silencio m\u00ednimo", "Solo quita pausas m\u00e1s largas", m, y, col);
+        CampoTiempo(numHabla, "Voz m\u00ednima", "Ignora ruidos m\u00e1s cortos", m + (col + 10), y, col);
+        CampoTiempo(numAntes, "Margen antes", "Pausa antes de hablar", m + (col + 10) * 2, y, col);
+        CampoTiempo(numDespues, "Margen despu\u00e9s", "Pausa al terminar", m + (col + 10) * 3, y, col);
+        CampoTiempo(numPedazo, "Clip m\u00ednimo", "No deja clips m\u00e1s cortos", m + (col + 10) * 4, y, col);
+        CampoTiempo(numSuavizado, "Suavizado", "Fundido del audio en cada corte", m + (col + 10) * 5, y, col);
         y += 100;
 
         // Separador + accion
@@ -1304,42 +1592,39 @@ public class VentanaSilencios : Form
         ClientSize = new Size(anchoVentana, y + 90 + 40 + 24);
 
         // Valores iniciales
+        numSilencio.Maximo = 10000; numPedazo.Maximo = 10000;
+        numAntes.Maximo = 2000; numDespues.Maximo = 2000;
+        numSuavizado.Maximo = 200; numSuavizado.Paso = 5;
         cargando = true;
-        deslizador.Valor = Ajustes.UmbralDb;
-        numSilencio.Valor = Ajustes.SilencioMinMs; numSilencio.Maximo = 10000;
-        numHabla.Valor = Ajustes.HablaMinMs;
-        numAntes.Valor = Ajustes.MargenAntesMs; numAntes.Maximo = 2000;
-        numDespues.Valor = Ajustes.MargenDespuesMs; numDespues.Maximo = 2000;
+        MostrarValores(Ajustes);
         segModo.Seleccion = (int)Ajustes.Modo;
         segPistas.Seleccion = Ajustes.TodasLasPistas ? 0 : 1;
-        btnAuto.Activo = Ajustes.UmbralAutomatico;
         cargando = false;
+        LlenarPerfiles(Ajustes.Perfil);
 
         // Eventos
         btnAnalizar.Click += delegate { Analizar(); };
-        deslizador.Cambio += delegate { if (!cargando) { btnAuto.Activo = false; Recalcular(); } };
-        onda.UmbralArrastrado += delegate { btnAuto.Activo = false; deslizador.Valor = onda.Umbral; };
-        btnAuto.Click += delegate
+        deslizador.Cambio += delegate { if (!cargando) { ActualizarPerfil(); Recalcular(); } };
+        onda.UmbralCambiado += delegate
         {
-            btnAuto.Activo = true;
-            if (combinado != null)
-            {
-                cargando = true;
-                deslizador.Valor = Detector.UmbralAutomatico(combinado.Db);
-                cargando = false;
-            }
+            int pista = PistasElegidas[onda.CarrilArrastrado];
+            umbralBase[pista] = onda.UmbralArrastrado - deslizador.Valor;
             Recalcular();
         };
-        EventHandler recalc = delegate { if (!cargando) { MarcarPreset(); Recalcular(); } };
-        numSilencio.Cambio += recalc; numHabla.Cambio += recalc; numAntes.Cambio += recalc; numDespues.Cambio += recalc;
+        btnAuto.Click += delegate { UmbralesAutomaticos(true); Recalcular(); };
+        EventHandler recalc = delegate { if (!cargando) { ActualizarPerfil(); Recalcular(); } };
+        numSilencio.Cambio += recalc; numHabla.Cambio += recalc; numAntes.Cambio += recalc;
+        numDespues.Cambio += recalc; numPedazo.Cambio += recalc; numSuavizado.Cambio += recalc;
+        comboPerfil.SelectedIndexChanged += delegate { if (!cargando) ElegirPerfil(); };
+        btnGuardarPerfil.Click += delegate { GuardarPerfil(); };
+        btnBorrarPerfil.Click += delegate { BorrarPerfil(); };
         segModo.Cambio += delegate { ActualizarTextoBoton(); };
         segPistas.Cambio += delegate { Recalcular(); };
-        segRango.Cambio += delegate { cache.Clear(); Recalcular(); };
+        segRango.Cambio += delegate { cache.Clear(); umbralBase.Clear(); Recalcular(); };
         btnAplicar.Click += delegate { Aplicar(); };
         btnCancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
         KeyDown += delegate (object s, KeyEventArgs e) { if (e.KeyCode == Keys.Escape) { DialogResult = DialogResult.Cancel; Close(); } };
 
-        MarcarPreset();
         ActualizarTextoBoton();
         Recalcular();
     }
@@ -1349,29 +1634,110 @@ public class VentanaSilencios : Form
     void CampoTiempo(CampoNumero campo, string titulo, string texto, int x, int y, int w)
     {
         Controls.Add(Pos(new Etiqueta(titulo, Tema.Negrita, Tema.Texto), x, y, w, 20));
-        Controls.Add(Pos(new Etiqueta(texto, Tema.Pequena, Tema.TextoSuave), x, y + 20, w, 18));
-        Controls.Add(Pos(campo, x, y + 42, w, 36));
+        Etiqueta e = new Etiqueta(texto, Tema.Pequena, Tema.TextoSuave);
+        e.TextAlign = ContentAlignment.TopLeft;
+        Controls.Add(Pos(e, x, y + 20, w, 30));
+        Controls.Add(Pos(campo, x, y + 52, w, 36));
     }
 
-    void AplicarPreset(Preset p)
+    // ------------------------------------------------------------ perfiles
+
+    void MostrarValores(Valores v)
+    {
+        bool antes = cargando;
+        cargando = true;
+        numSilencio.Valor = v.SilencioMinMs; numHabla.Valor = v.HablaMinMs;
+        numAntes.Valor = v.MargenAntesMs; numDespues.Valor = v.MargenDespuesMs;
+        numPedazo.Valor = v.PedazoMinMs; numSuavizado.Valor = v.SuavizadoMs;
+        deslizador.Valor = v.Sensibilidad;
+        lblSensibilidad.Text = (v.Sensibilidad > 0 ? "+" : "") + v.Sensibilidad + " dB";
+        cargando = antes;
+    }
+
+    void LlenarPerfiles(string elegido)
     {
         cargando = true;
-        numSilencio.Valor = p.SilencioMin; numHabla.Valor = p.HablaMin;
-        numAntes.Valor = p.Antes; numDespues.Valor = p.Despues;
+        perfiles.Clear();
+        perfiles.AddRange(Perfil_.Incluidos);
+        perfiles.AddRange(Perfil_.CargarPropios());
+        comboPerfil.Items.Clear();
+        int indice = -1;
+        for (int i = 0; i < perfiles.Count; i++)
+        {
+            comboPerfil.Items.Add(perfiles[i].Nombre + (perfiles[i].Incluido ? "" : "  \u2605"));
+            if (perfiles[i].Nombre == elegido) indice = i;
+        }
+        comboPerfil.SelectedIndex = indice >= 0 ? indice : 0;
         cargando = false;
-        MarcarPreset();
+        ActualizarPerfil();
+    }
+
+    Perfil_ PerfilElegido { get { return comboPerfil.SelectedIndex >= 0 ? perfiles[comboPerfil.SelectedIndex] : null; } }
+
+    void ElegirPerfil()
+    {
+        if (PerfilElegido == null) return;
+        MostrarValores(PerfilElegido);
+        ActualizarPerfil();
         Recalcular();
     }
 
-    void MarcarPreset()
+    // Muestra la descripcion del perfil, o avisa si los valores ya no coinciden.
+    void ActualizarPerfil()
     {
-        for (int i = 0; i < chips.Count; i++)
+        LeerAjustes();
+        Perfil_ p = PerfilElegido;
+        if (p == null) return;
+        if (p.Igual(Ajustes))
         {
-            Preset p = Preset.Todos[i];
-            chips[i].Activo = p.SilencioMin == numSilencio.Valor && p.HablaMin == numHabla.Valor &&
-                              p.Antes == numAntes.Valor && p.Despues == numDespues.Valor;
+            lblPerfil.Text = p.Descripcion;
+            lblPerfil.ForeColor = Tema.TextoSuave;
+        }
+        else
+        {
+            lblPerfil.Text = "Modificado. Usa \u201cGuardar como\u2026\u201d para crear un perfil con estos valores.";
+            lblPerfil.ForeColor = Tema.AcentoHover;
+        }
+        btnBorrarPerfil.Enabled = !p.Incluido;
+    }
+
+    void GuardarPerfil()
+    {
+        Perfil_ actual = PerfilElegido;
+        string sugerido = actual != null && !actual.Incluido ? actual.Nombre : "";
+        using (DialogoNombre d = new DialogoNombre(sugerido))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            string nombre = d.Nombre.Replace("[", "(").Replace("]", ")");
+            foreach (Perfil_ inc in Perfil_.Incluidos)
+                if (String.Equals(inc.Nombre, nombre, StringComparison.OrdinalIgnoreCase)) nombre += " (m\u00edo)";
+
+            List<Perfil_> propios = Perfil_.CargarPropios();
+            Perfil_ p = null;
+            foreach (Perfil_ x in propios)
+                if (String.Equals(x.Nombre, nombre, StringComparison.OrdinalIgnoreCase)) p = x;
+            if (p == null) { p = new Perfil_(); p.Nombre = nombre; propios.Add(p); }
+            LeerAjustes();
+            p.CopiarDe(Ajustes);
+            Perfil_.GuardarPropios(propios);
+            LlenarPerfiles(nombre);
         }
     }
+
+    void BorrarPerfil()
+    {
+        Perfil_ p = PerfilElegido;
+        if (p == null || p.Incluido) return;
+        if (MessageBox.Show(this, "\u00bfBorrar el perfil \u201c" + p.Nombre + "\u201d?", "Borrar perfil",
+                MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+        List<Perfil_> propios = Perfil_.CargarPropios();
+        propios.RemoveAll(delegate (Perfil_ x) { return x.Nombre == p.Nombre; });
+        Perfil_.GuardarPropios(propios);
+        LlenarPerfiles(Perfil_.Incluidos[0].Nombre);
+        ElegirPerfil();
+    }
+
+    // ------------------------------------------------------------- analisis
 
     void ActualizarTextoBoton()
     {
@@ -1382,14 +1748,16 @@ public class VentanaSilencios : Form
 
     void LeerAjustes()
     {
-        Ajustes.UmbralDb = deslizador.Valor;
-        Ajustes.UmbralAutomatico = btnAuto.Activo;
         Ajustes.SilencioMinMs = numSilencio.Valor;
         Ajustes.HablaMinMs = numHabla.Valor;
         Ajustes.MargenAntesMs = numAntes.Valor;
         Ajustes.MargenDespuesMs = numDespues.Valor;
+        Ajustes.PedazoMinMs = numPedazo.Valor;
+        Ajustes.SuavizadoMs = numSuavizado.Valor;
+        Ajustes.Sensibilidad = (int)deslizador.Valor;
         Ajustes.Modo = (Modo)segModo.Seleccion;
         Ajustes.TodasLasPistas = segPistas.Seleccion == 0;
+        if (PerfilElegido != null) Ajustes.Perfil = PerfilElegido.Nombre;
     }
 
     List<int> Faltantes()
@@ -1399,11 +1767,18 @@ public class VentanaSilencios : Form
         return f;
     }
 
+    void UmbralesAutomaticos(bool todas)
+    {
+        foreach (KeyValuePair<int, Analisis> kv in cache)
+            if (todas || !umbralBase.ContainsKey(kv.Key))
+                umbralBase[kv.Key] = Detector.UmbralAutomatico(kv.Value.Db);
+    }
+
     void Analizar()
     {
         // Si ya estaba todo leido, el boton vuelve a leer las pistas marcadas.
         List<int> leer = Faltantes();
-        if (leer.Count == 0) { foreach (int i in PistasElegidas) cache.Remove(i); leer = PistasElegidas; }
+        if (leer.Count == 0) { foreach (int i in PistasElegidas) { cache.Remove(i); umbralBase.Remove(i); } leer = PistasElegidas; }
 
         btnAnalizar.Enabled = false;
         Cursor = Cursors.WaitCursor;
@@ -1413,21 +1788,16 @@ public class VentanaSilencios : Form
             {
                 btnAnalizar.Text = "Leyendo " + (k + 1) + " de " + leer.Count + "\u2026";
                 onda.Mensaje = "Leyendo el audio de " + nombres[leer[k]] + "\u2026";
-                onda.Mostrar(null, new List<Rango>(), deslizador.Valor);
+                onda.Mostrar(null, new List<Rango>());
                 Application.DoEvents();
                 cache[leer[k]] = analizar(leer[k], segRango.Seleccion == 1);
             }
-            if (btnAuto.Activo)
-            {
-                cargando = true;
-                deslizador.Valor = Detector.UmbralAutomatico(Combinado().Db);
-                cargando = false;
-            }
+            UmbralesAutomaticos(false);
         }
         catch (Exception ex)
         {
             onda.Mensaje = "No se pudo analizar: " + ex.Message;
-            onda.Mostrar(null, new List<Rango>(), deslizador.Valor);
+            onda.Mostrar(null, new List<Rango>());
         }
         finally
         {
@@ -1437,53 +1807,51 @@ public class VentanaSilencios : Form
         Recalcular();
     }
 
-    Analisis Combinado()
-    {
-        List<Analisis> l = new List<Analisis>();
-        foreach (int i in PistasElegidas) l.Add(cache[i]);
-        return Analisis.Combinar(l);
-    }
-
     void Recalcular()
     {
         LeerAjustes();
-        lblUmbral.Text = Ajustes.UmbralDb.ToString("0") + " dB";
+        lblSensibilidad.Text = (Ajustes.Sensibilidad > 0 ? "+" : "") + Ajustes.Sensibilidad + " dB";
         List<int> faltan = Faltantes();
         btnAnalizar.Text = faltan.Count == 0 ? "Reanalizar" :
             cache.Count == 0 ? "Analizar" : "Analizar " + faltan.Count + (faltan.Count == 1 ? " pista" : " pistas");
+        btnAuto.Enabled = cache.Count > 0;
 
         if (faltan.Count > 0)
         {
-            combinado = null;
             Rangos = new List<Rango>();
             if (cache.Count > 0) onda.Mensaje = "Pulsa Analizar para leer las pistas nuevas.";
-            onda.Mostrar(null, Rangos, Ajustes.UmbralDb);
+            onda.Mostrar(null, Rangos);
             lblResumenGrande.Text = "Sin analizar";
             lblResumen.Text = "Analiza para ver los silencios.";
             btnAplicar.Enabled = false;
             return;
         }
 
-        combinado = Combinado();
-        Rangos = Detector.Detectar(combinado, Ajustes);
-
-        List<Carril> carriles = new List<Carril>();
         List<int> elegidas = PistasElegidas;
+        List<Analisis> datos = new List<Analisis>();
+        List<double> umbrales = new List<double>();
+        List<Carril> carriles = new List<Carril>();
         for (int k = 0; k < elegidas.Count; k++)
         {
+            int p = elegidas[k];
+            datos.Add(cache[p]);
+            umbrales.Add(umbralBase[p]);
+
             Carril c = new Carril();
-            string n = nombres[elegidas[k]];
-            int punto = n.IndexOf(' ');
-            c.Etiqueta = punto > 0 ? n.Substring(0, punto) : n;
-            c.Datos = cache[elegidas[k]];
+            string n = nombres[p];
+            int espacio = n.IndexOf(' ');
+            c.Etiqueta = espacio > 0 ? n.Substring(0, espacio) : n;
+            c.Datos = cache[p];
             c.Color = VistaOnda.Colores[k % VistaOnda.Colores.Length];
+            c.Umbral = umbralBase[p] + Ajustes.Sensibilidad;
             carriles.Add(c);
         }
-        onda.Mostrar(carriles, Rangos, Ajustes.UmbralDb);
+        Rangos = Detector.Detectar(datos, umbrales, Ajustes);
+        onda.Mostrar(carriles, Rangos);
 
         double quitado = 0;
         foreach (Rango r in Rangos) quitado += r.Fin - r.Inicio;
-        double dur = combinado.Duracion;
+        double dur = cache[elegidas[0]].Duracion;
         double pct = dur > 0 ? quitado / dur * 100 : 0;
         lblResumenGrande.Text = Rangos.Count + (Rangos.Count == 1 ? " silencio" : " silencios") +
                                 " \u00b7 " + Formato.Tiempo(quitado);
