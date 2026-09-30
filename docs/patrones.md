@@ -32,7 +32,8 @@ Datos sacados de los `.export.json` en `ejemplos/` (8 video ensayos con avatar,
 
 - **Gameplay:** zoom fijo **1.03** centrado en casi todos los clips de la grabación principal
   (150 eventos en `Cap1`, 164 en `Sin título`), y **1.2** en la segunda cámara (centro ~800, 439).
-  Es el mismo ajuste repetido en cada pedazo.
+  Es el mismo ajuste repetido en cada pedazo. **Motivo:** ocultar la barra de tareas de Windows
+  (conviene resolverlo en OBS con recorte o captura de juego/ventana).
 - Aparecen zooms puntuales (1.5, 2.0, 2.8, 6.0) para remarcar momentos.
 - Los clips de apoyo en los video ensayos usan zoom 1.5 / 1.8 / 1.78.
 
@@ -46,8 +47,10 @@ Datos sacados de los `.export.json` en `ejemplos/` (8 video ensayos con avatar,
 
 ## 5. Otros
 
-- **Presentaciones de imágenes:** `fase3rema2` tiene 123 imágenes numeradas (`1.jpg`, `2.jpg`…), cada una con zoom
-  1.78 y fundido de 0.5 s.
+- **Galería por pares** (`fase3rema2`, diseños de personajes): dos pistas sincronizadas,
+  `N.jpg` a la izquierda (zoom 1.78 fijo, centro 540, 768) y el diseño del personaje a la derecha
+  con un **zoom distinto por imagen** (0.68–1.37) para que quepa. Duración de 3.5 o 5 s,
+  fundidos cruzados de 0.5 s y un póster de fondo por película. 123 pares.
 - **Voces de personajes o narrador** (`ijichi`, `gojo`, `narrador`…) y efectos de sonido (`Vine Boom`, `menu confirm`)
   colocados a mano.
 - **Efectos de evento:** poco uso. Los más comunes son `S_Shake`, `S_BlurMoCurves`,
@@ -60,9 +63,9 @@ Datos sacados de los `.export.json` en `ejemplos/` (8 video ensayos con avatar,
 1. **Avatar**: poner una expresión en el cursor con el rebote ya aplicado; después, automatizar la
    boca (*hablando*/*callado* según el volumen) y los parpadeos.
 2. **Silences** para la voz de los video ensayos.
-3. **Aplicar Pan/Crop a muchos clips a la vez** (1.03 / 1.2 en gameplay), por pista o por archivo.
+3. **Zoom de la barra de tareas**: arreglarlo en OBS; en Vegas usar *Pegar atributos de evento*.
 4. **Generador de textos** desde una lista usando un texto existente como plantilla
    (episodio, cuenta regresiva, "Día N", frases partidas).
-5. **Presentación de imágenes desde una carpeta** (duración, zoom y fundido fijos).
+5. **Galería por pares**: dos carpetas → pares sincronizados, cada imagen ajustada sola a su recuadro.
 6. **Minecraft**: marcadores donde hay voz en la pista del micrófono, para encontrar rápido
    los momentos buenos en grabaciones largas.
