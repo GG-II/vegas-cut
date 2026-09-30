@@ -15,7 +15,7 @@ Herramientas para agilizar la edición en VEGAS Pro 20, inspiradas en AutoCut
 
 ### `ExportarProyecto.cs`
 
-Exporta el proyecto abierto a `<proyecto>.export.json` (junto al `.veg`) con:
+Exporta proyectos a JSON con:
 
 - Configuración: resolución, fps, frecuencia de audio.
 - Media usada, incluidos generadores (Títulos y Texto, color sólido).
@@ -25,10 +25,19 @@ Exporta el proyecto abierto a `<proyecto>.export.json` (junto al `.veg`) con:
   (con `zoom` calculado).
 - Marcadores y regiones.
 
-**Uso:** abre el proyecto en Vegas 20 → *Tools → Scripting → Run Script…* →
-elige `ExportarProyecto.cs`. Al terminar muestra la ruta del JSON.
+**Uso:** en Vegas 20, *Herramientas → Secuencias de comandos → Ejecutar
+secuencia de comandos…* (*Tools → Scripting → Run Script…*) → elige
+`ExportarProyecto.cs`. Pregunta el modo:
+
+- **No → solo el proyecto abierto.** Crea `<proyecto>.export.json` junto al `.veg`.
+- **Sí → carpeta completa.** Eliges una carpeta y abre cada `.veg` (con
+  subcarpetas), crea su JSON junto al `.veg` y deja una copia de todos en
+  `<carpeta>\_vegas-cut-export\`, con un `exportacion.log`. Salta los
+  proyectos cuyo JSON ya está al día, así que se puede repetir sin perder tiempo.
+  Guarda el proyecto abierto antes de empezar. Si Vegas avisa de archivos que no
+  encuentra, elige ignorar para que siga.
 
 Para tenerlo siempre en el menú, copia el `.cs` a
 `Documentos\Vegas Script Menu\` y usa *Tools → Scripting → Rescan Script Menu Folder*.
 
-Sube los `.export.json` a `ejemplos/` junto a su `.veg` para analizarlos.
+Para analizar, sube la carpeta `_vegas-cut-export` (o los `.export.json`).

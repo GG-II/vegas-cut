@@ -1,11 +1,16 @@
 // ExportarProyecto.cs
 // Script para VEGAS Pro 20 (Tools > Scripting > Run Script...).
-// Exporta el proyecto abierto a un archivo JSON con pistas, eventos, efectos,
-// keyframes de Pan/Crop, textos, marcadores y regiones, para analizar
-// patrones de edicion fuera de Vegas.
+// Exporta proyectos a JSON con pistas, eventos, efectos, keyframes de
+// Pan/Crop, textos, marcadores y regiones, para analizar patrones de edicion
+// fuera de Vegas.
 //
-// El JSON se guarda junto al .veg como "<proyecto>.export.json".
-// Si el proyecto no esta guardado, se guarda en Documentos.
+// Al ejecutarlo pregunta el modo:
+//   - Solo el proyecto abierto: el JSON queda junto al .veg como
+//     "<proyecto>.export.json" (en Documentos si el proyecto no esta guardado).
+//   - Carpeta completa: abre cada .veg de la carpeta y subcarpetas, lo exporta
+//     junto a su .veg y deja una copia de todos los JSON en
+//     "<carpeta>\_vegas-cut-export\" para subirlos juntos. Salta los proyectos
+//     cuyo JSON ya esta al dia.
 //
 // Escrito en C# 5 (sin interpolacion de cadenas ni "?.") porque Vegas compila
 // los scripts con el compilador clasico de .NET Framework.
@@ -23,11 +28,124 @@ using ScriptPortal.Vegas;
 public class EntryPoint
 {
     const int FormatoVersion = 1;
+    const string Titulo = "Exportar proyecto";
+    const string CarpetaColeccion = "_vegas-cut-export";
 
     public void FromVegas(Vegas vegas)
     {
-        Project proyecto = vegas.Project;
+        DialogResult modo = MessageBox.Show(
+            "\u00bfExportar todos los proyectos de una carpeta?\n\n" +
+            "S\u00ed: elegir una carpeta (incluye subcarpetas).\n" +
+            "No: exportar solo el proyecto abierto.\n\n" +
+            "Antes de exportar una carpeta, guarda el proyecto abierto: " +
+            "el script abrir\u00e1 cada .veg en Vegas.",
+            Titulo, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
+        if (modo == DialogResult.Yes) ExportarCarpeta(vegas);
+        else if (modo == DialogResult.No) ExportarAbierto(vegas);
+    }
+
+    void ExportarAbierto(Vegas vegas)
+    {
+        Project proyecto = vegas.Project;
+        string ruta = RutaSalida(proyecto);
+        Exportar(vegas, proyecto, ruta);
+
+        int eventos = 0;
+        foreach (Track pista in proyecto.Tracks) eventos += pista.Events.Count;
+        MessageBox.Show(
+            "Proyecto exportado.\n\n" +
+            "Pistas: " + proyecto.Tracks.Count + "\n" +
+            "Eventos: " + eventos + "\n\n" + ruta,
+            Titulo);
+    }
+
+    void ExportarCarpeta(Vegas vegas)
+    {
+        string carpeta;
+        using (FolderBrowserDialog dialogo = new FolderBrowserDialog())
+        {
+            dialogo.Description = "Carpeta con los proyectos .veg (se incluyen subcarpetas)";
+            if (dialogo.ShowDialog() != DialogResult.OK) return;
+            carpeta = dialogo.SelectedPath;
+        }
+
+        string coleccion = Path.Combine(carpeta, CarpetaColeccion);
+        List<string> vegs = new List<string>();
+        foreach (string f in Directory.GetFiles(carpeta, "*.veg", SearchOption.AllDirectories))
+        {
+            // "*.veg" tambien encuentra extensiones como ".vegx"; se filtra exacto.
+            if (!String.Equals(Path.GetExtension(f), ".veg", StringComparison.OrdinalIgnoreCase)) continue;
+            if (f.StartsWith(coleccion, StringComparison.OrdinalIgnoreCase)) continue;
+            vegs.Add(f);
+        }
+        vegs.Sort(StringComparer.OrdinalIgnoreCase);
+
+        if (vegs.Count == 0)
+        {
+            MessageBox.Show("No hay archivos .veg en:\n" + carpeta, Titulo);
+            return;
+        }
+        if (MessageBox.Show(
+                "Se encontraron " + vegs.Count + " proyectos.\n\n" +
+                "Vegas abrir\u00e1 cada uno; puede tardar varios minutos. " +
+                "Si un proyecto tiene archivos que no encuentra, Vegas preguntar\u00e1 " +
+                "qu\u00e9 hacer: elige ignorar/omitir para seguir.\n\n\u00bfContinuar?",
+                Titulo, MessageBoxButtons.OKCancel) != DialogResult.OK)
+            return;
+
+        Directory.CreateDirectory(coleccion);
+        int exportados = 0, saltados = 0;
+        List<string> errores = new List<string>();
+        StringBuilder log = new StringBuilder();
+
+        foreach (string veg in vegs)
+        {
+            string relativo = veg.Substring(carpeta.Length).TrimStart('\\', '/');
+            string json = Path.Combine(Path.GetDirectoryName(veg),
+                Path.GetFileNameWithoutExtension(veg) + ".export.json");
+            string copia = Path.Combine(coleccion,
+                Path.ChangeExtension(relativo, null).Replace('\\', '_').Replace('/', '_') + ".export.json");
+
+            try
+            {
+                if (File.Exists(json) && File.GetLastWriteTime(json) >= File.GetLastWriteTime(veg))
+                {
+                    saltados++;
+                    log.AppendLine("AL DIA    " + relativo);
+                }
+                else
+                {
+                    if (!vegas.OpenProject(veg))
+                        throw new Exception("Vegas no pudo abrir el proyecto.");
+                    Exportar(vegas, vegas.Project, json);
+                    exportados++;
+                    log.AppendLine("EXPORTADO " + relativo);
+                }
+                File.Copy(json, copia, true);
+            }
+            catch (Exception ex)
+            {
+                errores.Add(relativo + ": " + ex.Message);
+                log.AppendLine("ERROR     " + relativo + ": " + ex.Message);
+            }
+        }
+
+        File.WriteAllText(Path.Combine(coleccion, "exportacion.log"), log.ToString(), new UTF8Encoding(false));
+
+        string resumen =
+            "Exportados: " + exportados + "\n" +
+            "Ya estaban al d\u00eda: " + saltados + "\n" +
+            "Con error: " + errores.Count + "\n\n" +
+            "Todos los JSON est\u00e1n en:\n" + coleccion;
+        if (errores.Count > 0)
+            resumen += "\n\nErrores (detalle en exportacion.log):\n" +
+                String.Join("\n", errores.GetRange(0, Math.Min(errores.Count, 10)).ToArray());
+        MessageBox.Show(resumen, Titulo);
+    }
+
+    static void Exportar(Vegas vegas, Project proyecto, string ruta)
+    {
         Dictionary<string, object> raiz = new Dictionary<string, object>();
         raiz["formato"] = "vegas-cut-export";
         raiz["formatoVersion"] = FormatoVersion;
@@ -39,16 +157,7 @@ public class EntryPoint
         raiz["marcadores"] = ExportarMarcadores(proyecto);
         raiz["regiones"] = ExportarRegiones(proyecto);
 
-        string ruta = RutaSalida(proyecto);
         File.WriteAllText(ruta, Json.Serializar(raiz), new UTF8Encoding(false));
-
-        int eventos = 0;
-        foreach (Track pista in proyecto.Tracks) eventos += pista.Events.Count;
-        MessageBox.Show(
-            "Proyecto exportado.\n\n" +
-            "Pistas: " + proyecto.Tracks.Count + "\n" +
-            "Eventos: " + eventos + "\n\n" + ruta,
-            "Exportar proyecto");
     }
 
     static string RutaSalida(Project proyecto)
