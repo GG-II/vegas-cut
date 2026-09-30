@@ -12,26 +12,44 @@ Herramientas para agilizar la edición en VEGAS Pro 20, inspiradas en AutoCut
 - `docs/`: plan, patrones de edición y notas
 - `pruebas/`: pruebas sin Vegas (`sh pruebas/ejecutar.sh`, requiere mono)
 
+## Instalación
+
+Los scripts no se instalan: son archivos `.cs` que Vegas compila al ejecutarlos.
+
+- **Sin instalar:** *Herramientas → Secuencias de comandos → Ejecutar secuencia de comandos…*
+  y eliges el `.cs` en la carpeta `scripts/` del repositorio.
+- **En el menú (recomendado):** copia los `.cs` a `Documentos\Vegas Script Menu\` (crea la
+  carpeta si no existe) y reinicia Vegas, o usa *Herramientas → Secuencias de comandos →
+  Volver a examinar la carpeta del menú de secuencias de comandos*. Aparecen en
+  *Herramientas → Secuencias de comandos*.
+- **Atajo de teclado o botón:** *Opciones → Personalizar teclado*, busca el nombre del script y
+  asígnale una tecla; o *Opciones → Personalizar barra de herramientas* para poner un botón.
+
+Al actualizar el repositorio (`git pull`), vuelve a copiar los `.cs` si usas la carpeta del menú.
+
 ## Scripts
 
 ### `QuitarSilencios.cs`
 
 ![Ventana de Quitar silencios](docs/img/quitar-silencios.png)
 
-Detecta las pausas de una pista de voz y las quita de la línea de tiempo.
+Detecta las pausas de una o varias pistas de voz y las quita de la línea de tiempo.
 
-1. Guarda el proyecto y ejecuta el script (*Herramientas → Secuencias de comandos →
-   Ejecutar secuencia de comandos…*).
-2. Elige la **pista de voz** (sugiere la que tenga un archivo `-mejorada` o más eventos) y el
-   **rango**: todo el proyecto o la selección de tiempo.
-3. **Analizar**: Vegas renderiza solo esa pista a un WAV temporal y se mide el volumen cada 10 ms.
-4. Ajusta mirando la onda (en rojo lo que se quitará):
+1. Guarda el proyecto y ejecuta el script (ver *Instalación*).
+2. Marca las **pistas de voz**: por ejemplo tu micrófono y la llamada. Hay voz si suena
+   **cualquiera** de ellas, así que cuando hablan los dos a la vez se conserva todo. Las pistas
+   sin marcar (juego, música) no cuentan para detectar, pero con *Todas las pistas* se cortan
+   igual para que todo siga sincronizado. Pasa el ratón sobre una pista para ver su detalle.
+   Si pones nombre a las pistas en Vegas ("Voz", "Llamada", "Juego") aparece ese nombre.
+3. Elige el **rango** (todo el proyecto o la selección de tiempo) y pulsa **Analizar**: Vegas
+   renderiza cada pista marcada a un WAV temporal y se mide el volumen cada 10 ms.
+4. Ajusta mirando la onda (un carril por pista; en rojo lo que se quitará):
    - **Umbral**: con el deslizador, arrastrando la línea en la onda o con *Auto*.
    - **Ritmo**: Calmado, Medido, Dinámico, Enérgico, Agresivo.
    - **Silencio mínimo**, **voz mínima** (ignora clics y respiraciones), **margen antes** y **después**.
-5. Elige qué hacer: **Eliminar** (corta y junta todo), **Silenciar** (corta y deja mudo) o
-   **Solo marcar** (crea regiones "Silencio" para revisarlas), y dónde cortar: **todas las pistas**
-   (mantiene la sincronía) o **solo esa pista**.
+5. Elige qué hacer: **Eliminar** (corta y junta todo), **Dejar huecos** (quita sin mover),
+   **Silenciar** (corta y deja mudo) o **Solo marcar** (crea regiones "Silencio" para revisarlas),
+   y dónde cortar: **todas las pistas** o **solo las analizadas**.
 6. Todo queda en un solo paso de deshacer: **Ctrl+Z** lo revierte.
 
 Los ajustes se recuerdan en `%APPDATA%\vegas-cut\silencios.ini`.
