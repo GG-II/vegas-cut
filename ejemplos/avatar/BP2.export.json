@@ -1,0 +1,6415 @@
+{
+  "formato": "vegas-cut-export",
+  "formatoVersion": 1,
+  "vegasVersion": "Version 20.0 (Build 403)",
+  "exportado": "2026-09-30T16:37:04",
+  "proyecto": {
+    "archivo": "J:\\Documentos\\Proyectos\\vegas-cut\\ejemplos\\avatar\\BP2.veg",
+    "duracion": 524.7743,
+    "ancho": 1920,
+    "alto": 1080,
+    "fps": 59.940059940059939,
+    "aspectoPixel": 1,
+    "frecuenciaAudio": 48000
+  },
+  "media": [
+    {
+      "archivo": "H:\\Grabaciones\\2026-02-09 21-53-27.mp4",
+      "generado": false,
+      "duracion": 615.1658,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+      "generado": false,
+      "duracion": 30,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2 Trailer_EDIT.mp4",
+      "generado": false,
+      "duracion": 20,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+      "generado": false,
+      "duracion": 30,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+      "generado": false,
+      "duracion": 36.8034,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+      "generado": false,
+      "duracion": 569.3013,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+      "generado": false,
+      "duracion": 62.5,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\latest (2).jpg",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+      "generado": false,
+      "duracion": 630.263,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p.mp4",
+      "generado": false,
+      "duracion": 110.3436,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+      "generado": false,
+      "duracion": 95.76,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\cejas levantadas.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz 2.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz cerrando los ojos.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz hablando.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\guiñando.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\hablando.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\mirando izquierda.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\pregunta.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds Lo-FI\\02. Building Contraptions.wav",
+      "generado": false,
+      "duracion": 189.96,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Música\\NoticiABs OST\\05 - Background Respawn.mp3",
+      "generado": false,
+      "duracion": 155.952,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Música\\NoticiABs OST\\06 - Low Light Mode.mp3",
+      "generado": false,
+      "duracion": 188.112,
+      "tieneVideo": false,
+      "tieneAudio": true
+    }
+  ],
+  "pistas": [
+    {
+      "indice": 0,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 184.0505,
+          "duracion": 5.005,
+          "fin": 189.0555,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.6173,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.4671,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "latest (2)",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\latest (2).jpg",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 483,
+              "centroY": 484,
+              "ancho": 1358.98095703125,
+              "alto": 1361.794677734375,
+              "zoom": 1.4128233291762375
+            },
+            {
+              "posicion": 5.005,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0.071848940206626064,
+              "centroX": 483,
+              "centroY": 484,
+              "ancho": 1286.4398965083242,
+              "alto": 1289.1032625472267,
+              "zoom": 1.4924910252016397
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 1,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 9.8598,
+          "duracion": 2.0521,
+          "fin": 11.9119,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 11.9119,
+          "duracion": 4.8715,
+          "fin": 16.7834,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz hablando",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz hablando.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 16.7834,
+          "duracion": 2.0854,
+          "fin": 18.8689,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "pregunta",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\pregunta.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 18.8689,
+          "duracion": 4.7714,
+          "fin": 23.6403,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz 2",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz 2.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 23.6403,
+          "duracion": 2.4525,
+          "fin": 26.0927,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz cerrando los ojos",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz cerrando los ojos.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 26.0927,
+          "duracion": 2.0187,
+          "fin": 28.1114,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "pregunta",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\pregunta.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 429.0453,
+          "duracion": 6.2729,
+          "fin": 435.3182,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "hablando",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\hablando.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 435.3182,
+          "duracion": 7.057,
+          "fin": 442.3753,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "cejas levantadas",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\cejas levantadas.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 442.3753,
+          "duracion": 3.7204,
+          "fin": 446.0956,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "mirando izquierda",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\mirando izquierda.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 490.4233,
+          "duracion": 2.1688,
+          "fin": 492.5921,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 492.5921,
+          "duracion": 3.7704,
+          "fin": 496.3625,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz cerrando los ojos",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz cerrando los ojos.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 496.3625,
+          "duracion": 3.7204,
+          "fin": 500.0829,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz hablando",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz hablando.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 500.0829,
+          "duracion": 2.2689,
+          "fin": 502.3518,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 502.3518,
+          "duracion": 2.1021,
+          "fin": 504.454,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "feliz 2",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\feliz 2.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 504.454,
+          "duracion": 1.6183,
+          "fin": 506.0722,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.7174,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "guiñando",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Avatar\\guiñando.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1068.629638671875,
+              "alto": 1071.5546875,
+              "zoom": 1.7966935695197763
+            },
+            {
+              "posicion": 0.0334,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1157.583251953125,
+              "alto": 1160.751953125,
+              "zoom": 1.6586280051654965
+            },
+            {
+              "posicion": 0.0667,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 548,
+              "centroY": 549.5,
+              "ancho": 1095.83154296875,
+              "alto": 1098.8310546875,
+              "zoom": 1.7520941173115629
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 2,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 2.1688,
+          "fin": 2.1688,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 0.9843,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1280,
+              "centroY": 720,
+              "ancho": 2560,
+              "alto": 1440,
+              "zoom": 0.75
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 2.1688,
+          "duracion": 2.7194,
+          "fin": 4.8882,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 12.696,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1280,
+              "centroY": 720,
+              "ancho": 2560,
+              "alto": 1440,
+              "zoom": 0.75
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 4.8882,
+          "duracion": 2.7527,
+          "fin": 7.641,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 19.386,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1280,
+              "centroY": 720,
+              "ancho": 2560,
+              "alto": 1440,
+              "zoom": 0.75
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 7.641,
+          "duracion": 2.2189,
+          "fin": 9.8598,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 29.346,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1280,
+              "centroY": 720,
+              "ancho": 2560,
+              "alto": 1440,
+              "zoom": 0.75
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 28.1114,
+          "duracion": 1.9853,
+          "fin": 30.0967,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p",
+          "offset": 80.13,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 30.0967,
+          "duracion": 1.8519,
+          "fin": 31.9486,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 31.9486,
+          "duracion": 1.4681,
+          "fin": 33.4167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 33.4167,
+          "duracion": 1.9553,
+          "fin": 35.372,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 28.0447,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 35.372,
+          "duracion": 6.0394,
+          "fin": 41.4114,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 9.376,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 41.408,
+          "duracion": 4.4378,
+          "fin": 45.8458,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 34.7848,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 45.8492,
+          "duracion": 2.4991,
+          "fin": 48.3483,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 16.016,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 48.3483,
+          "duracion": 4.6713,
+          "fin": 53.0196,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 27.9946,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 53.0196,
+          "duracion": 2.0687,
+          "fin": 55.0884,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 21.7718,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 55.0884,
+          "duracion": 5.3053,
+          "fin": 60.3937,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 21.0544,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 60.3937,
+          "duracion": 4.2042,
+          "fin": 64.5979,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 39.2225,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 64.5979,
+          "duracion": 2.7361,
+          "fin": 67.3339,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 23.8905,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 67.3339,
+          "duracion": 5.7391,
+          "fin": 73.073,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 47.8144,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 73.073,
+          "duracion": 3.5202,
+          "fin": 76.5932,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 29.4294,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 76.5932,
+          "duracion": 5.3554,
+          "fin": 81.9485,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 53.5535,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 81.9485,
+          "duracion": 6.4898,
+          "fin": 88.4383,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 66.5498,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 88.4384,
+          "duracion": 3.954,
+          "fin": 92.3923,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 59.9098,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 92.3923,
+          "duracion": 3.003,
+          "fin": 95.3953,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 38.6386,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 95.3953,
+          "duracion": 1.5849,
+          "fin": 96.9802,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 24.5579,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 96.9802,
+          "duracion": 3.2866,
+          "fin": 100.2668,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 73.8404,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 100.2668,
+          "duracion": 5.5722,
+          "fin": 105.8391,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 79.396,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 105.8391,
+          "duracion": 1.9853,
+          "fin": 107.8244,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p",
+          "offset": 80.13,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 107.8244,
+          "duracion": 1.8519,
+          "fin": 109.6762,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 109.6762,
+          "duracion": 1.4681,
+          "fin": 111.1444,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 111.1477,
+          "duracion": 6.0394,
+          "fin": 117.1871,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 9.376,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 117.1837,
+          "duracion": 4.4378,
+          "fin": 121.6215,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 34.7848,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 121.6249,
+          "duracion": 2.4991,
+          "fin": 124.124,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 16.016,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 124.124,
+          "duracion": 1.1512,
+          "fin": 125.2752,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 27.9946,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 125.2752,
+          "duracion": 20,
+          "fin": 145.2752,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2 Trailer_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2 Trailer_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 640,
+              "centroY": 360,
+              "ancho": 1280,
+              "alto": 720,
+              "zoom": 1.5
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 145.2785,
+          "duracion": 3.5202,
+          "fin": 148.7986,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 29.1458,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 148.7986,
+          "duracion": 2.0687,
+          "fin": 150.8674,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 21.7718,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 150.8674,
+          "duracion": 5.3053,
+          "fin": 156.1727,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 21.0544,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 156.1727,
+          "duracion": 4.2042,
+          "fin": 160.3769,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 39.2225,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 160.3769,
+          "duracion": 2.7361,
+          "fin": 163.113,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 23.8905,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 163.113,
+          "duracion": 5.7391,
+          "fin": 168.852,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 47.8144,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 168.852,
+          "duracion": 3.5202,
+          "fin": 172.3722,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 29.4294,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 172.3722,
+          "duracion": 5.3554,
+          "fin": 177.7276,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 53.5535,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 177.7276,
+          "duracion": 6.4898,
+          "fin": 184.2174,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 66.5498,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 184.2174,
+          "duracion": 3.954,
+          "fin": 188.1713,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 59.9098,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 188.1713,
+          "duracion": 3.003,
+          "fin": 191.1743,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 38.6386,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 191.1743,
+          "duracion": 1.5849,
+          "fin": 192.7592,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 24.5579,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 192.7592,
+          "duracion": 3.2866,
+          "fin": 196.0458,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 73.8404,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 196.0458,
+          "duracion": 5.5722,
+          "fin": 201.6181,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 79.396,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 201.6181,
+          "duracion": 5.5722,
+          "fin": 207.1903,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 79.396,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 207.1903,
+          "duracion": 3.5536,
+          "fin": 210.7439,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 210.7439,
+          "duracion": 4.0374,
+          "fin": 214.7812,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 12.1288,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 214.7812,
+          "duracion": 4.3544,
+          "fin": 219.1356,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 3.5536,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 219.1356,
+          "duracion": 3.9706,
+          "fin": 223.1062,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 16.1662,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 223.1062,
+          "duracion": 4.2209,
+          "fin": 227.3271,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 227.3271,
+          "duracion": 3.7037,
+          "fin": 231.0308,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 20.1368,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 231.0308,
+          "duracion": 2.9196,
+          "fin": 233.9504,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 41.7584,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 233.9504,
+          "duracion": 3.637,
+          "fin": 237.5874,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 55.055,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 237.5874,
+          "duracion": 4.7047,
+          "fin": 242.292,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 61.2278,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 242.292,
+          "duracion": 3.5536,
+          "fin": 245.8456,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 71.4547,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 245.8456,
+          "duracion": 3.003,
+          "fin": 248.8486,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 82.8161,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 248.8486,
+          "duracion": 4.2042,
+          "fin": 253.0528,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 95.1951,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 253.0528,
+          "duracion": 3.0531,
+          "fin": 256.1059,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 105.2551,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 256.1059,
+          "duracion": 3.9706,
+          "fin": 260.0765,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 124.4743,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 260.0765,
+          "duracion": 5.5389,
+          "fin": 265.6154,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 133.817,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 265.6154,
+          "duracion": 4.1875,
+          "fin": 269.8029,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 146.5631,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 269.8029,
+          "duracion": 5.1385,
+          "fin": 274.9413,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 162.2454,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 274.9413,
+          "duracion": 7.007,
+          "fin": 281.9483,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 197.564,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 281.9483,
+          "duracion": 5.2052,
+          "fin": 287.1535,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 239.9397,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 287.1535,
+          "duracion": 8.375,
+          "fin": 295.5286,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 288.2213,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 295.5286,
+          "duracion": 4.0207,
+          "fin": 299.5492,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 368.1845,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 299.5492,
+          "duracion": 8.0247,
+          "fin": 307.5739,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 372.2052,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 307.5739,
+          "duracion": 4.8715,
+          "fin": 312.4455,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 400.6336,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 312.4455,
+          "duracion": 3.7204,
+          "fin": 316.1659,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 437.804,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 316.1659,
+          "duracion": 4.0707,
+          "fin": 320.2366,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 492.492,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 320.2366,
+          "duracion": 5.4554,
+          "fin": 325.692,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 577.4936,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 325.692,
+          "duracion": 6.7067,
+          "fin": 332.3987,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 612.1115,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 332.3987,
+          "duracion": 1.9853,
+          "fin": 334.384,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p",
+          "offset": 80.13,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-Cinematic-Trailer_Media_DjZPIIlC9TM_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 334.384,
+          "duracion": 1.8519,
+          "fin": 336.2359,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 336.2359,
+          "duracion": 1.4681,
+          "fin": 337.704,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 337.7074,
+          "duracion": 6.0394,
+          "fin": 343.7468,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 9.376,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 343.7434,
+          "duracion": 4.4378,
+          "fin": 348.1812,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 34.7848,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 348.1845,
+          "duracion": 2.4991,
+          "fin": 350.6837,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 16.016,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 350.6837,
+          "duracion": 1.1512,
+          "fin": 351.8348,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 27.9946,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 351.8348,
+          "duracion": 3.5202,
+          "fin": 355.355,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 29.1458,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 355.355,
+          "duracion": 2.0687,
+          "fin": 357.4237,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 21.7718,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 357.4237,
+          "duracion": 5.3053,
+          "fin": 362.729,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 21.0544,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 362.729,
+          "duracion": 4.2042,
+          "fin": 366.9332,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 39.2225,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 366.9332,
+          "duracion": 2.7361,
+          "fin": 369.6693,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 23.8905,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 369.6693,
+          "duracion": 5.7391,
+          "fin": 375.4084,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 47.8144,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 375.4084,
+          "duracion": 3.5202,
+          "fin": 378.9286,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 29.4294,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 378.9286,
+          "duracion": 3.9706,
+          "fin": 382.8992,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 16.1662,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 382.8992,
+          "duracion": 4.2209,
+          "fin": 387.1201,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 387.1201,
+          "duracion": 3.7037,
+          "fin": 390.8238,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2： Out Now in Selected Countries!_EDIT",
+          "offset": 20.1368,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2： Out Now in Selected Countries!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 390.8238,
+          "duracion": 2.9196,
+          "fin": 393.7434,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 41.7584,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 393.7434,
+          "duracion": 3.637,
+          "fin": 397.3803,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 55.055,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 397.3803,
+          "duracion": 3.003,
+          "fin": 400.3833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 82.8161,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 400.3833,
+          "duracion": 5.3554,
+          "fin": 405.7387,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 53.5535,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 405.7387,
+          "duracion": 6.4898,
+          "fin": 412.2285,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 66.5498,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 412.2285,
+          "duracion": 3.954,
+          "fin": 416.1824,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 59.9098,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 416.1824,
+          "duracion": 3.003,
+          "fin": 419.1854,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 38.6386,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 419.1854,
+          "duracion": 1.5849,
+          "fin": 420.7704,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 24.5579,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 420.7704,
+          "duracion": 3.2866,
+          "fin": 424.057,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 73.8404,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 424.057,
+          "duracion": 4.9883,
+          "fin": 429.0453,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 79.396,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 446.0956,
+          "duracion": 4.0207,
+          "fin": 450.1163,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 368.1845,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 450.1163,
+          "duracion": 1.9686,
+          "fin": 452.085,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p",
+          "offset": 376.1091,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-2-Gameplay-Walkthrough-Part-_Media_nT2PUIJyntw_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 452.085,
+          "duracion": 1.8519,
+          "fin": 453.9368,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 453.9368,
+          "duracion": 1.4681,
+          "fin": 455.405,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 7.9079,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 455.4083,
+          "duracion": 6.0394,
+          "fin": 461.4477,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 9.376,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 461.4443,
+          "duracion": 4.4378,
+          "fin": 465.8821,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.0034,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 34.7848,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 465.8855,
+          "duracion": 2.4991,
+          "fin": 468.3846,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 16.016,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 468.3846,
+          "duracion": 1.1512,
+          "fin": 469.5357,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 27.9946,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 469.5357,
+          "duracion": 3.5202,
+          "fin": 473.0559,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 29.1458,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 473.0559,
+          "duracion": 2.0687,
+          "fin": 475.1246,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 21.7718,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 475.1246,
+          "duracion": 5.3053,
+          "fin": 480.43,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Celebrating 1 year of Bad Piggies!_EDIT",
+          "offset": 21.0544,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Celebrating 1 year of Bad Piggies!_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 480.43,
+          "duracion": 4.2042,
+          "fin": 484.6342,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 39.2225,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 484.6342,
+          "duracion": 2.7361,
+          "fin": 487.3702,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies - New Crazy Custom Contraptions update_EDIT",
+          "offset": 23.8905,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies - New Crazy Custom Contraptions update_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 487.3702,
+          "duracion": 3.0531,
+          "fin": 490.4233,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p",
+          "offset": 47.8144,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\YTDown.com_YouTube_Bad-Piggies-official-gameplay-trailer_Media_YsCpDaSooWA_001_1080p.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 3,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 4.8882,
+          "fin": 4.8882,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 0.9843,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 4.8882,
+          "duracion": 4.9716,
+          "fin": 9.8598,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Bad Piggies 2_EDIT",
+          "offset": 5.8725,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\Bad Piggies 2_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 4,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1.2022644281387329,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 9.8598,
+          "duracion": 32.082,
+          "fin": 41.9419,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 3.8496,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 41.9419,
+          "duracion": 12.9796,
+          "fin": 54.9215,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 36.7659,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 54.9215,
+          "duracion": 6.4231,
+          "fin": 61.3446,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 50.4462,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 61.3446,
+          "duracion": 9.4928,
+          "fin": 70.8374,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 57.4699,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 70.8374,
+          "duracion": 27.711,
+          "fin": 98.5485,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 67.8636,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 98.7398,
+          "duracion": 3.2621,
+          "fin": 102.0019,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 113.7094,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 102.0019,
+          "duracion": 13.7304,
+          "fin": 115.7323,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 128.0727,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 115.7323,
+          "duracion": 1.8018,
+          "fin": 117.5341,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 143.5048,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 117.5341,
+          "duracion": 1.368,
+          "fin": 118.9021,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 145.9906,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 118.9021,
+          "duracion": 15.1151,
+          "fin": 134.0172,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 149.9112,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 134.0172,
+          "duracion": 2.7027,
+          "fin": 136.7199,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 166.3776,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 136.7199,
+          "duracion": 6.006,
+          "fin": 142.7259,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 170.9655,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 142.7259,
+          "duracion": 4.1041,
+          "fin": 146.83,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 178.0393,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 146.83,
+          "duracion": 35.8858,
+          "fin": 182.7159,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 184.112,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 182.7159,
+          "duracion": 54.8715,
+          "fin": 237.5874,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 221.3492,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 237.5874,
+          "duracion": 0.951,
+          "fin": 238.5383,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 276.5543,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 238.5383,
+          "duracion": 21.5382,
+          "fin": 260.0765,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 277.7889,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 260.0775,
+          "duracion": 18.9366,
+          "fin": 279.0142,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 303.9817,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 279.0142,
+          "duracion": 53.3845,
+          "fin": 332.3987,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 323.5023,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 332.3987,
+          "duracion": 17.5008,
+          "fin": 349.8995,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 378.7721,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 349.8995,
+          "duracion": 44.4444,
+          "fin": 394.344,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 398.8588,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 394.344,
+          "duracion": 4.5212,
+          "fin": 398.8651,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 447.1904,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 398.8651,
+          "duracion": 24.6913,
+          "fin": 423.5565,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 452.062,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 423.5565,
+          "duracion": 14.0307,
+          "fin": 437.5872,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 478.1046,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 437.5872,
+          "duracion": 8.5085,
+          "fin": 446.0956,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 493.5868,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 446.0956,
+          "duracion": 11.962,
+          "fin": 458.0576,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 503.4466,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 458.0576,
+          "duracion": 11.1945,
+          "fin": 469.2521,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 519.0289,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 469.2521,
+          "duracion": 4.4211,
+          "fin": 473.6732,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 530.507,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 473.6732,
+          "duracion": 1.7351,
+          "fin": 475.4083,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 535.3285,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 475.4083,
+          "duracion": 6.8735,
+          "fin": 482.2818,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 537.4973,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 482.2818,
+          "duracion": 24.1797,
+          "fin": 506.4615,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "BadPiggies2-mejorada-v2",
+          "offset": 545.1216,
+          "archivo": "K:\\AB Fann 001\\BadPiggies2\\BadPiggies2-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 5,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 9.8598,
+          "duracion": 18.2516,
+          "fin": 28.1114,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-09 21-53-27",
+          "offset": 3.4034,
+          "archivo": "H:\\Grabaciones\\2026-02-09 21-53-27.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 637.8204345703125,
+              "centroY": 329.48605346679688,
+              "ancho": 1086.2607421875,
+              "alto": 611.02166748046875,
+              "zoom": 1.7675314272460265
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 429.0453,
+          "duracion": 17.0504,
+          "fin": 446.0956,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-09 21-53-27",
+          "offset": 422.5888,
+          "archivo": "H:\\Grabaciones\\2026-02-09 21-53-27.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 637.8204345703125,
+              "centroY": 329.48605346679688,
+              "ancho": 1086.2607421875,
+              "alto": 611.02166748046875,
+              "zoom": 1.7675314272460265
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 490.4233,
+          "duracion": 34.351,
+          "fin": 524.7743,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-09 21-53-27",
+          "offset": 483.9668,
+          "archivo": "H:\\Grabaciones\\2026-02-09 21-53-27.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 637.8204345703125,
+              "centroY": 329.48605346679688,
+              "ancho": 1086.2607421875,
+              "alto": 611.02166748046875,
+              "zoom": 1.7675314272460265
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 6,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 9.8598,
+          "duracion": 181.3979,
+          "fin": 191.2577,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 1.051,
+            "curva": "Slow"
+          },
+          "ganancia": 0.061302680522203445,
+          "toma": "02. Building Contraptions",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds Lo-FI\\02. Building Contraptions.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 190.2067,
+          "duracion": 154.8547,
+          "fin": 345.0614,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.051,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.061302680522203445,
+          "toma": "05 - Background Respawn",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\NoticiABs OST\\05 - Background Respawn.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 344.2724,
+          "duracion": 162.0825,
+          "fin": 506.3549,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.789,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.061302680522203445,
+          "toma": "06 - Low Light Mode",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\NoticiABs OST\\06 - Low Light Mode.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 505.3549,
+          "duracion": 19.4194,
+          "fin": 524.7743,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 3.1826,
+            "curva": "Slow"
+          },
+          "ganancia": 0.53271025419235229,
+          "toma": "06 - Low Light Mode",
+          "offset": 161.0825,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\NoticiABs OST\\06 - Low Light Mode.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    }
+  ],
+  "marcadores": [],
+  "regiones": []
+}

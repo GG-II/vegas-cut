@@ -1,0 +1,5812 @@
+{
+  "formato": "vegas-cut-export",
+  "formatoVersion": 1,
+  "vegasVersion": "Version 20.0 (Build 403)",
+  "exportado": "2026-09-30T16:41:55",
+  "proyecto": {
+    "archivo": "J:\\Documentos\\Proyectos\\vegas-cut\\ejemplos\\minecraft\\Ep 5.veg",
+    "duracion": 670.2,
+    "ancho": 1920,
+    "alto": 1080,
+    "fps": 60,
+    "aspectoPixel": 1,
+    "frecuenciaAudio": 48000
+  },
+  "media": [
+    {
+      "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E07.mp4",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E13.mp4",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E23.mp4",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E38.mp4",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+      "generado": false,
+      "duracion": 4629.35,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "J:\\Música\\Música\\Jujutsu Kaisen\\Disc2\\15. 次回予告2.mp3",
+      "generado": false,
+      "duracion": 13.0121,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_44_04.mp4",
+      "generado": false,
+      "duracion": 29.1,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_47_25.mp4",
+      "generado": false,
+      "duracion": 19.15,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T21_02_03.mp4",
+      "generado": false,
+      "duracion": 12.8,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_33_20.mp4",
+      "generado": false,
+      "duracion": 8.95,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_37_23.mp4",
+      "generado": false,
+      "duracion": 10.4,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_38_34.mp4",
+      "generado": false,
+      "duracion": 2.85,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_48_48.mp4",
+      "generado": false,
+      "duracion": 84.6333,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_03_41.mp4",
+      "generado": false,
+      "duracion": 51.6167,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_09_31.mp4",
+      "generado": false,
+      "duracion": 17.25,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\gojo 1.mp3",
+      "generado": false,
+      "duracion": 19.152,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\gojo 2.mp3",
+      "generado": false,
+      "duracion": 7.668,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\gojo 3.mp3",
+      "generado": false,
+      "duracion": 8.352,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 1.mp3",
+      "generado": false,
+      "duracion": 10.908,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 2.mp3",
+      "generado": false,
+      "duracion": 9.18,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 3.mp3",
+      "generado": false,
+      "duracion": 7.344,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 4.mp3",
+      "generado": false,
+      "duracion": 9.612,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 5.mp3",
+      "generado": false,
+      "duracion": 10.728,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\kusakabe 6.mp3",
+      "generado": false,
+      "duracion": 14.004,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\vozdc.mp3",
+      "generado": false,
+      "duracion": 667.298,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\Ep 5\\vozfann.mp3",
+      "generado": false,
+      "duracion": 667.298,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\logo.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\04 - オカ研 (ft. Paranormal and Ancient).mp3",
+      "generado": false,
+      "duracion": 169.584,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\19 - 芻PhantomCurse法「共鳴り」.mp3",
+      "generado": false,
+      "duracion": 160.944,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\23 - 特級CursePhantomの力.mp3",
+      "generado": false,
+      "duracion": 137.4,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\56 - 不義遊戯.mp3",
+      "generado": false,
+      "duracion": 199.464,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright\\26 - Contest.mp3",
+      "generado": false,
+      "duracion": 103.032,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright\\55 - Take a Rest.mp3",
+      "generado": false,
+      "duracion": 171.744,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\JJK\\OST NoCopyright\\60 - Horrors.mp3",
+      "generado": false,
+      "duracion": 82.704,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS Episodio",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 Episodio\\f1\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 1.4469387755102043
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.7
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS 5",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 5\\f1\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 3.26530612244898
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.58
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS El arte de Sobrevivir",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 El arte de Sobrevivir\\f1\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 2.5244897959183676
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.41
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS Próximo Episodio",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 Pr\\'f3ximo Episodio\\f1\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 1.4469387755102043
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.7
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS 6",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}}\r\n\\viewkind4\\uc1\\pard\\lang1033\\b\\f0\\fs20 6\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 3.26530612244898
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.58
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "Títulos & Texto de VEGAS Mercancía Maldita",
+      "generado": true,
+      "duracion": 9.9933,
+      "tieneVideo": true,
+      "tieneAudio": false,
+      "generador": {
+        "nombre": "Títulos & Texto de",
+        "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+        "desactivado": false,
+        "preset": null,
+        "parametros": [
+          {
+            "nombre": "Text",
+            "tipo": "OFXStringParameter",
+            "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}}\r\n\\viewkind4\\uc1\\pard\\lang1033\\b\\f0\\fs20 Mercanc\\'eda Maldita\\par\r\n}\r\n"
+          },
+          {
+            "nombre": "TextColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "collection",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Ninguno",
+              "Index": 0
+            }
+          },
+          {
+            "nombre": "AnimationName",
+            "tipo": "OFXStringParameter",
+            "valor": "_None"
+          },
+          {
+            "nombre": "Scale",
+            "tipo": "OFXDoubleParameter",
+            "valor": 2.5918367346938775
+          },
+          {
+            "nombre": "Location",
+            "tipo": "OFXDouble2DParameter",
+            "valor": {
+              "X": 0.5,
+              "Y": 0.41
+            }
+          },
+          {
+            "nombre": "Alignment",
+            "tipo": "OFXChoiceParameter",
+            "valor": {
+              "Name": "Centro",
+              "Index": 4
+            }
+          },
+          {
+            "nombre": "AdvancedGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "FitBackgroundColor",
+            "tipo": "OFXBooleanParameter",
+            "valor": false
+          },
+          {
+            "nombre": "Background",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 0
+            }
+          },
+          {
+            "nombre": "Tracking",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "LineSpacing",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.8
+          },
+          {
+            "nombre": "OutlineGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "OutlineWidth",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0
+          },
+          {
+            "nombre": "OutlineColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 1,
+              "G": 1,
+              "B": 1,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowGroup",
+            "tipo": "OFXParameter",
+            "valor": null
+          },
+          {
+            "nombre": "ShadowEnable",
+            "tipo": "OFXBooleanParameter",
+            "valor": true
+          },
+          {
+            "nombre": "ShadowColor",
+            "tipo": "OFXRGBAParameter",
+            "valor": {
+              "R": 0,
+              "G": 0,
+              "B": 0,
+              "A": 1
+            }
+          },
+          {
+            "nombre": "ShadowOffsetX",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowOffsetY",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "ShadowBlur",
+            "tipo": "OFXDoubleParameter",
+            "valor": 0.01
+          },
+          {
+            "nombre": "Controls",
+            "tipo": "OFXParameter",
+            "valor": null
+          }
+        ]
+      }
+    }
+  ],
+  "pistas": [
+    {
+      "indice": 0,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 32.9833,
+          "duracion": 2.7861,
+          "fin": 35.7694,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0028,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "S01E13",
+          "offset": 0,
+          "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E13.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [
+            {
+              "nombre": "Blanco y negro",
+              "id": "{Svfx:com.vegascreativesoftware:blackandwhite}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "BlendAmount",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Brillo y contraste",
+              "id": "{Svfx:com.vegascreativesoftware:brightnessandcontrast}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Brightness",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.1
+                },
+                {
+                  "nombre": "Contrast",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "ContrastCenter",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Group",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupInput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupOutput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Percent",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.01
+                },
+                {
+                  "nombre": "Min",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.058823529411764705
+                },
+                {
+                  "nombre": "Max",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.92156862745098034
+                },
+                {
+                  "nombre": "ReferenceMode",
+                  "tipo": "OFXChoiceParameter",
+                  "valor": {
+                    "Name": "Clip actual",
+                    "Index": 1
+                  }
+                },
+                {
+                  "nombre": "DoAnalysis",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Vignette",
+              "id": "{Svfx:com.vegascreativesoftware:vignette}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Outer",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1.0612244897959184
+                },
+                {
+                  "nombre": "Inner",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Aspect",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1
+                },
+                {
+                  "nombre": "Center",
+                  "tipo": "OFXDouble2DParameter",
+                  "valor": {
+                    "X": 0.5,
+                    "Y": 0.5
+                  }
+                },
+                {
+                  "nombre": "Rotation",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Feather",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 5
+                },
+                {
+                  "nombre": "Color",
+                  "tipo": "OFXRGBAParameter",
+                  "valor": {
+                    "R": 0,
+                    "G": 0,
+                    "B": 0,
+                    "A": 1
+                  }
+                },
+                {
+                  "nombre": "Invert",
+                  "tipo": "OFXBooleanParameter",
+                  "valor": false
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            }
+          ],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 35.7667,
+          "duracion": 2.7041,
+          "fin": 38.4708,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0028,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "S01E07",
+          "offset": 0,
+          "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E07.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [
+            {
+              "nombre": "Blanco y negro",
+              "id": "{Svfx:com.vegascreativesoftware:blackandwhite}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "BlendAmount",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Brillo y contraste",
+              "id": "{Svfx:com.vegascreativesoftware:brightnessandcontrast}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Brightness",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.1
+                },
+                {
+                  "nombre": "Contrast",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "ContrastCenter",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Group",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupInput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupOutput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Percent",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.01
+                },
+                {
+                  "nombre": "Min",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.058823529411764705
+                },
+                {
+                  "nombre": "Max",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.92156862745098034
+                },
+                {
+                  "nombre": "ReferenceMode",
+                  "tipo": "OFXChoiceParameter",
+                  "valor": {
+                    "Name": "Clip actual",
+                    "Index": 1
+                  }
+                },
+                {
+                  "nombre": "DoAnalysis",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Vignette",
+              "id": "{Svfx:com.vegascreativesoftware:vignette}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Outer",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1.0612244897959184
+                },
+                {
+                  "nombre": "Inner",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Aspect",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1
+                },
+                {
+                  "nombre": "Center",
+                  "tipo": "OFXDouble2DParameter",
+                  "valor": {
+                    "X": 0.5,
+                    "Y": 0.5
+                  }
+                },
+                {
+                  "nombre": "Rotation",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Feather",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 5
+                },
+                {
+                  "nombre": "Color",
+                  "tipo": "OFXRGBAParameter",
+                  "valor": {
+                    "R": 0,
+                    "G": 0,
+                    "B": 0,
+                    "A": 1
+                  }
+                },
+                {
+                  "nombre": "Invert",
+                  "tipo": "OFXBooleanParameter",
+                  "valor": false
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            }
+          ],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 38.4667,
+          "duracion": 1.5167,
+          "fin": 39.9833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0028,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "S01E23",
+          "offset": 0,
+          "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E23.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [
+            {
+              "nombre": "Blanco y negro",
+              "id": "{Svfx:com.vegascreativesoftware:blackandwhite}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "BlendAmount",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Brillo y contraste",
+              "id": "{Svfx:com.vegascreativesoftware:brightnessandcontrast}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Brightness",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.1
+                },
+                {
+                  "nombre": "Contrast",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "ContrastCenter",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Group",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupInput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupOutput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Percent",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.01
+                },
+                {
+                  "nombre": "Min",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.058823529411764705
+                },
+                {
+                  "nombre": "Max",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.92156862745098034
+                },
+                {
+                  "nombre": "ReferenceMode",
+                  "tipo": "OFXChoiceParameter",
+                  "valor": {
+                    "Name": "Clip actual",
+                    "Index": 1
+                  }
+                },
+                {
+                  "nombre": "DoAnalysis",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Vignette",
+              "id": "{Svfx:com.vegascreativesoftware:vignette}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Outer",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1.0612244897959184
+                },
+                {
+                  "nombre": "Inner",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Aspect",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1
+                },
+                {
+                  "nombre": "Center",
+                  "tipo": "OFXDouble2DParameter",
+                  "valor": {
+                    "X": 0.5,
+                    "Y": 0.5
+                  }
+                },
+                {
+                  "nombre": "Rotation",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Feather",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 5
+                },
+                {
+                  "nombre": "Color",
+                  "tipo": "OFXRGBAParameter",
+                  "valor": {
+                    "R": 0,
+                    "G": 0,
+                    "B": 0,
+                    "A": 1
+                  }
+                },
+                {
+                  "nombre": "Invert",
+                  "tipo": "OFXBooleanParameter",
+                  "valor": false
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            }
+          ],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 41.8,
+          "duracion": 1.5182,
+          "fin": 43.3182,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0028,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "S01E38",
+          "offset": 0,
+          "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E38.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [
+            {
+              "nombre": "Blanco y negro",
+              "id": "{Svfx:com.vegascreativesoftware:blackandwhite}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "BlendAmount",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Brillo y contraste",
+              "id": "{Svfx:com.vegascreativesoftware:brightnessandcontrast}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Brightness",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.1
+                },
+                {
+                  "nombre": "Contrast",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "ContrastCenter",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Group",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupInput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupOutput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Percent",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.01
+                },
+                {
+                  "nombre": "Min",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.058823529411764705
+                },
+                {
+                  "nombre": "Max",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.92156862745098034
+                },
+                {
+                  "nombre": "ReferenceMode",
+                  "tipo": "OFXChoiceParameter",
+                  "valor": {
+                    "Name": "Clip actual",
+                    "Index": 1
+                  }
+                },
+                {
+                  "nombre": "DoAnalysis",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Vignette",
+              "id": "{Svfx:com.vegascreativesoftware:vignette}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Outer",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1.0612244897959184
+                },
+                {
+                  "nombre": "Inner",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Aspect",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1
+                },
+                {
+                  "nombre": "Center",
+                  "tipo": "OFXDouble2DParameter",
+                  "valor": {
+                    "X": 0.5,
+                    "Y": 0.5
+                  }
+                },
+                {
+                  "nombre": "Rotation",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Feather",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 5
+                },
+                {
+                  "nombre": "Color",
+                  "tipo": "OFXRGBAParameter",
+                  "valor": {
+                    "R": 0,
+                    "G": 0,
+                    "B": 0,
+                    "A": 1
+                  }
+                },
+                {
+                  "nombre": "Invert",
+                  "tipo": "OFXBooleanParameter",
+                  "valor": false
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            }
+          ],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 43.3167,
+          "duracion": 1.1678,
+          "fin": 44.4845,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0028,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "S01E38",
+          "offset": 0,
+          "archivo": "F:\\Archivos del servidor\\Series Plex\\Anime\\Jujutsu Kaisen (2020)\\S01E38.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [
+            {
+              "nombre": "Blanco y negro",
+              "id": "{Svfx:com.vegascreativesoftware:blackandwhite}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "BlendAmount",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Brillo y contraste",
+              "id": "{Svfx:com.vegascreativesoftware:brightnessandcontrast}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Brightness",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.1
+                },
+                {
+                  "nombre": "Contrast",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "ContrastCenter",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.5
+                },
+                {
+                  "nombre": "Group",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupInput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "GroupOutput",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Percent",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.01
+                },
+                {
+                  "nombre": "Min",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.058823529411764705
+                },
+                {
+                  "nombre": "Max",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0.92156862745098034
+                },
+                {
+                  "nombre": "ReferenceMode",
+                  "tipo": "OFXChoiceParameter",
+                  "valor": {
+                    "Name": "Clip actual",
+                    "Index": 1
+                  }
+                },
+                {
+                  "nombre": "DoAnalysis",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            },
+            {
+              "nombre": "Vignette",
+              "id": "{Svfx:com.vegascreativesoftware:vignette}",
+              "desactivado": false,
+              "preset": null,
+              "parametros": [
+                {
+                  "nombre": "Outer",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1.0612244897959184
+                },
+                {
+                  "nombre": "Inner",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Aspect",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 1
+                },
+                {
+                  "nombre": "Center",
+                  "tipo": "OFXDouble2DParameter",
+                  "valor": {
+                    "X": 0.5,
+                    "Y": 0.5
+                  }
+                },
+                {
+                  "nombre": "Rotation",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 0
+                },
+                {
+                  "nombre": "Feather",
+                  "tipo": "OFXDoubleParameter",
+                  "valor": 5
+                },
+                {
+                  "nombre": "Color",
+                  "tipo": "OFXRGBAParameter",
+                  "valor": {
+                    "R": 0,
+                    "G": 0,
+                    "B": 0,
+                    "A": 1
+                  }
+                },
+                {
+                  "nombre": "Invert",
+                  "tipo": "OFXBooleanParameter",
+                  "valor": false
+                },
+                {
+                  "nombre": "Controls",
+                  "tipo": "OFXParameter",
+                  "valor": null
+                }
+              ]
+            }
+          ],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 1,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 6.05,
+          "duracion": 4.95,
+          "fin": 11,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.0047,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "logo",
+          "offset": 0,
+          "archivo": "K:\\JJK\\logo.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 689.5,
+              "centroY": 144,
+              "ancho": 1558.893798828125,
+              "alto": 325.57025146484375,
+              "zoom": 1.2316425926149241
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 48.9167,
+          "duracion": 3.35,
+          "fin": 52.2667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS Episodio",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS Episodio",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 Episodio\\f1\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 1.4469387755102043
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.7
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 667.2,
+          "duracion": 3,
+          "fin": 670.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.5333,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS Próximo Episodio",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS Próximo Episodio",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 Pr\\'f3ximo Episodio\\f1\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 1.4469387755102043
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.7
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 2,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 26.8167,
+          "fin": 26.8167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T20_44_04",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_44_04.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 29.1833,
+          "duracion": 4.75,
+          "fin": 33.9333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T20_47_25",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_47_25.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 33.9333,
+          "duracion": 9.3833,
+          "fin": 43.3167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T20_47_25",
+          "offset": 4.75,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_47_25.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 43.9,
+          "duracion": 5.0167,
+          "fin": 48.9167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T20_47_25",
+          "offset": 14.1333,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T20_47_25.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 48.9167,
+          "duracion": 3.35,
+          "fin": 52.2667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS 5",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 5\\f1\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 3.26530612244898
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.58
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 85.2167,
+          "duracion": 3.9333,
+          "fin": 89.15,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T21_02_03",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T21_02_03.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 89.15,
+          "duracion": 3.9,
+          "fin": 93.05,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T21_02_03",
+          "offset": 8.0333,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T21_02_03.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 200.9333,
+          "duracion": 9.6167,
+          "fin": 210.55,
+          "silenciado": false,
+          "velocidad": 0.922,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T23_33_20",
+          "offset": 0.0904,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_33_20.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 288.5167,
+          "duracion": 3.3167,
+          "fin": 291.8333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T23_37_23",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_37_23.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 291.8333,
+          "duracion": 2.6333,
+          "fin": 294.4667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T23_38_34",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_38_34.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 294.4667,
+          "duracion": 2.25,
+          "fin": 296.7167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T23_37_23",
+          "offset": 5.9667,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_37_23.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 310.9167,
+          "duracion": 84.6333,
+          "fin": 395.55,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-25T23_48_48",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_48_48.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 4.8,
+          "fin": 417.5667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-26T00_03_41",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_03_41.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 417.5667,
+          "duracion": 42.35,
+          "fin": 459.9167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-26T00_03_41",
+          "offset": 8.8667,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_03_41.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 521.4167,
+          "duracion": 12.5167,
+          "fin": 533.9333,
+          "silenciado": false,
+          "velocidad": 0.73388876752239474,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-26T00_09_31",
+          "offset": 3.335,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_09_31.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 533.9333,
+          "duracion": 8.5833,
+          "fin": 542.5167,
+          "silenciado": false,
+          "velocidad": 0.64271844133094547,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-02-26T00_09_31",
+          "offset": 18.2558,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_09_31.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 667.2,
+          "duracion": 3,
+          "fin": 670.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.5333,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS 6",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}}\r\n\\viewkind4\\uc1\\pard\\lang1033\\b\\f0\\fs20 6\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 3.26530612244898
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.58
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 3,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1.7782794237136841,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 310.9167,
+          "duracion": 84.6333,
+          "fin": 395.55,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 0.34375,
+          "toma": "2026-02-25T23_48_48",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-25T23_48_48.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 4.8,
+          "fin": 417.5667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.359375,
+          "toma": "2026-02-26T00_03_41",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_03_41.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 417.5667,
+          "duracion": 42.35,
+          "fin": 459.9167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.359375,
+          "toma": "2026-02-26T00_03_41",
+          "offset": 8.8667,
+          "archivo": "K:\\JJK\\Ep 5\\2026-02-26T00_03_41.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 4,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 26.8167,
+          "duracion": 2.3667,
+          "fin": 29.1833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1682.5333,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 48.9167,
+          "duracion": 3.35,
+          "fin": 52.2667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS El arte de Sobrevivir",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}{\\f1\\fnil\\fcharset0 Arial;}}\r\n\\viewkind4\\uc1\\pard\\qc\\lang1033\\b\\f0\\fs20 El arte de Sobrevivir\\f1\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 2.5244897959183676
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.41
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 52.2667,
+          "duracion": 32.95,
+          "fin": 85.2167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1702.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 92.5667,
+          "duracion": 108.3667,
+          "fin": 200.9333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1741.2,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 210.55,
+          "duracion": 77.9667,
+          "fin": 288.5167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1856.9,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 296.7167,
+          "duracion": 23.35,
+          "fin": 320.0667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1939.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 320.0667,
+          "duracion": 92.7,
+          "fin": 412.7667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1967.0667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 45.7333,
+          "fin": 458.5,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2069.95,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 458.5,
+          "duracion": 32.5333,
+          "fin": 491.0333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2121.1167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 491.0333,
+          "duracion": 30.3833,
+          "fin": 521.4167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2155.9833,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 542.5167,
+          "duracion": 9.35,
+          "fin": 551.8667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2202.3,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 551.8667,
+          "duracion": 115.3333,
+          "fin": 667.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2219.6167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 667.2,
+          "duracion": 3,
+          "fin": 670.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.5339,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Títulos & Texto de VEGAS",
+          "offset": 0,
+          "archivo": "Títulos & Texto de VEGAS Mercancía Maldita",
+          "generado": true,
+          "generador": {
+            "nombre": "Títulos & Texto de",
+            "id": "{Svfx:com.vegascreativesoftware:titlesandtext}",
+            "desactivado": false,
+            "preset": null,
+            "parametros": [
+              {
+                "nombre": "Text",
+                "tipo": "OFXStringParameter",
+                "valor": "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil\\fcharset0 Sudbury Book;}}\r\n\\viewkind4\\uc1\\pard\\lang1033\\b\\f0\\fs20 Mercanc\\'eda Maldita\\par\r\n}\r\n"
+              },
+              {
+                "nombre": "TextColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "collection",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Ninguno",
+                  "Index": 0
+                }
+              },
+              {
+                "nombre": "AnimationName",
+                "tipo": "OFXStringParameter",
+                "valor": "_None"
+              },
+              {
+                "nombre": "Scale",
+                "tipo": "OFXDoubleParameter",
+                "valor": 2.5918367346938775
+              },
+              {
+                "nombre": "Location",
+                "tipo": "OFXDouble2DParameter",
+                "valor": {
+                  "X": 0.5,
+                  "Y": 0.41
+                }
+              },
+              {
+                "nombre": "Alignment",
+                "tipo": "OFXChoiceParameter",
+                "valor": {
+                  "Name": "Centro",
+                  "Index": 4
+                }
+              },
+              {
+                "nombre": "AdvancedGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "FitBackgroundColor",
+                "tipo": "OFXBooleanParameter",
+                "valor": false
+              },
+              {
+                "nombre": "Background",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 0
+                }
+              },
+              {
+                "nombre": "Tracking",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "LineSpacing",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.8
+              },
+              {
+                "nombre": "OutlineGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "OutlineWidth",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0
+              },
+              {
+                "nombre": "OutlineColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 1,
+                  "G": 1,
+                  "B": 1,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowGroup",
+                "tipo": "OFXParameter",
+                "valor": null
+              },
+              {
+                "nombre": "ShadowEnable",
+                "tipo": "OFXBooleanParameter",
+                "valor": true
+              },
+              {
+                "nombre": "ShadowColor",
+                "tipo": "OFXRGBAParameter",
+                "valor": {
+                  "R": 0,
+                  "G": 0,
+                  "B": 0,
+                  "A": 1
+                }
+              },
+              {
+                "nombre": "ShadowOffsetX",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowOffsetY",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "ShadowBlur",
+                "tipo": "OFXDoubleParameter",
+                "valor": 0.01
+              },
+              {
+                "nombre": "Controls",
+                "tipo": "OFXParameter",
+                "valor": null
+              }
+            ]
+          },
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 5,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": -0.20000000298023224,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 19.152,
+          "fin": 19.152,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "gojo 1",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\gojo 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 19.152,
+          "duracion": 7.668,
+          "fin": 26.82,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "gojo 2",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\gojo 2.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 28.8229,
+          "duracion": 10.908,
+          "fin": 39.7309,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 1",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 39.7333,
+          "duracion": 9.18,
+          "fin": 48.9133,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 2",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 2.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 85.2167,
+          "duracion": 7.344,
+          "fin": 92.5607,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 3",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 3.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 200.9333,
+          "duracion": 9.612,
+          "fin": 210.5453,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 4",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 4.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 288.5167,
+          "duracion": 8.2,
+          "fin": 296.7167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 5",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 5.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 521.4167,
+          "duracion": 9.05,
+          "fin": 530.4667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 6",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 6.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 530.4667,
+          "duracion": 3.4707,
+          "fin": 533.9373,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "kusakabe 6",
+          "offset": 10.5333,
+          "archivo": "K:\\JJK\\Ep 5\\kusakabe 6.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 534.1663,
+          "duracion": 8.352,
+          "fin": 542.5183,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "gojo 3",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\gojo 3.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 6,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": true,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 26.8167,
+          "duracion": 2.3667,
+          "fin": 29.1833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1682.5333,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 52.2667,
+          "duracion": 32.95,
+          "fin": 85.2167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1702.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 92.5667,
+          "duracion": 108.3667,
+          "fin": 200.9333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1741.2,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 210.55,
+          "duracion": 77.9667,
+          "fin": 288.5167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1856.9,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 296.7167,
+          "duracion": 23.35,
+          "fin": 320.0667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1939.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 320.0667,
+          "duracion": 92.7,
+          "fin": 412.7667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1967.0667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 45.7333,
+          "fin": 458.5,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2069.95,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 458.5,
+          "duracion": 32.5333,
+          "fin": 491.0333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2121.1167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 491.0333,
+          "duracion": 30.3833,
+          "fin": 521.4167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2155.9833,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 542.5167,
+          "duracion": 9.35,
+          "fin": 551.8667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2202.3,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 551.8667,
+          "duracion": 115.3333,
+          "fin": 667.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2219.6167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 7,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": true,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 26.8167,
+          "duracion": 2.3667,
+          "fin": 29.1833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1682.5333,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 52.2667,
+          "duracion": 32.95,
+          "fin": 85.2167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1702.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 92.5667,
+          "duracion": 108.3667,
+          "fin": 200.9333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1741.2,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 210.55,
+          "duracion": 77.9667,
+          "fin": 288.5167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1856.9,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 296.7167,
+          "duracion": 23.35,
+          "fin": 320.0667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1939.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 320.0667,
+          "duracion": 92.7,
+          "fin": 412.7667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1967.0667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 45.7333,
+          "fin": 458.5,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2069.95,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 458.5,
+          "duracion": 32.5333,
+          "fin": 491.0333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2121.1167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 491.0333,
+          "duracion": 30.3833,
+          "fin": 521.4167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2155.9833,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 542.5167,
+          "duracion": 9.35,
+          "fin": 551.8667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2202.3,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 551.8667,
+          "duracion": 115.3333,
+          "fin": 667.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2219.6167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 8,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 26.8167,
+          "duracion": 2.3667,
+          "fin": 29.1833,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1682.5333,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 52.2667,
+          "duracion": 32.95,
+          "fin": 85.2167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1702.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 92.5667,
+          "duracion": 108.3667,
+          "fin": 200.9333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1741.2,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 210.55,
+          "duracion": 77.9667,
+          "fin": 288.5167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1856.9,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 296.7167,
+          "duracion": 23.35,
+          "fin": 320.0667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1939.6667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 320.0667,
+          "duracion": 92.7,
+          "fin": 412.7667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 1967.0667,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 412.7667,
+          "duracion": 45.7333,
+          "fin": 458.5,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2069.95,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 458.5,
+          "duracion": 32.5333,
+          "fin": 491.0333,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2121.1167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 491.0333,
+          "duracion": 30.3833,
+          "fin": 521.4167,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2155.9833,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 542.5167,
+          "duracion": 9.35,
+          "fin": 551.8667,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2202.3,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 551.8667,
+          "duracion": 115.3333,
+          "fin": 667.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-01-15 20-52-12",
+          "offset": 2219.6167,
+          "archivo": "H:\\Grabaciones\\2026-01-15 20-52-12.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 9,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 85.4057,
+          "fin": 85.4057,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.839,
+            "curva": "Slow"
+          },
+          "ganancia": 0.1111111119389534,
+          "toma": "04 - オカ研 (ft. Paranormal and Ancient)",
+          "offset": 0.4333,
+          "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\04 - オカ研 (ft. Paranormal and Ancient).mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 84.5667,
+          "duracion": 126.1333,
+          "fin": 210.7,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.839,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.15,
+            "curva": "Slow"
+          },
+          "ganancia": 0.090909093618392944,
+          "toma": "19 - 芻PhantomCurse法「共鳴り」",
+          "offset": 160.294,
+          "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\19 - 芻PhantomCurse法「共鳴り」.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 210.55,
+          "duracion": 199.464,
+          "fin": 410.014,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.15,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.7973,
+            "curva": "Slow"
+          },
+          "ganancia": 0.090909093618392944,
+          "toma": "56 - 不義遊戯",
+          "offset": 0,
+          "archivo": "K:\\JJK\\OST NoCopyright Volume 2\\56 - 不義遊戯.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 409.2167,
+          "duracion": 49.2833,
+          "fin": 458.5,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.7973,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 3.5921,
+            "curva": "Slow"
+          },
+          "ganancia": 0.10101009905338287,
+          "toma": "26 - Contest",
+          "offset": 0,
+          "archivo": "K:\\JJK\\OST NoCopyright\\26 - Contest.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 458.5,
+          "duracion": 58.5639,
+          "fin": 517.0639,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 1.3503,
+            "curva": "Slow"
+          },
+          "ganancia": 0.13131313025951385,
+          "toma": "60 - Horrors",
+          "offset": 0,
+          "archivo": "K:\\JJK\\OST NoCopyright\\60 - Horrors.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 517.4167,
+          "duracion": 143.89,
+          "fin": 661.3067,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.080808080732822418,
+          "toma": "55 - Take a Rest",
+          "offset": 0,
+          "archivo": "K:\\JJK\\OST NoCopyright\\55 - Take a Rest.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 663.0833,
+          "duracion": 7.1167,
+          "fin": 670.2,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 4.1167,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.35353535413742065,
+          "toma": "15. 次回予告2",
+          "offset": 2.6586,
+          "archivo": "J:\\Música\\Música\\Jujutsu Kaisen\\Disc2\\15. 次回予告2.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 10,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 667.298,
+          "fin": 667.298,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "vozfann",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\vozfann.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 11,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 667.298,
+          "fin": 667.298,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "vozdc",
+          "offset": 0,
+          "archivo": "K:\\JJK\\Ep 5\\vozdc.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    }
+  ],
+  "marcadores": [],
+  "regiones": []
+}

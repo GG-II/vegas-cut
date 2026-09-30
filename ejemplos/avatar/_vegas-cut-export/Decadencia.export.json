@@ -1,0 +1,2415 @@
+{
+  "formato": "vegas-cut-export",
+  "formatoVersion": 1,
+  "vegasVersion": "Version 20.0 (Build 403)",
+  "exportado": "2026-09-30T16:38:34",
+  "proyecto": {
+    "archivo": "J:\\Documentos\\Proyectos\\vegas-cut\\ejemplos\\avatar\\Decadencia.veg",
+    "duracion": 252.9959,
+    "ancho": 1920,
+    "alto": 1080,
+    "fps": 59.940059940059939,
+    "aspectoPixel": 1,
+    "frecuenciaAudio": 48000
+  },
+  "media": [
+    {
+      "archivo": "G:\\Descargas\\VozDeca-mejorada-v2.wav",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+      "generado": false,
+      "duracion": 335.55,
+      "tieneVideo": true,
+      "tieneAudio": true
+    }
+  ],
+  "pistas": [
+    {
+      "indice": 0,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 8.4084,
+          "fin": 8.4084,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 8.7587,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 8.4084,
+          "duracion": 2.7694,
+          "fin": 11.1778,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 18.2349,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 11.1778,
+          "duracion": 3.9706,
+          "fin": 15.1485,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 23.1398,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 15.1485,
+          "duracion": 3.1698,
+          "fin": 18.3183,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 27.5776,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 18.3183,
+          "duracion": 1.9186,
+          "fin": 20.2369,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 32.1321,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 20.2369,
+          "duracion": 1.6516,
+          "fin": 21.8885,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 37.9045,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 21.8885,
+          "duracion": 5.7224,
+          "fin": 27.6109,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 43.0597,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 27.6109,
+          "duracion": 4.5212,
+          "fin": 32.1321,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 49.1992,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 32.1321,
+          "duracion": 2.1688,
+          "fin": 34.3009,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 54.1541,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 34.3009,
+          "duracion": 7.2072,
+          "fin": 41.5081,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 57.8745,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 41.5081,
+          "duracion": 6.8902,
+          "fin": 48.3984,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 65.5488,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 48.3984,
+          "duracion": 3.954,
+          "fin": 52.3523,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 76.8601,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 52.3523,
+          "duracion": 12.646,
+          "fin": 64.9983,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 81.131,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 64.9983,
+          "duracion": 2.7861,
+          "fin": 67.7844,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 95.1784,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 67.7844,
+          "duracion": 3.0197,
+          "fin": 70.8041,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 99.0323,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 70.8041,
+          "duracion": 10.3604,
+          "fin": 81.1644,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 102.5691,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 81.1644,
+          "duracion": 3.4701,
+          "fin": 84.6346,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 113.2965,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 84.6346,
+          "duracion": 4.2209,
+          "fin": 88.8554,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 126.5264,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 88.8554,
+          "duracion": 8.2916,
+          "fin": 97.1471,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 131.3145,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 97.1471,
+          "duracion": 6.5899,
+          "fin": 103.737,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 139.8397,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 103.737,
+          "duracion": 8.4918,
+          "fin": 112.2288,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 146.4296,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 112.2288,
+          "duracion": 0.9176,
+          "fin": 113.1464,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 155.4553,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 113.1464,
+          "duracion": 2.636,
+          "fin": 115.7823,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 156.8734,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 115.7823,
+          "duracion": 6.4565,
+          "fin": 122.2388,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 160.0432,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 122.2388,
+          "duracion": 8.2749,
+          "fin": 130.5137,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 166.8834,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 130.5137,
+          "duracion": 8.8255,
+          "fin": 139.3392,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 175.3585,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 139.3392,
+          "duracion": 6.5065,
+          "fin": 145.8457,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 184.7179,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 145.8457,
+          "duracion": 2.1188,
+          "fin": 147.9645,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 192.3588,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 147.9645,
+          "duracion": 9.6596,
+          "fin": 157.6241,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 197.6808,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 157.6241,
+          "duracion": 2.5859,
+          "fin": 160.2101,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 208.2414,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1722.8798828125,
+              "alto": 969.12005615234375,
+              "zoom": 1.1144131515806621
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 160.2101,
+          "duracion": 3.4701,
+          "fin": 163.6802,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 211.8783,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 163.6802,
+          "duracion": 14.9316,
+          "fin": 178.6118,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 215.8323,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 178.6118,
+          "duracion": 8.3584,
+          "fin": 186.9701,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 236.4696,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 186.9701,
+          "duracion": 21.2879,
+          "fin": 208.2581,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 252.886,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 208.2581,
+          "duracion": 6.2062,
+          "fin": 214.4642,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 274.7745,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 214.4642,
+          "duracion": 2.7361,
+          "fin": 217.2003,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 282.0318,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 217.2003,
+          "duracion": 32.4324,
+          "fin": 249.6327,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 287.9376,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 249.6327,
+          "duracion": 3.2532,
+          "fin": 252.886,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 326.4261,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 1,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": true,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 8.4084,
+          "fin": 8.4084,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 8.7587,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 8.4084,
+          "duracion": 2.7694,
+          "fin": 11.1778,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 18.2349,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 11.1778,
+          "duracion": 3.9706,
+          "fin": 15.1485,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 23.1398,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 15.1485,
+          "duracion": 3.1698,
+          "fin": 18.3183,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 27.5776,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 18.3183,
+          "duracion": 1.9186,
+          "fin": 20.2369,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 32.1321,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 20.2369,
+          "duracion": 1.6516,
+          "fin": 21.8885,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 37.9045,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 21.8885,
+          "duracion": 5.7224,
+          "fin": 27.6109,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 43.0597,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 27.6109,
+          "duracion": 4.5212,
+          "fin": 32.1321,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 49.1992,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 32.1321,
+          "duracion": 2.1688,
+          "fin": 34.3009,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 54.1541,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 34.3009,
+          "duracion": 7.2072,
+          "fin": 41.5081,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 57.8745,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 41.5081,
+          "duracion": 6.8902,
+          "fin": 48.3984,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 65.5488,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 48.3984,
+          "duracion": 3.954,
+          "fin": 52.3523,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 76.8601,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 52.3523,
+          "duracion": 12.646,
+          "fin": 64.9983,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 81.131,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 64.9983,
+          "duracion": 2.7861,
+          "fin": 67.7844,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 95.1784,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 67.7844,
+          "duracion": 3.0197,
+          "fin": 70.8041,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 99.0323,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 70.8041,
+          "duracion": 10.3604,
+          "fin": 81.1644,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 102.5691,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 81.1644,
+          "duracion": 3.4701,
+          "fin": 84.6346,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 113.2965,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 84.6346,
+          "duracion": 4.2209,
+          "fin": 88.8554,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 126.5264,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 88.8554,
+          "duracion": 8.2916,
+          "fin": 97.1471,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 131.3145,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 97.1471,
+          "duracion": 6.5899,
+          "fin": 103.737,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 139.8397,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 103.737,
+          "duracion": 8.4918,
+          "fin": 112.2288,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 146.4296,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 112.2288,
+          "duracion": 0.9176,
+          "fin": 113.1464,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 155.4553,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 113.1464,
+          "duracion": 2.636,
+          "fin": 115.7823,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 156.8734,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 115.7823,
+          "duracion": 6.4565,
+          "fin": 122.2388,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 160.0432,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 122.2388,
+          "duracion": 8.2749,
+          "fin": 130.5137,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 166.8834,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 130.5137,
+          "duracion": 8.8255,
+          "fin": 139.3392,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 175.3585,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 139.3392,
+          "duracion": 6.5065,
+          "fin": 145.8457,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 184.7179,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 145.8457,
+          "duracion": 2.1188,
+          "fin": 147.9645,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 192.3588,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 147.9645,
+          "duracion": 9.6596,
+          "fin": 157.6241,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 197.6808,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 157.6241,
+          "duracion": 2.5859,
+          "fin": 160.2101,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 208.2414,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 160.2101,
+          "duracion": 3.4701,
+          "fin": 163.6802,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 211.8783,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 163.6802,
+          "duracion": 14.9316,
+          "fin": 178.6118,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 215.8323,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 178.6118,
+          "duracion": 8.3584,
+          "fin": 186.9701,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 236.4696,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 186.9701,
+          "duracion": 21.2879,
+          "fin": 208.2581,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 252.886,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 208.2581,
+          "duracion": 6.2062,
+          "fin": 214.4642,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 274.7745,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 214.4642,
+          "duracion": 2.7361,
+          "fin": 217.2003,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 282.0318,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 217.2003,
+          "duracion": 32.4324,
+          "fin": 249.6327,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 287.9376,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 249.6327,
+          "duracion": 3.2532,
+          "fin": 252.886,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2025-06-11 16-19-09",
+          "offset": 326.4261,
+          "archivo": "H:\\Grabaciones\\2025-06-11 16-19-09.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 2,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 252.9959,
+          "fin": 252.9959,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "VozDeca-mejorada-v2",
+          "offset": 0,
+          "archivo": "G:\\Descargas\\VozDeca-mejorada-v2.wav",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    }
+  ],
+  "marcadores": [],
+  "regiones": []
+}

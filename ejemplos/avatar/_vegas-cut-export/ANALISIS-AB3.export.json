@@ -1,0 +1,2617 @@
+{
+  "formato": "vegas-cut-export",
+  "formatoVersion": 1,
+  "vegasVersion": "Version 20.0 (Build 403)",
+  "exportado": "2026-09-30T16:37:01",
+  "proyecto": {
+    "archivo": "J:\\Documentos\\Proyectos\\vegas-cut\\ejemplos\\avatar\\ANALISIS-AB3.veg",
+    "duracion": 324.2906,
+    "ancho": 1920,
+    "alto": 1080,
+    "fps": 59.940059940059939,
+    "aspectoPixel": 1,
+    "frecuenciaAudio": 48000
+  },
+  "media": [
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\allreactionvids-1554802623513067522-01.mp4",
+      "generado": false,
+      "duracion": 22.4167,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\FabrizioFauno-2071546539319693466-01.mp4",
+      "generado": false,
+      "duracion": 10.7181,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\FCB_nenn-2067304785427010012-01.mp4",
+      "generado": false,
+      "duracion": 5.44,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\litteralyme0-2057059285746487742-01.mp4",
+      "generado": false,
+      "duracion": 10.9,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\spicyapple223-2067568036383707268-01.mp4",
+      "generado": false,
+      "duracion": 10.1509,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "G:\\Descargas\\twitter_media\\xakundo-2067400129187922197-01.mp4",
+      "generado": false,
+      "duracion": 4.9,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "H:\\Grabaciones\\2026-06-29 07-29-55.mp4",
+      "generado": false,
+      "duracion": 1782.6833,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Era De Ultrón： Visión Destruye Al Ultimo Ultrón - (Audio Latino)_EDIT.mp4",
+      "generado": false,
+      "duracion": 85.2333,
+      "tieneVideo": true,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\MV5BMDA2MDVmNWItODA3My00Mzc2LThmODMtMThhYTVlMGJkYjA4XkEyXkFqcGc@._V1_.jpg",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+      "generado": false,
+      "duracion": 294.264,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Vengadores-Doomsday-marvel-studios.jpg",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m12s144.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m18s380.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m22s457.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m25s347.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m34s550.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m46s485.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m15s861.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m35s511.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m39s187.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m53s982.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m03s461.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m21s956.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m25s964.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m32s969.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m37s254.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m46s397.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m52s249.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m59s059.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h40m02s719.png",
+      "generado": false,
+      "duracion": 0,
+      "tieneVideo": true,
+      "tieneAudio": false
+    },
+    {
+      "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+      "generado": false,
+      "duracion": 177.2408,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\Duwang\\000_Recursos varios\\Música General\\JoJo's Bizarre Adventure Stardust Crusaders O.S.T [Destination]\\07. Nightmare World.mp3",
+      "generado": false,
+      "duracion": 185.2905,
+      "tieneVideo": false,
+      "tieneAudio": true
+    },
+    {
+      "archivo": "K:\\Recursos\\sfx\\Vine Boom Sound Effectmp3.mp3",
+      "generado": false,
+      "duracion": 3.3255,
+      "tieneVideo": false,
+      "tieneAudio": true
+    }
+  ],
+  "pistas": [
+    {
+      "indice": 0,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": []
+    },
+    {
+      "indice": 1,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0.2343,
+          "duracion": 6.9903,
+          "fin": 7.2246,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.3337,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.4004,
+            "curva": "Smooth"
+          },
+          "ganancia": 0.5573770403862,
+          "toma": "spicyapple223-2067568036383707268-01",
+          "offset": 0,
+          "archivo": "G:\\Descargas\\twitter_media\\spicyapple223-2067568036383707268-01.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 640,
+              "centroY": 360,
+              "ancho": 1280,
+              "alto": 720,
+              "zoom": 1.5
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 6.8242,
+          "duracion": 7.073,
+          "fin": 13.8972,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.4004,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.875,
+            "curva": "Smooth"
+          },
+          "ganancia": 0.5573770403862,
+          "toma": "FabrizioFauno-2071546539319693466-01",
+          "offset": 0,
+          "archivo": "G:\\Descargas\\twitter_media\\FabrizioFauno-2071546539319693466-01.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 13.0222,
+          "duracion": 6.9403,
+          "fin": 19.9625,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.875,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "ganancia": 0.688524603843689,
+          "toma": "litteralyme0-2057059285746487742-01",
+          "offset": 0,
+          "archivo": "G:\\Descargas\\twitter_media\\litteralyme0-2057059285746487742-01.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 19.2785,
+          "duracion": 4.5119,
+          "fin": 23.7904,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "xakundo-2067400129187922197-01",
+          "offset": 0,
+          "archivo": "G:\\Descargas\\twitter_media\\xakundo-2067400129187922197-01.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 160,
+              "centroY": 120,
+              "ancho": 320,
+              "alto": 240,
+              "zoom": 6
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 2,
+      "tipo": "video",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "modoComposicion": "SrcAlpha",
+      "efectos": [],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0.2343,
+          "duracion": 23.5561,
+          "fin": 23.7904,
+          "silenciado": false,
+          "velocidad": 4,
+          "fadeIn": {
+            "duracion": 0.317,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-06-29 07-29-55",
+          "offset": 11.3989,
+          "archivo": "H:\\Grabaciones\\2026-06-29 07-29-55.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 23.7904,
+          "duracion": 3.3367,
+          "fin": 27.1271,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "2026-06-29 07-29-55",
+          "offset": 183.1997,
+          "archivo": "H:\\Grabaciones\\2026-06-29 07-29-55.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1920,
+              "alto": 1080,
+              "zoom": 1
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 27.1271,
+          "duracion": 5.4554,
+          "fin": 32.5826,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m12s144",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m12s144.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 5.4554,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1358.636962890625,
+              "alto": 764.2332763671875,
+              "zoom": 1.4131810427967626
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 34.8848,
+          "duracion": 8.2416,
+          "fin": 43.1264,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.7841,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m12s144",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m12s144.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1440.601318359375,
+              "alto": 810.3382568359375,
+              "zoom": 1.3327767894774571
+            },
+            {
+              "posicion": 8.2416,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 42.3423,
+          "duracion": 10.1435,
+          "fin": 52.4858,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.7841,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m25s347",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m25s347.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 10.1268,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1699.306884765625,
+              "alto": 955.860107421875,
+              "zoom": 1.1298724304673278
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 51.4848,
+          "duracion": 12.4791,
+          "fin": 63.9639,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m18s380",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m18s380.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1827.005126953125,
+              "alto": 1027.6904296875,
+              "zoom": 1.0509001708177805
+            },
+            {
+              "posicion": 11.5616,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 920.305419921875,
+              "alto": 517.671875,
+              "zoom": 2.0862639276458781
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 62.9629,
+          "duracion": 11.1945,
+          "fin": 74.1574,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m46s485",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m46s485.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1058.0804443359375,
+              "centroY": 507.30648803710938,
+              "ancho": 1362.031005859375,
+              "alto": 766.14239501953125,
+              "zoom": 1.4096595391296352
+            },
+            {
+              "posicion": 11.1945,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1058.0804443359375,
+              "centroY": 507.30648803710938,
+              "ancho": 767.00921630859375,
+              "alto": 431.4427490234375,
+              "zoom": 2.5032293734884132
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 73.4734,
+          "duracion": 11.1611,
+          "fin": 84.6346,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m22s457",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m22s457.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 83.6336,
+          "duracion": 4.5712,
+          "fin": 88.2048,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.8675,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h40m02s719",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h40m02s719.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 0.0501,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1286.9349365234375,
+              "centroY": 360.18576049804688,
+              "ancho": 1164.4169921875,
+              "alto": 654.98455810546875,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 4.5379,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1535.405517578125,
+              "centroY": 379.80184936523438,
+              "ancho": 675.4674072265625,
+              "alto": 379.95046997070313,
+              "zoom": 2.8424761571893304
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 87.3372,
+          "duracion": 10.3103,
+          "fin": 97.6476,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.8675,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m25s964",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m25s964.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1283.6656494140625,
+              "centroY": 376.53250122070313,
+              "ancho": 1164.4169921875,
+              "alto": 654.98455810546875,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 10.3103,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1621.070068359375,
+              "centroY": 210.51840209960938,
+              "ancho": 432.9735107421875,
+              "alto": 243.547607421875,
+              "zoom": 4.4344514210784061
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 96.6466,
+          "duracion": 14.6813,
+          "fin": 111.3279,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.6016,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m22s457",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m22s457.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 109.7263,
+          "duracion": 4.054,
+          "fin": 113.7803,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.6016,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m03s461",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m03s461.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 4.054,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1308.74560546875,
+              "alto": 736.16943359375,
+              "zoom": 1.4670536366861906
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 112.5958,
+          "duracion": 5.005,
+          "fin": 117.6008,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.684,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.051,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m21s956",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m21s956.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 116.5498,
+          "duracion": 10.3437,
+          "fin": 126.8934,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.051,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.3347,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m32s969",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m32s969.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 125.5588,
+          "duracion": 8.6086,
+          "fin": 134.1674,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.3347,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.4848,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m59s059",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m59s059.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 132.6826,
+          "duracion": 9.8932,
+          "fin": 142.5758,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.4848,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.0344,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m53s982",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m53s982.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 141.5414,
+          "duracion": 11.8452,
+          "fin": 153.3866,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.0344,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m39s187",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m39s187.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 152.3856,
+          "duracion": 6.5732,
+          "fin": 158.9588,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.051,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m35s511",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m35s511.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 157.9078,
+          "duracion": 10.2436,
+          "fin": 168.1513,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.051,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.3347,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m37s254",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m37s254.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1306.551025390625,
+              "centroY": 294.79876708984375,
+              "ancho": 687.81842041015625,
+              "alto": 386.8978271484375,
+              "zoom": 2.7914344004556839
+            },
+            {
+              "posicion": 10.2436,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 1345.7833251953125,
+              "centroY": 700.1981201171875,
+              "ancho": 1083.04638671875,
+              "alto": 609.213623046875,
+              "zoom": 1.77277725455225
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 166.8166,
+          "duracion": 3.0864,
+          "fin": 169.9031,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.3347,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m34s550",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m34s550.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 3.0864,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1274.296875,
+              "alto": 716.7919921875,
+              "zoom": 1.5067132609895162
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 169.9031,
+          "duracion": 1.7851,
+          "fin": 171.6882,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.1668,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m46s485",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m46s485.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 773.64703369140625,
+              "centroY": 880.01239013671875,
+              "ancho": 466.95562744140625,
+              "alto": 262.66253662109375,
+              "zoom": 4.1117397182260582
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 171.5214,
+          "duracion": 12.1455,
+          "fin": 183.6668,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.1668,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m15s861",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m15s861.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 182.6658,
+          "duracion": 7.7744,
+          "fin": 190.4402,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.6516,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m46s485",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m46s485.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 7.7744,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1441.1953125,
+              "alto": 810.67236328125,
+              "zoom": 1.3322274804442926
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 188.7886,
+          "duracion": 10.7608,
+          "fin": 199.5494,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.6516,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m34s550",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m34s550.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 10.7608,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1547.511474609375,
+              "alto": 870.4752197265625,
+              "zoom": 1.2407016241896682
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 198.5484,
+          "duracion": 10.0767,
+          "fin": 208.6251,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.0344,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h40m02s719",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h40m02s719.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 207.5907,
+          "duracion": 10.6273,
+          "fin": 218.218,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.0344,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.951,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m22s457",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m22s457.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 217.267,
+          "duracion": 15.015,
+          "fin": 232.2821,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.951,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m25s347",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m25s347.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.015,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1698.967529296875,
+              "alto": 955.6693115234375,
+              "zoom": 1.1300981136435257
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 233.5333,
+          "duracion": 3.1365,
+          "fin": 236.6698,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.8342,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m25s347",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m25s347.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1698.967529296875,
+              "alto": 955.6693115234375,
+              "zoom": 1.1300981136435257
+            },
+            {
+              "posicion": 0.9843,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 235.8356,
+          "duracion": 15.7324,
+          "fin": 251.568,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.8342,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m12s144",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m12s144.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.7324,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1724.507080078125,
+              "alto": 970.03533935546875,
+              "zoom": 1.1133616221007447
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 250.567,
+          "duracion": 16.1328,
+          "fin": 266.6998,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.001,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0.9343,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m46s397",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m46s397.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 265.7655,
+          "duracion": 15.4154,
+          "fin": 281.1809,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.9343,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m39s187",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m39s187.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.4154,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1713.22216796875,
+              "alto": 963.6875,
+              "zoom": 1.1206952816145335
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 288.3714,
+          "duracion": 10.6106,
+          "fin": 298.982,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.0177,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h38m35s511",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h38m35s511.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 15.9993,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1734.01025390625,
+              "alto": 975.380859375,
+              "zoom": 1.1072598882704217
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 297.9643,
+          "duracion": 11.1445,
+          "fin": 309.1088,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.0177,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 1.0677,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h37m34s550",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h37m34s550.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 11.1445,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1561.17236328125,
+              "alto": 878.159423828125,
+              "zoom": 1.2298449839097658
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 308.0411,
+          "duracion": 10.4438,
+          "fin": 318.4848,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.0677,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "vlcsnap-2026-06-29-09h39m52s249",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\vlcsnap-2026-06-29-09h39m52s249.png",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1164.4169921875,
+              "alto": 654.9844970703125,
+              "zoom": 1.6488938351827422
+            },
+            {
+              "posicion": 10.4438,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 960,
+              "centroY": 540,
+              "ancho": 1536.2265625,
+              "alto": 864.12744140625,
+              "zoom": 1.2498156501573967
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 318.4848,
+          "duracion": 1.3013,
+          "fin": 319.7861,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "MV5BMDA2MDVmNWItODA3My00Mzc2LThmODMtMThhYTVlMGJkYjA4XkEyXkFqcGc@._V1_",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\MV5BMDA2MDVmNWItODA3My00Mzc2LThmODMtMThhYTVlMGJkYjA4XkEyXkFqcGc@._V1_.jpg",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 819,
+              "centroY": 1024,
+              "ancho": 1638,
+              "alto": 2048,
+              "zoom": 1.1721611721611722
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 319.7861,
+          "duracion": 1.4014,
+          "fin": 321.1875,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Vengadores-Doomsday-marvel-studios",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Vengadores-Doomsday-marvel-studios.jpg",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 600,
+              "centroY": 337.5,
+              "ancho": 1200,
+              "alto": 675,
+              "zoom": 1.6
+            }
+          ],
+          "envolventes": []
+        },
+        {
+          "inicio": 321.1875,
+          "duracion": 3.1031,
+          "fin": 324.2906,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Smooth"
+          },
+          "ganancia": 1,
+          "toma": "Era De Ultrón： Visión Destruye Al Ultimo Ultrón - (Audio Latino)_EDIT",
+          "offset": 57.1404,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Era De Ultrón： Visión Destruye Al Ultimo Ultrón - (Audio Latino)_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "efectos": [],
+          "panCrop": [
+            {
+              "posicion": 0,
+              "tipo": "Linear",
+              "suavidad": 0,
+              "rotacion": 0,
+              "centroX": 640,
+              "centroY": 360,
+              "ancho": 1280,
+              "alto": 720,
+              "zoom": 1.5
+            }
+          ],
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 3,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0.2343,
+          "duracion": 23.5561,
+          "fin": 23.7904,
+          "silenciado": false,
+          "velocidad": 4,
+          "fadeIn": {
+            "duracion": 0.0025,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.0025,
+            "curva": "Slow"
+          },
+          "ganancia": 0,
+          "toma": "2026-06-29 07-29-55",
+          "offset": 11.3989,
+          "archivo": "H:\\Grabaciones\\2026-06-29 07-29-55.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 23.7904,
+          "duracion": 3.3367,
+          "fin": 27.1271,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "2026-06-29 07-29-55",
+          "offset": 183.1997,
+          "archivo": "H:\\Grabaciones\\2026-06-29 07-29-55.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 318.1785,
+          "duracion": 1.5243,
+          "fin": 319.7027,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.2281,
+            "curva": "Slow"
+          },
+          "ganancia": 0.328125,
+          "toma": "Vine Boom Sound Effectmp3",
+          "offset": 0,
+          "archivo": "K:\\Recursos\\sfx\\Vine Boom Sound Effectmp3.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 319.4746,
+          "duracion": 1.7129,
+          "fin": 321.1875,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.2281,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.328125,
+          "toma": "Vine Boom Sound Effectmp3",
+          "offset": 0,
+          "archivo": "K:\\Recursos\\sfx\\Vine Boom Sound Effectmp3.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 321.1875,
+          "duracion": 3.1031,
+          "fin": 324.2906,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Era De Ultrón： Visión Destruye Al Ultimo Ultrón - (Audio Latino)_EDIT",
+          "offset": 57.1404,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Era De Ultrón： Visión Destruye Al Ultimo Ultrón - (Audio Latino)_EDIT.mp4",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 4,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 0,
+          "duracion": 23.7904,
+          "fin": 23.7904,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 1.4043,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 0.796875,
+          "toma": "07. Nightmare World",
+          "offset": 26.2102,
+          "archivo": "K:\\Duwang\\000_Recursos varios\\Música General\\JoJo's Bizarre Adventure Stardust Crusaders O.S.T [Destination]\\07. Nightmare World.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 26.9269,
+          "duracion": 5.6557,
+          "fin": 32.5826,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.078125,
+          "toma": "03 - Chirp Valley Rumble",
+          "offset": 10.3809,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 34.8848,
+          "duracion": 145.0282,
+          "fin": 179.9131,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 10.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.078125,
+          "toma": "03 - Chirp Valley Rumble",
+          "offset": 18.3389,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 169.9031,
+          "duracion": 62.379,
+          "fin": 232.2821,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 10.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.078125,
+          "toma": "03 - Chirp Valley Rumble",
+          "offset": 10.3809,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 233.5333,
+          "duracion": 47.6476,
+          "fin": 281.1809,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 0.078125,
+          "toma": "03 - Chirp Valley Rumble",
+          "offset": 72.7599,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 288.3714,
+          "duracion": 30.1134,
+          "fin": 318.4848,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 0.078125,
+          "toma": "03 - Chirp Valley Rumble",
+          "offset": 120.4075,
+          "archivo": "K:\\AB Fann 001\\Recursos\\Música\\Angry Birds 2 Original Game Soundtrack\\03 - Chirp Valley Rumble.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    },
+    {
+      "indice": 5,
+      "tipo": "audio",
+      "nombre": null,
+      "silenciada": false,
+      "solo": false,
+      "volumen": 1.2882494926452637,
+      "paneo": 0,
+      "efectos": [
+        {
+          "nombre": "Puerta de ruido de pista",
+          "id": "{869419DD-501F-11D3-8CDC-00C04F6B8E4C}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Ecualizador de pista",
+          "id": "{8CB69A0A-10E8-11D2-9B89-00104B8D13C2}",
+          "desactivado": false,
+          "preset": null
+        },
+        {
+          "nombre": "Compresor de pista",
+          "id": "{23C9F225-40EC-11D2-9D36-00C04F8EDC1E}",
+          "desactivado": false,
+          "preset": null
+        }
+      ],
+      "envolventes": [],
+      "eventos": [
+        {
+          "inicio": 26.9269,
+          "duracion": 5.6557,
+          "fin": 32.5826,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Sin título 1",
+          "offset": 0,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 32.5826,
+          "duracion": 2.3023,
+          "fin": 34.8848,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Sin título 1",
+          "offset": 5.6557,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 34.8848,
+          "duracion": 197.3972,
+          "fin": 232.2821,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Sin título 1",
+          "offset": 7.958,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 232.2821,
+          "duracion": 48.8989,
+          "fin": 281.1809,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0.01,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Sin título 1",
+          "offset": 205.3552,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        },
+        {
+          "inicio": 281.1809,
+          "duracion": 40.01,
+          "fin": 321.1909,
+          "silenciado": false,
+          "velocidad": 1,
+          "fadeIn": {
+            "duracion": 0.01,
+            "curva": "Fast"
+          },
+          "fadeOut": {
+            "duracion": 0,
+            "curva": "Slow"
+          },
+          "ganancia": 1,
+          "toma": "Sin título 1",
+          "offset": 254.254,
+          "archivo": "K:\\AB Fann 001\\ANALISIS AB3\\Sin título 1.mp3",
+          "generado": false,
+          "numeroTomas": 1,
+          "normalizado": false,
+          "gananciaNormalizacion": 1,
+          "envolventes": []
+        }
+      ]
+    }
+  ],
+  "marcadores": [],
+  "regiones": []
+}
