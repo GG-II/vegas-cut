@@ -64,8 +64,8 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 ## 3. Plan de trabajo
 
 1. [ ] Definir versión de Vegas y .NET; preparar proyecto en Visual Studio.
-2. [ ] **Silences**: script que lee rangos de silencio y corta/borra en la línea de tiempo.
-3. [ ] Ventana con parámetros: umbral en dB, duración mínima, margen antes/después.
+2. [x] **Silences**: `scripts/QuitarSilencios.cs` (falta probarlo en Vegas 20 real).
+3. [x] Ventana con parámetros: umbral en dB, duración mínima, margen antes/después.
 4. [ ] **AutoZoom**: keyframes en cortes o picos de volumen.
 5. [ ] **Angles**: alternar cámaras según el micrófono activo.
 6. [ ] **Podcast**: combinar Silences + Angles.
