@@ -9,7 +9,7 @@ Datos sacados de los `.export.json` en `ejemplos/` (8 video ensayos con avatar,
   Se usan más de 15 imágenes de `Recursos\Avatar\` (`feliz hablando`, `feliz`, `feliz 2`,
   `hablando`, `normal`, `pregunta`, `cerrando ojos`…).
 - **Siempre el mismo "rebote":** 127 de 143 eventos tienen exactamente 3 keyframes de
-  Pan/Crop: zoom 1.80 → 1.66 → 1.75 en 0, 1 y 2 fotogramas (0, 0.033 s y 0.067 s), centro (548, 550).
+  Pan/Crop: zoom 1.80 → 1.66 → 1.75 a los 0, 0.033 y 0.067 s (0, 2 y 4 fotogramas a 60 fps), centro (548, 550).
   En proyectos más viejos (`Obsoletas`) es un solo keyframe fijo en 1.75.
 - **Parpadeos a mano:** los pares `normal → cerrando ojos → normal` aparecen muchas veces.
 - Los cambios de expresión **no** siguen los cortes de la voz (solo 25 de 143 coinciden),
