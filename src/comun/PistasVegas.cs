@@ -81,7 +81,7 @@ public static class PistasVegas
 
     // Indice del flujo de audio que usa la toma (OBS graba varias pistas de
     // audio en el mismo .mp4). Por reflexion para no depender de la API exacta.
-    static int IndiceFlujo(Take toma)
+    public static int IndiceFlujo(Take toma)
     {
         try
         {
@@ -90,6 +90,53 @@ public static class PistasVegas
             return Convert.ToInt32(indice);
         }
         catch { return 0; }
+    }
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+
+    // Eventos de la pista con su archivo, para la transcripcion.
+    public static List<Fuente> Fuentes(Track pista)
+    {
+        List<Fuente> r = new List<Fuente>();
+        foreach (TrackEvent e in pista.Events)
+        {
+            Take toma = e.ActiveTake;
+            if (toma == null || toma.Media == null || toma.Media.IsGenerated() || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+            Fuente f = new Fuente();
+            f.Inicio = S(e.Start); f.Fin = S(e.End);
+            f.Desde = S(toma.Offset); f.Velocidad = e.PlaybackRate;
+            f.Media = toma.Media.FilePath;
+            f.Flujo = IndiceFlujo(toma);
+            r.Add(f);
+        }
+        r.Sort(delegate (Fuente a, Fuente b) { return a.Inicio.CompareTo(b.Inicio); });
+        return r;
+    }
+
+    // Donde suena ahora ese segundo de ese archivo (y flujo): pista e instante
+    // de cada evento de audio que lo contiene.
+    public class Lugar { public Track Pista; public double Tiempo, Velocidad; }
+
+    public static List<Lugar> Donde(Project p, string media, int flujo, double segundo)
+    {
+        List<Lugar> r = new List<Lugar>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || e.Mute ||
+                    !String.Equals(toma.Media.FilePath, media, StringComparison.OrdinalIgnoreCase) || IndiceFlujo(toma) != flujo) continue;
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                if (segundo < desde - 0.0005 || segundo >= desde + largo - 0.0005) continue;
+                Lugar l = new Lugar();
+                l.Pista = pista; l.Velocidad = e.PlaybackRate;
+                l.Tiempo = S(e.Start) + (segundo - desde) / e.PlaybackRate;
+                r.Add(l);
+            }
+        }
+        return r;
     }
 
     public static bool HaySeleccion(Vegas vegas)

@@ -256,6 +256,7 @@ class VentanaTranscribir : VentanaBase
                 h.Archivo = pistas[i].Archivo ?? "";
                 h.Voz = chipsVoz[i].Activo;
                 Transcripcion.NivelesPorSegundo(a, out h.Nivel, out h.Pico);
+                h.Fuentes = PistasVegas.Fuentes(pistas[i].Pista);
                 resultado.Hablantes.Add(h);
 
                 if (h.Voz)
@@ -494,7 +495,7 @@ public static class PistasVegas
 
     // Indice del flujo de audio que usa la toma (OBS graba varias pistas de
     // audio en el mismo .mp4). Por reflexion para no depender de la API exacta.
-    static int IndiceFlujo(Take toma)
+    public static int IndiceFlujo(Take toma)
     {
         try
         {
@@ -503,6 +504,53 @@ public static class PistasVegas
             return Convert.ToInt32(indice);
         }
         catch { return 0; }
+    }
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+
+    // Eventos de la pista con su archivo, para la transcripcion.
+    public static List<Fuente> Fuentes(Track pista)
+    {
+        List<Fuente> r = new List<Fuente>();
+        foreach (TrackEvent e in pista.Events)
+        {
+            Take toma = e.ActiveTake;
+            if (toma == null || toma.Media == null || toma.Media.IsGenerated() || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+            Fuente f = new Fuente();
+            f.Inicio = S(e.Start); f.Fin = S(e.End);
+            f.Desde = S(toma.Offset); f.Velocidad = e.PlaybackRate;
+            f.Media = toma.Media.FilePath;
+            f.Flujo = IndiceFlujo(toma);
+            r.Add(f);
+        }
+        r.Sort(delegate (Fuente a, Fuente b) { return a.Inicio.CompareTo(b.Inicio); });
+        return r;
+    }
+
+    // Donde suena ahora ese segundo de ese archivo (y flujo): pista e instante
+    // de cada evento de audio que lo contiene.
+    public class Lugar { public Track Pista; public double Tiempo, Velocidad; }
+
+    public static List<Lugar> Donde(Project p, string media, int flujo, double segundo)
+    {
+        List<Lugar> r = new List<Lugar>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || e.Mute ||
+                    !String.Equals(toma.Media.FilePath, media, StringComparison.OrdinalIgnoreCase) || IndiceFlujo(toma) != flujo) continue;
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                if (segundo < desde - 0.0005 || segundo >= desde + largo - 0.0005) continue;
+                Lugar l = new Lugar();
+                l.Pista = pista; l.Velocidad = e.PlaybackRate;
+                l.Tiempo = S(e.Start) + (segundo - desde) / e.PlaybackRate;
+                r.Add(l);
+            }
+        }
+        return r;
     }
 
     public static bool HaySeleccion(Vegas vegas)
@@ -1061,6 +1109,17 @@ public class Hablante
     public bool Voz;         // true: se transcribio; false: solo niveles (juego, musica)
     public float[] Nivel;    // dB RMS por segundo
     public float[] Pico;     // dB maximo por segundo
+    public List<Fuente> Fuentes = new List<Fuente>(); // de donde salia cada parte al transcribir
+}
+
+// Un evento de la pista al transcribir: que archivo (y flujo de audio) sonaba
+// de Inicio a Fin y desde que segundo del archivo. Con esto una palabra se
+// puede encontrar en la linea de tiempo aunque despues edites a mano.
+public class Fuente
+{
+    public double Inicio, Fin, Desde, Velocidad = 1;
+    public string Media = "";
+    public int Flujo;
 }
 
 public class Edicion
@@ -1103,6 +1162,27 @@ public class Transcripcion
             t -= q;
         }
         return t;
+    }
+
+    // Archivo, flujo y segundo del archivo que sonaba en el instante
+    // original t en la pista de ese hablante.
+    public bool AFuente(int hablante, double t, out Fuente f, out double segundo)
+    {
+        f = null; segundo = 0;
+        if (hablante < 0 || hablante >= Hablantes.Count) return false;
+        foreach (Fuente x in Hablantes[hablante].Fuentes)
+            if (t >= x.Inicio - 1e-6 && t < x.Fin - 1e-6)
+            {
+                f = x;
+                segundo = x.Desde + (t - x.Inicio) * x.Velocidad;
+                return true;
+            }
+        return false;
+    }
+
+    public bool TieneFuentes
+    {
+        get { foreach (Hablante h in Hablantes) if (h.Fuentes.Count > 0) return true; return false; }
     }
 
     // Segmentos con tiempos de la linea de tiempo actual, sin lo cortado.
@@ -1284,6 +1364,11 @@ public class Transcripcion
             x["voz"] = h.Voz;
             x["nivel"] = h.Nivel ?? new float[0];
             x["pico"] = h.Pico ?? new float[0];
+            List<object> fs = new List<object>();
+            // Fuentes compactas: [inicio, fin, desde, velocidad, flujo, archivo]
+            foreach (Fuente f in h.Fuentes)
+                fs.Add(new List<object> { R(f.Inicio), R(f.Fin), R(f.Desde), Math.Round(f.Velocidad, 4), f.Flujo, f.Media });
+            x["fuentes"] = fs;
             hs.Add(x);
         }
         d["hablantes"] = hs;
@@ -1352,6 +1437,19 @@ public class Transcripcion
             h.Voz = dx.TryGetValue("voz", out voz) && voz is bool && (bool)voz;
             h.Nivel = Numeros(Json.Lista(x, "nivel"));
             h.Pico = Numeros(Json.Lista(x, "pico"));
+            foreach (object q in Json.Lista(x, "fuentes"))
+            {
+                List<object> l = q as List<object>;
+                if (l == null || l.Count < 6) continue;
+                Fuente f = new Fuente();
+                f.Inicio = Convert.ToDouble(l[0], CultureInfo.InvariantCulture);
+                f.Fin = Convert.ToDouble(l[1], CultureInfo.InvariantCulture);
+                f.Desde = Convert.ToDouble(l[2], CultureInfo.InvariantCulture);
+                f.Velocidad = Convert.ToDouble(l[3], CultureInfo.InvariantCulture);
+                f.Flujo = Convert.ToInt32(l[4], CultureInfo.InvariantCulture);
+                f.Media = l[5] as string ?? "";
+                h.Fuentes.Add(f);
+            }
             t.Hablantes.Add(h);
         }
 

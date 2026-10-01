@@ -12,11 +12,12 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
 | `TextosDesdeMarcadores.cs` | Convierte los marcadores `TEXTO:` en Títulos y texto con el estilo de una plantilla. |
 | `MusicaAutomatica.cs` | Baja la música cuando alguien habla y la sube en las pausas (envolvente de volumen). |
+| `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
 
 **Flujo sugerido para un gameplay:** *Quitar silencios* (opcional) → *Transcribir* →
 *Momentos con IA* → revisar → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores*
-→ música → *Música que baja sola*. La transcripción sigue los cortes que hacen estas
+→ música → *Música que baja sola* → *Censurar palabrotas*. La transcripción sigue los cortes que hacen estas
 herramientas, incluso si los deshaces con Ctrl+Z. Si después editas a mano no hace falta volver a
 transcribir: los textos usan los marcadores anclados y la música mide las voces en el momento.
 
@@ -167,6 +168,36 @@ en la **envolvente de volumen** de la pista, que después puedes mover a mano.
    selección de tiempo); fuera del rango no se toca. Ctrl+Z lo deshace.
 
 Los ajustes se recuerdan en `%APPDATA%\vegas-cut\musica.ini`.
+
+### `CensurarPalabrotas.cs`
+
+![Ventana de Censurar palabrotas](docs/img/censura.png)
+
+Al final de la edición: busca palabrotas en la transcripción, las muestra para revisarlas y
+las tapa.
+
+1. Revisa la lista: cada coincidencia con quién la dijo, el contexto y qué tan seguro estaba
+   Whisper. Desmarca las que no quieras; **doble clic** lleva el cursor ahí y reproduce.
+2. **Palabras…** edita la lista (se guarda en `%APPDATA%\vegas-cut\censura-palabras.txt`):
+   una por línea, `ching*` acepta cualquier terminación (chingar, chingados…) y varias palabras
+   son una frase (`puta madre`). La lista inicial está pensada para tus gameplays y no incluye
+   palabras con doble sentido sueltas (*madre*, *huevos*, *perra*, *culo*): «¡Madre mía!» no se
+   censura, «puta madre» sí.
+3. **Cuándo tapar**: toda la palabra, solo el inicio o solo el final; **antes** y **después**
+   (ms de margen) y un **mínimo** (Whisper a veces marca palabras casi sin duración).
+4. **Efecto**: pitido clásico de 1 kHz (lo genera el script), un archivo tuyo (*Elegir archivo…*,
+   se recuerdan los últimos) o ninguno. Va **al largo de la palabra** (recortado) o entero:
+   **empieza con ella**, **centrado** o **termina con ella**. Con su **volumen**.
+5. **La voz original**: se silencia solo en la pista de quien la dijo (las demás voces siguen),
+   o se deja sonar debajo del efecto.
+6. **Censurar**: los efectos van en una pista nueva *Censura*. Palabrotas seguidas se tapan con
+   un solo efecto. Ctrl+Z lo deshace todo.
+
+**Funciona aunque edites a mano:** desde esta versión, *Transcribir* guarda de qué archivo y de
+qué segundo sale cada parte de la voz, así que cada palabra se encuentra en su lugar actual
+aunque muevas o recortes clips; si una parte se borró, aparece como *ya no está*. Las
+transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a
+mano, vuelve a transcribir (un video ya editado de 20 min tarda poco).
 
 ### `QuitarSilencios.cs`
 

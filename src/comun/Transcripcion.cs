@@ -35,6 +35,17 @@ public class Hablante
     public bool Voz;         // true: se transcribio; false: solo niveles (juego, musica)
     public float[] Nivel;    // dB RMS por segundo
     public float[] Pico;     // dB maximo por segundo
+    public List<Fuente> Fuentes = new List<Fuente>(); // de donde salia cada parte al transcribir
+}
+
+// Un evento de la pista al transcribir: que archivo (y flujo de audio) sonaba
+// de Inicio a Fin y desde que segundo del archivo. Con esto una palabra se
+// puede encontrar en la linea de tiempo aunque despues edites a mano.
+public class Fuente
+{
+    public double Inicio, Fin, Desde, Velocidad = 1;
+    public string Media = "";
+    public int Flujo;
 }
 
 public class Edicion
@@ -77,6 +88,27 @@ public class Transcripcion
             t -= q;
         }
         return t;
+    }
+
+    // Archivo, flujo y segundo del archivo que sonaba en el instante
+    // original t en la pista de ese hablante.
+    public bool AFuente(int hablante, double t, out Fuente f, out double segundo)
+    {
+        f = null; segundo = 0;
+        if (hablante < 0 || hablante >= Hablantes.Count) return false;
+        foreach (Fuente x in Hablantes[hablante].Fuentes)
+            if (t >= x.Inicio - 1e-6 && t < x.Fin - 1e-6)
+            {
+                f = x;
+                segundo = x.Desde + (t - x.Inicio) * x.Velocidad;
+                return true;
+            }
+        return false;
+    }
+
+    public bool TieneFuentes
+    {
+        get { foreach (Hablante h in Hablantes) if (h.Fuentes.Count > 0) return true; return false; }
     }
 
     // Segmentos con tiempos de la linea de tiempo actual, sin lo cortado.
@@ -258,6 +290,11 @@ public class Transcripcion
             x["voz"] = h.Voz;
             x["nivel"] = h.Nivel ?? new float[0];
             x["pico"] = h.Pico ?? new float[0];
+            List<object> fs = new List<object>();
+            // Fuentes compactas: [inicio, fin, desde, velocidad, flujo, archivo]
+            foreach (Fuente f in h.Fuentes)
+                fs.Add(new List<object> { R(f.Inicio), R(f.Fin), R(f.Desde), Math.Round(f.Velocidad, 4), f.Flujo, f.Media });
+            x["fuentes"] = fs;
             hs.Add(x);
         }
         d["hablantes"] = hs;
@@ -326,6 +363,19 @@ public class Transcripcion
             h.Voz = dx.TryGetValue("voz", out voz) && voz is bool && (bool)voz;
             h.Nivel = Numeros(Json.Lista(x, "nivel"));
             h.Pico = Numeros(Json.Lista(x, "pico"));
+            foreach (object q in Json.Lista(x, "fuentes"))
+            {
+                List<object> l = q as List<object>;
+                if (l == null || l.Count < 6) continue;
+                Fuente f = new Fuente();
+                f.Inicio = Convert.ToDouble(l[0], CultureInfo.InvariantCulture);
+                f.Fin = Convert.ToDouble(l[1], CultureInfo.InvariantCulture);
+                f.Desde = Convert.ToDouble(l[2], CultureInfo.InvariantCulture);
+                f.Velocidad = Convert.ToDouble(l[3], CultureInfo.InvariantCulture);
+                f.Flujo = Convert.ToInt32(l[4], CultureInfo.InvariantCulture);
+                f.Media = l[5] as string ?? "";
+                h.Fuentes.Add(f);
+            }
             t.Hablantes.Add(h);
         }
 

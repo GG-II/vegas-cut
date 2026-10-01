@@ -236,6 +236,7 @@ class VentanaTranscribir : VentanaBase
                 h.Archivo = pistas[i].Archivo ?? "";
                 h.Voz = chipsVoz[i].Activo;
                 Transcripcion.NivelesPorSegundo(a, out h.Nivel, out h.Pico);
+                h.Fuentes = PistasVegas.Fuentes(pistas[i].Pista);
                 resultado.Hablantes.Add(h);
 
                 if (h.Voz)

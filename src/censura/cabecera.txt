@@ -1,0 +1,9 @@
+// CensurarPalabrotas.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Busca palabrotas en la transcripcion (hecha con Transcribir.cs), las
+// muestra para revisarlas y las tapa con un pitido o el efecto que elijas,
+// silenciando la voz solo en ese instante y solo en la pista de quien lo
+// dijo. Antes, despues, minimo y donde va el efecto se pueden ajustar.
+// Ctrl+Z lo deshace todo de una vez.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

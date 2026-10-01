@@ -10,15 +10,17 @@ mcs -langversion:5 -target:library -out:"$T/ScriptPortal.Vegas.dll" VegasFake.cs
 REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll"
 # Los scripts armados desde src/ deben compilar como C# 5 (ExportarProyecto.cs
 # usa partes de la API que la version falsa no imita).
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ia.exe" PruebaIA.cs ../scripts/MomentosIA.cs ../src/comun/Whisper.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/textos.exe" PruebaTextos.cs ../scripts/TextosDesdeMarcadores.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/musica.exe" PruebaMusica.cs ../scripts/MusicaAutomatica.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/censura.exe" PruebaCensura.cs ../scripts/CensurarPalabrotas.cs
 cd "$T"
 echo "== Quitar silencios"; mono silencios.exe
 echo "== Transcripcion, Whisper, Gemini y Momentos"; XDG_CONFIG_HOME="$T/config" mono ia.exe
 echo "== Textos desde marcadores"; mono textos.exe
 echo "== Musica que baja sola"; XDG_CONFIG_HOME="$T/config" mono musica.exe
+echo "== Censurar palabrotas"; XDG_CONFIG_HOME="$T/config" mono censura.exe

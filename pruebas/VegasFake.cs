@@ -25,7 +25,10 @@ public class MediaStream { public Media Parent; public MediaType MediaType; }
 public class MediaStreams : List<MediaStream> { public MediaStream GetItemByMediaType(MediaType t, int i){ foreach(var m in this) if(m.MediaType==t && i--==0) return m; return null; } }
 public class Media { public string FilePath; public bool Generada; public Effect Generator; public MediaStreams Streams=new MediaStreams();
   public bool IsGenerated(){return Generada;}
+  public Timecode Length=new Timecode(0);
   public Media(){}
+  public Media(string ruta){ FilePath=ruta; Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); Length=new Timecode(LargoFalso); }
+  public static double LargoFalso=5000;
   public Media(PlugInNode p){ Generada=true; Generator=new Effect(p); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); } }
 public class Fade { public Timecode Length = new Timecode(0); }
 public class Take { public Media Media; public Timecode Offset = new Timecode(0); }
@@ -48,14 +51,16 @@ public class Envelope { public EnvelopeType Type; public EnvelopePoints Points=n
 public class Envelopes : List<Envelope> { public Track Pista; public new void Add(Envelope e){ e.Points.Add(new EnvelopePoint(new Timecode(0),1)); base.Add(e);} public Envelope FindByType(EnvelopeType t){ foreach(var e in this) if(e.Type==t) return e; return null; } }
 public class Track { public int Index; public string Name; public bool Mute; public Events Events=new Events(); public Envelopes Envelopes=new Envelopes(); public virtual bool IsAudio(){return false;}
   public Track(){} public Track(int i, string n){Index=i;Name=n;} }
-public class AudioTrack: Track { public override bool IsAudio(){return true;} public AudioTrack(){} public AudioTrack(int i,string n):base(i,n){} }
+public class AudioTrack: Track { public override bool IsAudio(){return true;} public AudioTrack(){} public AudioTrack(int i,string n):base(i,n){} public float Volume=1;
+  public AudioEvent AddAudioEvent(Timecode s, Timecode l){ var e=new AudioEvent{Start=s,Length=l,Track=this}; Events.Add(e); return e; } }
 public class VideoTrack: Track { public VideoTrack(){} public VideoTrack(int i,string n):base(i,n){}
   public VideoEvent AddVideoEvent(Timecode s, Timecode l){ var e=new VideoEvent{Start=s,Length=l,Track=this}; Events.Add(e); return e; } }
 public class Marker { public Timecode Position; public string Label; public Marker(){} public Marker(Timecode p, string s){Position=p;Label=s;} }
 public class Region: Marker { public Timecode Length; public Region(Timecode p, Timecode l, string s){Position=p;Length=l;Label=s;} }
 public class VideoProps { public double FrameRate=59.94; }
-public class Project { public string FilePath; public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
-public class Transport { public Timecode SelectionStart=new Timecode(0), SelectionLength=new Timecode(0), CursorPosition=new Timecode(0);}
+public class MediaPool : List<Media> { public Media Find(string r){ foreach(var m in this) if(m.FilePath==r) return m; return null; } }
+public class Project { public string FilePath; public MediaPool MediaPool=new MediaPool(); public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
+public class Transport { public Timecode SelectionStart=new Timecode(0), SelectionLength=new Timecode(0), CursorPosition=new Timecode(0); public int Reproducir; public void Play(){Reproducir++;} }
 public enum RenderStatus { Complete, Canceled, Failed }
 public class RenderTemplate { public string Name="PCM 16"; public bool IsValid(){return true;} }
 public class Renderer { public string FileExtension="*.wav"; public List<RenderTemplate> Templates=new List<RenderTemplate>{new RenderTemplate()}; }

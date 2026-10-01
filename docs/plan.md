@@ -104,6 +104,8 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 - [x] Marcadores anclados a los clips + ReubicarMarcadores.
 - [x] `TextosDesdeMarcadores.cs`: marcadores `TEXTO:` → Títulos y texto con estilo de plantilla.
 - [x] `MusicaAutomatica.cs`: la música baja sola con la voz (envolvente de volumen).
-- [ ] Probar en Vegas 20: crear Títulos y texto por script y la envolvente de volumen.
+- [x] `CensurarPalabrotas.cs`: palabrotas desde la transcripción, pitido o efecto propio, voz silenciada.
+- [x] La transcripción guarda las fuentes (archivo + segundo) para seguir ediciones a mano.
+- [ ] Probar en Vegas 20: Títulos y texto por script, envolvente de volumen y censura.
 - [ ] Zoom de impacto en ★ y picos, Shorts 9:16 desde regiones `SHORT:`.
 - [ ] Subtítulos desde la transcripción (pospuesto).
