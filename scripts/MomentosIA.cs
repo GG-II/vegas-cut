@@ -154,7 +154,7 @@ class VentanaMomentos : VentanaBase
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
     List<CapSerie> capitulos = new List<CapSerie>();   // capitulos de la misma serie
-    string notasSerie = "", carpetaSerie = "";
+    SerieProyecto serie;
     List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
     bool cargando, aplicado, vigente;
 
@@ -327,7 +327,7 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
-        capitulos = Serie.Capitulos(vegas.Project.FilePath, out notasSerie, out carpetaSerie);
+        capitulos = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         MostrarContexto();
         fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
         fijosCuentan = TramosFijos.Cuentan(vegas.Project.FilePath);
@@ -401,7 +401,7 @@ class VentanaMomentos : VentanaBase
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
-        opciones.Contexto = Serie.Contexto(capitulos, notasSerie);
+        opciones.Contexto = Serie.Contexto(serie, capitulos);
         opciones.Fijos = new List<Tramo>(fijos);
         opciones.FijosCuentan = fijosCuentan;
         foreach (CampoTexto c in nombres)
@@ -426,17 +426,14 @@ class VentanaMomentos : VentanaBase
     void ElegirContexto()
     {
         string modelo = comboModelo.Text.Trim().Length > 0 ? comboModelo.Text.Trim() : config.GeminiModelo;
-        using (DialogoSerie d = new DialogoSerie(vegas.Project.FilePath, config.GeminiClave, modelo))
-        {
-            d.ShowDialog(this);
-            capitulos = d.Caps; notasSerie = d.Notas; carpetaSerie = d.Carpeta;
-        }
+        using (VentanaSeries d = new VentanaSeries(vegas.Project.FilePath, config.GeminiClave, modelo, true)) d.ShowDialog(this);
+        capitulos = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         MostrarContexto();
     }
 
     void MostrarContexto()
     {
-        lblContexto.Text = DialogoSerie.Resumen(capitulos) + (notasSerie.Length > 0 ? " \u00b7 con notas" : "");
+        lblContexto.Text = VentanaSeries.Resumen(serie, capitulos);
     }
 
     void AvisoModelo()
@@ -2510,18 +2507,16 @@ public static class PistasVegas
 // ---- src/comun/Serie.cs ----
 
 // =====================================================================
-// Series: capitulos de un mismo proyecto de varias partes
+// Series: proyectos de varias partes (gameplays, video ensayos, podcast...)
 //
-// Los capitulos se encuentran solos por el nombre ("S01E02 SCR.veg" es la
-// temporada 1, capitulo 2 de la serie "SCR"), en la misma carpeta o en las
-// carpetas de al lado. Cada capitulo guarda junto a su .veg:
-//   <proyecto>.vegascut-ficha.json  resumen, hilos abiertos y frases clave
-//                                   (lo hace Gemini una vez, de lo que quedo
-//                                   en el video)
-//   <proyecto>.vegascut-serie.json  notas de la serie (personajes, apodos,
-//                                   premisa) y que capitulos usar; un
-//                                   capitulo nuevo hereda las notas del
-//                                   anterior.
+// Una serie es un archivo "<nombre>.vegascut-serie.json" (normalmente en la
+// carpeta de sus capitulos) con su nombre, tipo, notas y la lista de
+// capitulos EN ORDEN. Se administra con el script Series; MomentosIA y
+// Anteriormente reconocen a que serie pertenece el proyecto abierto. vegas-cut
+// recuerda las series usadas en %APPDATA%\vegas-cut\series.json.
+//
+// Cada capitulo guarda junto a su .veg su ficha (<proyecto>.vegascut-ficha.json):
+// resumen, hilos abiertos y frases clave, hecha una vez por Gemini.
 // =====================================================================
 
 // Un capitulo ya transcrito, con su transcripcion cargada.
@@ -2667,16 +2662,241 @@ public class Ficha
     }
 }
 
-// Un capitulo encontrado (sin cargar su transcripcion).
+// Un capitulo de la serie (sin cargar su transcripcion).
 public class CapSerie
 {
     public string Veg = "", Nombre = "";
-    public int Temporada, Numero;
-    public int Relacion;          // -1 anterior, 0 el actual, 1 posterior
-    public bool Elegido = true;
+    public int Posicion;          // 1, 2, 3... en la serie
+    public int Relacion = -1;     // -1 anterior, 0 el proyecto abierto, 1 posterior
+    public bool Elegido = true;   // usarlo de contexto en este proyecto
+    public bool Existe { get { return File.Exists(Veg); } }
     public bool Transcrito { get { return File.Exists(Transcripcion.RutaPara(Veg)); } }
     public bool TieneFicha { get { return File.Exists(Ficha.RutaPara(Veg)); } }
-    public string Codigo { get { return "S" + Temporada.ToString("00") + "E" + Numero.ToString("00"); } }
+}
+
+public class SerieProyecto
+{
+    public static readonly string[] Tipos = { "Gameplay", "Video ensayo", "Podcast", "Otro" };
+
+    public string Ruta = "", Nombre = "", Tipo = "Gameplay", Notas = "", Carpeta = "";
+    public List<string> Episodios = new List<string>();   // rutas de los .veg, en orden
+
+    public static string Extension = ".vegascut-serie.json";
+
+    public static string RutaPara(string carpeta, string nombre)
+    {
+        string limpio = nombre;
+        foreach (char c in Path.GetInvalidFileNameChars()) limpio = limpio.Replace(c, '_');
+        return Path.Combine(carpeta, limpio + Extension);
+    }
+
+    public static SerieProyecto Cargar(string ruta)
+    {
+        object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+        if (Json.Texto(o, "formato") != "vegas-cut-serie") throw new Exception("No es un archivo de serie de vegas-cut.");
+        SerieProyecto s = new SerieProyecto();
+        s.Ruta = ruta;
+        s.Nombre = Json.Texto(o, "nombre");
+        s.Tipo = Json.Texto(o, "tipo");
+        if (Array.IndexOf(Tipos, s.Tipo) < 0) s.Tipo = "Otro";
+        s.Notas = Json.Texto(o, "notas");
+        s.Carpeta = Json.Texto(o, "carpeta");
+        string dir = Path.GetDirectoryName(ruta);
+        foreach (object x in Json.Lista(o, "episodios"))
+        {
+            string veg = Json.Texto(x, "veg"), rel = Json.Texto(x, "relativo");
+            // Si se movio la carpeta (u otra letra de disco), se busca junto al archivo de la serie.
+            if (!File.Exists(veg) && rel.Length > 0 && File.Exists(Path.Combine(dir, rel))) veg = Path.GetFullPath(Path.Combine(dir, rel));
+            if (veg.Length > 0) s.Episodios.Add(veg);
+        }
+        return s;
+    }
+
+    public void Guardar()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["formato"] = "vegas-cut-serie";
+        d["nombre"] = Nombre; d["tipo"] = Tipo; d["notas"] = Notas; d["carpeta"] = Carpeta;
+        List<object> l = new List<object>();
+        foreach (string veg in Episodios)
+        {
+            Dictionary<string, object> x = new Dictionary<string, object>();
+            x["veg"] = veg;
+            x["relativo"] = Relativa(Path.GetDirectoryName(Ruta), veg);
+            l.Add(x);
+        }
+        d["episodios"] = l;
+        Directory.CreateDirectory(Path.GetDirectoryName(Ruta));
+        File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
+        Registrar(Ruta);
+    }
+
+    // Ruta relativa si el capitulo esta dentro de la carpeta de la serie.
+    static string Relativa(string dir, string veg)
+    {
+        string d = dir.TrimEnd(Path.DirectorySeparatorChar, '/') + Path.DirectorySeparatorChar;
+        return veg.StartsWith(d, StringComparison.OrdinalIgnoreCase) ? veg.Substring(d.Length) : "";
+    }
+
+    public int IndiceDe(string veg)
+    {
+        for (int i = 0; i < Episodios.Count; i++)
+            if (String.Equals(Episodios[i], veg, StringComparison.OrdinalIgnoreCase)) return i;
+        return -1;
+    }
+
+    // Agrega un capitulo en su lugar: por temporada y numero si el nombre los
+    // trae (S01E03), si no al final.
+    public bool Agregar(string veg)
+    {
+        if (IndiceDe(veg) >= 0) return false;
+        int orden = Serie.Orden(Path.GetFileNameWithoutExtension(veg));
+        int i = Episodios.Count;
+        if (orden < int.MaxValue)
+            for (int k = 0; k < Episodios.Count; k++)
+                if (Serie.Orden(Path.GetFileNameWithoutExtension(Episodios[k])) > orden) { i = k; break; }
+        Episodios.Insert(i, veg);
+        return true;
+    }
+
+    // Agrega los .veg de la carpeta (y subcarpetas) que parecen de esta serie:
+    // mismo nombre con otro S01E02 que los capitulos que ya tiene, o, si no
+    // tiene ninguno, todos los que traen S01E02. Devuelve cuantos agrego.
+    public int BuscarEnCarpeta()
+    {
+        if (String.IsNullOrEmpty(Carpeta) || !Directory.Exists(Carpeta)) return 0;
+        List<string> claves = new List<string>();
+        foreach (string e in Episodios)
+        {
+            int t, n; string k;
+            if (Serie.Clave(Path.GetFileNameWithoutExtension(e), out t, out n, out k) && !claves.Contains(k)) claves.Add(k);
+        }
+        int agregados = 0;
+        foreach (string f in Serie.ArchivosVeg(Carpeta, 6))
+        {
+            int t, n; string k;
+            if (!Serie.Clave(Path.GetFileNameWithoutExtension(f), out t, out n, out k)) continue;
+            if (claves.Count > 0 && !claves.Contains(k)) continue;
+            if (Agregar(f)) agregados++;
+        }
+        return agregados;
+    }
+
+    // Capitulos con su relacion al proyecto abierto (si no esta en la serie,
+    // todos cuentan como anteriores).
+    public List<CapSerie> Capitulos(string vegActual)
+    {
+        List<CapSerie> r = new List<CapSerie>();
+        int actual = IndiceDe(vegActual ?? "");
+        for (int i = 0; i < Episodios.Count; i++)
+        {
+            CapSerie c = new CapSerie();
+            c.Veg = Episodios[i]; c.Nombre = Path.GetFileNameWithoutExtension(Episodios[i]); c.Posicion = i + 1;
+            c.Relacion = actual < 0 ? -1 : i.CompareTo(actual);
+            r.Add(c);
+        }
+        return r;
+    }
+
+    // ------------------------------------------------ series conocidas
+
+    static string RutaRegistro
+    {
+        get { return Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut"), "series.json"); }
+    }
+
+    public static List<string> Registradas()
+    {
+        List<string> r = new List<string>();
+        try
+        {
+            if (File.Exists(RutaRegistro))
+                foreach (object x in Json.Lista(Json.Leer(File.ReadAllText(RutaRegistro, Encoding.UTF8)), "series"))
+                    if (x is string && File.Exists((string)x) && !r.Contains((string)x)) r.Add((string)x);
+        }
+        catch { }
+        return r;
+    }
+
+    static void GuardarRegistro(List<string> l)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(RutaRegistro));
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d["series"] = new List<object>(l.ToArray());
+            File.WriteAllText(RutaRegistro, Json.Escribir(d), new UTF8Encoding(false));
+        }
+        catch { }
+    }
+
+    public static void Registrar(string ruta)
+    {
+        List<string> l = Registradas();
+        l.RemoveAll(delegate (string x) { return String.Equals(x, ruta, StringComparison.OrdinalIgnoreCase); });
+        l.Insert(0, ruta);
+        GuardarRegistro(l);
+    }
+
+    public static void Olvidar(string ruta)
+    {
+        List<string> l = Registradas();
+        l.RemoveAll(delegate (string x) { return String.Equals(x, ruta, StringComparison.OrdinalIgnoreCase); });
+        GuardarRegistro(l);
+    }
+
+    // La serie del proyecto: la que eligio para el (guardado junto al .veg)
+    // o la primera conocida que lo tenga como capitulo.
+    public static SerieProyecto DelProyecto(string veg)
+    {
+        string elegida = AjustesProyecto.Serie(veg);
+        if (elegida.Length > 0 && File.Exists(elegida))
+            try { return Cargar(elegida); } catch { }
+        foreach (string r in Registradas())
+            try
+            {
+                SerieProyecto s = Cargar(r);
+                if (s.IndiceDe(veg) >= 0) return s;
+            }
+            catch { }
+        return null;
+    }
+}
+
+// Lo que cada proyecto recuerda de su serie (<proyecto>.vegascut-serie.json):
+// que serie usa y que capitulos no quiere de contexto.
+public static class AjustesProyecto
+{
+    static string Ruta(string veg)
+    {
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-proyecto-serie.json");
+    }
+
+    static object Leer(string veg)
+    {
+        try { return File.Exists(Ruta(veg)) ? Json.Leer(File.ReadAllText(Ruta(veg), Encoding.UTF8)) : null; } catch { return null; }
+    }
+
+    public static string Serie(string veg) { return String.IsNullOrEmpty(veg) ? "" : Json.Texto(Leer(veg), "serie"); }
+
+    public static List<string> Excluidos(string veg)
+    {
+        List<string> r = new List<string>();
+        if (String.IsNullOrEmpty(veg)) return r;
+        foreach (object x in Json.Lista(Leer(veg), "excluidos")) if (x is string) r.Add((string)x);
+        return r;
+    }
+
+    public static void Guardar(string veg, string serie, List<CapSerie> caps)
+    {
+        if (String.IsNullOrEmpty(veg)) return;
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["serie"] = serie ?? "";
+        List<object> ex = new List<object>();
+        if (caps != null) foreach (CapSerie c in caps) if (!c.Elegido && c.Relacion != 0) ex.Add(c.Nombre);
+        d["excluidos"] = ex;
+        try { File.WriteAllText(Ruta(veg), Json.Escribir(d), new UTF8Encoding(false)); } catch { }
+    }
 }
 
 public static class Serie
@@ -2684,27 +2904,41 @@ public static class Serie
     public static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
 
     static readonly Regex Patron = new Regex(@"S(\d{1,2})\s*[-_ ]?\s*E(\d{1,3})", RegexOptions.IgnoreCase);
+    static readonly Regex Parte = new Regex(@"\b(?:parte|part|cap(?:itulo|\u00edtulo)?|ep(?:isodio)?|episode)\s*[-_ ]?\s*(\d{1,3})", RegexOptions.IgnoreCase);
 
-    // "S01E02 SCR" -> temporada 1, capitulo 2, serie "# scr".
+    // "S01E02 SCR" -> temporada 1, capitulo 2, serie "# scr". Tambien
+    // "Parte 3", "Cap 3" o "Ep 3" (temporada 1).
     public static bool Clave(string nombre, out int temporada, out int numero, out string serie)
     {
         temporada = 0; numero = 0; serie = "";
-        Match m = Patron.Match(nombre ?? "");
-        if (!m.Success) return false;
-        temporada = int.Parse(m.Groups[1].Value);
-        numero = int.Parse(m.Groups[2].Value);
+        nombre = nombre ?? "";
+        Match m = Patron.Match(nombre);
+        if (m.Success) { temporada = int.Parse(m.Groups[1].Value); numero = int.Parse(m.Groups[2].Value); }
+        else
+        {
+            m = Parte.Match(nombre);
+            if (!m.Success) return false;
+            temporada = 1; numero = int.Parse(m.Groups[1].Value);
+        }
         string resto = (nombre.Substring(0, m.Index) + "#" + nombre.Substring(m.Index + m.Length)).ToLowerInvariant();
         serie = Regex.Replace(resto, @"[\s_\-\.]+", " ").Trim();
         return true;
     }
 
-    // .veg de la carpeta y de sus subcarpetas hasta "niveles" de hondo.
     // Para ordenar capitulos: temporada y numero (los que no tienen, al final).
     public static int Orden(string nombre)
     {
         int t, n;
         string s;
         return Clave(nombre, out t, out n, out s) ? t * 1000 + n : int.MaxValue;
+    }
+
+    // .veg de la carpeta y de sus subcarpetas hasta "niveles" de hondo.
+    public static List<string> ArchivosVeg(string carpeta, int niveles)
+    {
+        List<string> l = new List<string>();
+        Agregar(l, carpeta, niveles);
+        return l;
     }
 
     static void Agregar(List<string> l, string carpeta, int niveles)
@@ -2720,108 +2954,43 @@ public static class Serie
         catch { }
     }
 
-    // Los capitulos de la misma serie, en orden; marca cual es el actual.
-    // Busca en la carpeta del proyecto, sus subcarpetas, la carpeta de
-    // arriba y las carpetas de al lado; y si eligiste una carpeta, en ella y
-    // todas sus subcarpetas.
-    public static List<CapSerie> Buscar(string veg) { return Buscar(veg, ""); }
-
-    public static List<CapSerie> Buscar(string veg, string carpeta)
-    {
-        List<CapSerie> r = new List<CapSerie>();
-        int t0, n0;
-        string serie;
-        if (String.IsNullOrEmpty(veg) || !Clave(Path.GetFileNameWithoutExtension(veg), out t0, out n0, out serie)) return r;
-        string dir = Path.GetDirectoryName(veg);
-        List<string> archivos = new List<string>();
-        Agregar(archivos, dir, 1);
-        Agregar(archivos, Path.GetDirectoryName(dir), 1);
-        if (!String.IsNullOrEmpty(carpeta)) Agregar(archivos, carpeta, 6);
-        foreach (string f in archivos)
-        {
-            int t, n;
-            string s;
-            if (!Clave(Path.GetFileNameWithoutExtension(f), out t, out n, out s) || s != serie) continue;
-            if (r.Exists(delegate (CapSerie c) { return c.Temporada == t && c.Numero == n; }) && !String.Equals(f, veg, StringComparison.OrdinalIgnoreCase)) continue;
-            r.RemoveAll(delegate (CapSerie c) { return c.Temporada == t && c.Numero == n; });
-            CapSerie cap = new CapSerie();
-            cap.Veg = f; cap.Nombre = Path.GetFileNameWithoutExtension(f);
-            cap.Temporada = t; cap.Numero = n;
-            int cmp = (t * 1000 + n).CompareTo(t0 * 1000 + n0);
-            cap.Relacion = String.Equals(f, veg, StringComparison.OrdinalIgnoreCase) || cmp == 0 ? 0 : cmp;
-            r.Add(cap);
-        }
-        r.Sort(delegate (CapSerie a, CapSerie b) { return (a.Temporada * 1000 + a.Numero).CompareTo(b.Temporada * 1000 + b.Numero); });
-        return r;
-    }
-
-    // ------------------------------------------- ajustes por proyecto
-
-    static string RutaAjustes(string veg)
-    {
-        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-serie.json");
-    }
-
-    // Ajustes de este proyecto; si no tiene, las notas y la carpeta del
-    // capitulo anterior mas cercano que los tenga.
-    public static string Cargar(string veg, out string carpeta, out List<string> excluidos)
-    {
-        excluidos = new List<string>();
-        carpeta = "";
-        try
-        {
-            if (File.Exists(RutaAjustes(veg)))
-            {
-                object o = Json.Leer(File.ReadAllText(RutaAjustes(veg), Encoding.UTF8));
-                foreach (object x in Json.Lista(o, "excluidos")) if (x is string) excluidos.Add((string)x);
-                carpeta = Json.Texto(o, "carpeta");
-                return Json.Texto(o, "notas");
-            }
-            List<CapSerie> caps = Buscar(veg);
-            for (int i = caps.Count - 1; i >= 0; i--)
-            {
-                if (caps[i].Relacion >= 0 || !File.Exists(RutaAjustes(caps[i].Veg))) continue;
-                object o = Json.Leer(File.ReadAllText(RutaAjustes(caps[i].Veg), Encoding.UTF8));
-                carpeta = Json.Texto(o, "carpeta");
-                return Json.Texto(o, "notas");
-            }
-        }
-        catch { }
-        return "";
-    }
-
-    public static void Guardar(string veg, string notas, string carpeta, List<CapSerie> caps)
-    {
-        Dictionary<string, object> d = new Dictionary<string, object>();
-        d["notas"] = notas ?? "";
-        d["carpeta"] = carpeta ?? "";
-        List<object> ex = new List<object>();
-        foreach (CapSerie c in caps) if (!c.Elegido && c.Relacion != 0) ex.Add(c.Nombre);
-        d["excluidos"] = ex;
-        try { File.WriteAllText(RutaAjustes(veg), Json.Escribir(d), new UTF8Encoding(false)); } catch { }
-    }
-
-    // Capitulos con los ajustes del proyecto ya aplicados (carpeta y
-    // capitulos que quitaste).
-    public static List<CapSerie> Capitulos(string veg, out string notas, out string carpeta)
-    {
-        List<string> excluidos;
-        notas = Cargar(veg, out carpeta, out excluidos);
-        List<CapSerie> caps = Buscar(veg, carpeta);
-        foreach (CapSerie c in caps) if (excluidos.Contains(c.Nombre)) c.Elegido = false;
-        return caps;
-    }
-
     // ------------------------------------------------------ fichas
 
-    public static string InstruccionesFicha()
+    static string QueGuardar(string tipo)
     {
-        return "Eres editor de una serie de YouTube en espa\u00f1ol (gameplays con amigos). Recibes la transcripci\u00f3n de lo " +
-               "que qued\u00f3 en un cap\u00edtulo. Haz su ficha para usarla de contexto al editar los otros cap\u00edtulos.\n\n" +
+        switch (tipo)
+        {
+            case "Video ensayo":
+                return "\"hilos\": [\"temas, preguntas o argumentos que quedan abiertos o que se retoman en otras partes\"],\n" +
+                       " \"recurrentes\": [\"conceptos, ejemplos, personajes o frases que se repiten\"],\n";
+            case "Podcast":
+                return "\"hilos\": [\"temas pendientes, promesas, debates que siguen en otros episodios\"],\n" +
+                       " \"recurrentes\": [\"secciones, chistes internos o frases que se repiten\"],\n";
+            default:
+                return "\"hilos\": [\"objetivos, promesas, conflictos, rivalidades, objetos o lugares que pueden volver a aparecer\"],\n" +
+                       " \"recurrentes\": [\"chistes, apodos o frases que se repiten\"],\n";
+        }
+    }
+
+    public static string QueEs(string tipo)
+    {
+        switch (tipo)
+        {
+            case "Video ensayo": return "una serie de video ensayos en espa\u00f1ol (varias partes)";
+            case "Podcast": return "un podcast o serie de charlas en espa\u00f1ol";
+            case "Gameplay": return "una serie de gameplays en espa\u00f1ol (con amigos)";
+            default: return "una serie de videos de YouTube en espa\u00f1ol";
+        }
+    }
+
+    public static string InstruccionesFicha() { return InstruccionesFicha("Gameplay"); }
+
+    public static string InstruccionesFicha(string tipo)
+    {
+        return "Eres editor de " + QueEs(tipo) + ". Recibes la transcripci\u00f3n de lo que qued\u00f3 en un cap\u00edtulo. " +
+               "Haz su ficha para usarla de contexto al editar los otros cap\u00edtulos.\n\n" +
                "Responde SOLO con JSON:\n" +
-               "{\"resumen\": \"qu\u00e9 pasa en el cap\u00edtulo, en orden, en 3 a 6 frases\",\n" +
-               " \"hilos\": [\"objetivos, promesas, conflictos, rivalidades, objetos o lugares que pueden volver a aparecer\"],\n" +
-               " \"recurrentes\": [\"chistes, apodos o frases que se repiten\"],\n" +
+               "{\"resumen\": \"qu\u00e9 pasa en el cap\u00edtulo, en orden, en 3 a 6 frases\",\n " + QueGuardar(tipo) +
                " \"frases\": [{\"inicio\": s, \"fin\": s, \"quien\": \"nombre\", \"texto\": \"lo que se dice\", \"por\": \"por qu\u00e9 es clave\"}]}\n\n" +
                "Reglas:\n- \"frases\": de 5 a 15 frases cortas (2 a 7 s) que mejor cuentan lo importante del cap\u00edtulo; " +
                "sirven para un \"anteriormente\". Usa solo tiempos de la transcripci\u00f3n.\n" +
@@ -2837,11 +3006,15 @@ public static class Serie
         return sb.ToString();
     }
 
-    // Contexto para MomentosIA: notas, anteriores y posteriores.
-    public static string Contexto(List<CapSerie> caps, string notas)
+    // Contexto para MomentosIA: la serie, sus notas, anteriores y posteriores.
+    public static string Contexto(SerieProyecto serie, List<CapSerie> caps)
     {
         StringBuilder sb = new StringBuilder();
-        if (!String.IsNullOrEmpty(notas)) sb.Append("Notas de la serie:\n" + notas.Trim() + "\n");
+        if (serie != null)
+        {
+            sb.Append("Serie: " + serie.Nombre + " (" + serie.Tipo + ")\n");
+            if (!String.IsNullOrEmpty(serie.Notas)) sb.Append("Notas de la serie:\n" + serie.Notas.Trim() + "\n");
+        }
         foreach (int rel in new int[] { -1, 1 })
         {
             bool titulo = false;
@@ -2862,139 +3035,394 @@ public static class Serie
         }
         return sb.ToString();
     }
+
+    // La serie del proyecto con sus capitulos y lo que el proyecto excluyo.
+    public static List<CapSerie> DelProyecto(string veg, out SerieProyecto serie)
+    {
+        serie = SerieProyecto.DelProyecto(veg);
+        if (serie == null) return new List<CapSerie>();
+        List<CapSerie> caps = serie.Capitulos(veg);
+        List<string> ex = AjustesProyecto.Excluidos(veg);
+        foreach (CapSerie c in caps) if (ex.Contains(c.Nombre)) c.Elegido = false;
+        return caps;
+    }
 }
 
 // ---- src/comun/VentanaSerie.cs ----
 
-// Cuadro de la serie: que capitulos usar como contexto, sus fichas, las
-// notas de la serie y la carpeta donde buscar. Lo usan MomentosIA y
-// Anteriormente; todo se guarda con el proyecto.
-class DialogoSerie : VentanaBase
+// Administrador de series: crear, abrir, ordenar capitulos, notas y fichas.
+// Lo abre el script Series y, para elegir la serie del proyecto, MomentosIA
+// y Anteriormente (con "Usar esta serie").
+class VentanaSeries : VentanaBase
 {
     readonly string veg, clave, modelo;
-    public List<CapSerie> Caps;
-    public string Notas, Carpeta;
+    readonly bool elegir;
+    List<string> rutas = new List<string>();
+    public SerieProyecto Serie_;
+    public List<CapSerie> Caps = new List<CapSerie>();
     bool cargando, trabajando;
 
-    Lista lst = new Lista();
-    CampoTexto txtNotas = new CampoTexto();
+    Lista lstSeries = new Lista();
+    Boton btnNueva = new Boton("Nueva\u2026", EstiloBoton.Secundario);
+    Boton btnAbrir = new Boton("Abrir\u2026", EstiloBoton.Secundario);
+    Boton btnOlvidar = new Boton("Quitar de la lista", EstiloBoton.Secundario);
+    CampoTexto txtNombre = new CampoTexto();
+    Segmentado segTipo = new Segmentado(SerieProyecto.Tipos);
     Etiqueta lblCarpeta, lblEstado;
     Boton btnCarpeta = new Boton("Elegir carpeta\u2026", EstiloBoton.Secundario);
+    Boton btnBuscar = new Boton("Buscar cap\u00edtulos ah\u00ed", EstiloBoton.Secundario);
+    Lista lstCaps = new Lista();
+    Boton btnAgregar = new Boton("Agregar\u2026", EstiloBoton.Secundario);
+    Boton btnEste = new Boton("Agregar este proyecto", EstiloBoton.Secundario);
+    Boton btnSubir = new Boton("Subir", EstiloBoton.Secundario);
+    Boton btnBajar = new Boton("Bajar", EstiloBoton.Secundario);
+    Boton btnQuitar = new Boton("Quitar", EstiloBoton.Secundario);
     Boton btnFichas = new Boton("Hacer las fichas que faltan", EstiloBoton.Secundario);
     Boton btnRehacer = new Boton("Rehacer la elegida", EstiloBoton.Secundario);
-    Boton btnListo = new Boton("Listo", EstiloBoton.Primario);
+    CampoTexto txtNotas = new CampoTexto();
+    Boton btnSinSerie = new Boton("Sin serie", EstiloBoton.Secundario);
+    Boton btnListo;
 
-    public DialogoSerie(string veg, string clave, string modelo) : base("Serie", 760)
+    public VentanaSeries(string vegActual, string clave, string modelo, bool elegir) : base("Series", 1040)
     {
-        this.veg = veg; this.clave = clave; this.modelo = modelo;
-        StartPosition = FormStartPosition.CenterParent;
-        Caps = Serie.Capitulos(veg, out Notas, out Carpeta);
+        this.veg = vegActual ?? ""; this.clave = clave; this.modelo = modelo; this.elegir = elegir;
+        if (elegir) StartPosition = FormStartPosition.CenterParent;
+        btnListo = new Boton(elegir ? "Usar esta serie" : "Listo", EstiloBoton.Primario);
         int m = Margen, w = Ancho;
-        Encabezado("Serie", "Cap\u00edtulos de la misma serie (por el nombre, como S01E02). Se guarda con este proyecto.");
+        Encabezado("Series", "Proyectos de varias partes: cap\u00edtulos en orden, notas y fichas. MomentosIA y Anteriormente los usan de contexto.");
 
-        int y = 92;
-        lblCarpeta = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 6, w - 170, 20);
-        Pos(btnCarpeta, m + w - 160, y, 160, 30);
-        y += 40;
-        lst.Columns.Add("Cap\u00edtulo", w - 330);
-        lst.Columns.Add("Es", 90);
-        lst.Columns.Add("Transcrito", 90);
-        lst.Columns.Add("Ficha", 126 - SystemInformation.VerticalScrollBarWidth);
-        Pos(lst, m, y, w, 200);
+        // Columna izquierda: series conocidas
+        int y = 92, ci = 250;
+        Texto("Tus series", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        lstSeries.CheckBoxes = false;
+        lstSeries.Columns.Add("Serie", ci - SystemInformation.VerticalScrollBarWidth - 4);
+        Pos(lstSeries, m, y + 24, ci, 330);
+        Pos(btnNueva, m, y + 362, (ci - 8) / 2, 32);
+        Pos(btnAbrir, m + (ci + 8) / 2, y + 362, (ci - 8) / 2, 32);
+        Pos(btnOlvidar, m, y + 400, ci, 32);
+
+        // Columna derecha: la serie elegida
+        int dx = m + ci + 24, dw = w - ci - 24;
+        Texto("NOMBRE", Tema.Pequena, Tema.TextoSuave, dx, y, 200, 18);
+        Texto("TIPO", Tema.Pequena, Tema.TextoSuave, dx + dw - 420, y, 200, 18);
+        Pos(txtNombre, dx, y + 20, dw - 436, 34);
+        Pos(segTipo, dx + dw - 420, y + 20, 420, 34);
+        y += 64;
+        lblCarpeta = Texto("", Tema.Pequena, Tema.TextoSuave, dx, y + 6, dw - 330, 20);
+        Pos(btnCarpeta, dx + dw - 320, y, 150, 30);
+        Pos(btnBuscar, dx + dw - 162, y, 162, 30);
+        y += 38;
+        lstCaps.Columns.Add("#", 36);
+        lstCaps.Columns.Add("Cap\u00edtulo", dw - 36 - 90 - 84 - 84 - SystemInformation.VerticalScrollBarWidth - 4);
+        lstCaps.Columns.Add("Es", 90);
+        lstCaps.Columns.Add("Transcrito", 84);
+        lstCaps.Columns.Add("Ficha", 84);
+        Pos(lstCaps, dx, y, dw, 200);
         y += 208;
-        Pos(btnFichas, m, y, 230, 32);
-        Pos(btnRehacer, m + 240, y, 170, 32);
-        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m + 420, y, w - 420, 34);
+        int bx = dx;
+        foreach (KeyValuePair<Boton, int> b in new KeyValuePair<Boton, int>[] {
+            new KeyValuePair<Boton, int>(btnAgregar, 100), new KeyValuePair<Boton, int>(btnEste, 180),
+            new KeyValuePair<Boton, int>(btnSubir, 80), new KeyValuePair<Boton, int>(btnBajar, 80), new KeyValuePair<Boton, int>(btnQuitar, 90) })
+        {
+            Pos(b.Key, bx, y, b.Value, 32);
+            bx += b.Value + 8;
+        }
+        y += 40;
+        Pos(btnFichas, dx, y, 230, 32);
+        Pos(btnRehacer, dx + 238, y, 170, 32);
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 418, y - 2, dw - 418, 38);
         y += 44;
-        Texto("Notas de la serie (personajes, apodos, lugares, de qu\u00e9 va)", Tema.Negrita, Tema.Texto, m, y, w, 20);
+        Texto("Notas de la serie (personajes, apodos, lugares, de qu\u00e9 va)", Tema.Negrita, Tema.Texto, dx, y, dw, 20);
         txtNotas.Multilinea = true;
-        txtNotas.Text = (Notas ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
-        Pos(txtNotas, m, y + 22, w, 100);
-        y += 134;
-        Pos(btnListo, m + w - 140, y, 140, 40);
+        Pos(txtNotas, dx, y + 22, dw, 90);
+        y += 124;
+        if (elegir) Pos(btnSinSerie, m + w - 300, y, 130, 40);
+        Pos(btnListo, m + w - 160, y, 160, 40);
         ClientSize = new Size(ClientSize.Width, y + 40 + 24);
 
-        lst.ItemCheck += delegate (object s, ItemCheckEventArgs e)
+        // Eventos
+        lstSeries.SelectedIndexChanged += delegate
         {
-            if (cargando) return;
-            CapSerie c = (CapSerie)lst.Items[e.Index].Tag;
-            if (c.Relacion == 0 || !c.Transcrito) e.NewValue = CheckState.Unchecked;
+            if (cargando || lstSeries.SelectedIndices.Count == 0) return;
+            GuardarActual();
+            Abrir(rutas[lstSeries.SelectedIndices[0]]);
         };
-        lst.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando) ((CapSerie)e.Item.Tag).Elegido = e.Item.Checked; };
+        btnNueva.Click += delegate { Nueva(); };
+        btnAbrir.Click += delegate { AbrirArchivo(); };
+        btnOlvidar.Click += delegate
+        {
+            if (Serie_ == null) return;
+            SerieProyecto.Olvidar(Serie_.Ruta);
+            Serie_ = null;
+            LlenarSeries(null);
+            Mostrar();
+            Estado("La serie se quit\u00f3 de la lista (su archivo sigue en su carpeta; \u201cAbrir\u2026\u201d la trae de vuelta).", false);
+        };
         btnCarpeta.Click += delegate { ElegirCarpeta(); };
+        btnBuscar.Click += delegate
+        {
+            if (Serie_ == null) return;
+            int n = Serie_.BuscarEnCarpeta();
+            Cambio();
+            Estado(n == 0 ? "No encontr\u00e9 cap\u00edtulos nuevos (busca .veg con S01E02, \u201cParte 2\u201d, \u201cCap 2\u201d\u2026 en el nombre)." : n + " cap\u00edtulos agregados.", false);
+        };
+        btnAgregar.Click += delegate { AgregarArchivos(); };
+        btnEste.Click += delegate { if (Serie_ != null && veg.Length > 0) { Serie_.Agregar(veg); Cambio(); } };
+        btnSubir.Click += delegate { Mover(-1); };
+        btnBajar.Click += delegate { Mover(1); };
+        btnQuitar.Click += delegate
+        {
+            int i = Elegido();
+            if (i < 0) return;
+            Serie_.Episodios.RemoveAt(i);
+            Cambio();
+        };
         btnFichas.Click += delegate { Fichas(false); };
         btnRehacer.Click += delegate { Fichas(true); };
+        lstCaps.ItemCheck += delegate (object s, ItemCheckEventArgs e)
+        {
+            if (cargando) return;
+            CapSerie c = (CapSerie)lstCaps.Items[e.Index].Tag;
+            if (c.Relacion == 0 || !c.Transcrito) e.NewValue = CheckState.Unchecked;
+        };
+        lstCaps.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando) ((CapSerie)e.Item.Tag).Elegido = e.Item.Checked; };
+        btnSinSerie.Click += delegate { Serie_ = null; Caps = new List<CapSerie>(); AjustesProyecto.Guardar(veg, "", null); DialogResult = DialogResult.OK; Close(); };
         btnListo.Click += delegate
         {
             if (trabajando) return;
-            Notas = txtNotas.Text.Trim();
-            Serie.Guardar(veg, Notas, Carpeta, Caps);
+            GuardarActual();
+            if (veg.Length > 0 && Serie_ != null) AjustesProyecto.Guardar(veg, Serie_.Ruta, Caps);
             DialogResult = DialogResult.OK;
             Close();
         };
-        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
-        Llenar();
+        FormClosing += delegate (object s, FormClosingEventArgs e)
+        {
+            if (trabajando) { e.Cancel = true; return; }
+            GuardarActual();
+        };
+
+        // Inicio: la serie del proyecto abierto, o la ultima usada.
+        SerieProyecto delProyecto = veg.Length > 0 ? SerieProyecto.DelProyecto(veg) : null;
+        LlenarSeries(delProyecto != null ? delProyecto.Ruta : null);
+        if (delProyecto != null) Abrir(delProyecto.Ruta);
+        else if (rutas.Count > 0 && !elegir) Abrir(rutas[0]);
+        else Mostrar();
+        if (Serie_ == null)
+            Estado(rutas.Count == 0 ? "Crea tu primera serie con \u201cNueva\u2026\u201d." : "Elige una serie de la lista o crea una nueva.", false);
+        else if (veg.Length > 0 && Serie_.IndiceDe(veg) < 0)
+            Estado("Este proyecto no est\u00e1 en la serie: \u201cAgregar este proyecto\u201d lo pone en su lugar.", false);
     }
 
-    void Llenar()
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void LlenarSeries(string elegida)
     {
         cargando = true;
-        lst.Items.Clear();
+        rutas = SerieProyecto.Registradas();
+        lstSeries.Items.Clear();
+        foreach (string r in rutas)
+        {
+            string nombre = Path.GetFileName(r).Replace(SerieProyecto.Extension, "");
+            try { nombre = SerieProyecto.Cargar(r).Nombre; } catch { }
+            ListViewItem it = new ListViewItem(nombre);
+            if (elegida != null && String.Equals(r, elegida, StringComparison.OrdinalIgnoreCase)) it.Selected = true;
+            lstSeries.Items.Add(it);
+        }
+        cargando = false;
+    }
+
+    void Abrir(string ruta)
+    {
+        try
+        {
+            Serie_ = SerieProyecto.Cargar(ruta);
+            SerieProyecto.Registrar(ruta);
+        }
+        catch (Exception ex) { Serie_ = null; Estado("No se pudo abrir la serie: " + ex.Message, true); }
+        Mostrar();
+    }
+
+    // Pone en pantalla la serie elegida.
+    void Mostrar()
+    {
+        bool hay = Serie_ != null;
+        foreach (Control c in new Control[] { txtNombre, segTipo, btnCarpeta, btnBuscar, lstCaps, btnAgregar, btnEste, btnSubir,
+                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar })
+            c.Enabled = hay;
+        btnListo.Enabled = hay || !elegir;
+        cargando = true;
+        txtNombre.Text = hay ? Serie_.Nombre : "";
+        segTipo.Seleccion = hay ? Math.Max(0, Array.IndexOf(SerieProyecto.Tipos, Serie_.Tipo)) : 0;
+        txtNotas.Text = hay ? (Serie_.Notas ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n") : "";
+        cargando = false;
+        btnEste.Enabled = hay && veg.Length > 0 && Serie_.IndiceDe(veg) < 0;
+        LlenarCapitulos();
+    }
+
+    void LlenarCapitulos()
+    {
+        List<string> fuera = AjustesProyecto.Excluidos(veg);
+        foreach (CapSerie c in Caps) if (!c.Elegido && !fuera.Contains(c.Nombre)) fuera.Add(c.Nombre);
+        Caps = Serie_ != null ? Serie_.Capitulos(veg) : new List<CapSerie>();
+        foreach (CapSerie c in Caps) if (fuera.Contains(c.Nombre)) c.Elegido = false;
+        cargando = true;
+        lstCaps.Items.Clear();
         foreach (CapSerie c in Caps)
         {
-            ListViewItem it = new ListViewItem(c.Nombre);
-            it.SubItems.Add(c.Relacion < 0 ? "anterior" : c.Relacion > 0 ? "posterior" : "este");
+            ListViewItem it = new ListViewItem(c.Posicion.ToString());
+            it.SubItems.Add(c.Nombre);
+            it.SubItems.Add(!c.Existe ? "no se encuentra" : c.Relacion < 0 ? (veg.Length > 0 && Serie_.IndiceDe(veg) >= 0 ? "anterior" : "\u2014") :
+                            c.Relacion > 0 ? "posterior" : "este");
             it.SubItems.Add(c.Transcrito ? "s\u00ed" : "no");
             it.SubItems.Add(c.TieneFicha ? "s\u00ed" : c.Transcrito ? "falta" : "\u2014");
             it.Checked = c.Relacion != 0 && c.Transcrito && c.Elegido;
             if (c.Relacion == 0 || !c.Transcrito) it.ForeColor = Tema.TextoSuave;
             it.Tag = c;
-            lst.Items.Add(it);
+            lstCaps.Items.Add(it);
         }
         cargando = false;
-        lblCarpeta.Text = "Busca junto a este proyecto" + (String.IsNullOrEmpty(Carpeta) ? "" : " y en " + Carpeta + " (con subcarpetas)") +
-                          " \u00b7 " + Caps.Count + " cap\u00edtulos";
-        if (Caps.Count <= 1)
-            Estado("No encontr\u00e9 otros cap\u00edtulos. N\u00f3mbralos como \u201cS01E01 SCR.veg\u201d o elige la carpeta donde est\u00e1n.", false);
+        lblCarpeta.Text = Serie_ == null ? "" : "Carpeta: " + (String.IsNullOrEmpty(Serie_.Carpeta) ? "(sin elegir)" : Serie_.Carpeta) +
+                                                " \u00b7 " + Caps.Count + " cap\u00edtulos";
     }
 
-    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+    void Cambio()
+    {
+        GuardarActual();
+        btnEste.Enabled = Serie_ != null && veg.Length > 0 && Serie_.IndiceDe(veg) < 0;
+        LlenarCapitulos();
+    }
+
+    void GuardarActual()
+    {
+        if (Serie_ == null || cargando) return;
+        Serie_.Nombre = txtNombre.Text.Trim().Length > 0 ? txtNombre.Text.Trim() : Serie_.Nombre;
+        Serie_.Tipo = SerieProyecto.Tipos[Math.Max(0, segTipo.Seleccion)];
+        Serie_.Notas = txtNotas.Text.Trim();
+        try { Serie_.Guardar(); } catch (Exception ex) { Estado("No se pudo guardar la serie: " + ex.Message, true); }
+    }
+
+    int Elegido() { return lstCaps.SelectedIndices.Count == 0 ? -1 : lstCaps.SelectedIndices[0]; }
+
+    void Mover(int d)
+    {
+        int i = Elegido(), j = i + d;
+        if (i < 0 || j < 0 || j >= Serie_.Episodios.Count) return;
+        string x = Serie_.Episodios[i];
+        Serie_.Episodios[i] = Serie_.Episodios[j];
+        Serie_.Episodios[j] = x;
+        Cambio();
+        lstCaps.Items[j].Selected = true;
+    }
+
+    // ------------------------------------------------- crear y abrir
+
+    string CarpetaSugerida()
+    {
+        if (veg.Length == 0) return "";
+        string dir = Path.GetDirectoryName(veg);
+        int t, n; string k;
+        // Si cada capitulo tiene su carpeta (S01E02/...), la serie va en la de arriba.
+        return Serie.Clave(Path.GetFileName(dir), out t, out n, out k) ? Path.GetDirectoryName(dir) : dir;
+    }
+
+    void Nueva()
+    {
+        GuardarActual();
+        string sugerido = "";
+        int t, n; string k;
+        if (veg.Length > 0 && Serie.Clave(Path.GetFileNameWithoutExtension(veg), out t, out n, out k))
+            sugerido = k.Replace("#", "").Trim().ToUpperInvariant();
+        string nombre;
+        using (DialogoNombre d = new DialogoNombre(sugerido, "Nueva serie", "Nombre de la serie"))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            nombre = d.Nombre;
+        }
+        string carpeta;
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta de la serie (donde est\u00e1n o estar\u00e1n sus cap\u00edtulos). Ah\u00ed se guarda el archivo de la serie.";
+            string s = CarpetaSugerida();
+            if (s.Length > 0 && Directory.Exists(s)) d.SelectedPath = s;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            carpeta = d.SelectedPath;
+        }
+        SerieProyecto nueva = new SerieProyecto();
+        nueva.Nombre = nombre;
+        nueva.Carpeta = carpeta;
+        nueva.Ruta = SerieProyecto.RutaPara(carpeta, nombre);
+        if (File.Exists(nueva.Ruta)) { Estado("Ya hay una serie con ese nombre en esa carpeta: \u00e1brela con \u201cAbrir\u2026\u201d.", true); return; }
+        if (veg.Length > 0) nueva.Agregar(veg);
+        int encontrados = nueva.BuscarEnCarpeta();
+        try { nueva.Guardar(); }
+        catch (Exception ex) { Estado("No se pudo crear la serie: " + ex.Message, true); return; }
+        LlenarSeries(nueva.Ruta);
+        Abrir(nueva.Ruta);
+        Estado("\u2714 Serie creada" + (encontrados > 0 ? " con " + Serie_.Episodios.Count + " cap\u00edtulos encontrados en la carpeta" : "") +
+               ". Revisa el orden y escribe las notas.", false);
+    }
+
+    void AbrirArchivo()
+    {
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Title = "Archivo de una serie";
+            d.Filter = "Series de vegas-cut|*" + SerieProyecto.Extension;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            GuardarActual();
+            SerieProyecto.Registrar(d.FileName);
+            LlenarSeries(d.FileName);
+            Abrir(d.FileName);
+        }
+    }
 
     void ElegirCarpeta()
     {
         using (FolderBrowserDialog d = new FolderBrowserDialog())
         {
             d.Description = "Carpeta donde est\u00e1n los cap\u00edtulos (se busca tambi\u00e9n en sus subcarpetas)";
-            if (!String.IsNullOrEmpty(Carpeta) && Directory.Exists(Carpeta)) d.SelectedPath = Carpeta;
+            if (!String.IsNullOrEmpty(Serie_.Carpeta) && Directory.Exists(Serie_.Carpeta)) d.SelectedPath = Serie_.Carpeta;
             if (d.ShowDialog(this) != DialogResult.OK) return;
-            Carpeta = d.SelectedPath;
+            Serie_.Carpeta = d.SelectedPath;
         }
-        List<string> fuera = new List<string>();
-        foreach (CapSerie c in Caps) if (!c.Elegido) fuera.Add(c.Nombre);
-        Caps = Serie.Buscar(veg, Carpeta);
-        foreach (CapSerie c in Caps) if (fuera.Contains(c.Nombre)) c.Elegido = false;
-        Llenar();
+        Cambio();
     }
 
-    // Hace con Gemini las fichas que faltan (o la del capitulo elegido).
+    void AgregarArchivos()
+    {
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Title = "Cap\u00edtulos de la serie";
+            d.Filter = "Proyectos de Vegas|*.veg";
+            d.Multiselect = true;
+            if (!String.IsNullOrEmpty(Serie_.Carpeta) && Directory.Exists(Serie_.Carpeta)) d.InitialDirectory = Serie_.Carpeta;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            foreach (string f in d.FileNames) Serie_.Agregar(f);
+        }
+        Cambio();
+    }
+
+    // ------------------------------------------------------------ fichas
+
     void Fichas(bool rehacer)
     {
         if (String.IsNullOrEmpty(clave)) { Estado("Falta la clave de Gemini: ejecuta \u201cConfigurarVegasCut\u201d.", true); return; }
+        GuardarActual();
         List<CapSerie> cola = new List<CapSerie>();
         if (rehacer)
         {
-            if (lst.SelectedItems.Count == 0) { Estado("Elige un cap\u00edtulo de la lista.", true); return; }
-            CapSerie c = (CapSerie)lst.SelectedItems[0].Tag;
-            if (!c.Transcrito) { Estado(c.Nombre + " no est\u00e1 transcrito.", true); return; }
-            cola.Add(c);
+            int i = Elegido();
+            if (i < 0) { Estado("Elige un cap\u00edtulo de la lista.", true); return; }
+            if (!Caps[i].Transcrito) { Estado(Caps[i].Nombre + " no est\u00e1 transcrito.", true); return; }
+            cola.Add(Caps[i]);
         }
         else
-            foreach (CapSerie c in Caps) if (c.Elegido && c.Relacion != 0 && c.Transcrito && !c.TieneFicha) cola.Add(c);
-        if (cola.Count == 0) { Estado("Todos los cap\u00edtulos marcados ya tienen ficha.", false); return; }
+            foreach (CapSerie c in Caps) if (c.Transcrito && !c.TieneFicha) cola.Add(c);
+        if (cola.Count == 0) { Estado("Todos los cap\u00edtulos transcritos ya tienen ficha.", false); return; }
 
-        string notas = txtNotas.Text;
+        string notas = Serie_.Notas, tipo = Serie_.Tipo;
         trabajando = true;
-        foreach (Boton b in new Boton[] { btnFichas, btnRehacer, btnCarpeta, btnListo }) b.Enabled = false;
+        Habilitar(false);
         Thread hilo = new Thread(delegate ()
         {
             List<string> errores = new List<string>();
@@ -3005,7 +3433,7 @@ class DialogoSerie : VentanaBase
                 try
                 {
                     Episodio e = Episodio.Abrir(c.Veg);
-                    Ficha f = Ficha.Leer(Gemini.Generar(clave, modelo, Serie.InstruccionesFicha(), Serie.MensajeFicha(e, notas), true));
+                    Ficha f = Ficha.Leer(Gemini.Generar(clave, modelo, Serie.InstruccionesFicha(tipo), Serie.MensajeFicha(e, notas), true));
                     f.Generada = DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " \u00b7 " + modelo;
                     f.Guardar(c.Veg);
                 }
@@ -3016,8 +3444,8 @@ class DialogoSerie : VentanaBase
                 BeginInvoke((MethodInvoker)delegate
                 {
                     trabajando = false;
-                    foreach (Boton b in new Boton[] { btnFichas, btnRehacer, btnCarpeta, btnListo }) b.Enabled = true;
-                    Llenar();
+                    Habilitar(true);
+                    LlenarCapitulos();
                     if (errores.Count > 0) Estado(String.Join("\n", errores.ToArray()), true);
                     else Estado("\u2714 Fichas listas.", false);
                 });
@@ -3028,25 +3456,32 @@ class DialogoSerie : VentanaBase
         hilo.Start();
     }
 
+    void Habilitar(bool si)
+    {
+        foreach (Control c in new Control[] { btnFichas, btnRehacer, btnListo, btnNueva, btnAbrir, lstSeries, btnAgregar, btnQuitar, btnSubir, btnBajar })
+            c.Enabled = si;
+    }
+
     void Avisar(string t)
     {
         try { BeginInvoke((MethodInvoker)delegate { Estado(t, false); }); } catch { }
     }
 
-    // "2 anteriores (1 sin ficha) \u00b7 1 posterior"
-    public static string Resumen(List<CapSerie> caps)
+    // "Serie Steel Ball Run: 2 anteriores \u00b7 1 posterior \u00b7 1 sin ficha"
+    public static string Resumen(SerieProyecto serie, List<CapSerie> caps)
     {
+        if (serie == null) return "Sin serie (pulsa \u201cSerie\u2026\u201d para elegirla o crearla).";
         int ant = 0, pos = 0, sin = 0;
+        bool esta = caps.Exists(delegate (CapSerie c) { return c.Relacion == 0; });
         foreach (CapSerie c in caps)
         {
             if (c.Relacion == 0 || !c.Elegido || !c.Transcrito) continue;
             if (c.Relacion < 0) ant++; else pos++;
             if (!c.TieneFicha) sin++;
         }
-        if (ant + pos == 0) return "Sin cap\u00edtulos de la serie.";
-        return "Serie: " + ant + (ant == 1 ? " anterior" : " anteriores") +
+        return "Serie " + serie.Nombre + ": " + ant + (ant == 1 ? " anterior" : " anteriores") +
                (pos > 0 ? " \u00b7 " + pos + (pos == 1 ? " posterior" : " posteriores") : "") +
-               (sin > 0 ? " \u00b7 " + sin + " sin ficha" : "");
+               (sin > 0 ? " \u00b7 " + sin + " sin ficha" : "") + (esta ? "" : " \u00b7 este proyecto no est\u00e1 en la serie");
     }
 }
 
@@ -4740,9 +5175,11 @@ class DialogoNombre : Form
     TextBox caja = new TextBox();
     public string Nombre { get { return caja.Text.Trim(); } }
 
-    public DialogoNombre(string sugerido)
+    public DialogoNombre(string sugerido) : this(sugerido, "Guardar perfil", "Nombre del perfil") { }
+
+    public DialogoNombre(string sugerido, string titulo, string etiqueta)
     {
-        Text = "Guardar perfil";
+        Text = titulo;
         ClientSize = new Size(380, 150);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false; MinimizeBox = false;
@@ -4751,7 +5188,7 @@ class DialogoNombre : Form
         ForeColor = Tema.Texto;
         Font = Tema.Normal;
 
-        Controls.Add(Pos(new Etiqueta("Nombre del perfil", Tema.Seccion, Tema.Texto), 20, 16, 340, 22));
+        Controls.Add(Pos(new Etiqueta(etiqueta, Tema.Seccion, Tema.Texto), 20, 16, 340, 22));
         Panel marco = new Panel();
         marco.BackColor = Tema.Campo;
         marco.Padding = new Padding(10, 8, 10, 6);

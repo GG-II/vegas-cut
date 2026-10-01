@@ -1,0 +1,8 @@
+// Series.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Administra tus series (proyectos de varias partes: gameplays, video
+// ensayos, podcast...): capitulos en orden, notas (personajes, apodos, de que
+// va) y la ficha de cada capitulo hecha por Gemini. MomentosIA y Anteriormente
+// usan la serie del proyecto abierto como contexto.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

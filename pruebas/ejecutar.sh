@@ -13,7 +13,7 @@ REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.
 # -noconfig: sin System.Core ni otras bibliotecas que Vegas no le da a los
 # scripts (HashSet, LINQ...), para que falle aqui y no en Vegas.
 VEGAS_REF="-noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -r:$T/ScriptPortal.Vegas.dll"
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs

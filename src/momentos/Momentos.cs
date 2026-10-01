@@ -132,7 +132,7 @@ class VentanaMomentos : VentanaBase
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
     List<CapSerie> capitulos = new List<CapSerie>();   // capitulos de la misma serie
-    string notasSerie = "", carpetaSerie = "";
+    SerieProyecto serie;
     List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
     bool cargando, aplicado, vigente;
 
@@ -305,7 +305,7 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
-        capitulos = Serie.Capitulos(vegas.Project.FilePath, out notasSerie, out carpetaSerie);
+        capitulos = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         MostrarContexto();
         fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
         fijosCuentan = TramosFijos.Cuentan(vegas.Project.FilePath);
@@ -379,7 +379,7 @@ class VentanaMomentos : VentanaBase
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
-        opciones.Contexto = Serie.Contexto(capitulos, notasSerie);
+        opciones.Contexto = Serie.Contexto(serie, capitulos);
         opciones.Fijos = new List<Tramo>(fijos);
         opciones.FijosCuentan = fijosCuentan;
         foreach (CampoTexto c in nombres)
@@ -404,17 +404,14 @@ class VentanaMomentos : VentanaBase
     void ElegirContexto()
     {
         string modelo = comboModelo.Text.Trim().Length > 0 ? comboModelo.Text.Trim() : config.GeminiModelo;
-        using (DialogoSerie d = new DialogoSerie(vegas.Project.FilePath, config.GeminiClave, modelo))
-        {
-            d.ShowDialog(this);
-            capitulos = d.Caps; notasSerie = d.Notas; carpetaSerie = d.Carpeta;
-        }
+        using (VentanaSeries d = new VentanaSeries(vegas.Project.FilePath, config.GeminiClave, modelo, true)) d.ShowDialog(this);
+        capitulos = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         MostrarContexto();
     }
 
     void MostrarContexto()
     {
-        lblContexto.Text = DialogoSerie.Resumen(capitulos) + (notasSerie.Length > 0 ? " · con notas" : "");
+        lblContexto.Text = VentanaSeries.Resumen(serie, capitulos);
     }
 
     void AvisoModelo()

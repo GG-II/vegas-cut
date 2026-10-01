@@ -12,6 +12,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
 | `TextosDesdeMarcadores.cs` | Convierte los marcadores `TEXTO:` en Títulos y texto con el estilo de una plantilla. |
 | `MusicaAutomatica.cs` | Baja la música cuando alguien habla y la sube en las pausas (envolvente de volumen). |
+| `Series.cs` | Administra series de varias partes: capítulos en orden, notas y fichas para la IA. |
 | `Anteriormente.cs` | Arma el «Anteriormente» con frases de episodios pasados que importan para este capítulo. |
 | `DesenlazarClips.cs` | Arregla clips que quedaron unidos todos en un grupo tras cortar con versiones anteriores. |
 | `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
@@ -216,29 +217,33 @@ aunque muevas o recortes clips; si una parte se borró, aparece como *ya no est�
 transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a
 mano, vuelve a transcribir (un video ya editado de 20 min tarda poco).
 
-### Series (MomentosIA y Anteriormente)
+### `Series.cs`
 
-![Cuadro Serie](docs/img/serie.png)
+![Administrador de series](docs/img/series.png)
 
-Si nombras los capítulos con temporada y número (`S01E01 SCR.veg`, `S01E02 SCR.veg`…), las
-herramientas los encuentran solas: en la misma carpeta, en las carpetas de al lado (una por
-capítulo) o en la carpeta que elijas con **Elegir carpeta…** (con todas sus subcarpetas). El
-resto del nombre («SCR») dice de qué serie es. El botón **Serie…** abre este cuadro:
+Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, podcast…
 
-- **Capítulos**: anteriores y posteriores (si ya están grabados y transcritos). Desmarca los que
-  no quieras usar.
+- **Nueva…**: le pones nombre y eliges la carpeta de la serie. Ahí se guarda el archivo de la
+  serie (`<nombre>.vegascut-serie.json`), así viaja con tus proyectos, y se buscan sus capítulos.
+  vegas-cut recuerda tus series para que aparezcan en la lista; **Abrir…** trae una que no esté.
+- **Capítulos en orden**: **Buscar capítulos ahí** agrega los `.veg` de la carpeta (y
+  subcarpetas) que traen `S01E02`, `Parte 2`, `Cap 2` o `Ep 2` en el nombre; **Agregar…** suma
+  cualquier `.veg`, se llame como se llame; **Subir** y **Bajar** cambian el orden. Las casillas
+  dicen qué capítulos usar de contexto en el proyecto abierto.
+- **Tipo** (gameplay, video ensayo, podcast, otro): cambia lo que Gemini anota en las fichas
+  (en un video ensayo: temas, argumentos y conceptos que se retoman).
 - **Fichas**: «Hacer las fichas que faltan» le pide a Gemini, una sola vez por capítulo, un
-  resumen con los **hilos abiertos** (objetivos, promesas, rivalidades, objetos que vuelven), lo
-  **recurrente** (chistes, apodos) y **frases clave** con su tiempo. Se hace de lo que quedó en
-  el video y se guarda junto a su proyecto (`<proyecto>.vegascut-ficha.json`). «Rehacer la
-  elegida» la vuelve a hacer (por ejemplo, después de terminar de editar ese capítulo).
-- **Notas de la serie**: personajes, apodos, lugares y de qué va. Se guardan con el proyecto
-  (`<proyecto>.vegascut-serie.json`) y un capítulo nuevo hereda las del anterior.
+  resumen con los **hilos abiertos**, lo **recurrente** y **frases clave** con su tiempo, de lo
+  que quedó en el video. Se guarda junto al proyecto de ese capítulo
+  (`<proyecto>.vegascut-ficha.json`). «Rehacer la elegida» la vuelve a hacer.
+- **Notas de la serie**: personajes, apodos, lugares y de qué va.
 
-Con eso, **MomentosIA** recibe las fichas de los capítulos anteriores (para conservar lo que
-continúa una historia) y de los **posteriores** (para no cortar lo que prepara algo que se
-retoma después), y **Anteriormente** toma los capítulos anteriores solo, con la ficha de los
-viejos (incluidas sus frases clave) y el texto completo de los 2 más recientes.
+**MomentosIA** y **Anteriormente** reconocen solos a qué serie pertenece el proyecto abierto
+(su botón **Serie…** abre esta misma ventana para elegir otra o agregar el proyecto).
+MomentosIA recibe las fichas de los capítulos anteriores (para conservar lo que continúa una
+historia) y de los **posteriores** (para no cortar lo que prepara algo que se retoma después);
+Anteriormente toma los capítulos anteriores con la ficha de los viejos (incluidas sus frases
+clave) y el texto completo de los 2 más recientes.
 
 ### `Anteriormente.cs`
 
@@ -246,7 +251,7 @@ viejos (incluidas sus frases clave) y el texto completo de los 2 más recientes.
 
 Arma el «ANTERIORMENTE» que abre un episodio, con frases dichas en los episodios pasados.
 
-1. Los capítulos anteriores de la serie se cargan solos (ver *Series*); con **Agregar…** sumas
+1. Los capítulos anteriores de la serie se cargan solos (ver `Series.cs`); con **Agregar…** sumas
    otros `.veg` a mano. Para
    poder traer sus clips, su transcripción tiene que ser de esta versión de *Transcribir* (la
    columna *Trae clips* lo dice); si no, sirven solo de contexto.

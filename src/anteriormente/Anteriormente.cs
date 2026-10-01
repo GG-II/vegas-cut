@@ -198,7 +198,7 @@ class VentanaAnteriormente : VentanaBase
     Lista lstEpisodios = new Lista();
     Boton btnSerie = new Boton("Serie…", EstiloBoton.Secundario);
     Boton btnAgregar = new Boton("Agregar…", EstiloBoton.Secundario);
-    string notasSerie = "";
+    SerieProyecto serie;
     Boton btnQuitar = new Boton("Quitar", EstiloBoton.Secundario);
     Segmentado segDuracion = new Segmentado(new string[] { "15 s", "20 s", "30 s", "45 s", "60 s" });
     CampoTexto txtIndicaciones = new CampoTexto();
@@ -296,8 +296,7 @@ class VentanaAnteriormente : VentanaBase
 
         segDuracion.Seleccion = 2;
         Cargar();
-        string carpeta;
-        List<CapSerie> caps = Serie.Capitulos(vegas.Project.FilePath, out notasSerie, out carpeta);
+        List<CapSerie> caps = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         if (episodios.Count == 0) { DesdeSerie(caps); OrdenarEpisodios(); }
         MostrarEpisodios();
         MostrarClips();
@@ -356,12 +355,8 @@ class VentanaAnteriormente : VentanaBase
     void AbrirSerie()
     {
         string modelo = comboModelo.Text.Trim().Length > 0 ? comboModelo.Text.Trim() : config.GeminiModelo;
-        List<CapSerie> caps;
-        using (DialogoSerie d = new DialogoSerie(vegas.Project.FilePath, config.GeminiClave, modelo))
-        {
-            d.ShowDialog(this);
-            caps = d.Caps; notasSerie = d.Notas;
-        }
+        using (VentanaSeries d = new VentanaSeries(vegas.Project.FilePath, config.GeminiClave, modelo, true)) d.ShowDialog(this);
+        List<CapSerie> caps = Serie.DelProyecto(vegas.Project.FilePath, out serie);
         // Se quitan los de la serie que desmarcaste y se recargan (por si hay fichas nuevas).
         episodios.RemoveAll(delegate (Episodio e)
         {
@@ -402,7 +397,7 @@ class VentanaAnteriormente : VentanaBase
         string clave = config.GeminiClave, modelo = comboModelo.Text.Trim();
         if (modelo.Length == 0) modelo = config.GeminiModelo;
         int segundos = Segundos;
-        string indicaciones = txtIndicaciones.Text, notas = notasSerie;
+        string indicaciones = txtIndicaciones.Text, notas = serie != null ? serie.Notas : "", tipo = serie != null ? serie.Tipo : "Gameplay";
         List<Episodio> eps = new List<Episodio>(episodios);
         string actual = LogicaAnteriormente.Actual(TranscripcionActual(), ResumenActual());
 
@@ -415,7 +410,7 @@ class VentanaAnteriormente : VentanaBase
         Thread hilo = new Thread(delegate ()
         {
             string r = null, error = null;
-            try { r = Gemini.Generar(clave, modelo, LogicaAnteriormente.Instrucciones(segundos), LogicaAnteriormente.Mensaje(eps, actual, indicaciones, segundos, notas), true); }
+            try { r = Gemini.Generar(clave, modelo, LogicaAnteriormente.Instrucciones(segundos, tipo), LogicaAnteriormente.Mensaje(eps, actual, indicaciones, segundos, notas), true); }
             catch (Exception ex) { error = ex.Message; }
             try
             {

@@ -37,9 +37,11 @@ public static class LogicaAnteriormente
 {
     static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
 
-    public static string Instrucciones(int segundos)
+    public static string Instrucciones(int segundos) { return Instrucciones(segundos, "Gameplay"); }
+
+    public static string Instrucciones(int segundos, string tipo)
     {
-        return "Eres editor de una serie de YouTube en español (gameplays con amigos). Vas a armar el " +
+        return "Eres editor de " + Serie.QueEs(tipo) + ". Vas a armar el " +
                "\"ANTERIORMENTE\" que abre el episodio actual: unos " + segundos + " segundos con frases cortas, dichas " +
                "por las personas en episodios anteriores, que recuerden lo necesario para entender ESTE episodio.\n\n" +
                "Reglas:\n" +

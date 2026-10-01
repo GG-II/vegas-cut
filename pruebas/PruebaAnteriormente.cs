@@ -129,20 +129,43 @@ class PruebaAnteriormente
             File.WriteAllText(ruta, "");
         }
         string actual = Path.Combine(raiz, "S01E02", "S01E02 SCR.veg");
-        List<CapSerie> caps = Serie.Buscar(actual);
-        string nombres = "";
-        foreach (CapSerie c in caps) nombres += c.Codigo + (c.Relacion < 0 ? "-" : c.Relacion > 0 ? "+" : "=") + " ";
-        Verificar(nombres == "S01E01- S01E02= S01E03+ ", "Serie: encuentra anteriores y posteriores en carpetas de al lado (" + nombres + ")");
-        Verificar(Serie.Buscar(actual, Path.Combine(raiz, "viejos")).Count == 4, "Serie: con la carpeta elegida busca también en sus subcarpetas");
+        Verificar(Serie.Clave("Ensayo Parte 3", out st, out sn, out ss1) && sn == 3 && !Serie.Clave("Recap2 final", out st, out sn, out ss1),
+            "Serie: también reconoce “Parte 3”");
 
-        Serie.Guardar(Path.Combine(raiz, "S01E01", "S01E01 SCR.veg"), "Gerber = Herbert", Path.Combine(raiz, "viejos"), Serie.Buscar(Path.Combine(raiz, "S01E01", "S01E01 SCR.veg")));
-        string notas, carpeta;
-        List<CapSerie> caps2 = Serie.Capitulos(actual, out notas, out carpeta);
-        Verificar(notas == "Gerber = Herbert" && carpeta.EndsWith("viejos") && caps2.Count == 4, "Serie: un capítulo nuevo hereda notas y carpeta del anterior");
-        caps2[0].Elegido = false;
-        Serie.Guardar(actual, "notas propias", carpeta, caps2);
-        caps2 = Serie.Capitulos(actual, out notas, out carpeta);
-        Verificar(notas == "notas propias" && !caps2[0].Elegido && caps2[1].Elegido, "Serie: guarda por proyecto las notas y los capítulos que quitaste");
+        // Serie nueva en la carpeta de arriba, con este proyecto y lo que encuentre.
+        SerieProyecto sp = new SerieProyecto { Nombre = "Steel Ball Run", Carpeta = raiz, Notas = "Gerber = Herbert" };
+        sp.Ruta = SerieProyecto.RutaPara(raiz, sp.Nombre);
+        sp.Agregar(actual);
+        int encontrados = sp.BuscarEnCarpeta();
+        string orden = "";
+        foreach (string e in sp.Episodios) orden += Path.GetFileNameWithoutExtension(e).Substring(0, 6) + " ";
+        Verificar(encontrados == 3 && orden == "S01E00 S01E01 S01E02 S01E03 ", "Serie: busca sus capítulos en la carpeta y los ordena (" + orden + ")");
+        sp.Guardar();
+        SerieProyecto sp2 = SerieProyecto.Cargar(sp.Ruta);
+        Verificar(sp2.Nombre == "Steel Ball Run" && sp2.Episodios.Count == 4 && sp2.Notas == "Gerber = Herbert" &&
+                  SerieProyecto.Registradas().Contains(sp.Ruta), "Serie: se guarda en su carpeta y queda en la lista de series");
+        List<CapSerie> caps = sp2.Capitulos(actual);
+        string rel = "";
+        foreach (CapSerie c in caps) rel += c.Relacion + " ";
+        Verificar(rel == "-1 -1 0 1 ", "Serie: anteriores, este y posteriores según el orden");
+        SerieProyecto delProyecto = SerieProyecto.DelProyecto(actual);
+        Verificar(delProyecto != null && delProyecto.Ruta == sp.Ruta && SerieProyecto.DelProyecto(Path.Combine(raiz, "otro.veg")) == null,
+            "Serie: reconoce a qué serie pertenece el proyecto abierto");
+        caps[0].Elegido = false;
+        AjustesProyecto.Guardar(actual, sp.Ruta, caps);
+        SerieProyecto sp3;
+        List<CapSerie> caps2 = Serie.DelProyecto(actual, out sp3);
+        Verificar(sp3 != null && !caps2[0].Elegido && caps2[1].Elegido, "Serie: cada proyecto recuerda qué capítulos no usar");
+        sp2.Episodios.Reverse(); sp2.Guardar();
+        List<CapSerie> alReves = SerieProyecto.Cargar(sp.Ruta).Capitulos(actual);
+        Verificar(alReves[0].Nombre.StartsWith("S01E03") && alReves[0].Relacion == -1 && alReves[3].Relacion == 1,
+            "Serie: el orden es el que tú le das");
+        sp2.Episodios.Reverse(); sp2.Guardar();
+
+        SerieProyecto ensayo = new SerieProyecto { Nombre = "Ensayo", Tipo = "Video ensayo" };
+        ensayo.Agregar("C:/x/Ensayo Parte 2.veg"); ensayo.Agregar("C:/x/Intro.veg"); ensayo.Agregar("C:/x/Ensayo Parte 1.veg");
+        Verificar(Path.GetFileName(ensayo.Episodios[0]) == "Ensayo Parte 1.veg" && Path.GetFileName(ensayo.Episodios[2]) == "Intro.veg" &&
+                  Serie.InstruccionesFicha("Video ensayo").Contains("video ensayos"), "Serie de video ensayos: partes en orden, ficha a su medida");
 
         Ficha fi = Ficha.Leer(@"{""resumen"": ""Ganaron la carrera."", ""hilos"": [""El yunque escondido""], ""recurrentes"": [""Gerber pierde su caballo""],
             ""frases"": [{""inicio"": 10, ""fin"": 12.5, ""quien"": ""AB Fann"", ""texto"": ""¡Ganamos!"", ""por"": ""el final""}]}");
@@ -151,8 +174,8 @@ class PruebaAnteriormente
         Ficha fi2 = Ficha.Cargar(s1);
         Verificar(fi2 != null && fi2.Hilos[0] == "El yunque escondido" && fi2.Frases.Count == 1 && fi2.Texto(true).Contains("[10.0-12.5] AB Fann: ¡Ganamos!"),
             "Ficha: se guarda junto al proyecto y se lee igual");
-        string ctx = Serie.Contexto(Serie.Buscar(actual), "Steel Ball Run");
-        Verificar(ctx.Contains("Notas de la serie") && ctx.Contains("Capítulos anteriores:\n- S01E01 SCR: Ganaron") &&
+        string ctx = Serie.Contexto(sp2, sp2.Capitulos(actual));
+        Verificar(ctx.Contains("Serie: Steel Ball Run (Gameplay)") && ctx.Contains("Notas de la serie") && ctx.Contains("- S01E01 SCR: Ganaron") &&
                   ctx.Contains("POSTERIORES") && ctx.Contains("- S01E03 SCR"), "Contexto de MomentosIA: notas, anteriores y posteriores");
 
         // Anteriormente: de los capitulos viejos solo la ficha; completos los 2 ultimos.

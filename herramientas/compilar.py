@@ -33,6 +33,8 @@ HERRAMIENTAS = {
     'Anteriormente': ['anteriormente/cabecera.txt', 'anteriormente/Anteriormente.cs', 'anteriormente/LogicaAnteriormente.cs',
                       'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'Series': ['series/cabecera.txt', 'series/Series.cs', 'comun/Serie.cs', 'comun/VentanaSerie.cs'] + COMUN_BASE +
+              ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
     'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
                            'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE + ['comun/Ui.cs'],

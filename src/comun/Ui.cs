@@ -330,9 +330,11 @@ class DialogoNombre : Form
     TextBox caja = new TextBox();
     public string Nombre { get { return caja.Text.Trim(); } }
 
-    public DialogoNombre(string sugerido)
+    public DialogoNombre(string sugerido) : this(sugerido, "Guardar perfil", "Nombre del perfil") { }
+
+    public DialogoNombre(string sugerido, string titulo, string etiqueta)
     {
-        Text = "Guardar perfil";
+        Text = titulo;
         ClientSize = new Size(380, 150);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false; MinimizeBox = false;
@@ -341,7 +343,7 @@ class DialogoNombre : Form
         ForeColor = Tema.Texto;
         Font = Tema.Normal;
 
-        Controls.Add(Pos(new Etiqueta("Nombre del perfil", Tema.Seccion, Tema.Texto), 20, 16, 340, 22));
+        Controls.Add(Pos(new Etiqueta(etiqueta, Tema.Seccion, Tema.Texto), 20, 16, 340, 22));
         Panel marco = new Panel();
         marco.BackColor = Tema.Campo;
         marco.Padding = new Padding(10, 8, 10, 6);
