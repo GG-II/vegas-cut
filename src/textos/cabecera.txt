@@ -1,0 +1,9 @@
+// TextosDesdeMarcadores.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Convierte los marcadores "TEXTO: ..." (los que crea MomentosIA o los que
+// pongas tu) en eventos de Titulos y texto con el estilo de una plantilla:
+// selecciona antes un texto ya hecho (fuente, color, tamano, animacion) y
+// cada marcador se vuelve una copia con su propio texto. Antes de empezar
+// reubica los marcadores anclados, por si moviste o recortaste clips.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

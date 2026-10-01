@@ -102,4 +102,8 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 - [x] Probado con un gameplay de 1 h (S01E02): funciona; se corrigieron reglas ignoradas y duración.
 - [x] Reglas del canal, duración mín/máx garantizada, revisión, contexto de episodios, modelo e historial.
 - [x] Marcadores anclados a los clips + ReubicarMarcadores.
+- [x] `TextosDesdeMarcadores.cs`: marcadores `TEXTO:` → Títulos y texto con estilo de plantilla.
+- [x] `MusicaAutomatica.cs`: la música baja sola con la voz (envolvente de volumen).
+- [ ] Probar en Vegas 20: crear Títulos y texto por script y la envolvente de volumen.
+- [ ] Zoom de impacto en ★ y picos, Shorts 9:16 desde regiones `SHORT:`.
 - [ ] Subtítulos desde la transcripción (pospuesto).

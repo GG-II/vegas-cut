@@ -27,36 +27,6 @@ public class EntryPoint
     }
 }
 
-// Lista oscura con casillas (ListView con encabezado dibujado a mano).
-class Lista : ListView
-{
-    public Lista()
-    {
-        View = View.Details;
-        FullRowSelect = true;
-        CheckBoxes = true;
-        HideSelection = false;
-        BorderStyle = BorderStyle.None;
-        BackColor = Tema.Campo;
-        ForeColor = Tema.Texto;
-        Font = Tema.Normal;
-        OwnerDraw = true;
-        HeaderStyle = ColumnHeaderStyle.Nonclickable;
-        DoubleBuffered = true;
-    }
-
-    protected override void OnDrawColumnHeader(DrawListViewColumnHeaderEventArgs e)
-    {
-        using (SolidBrush b = new SolidBrush(Tema.Panel)) e.Graphics.FillRectangle(b, e.Bounds);
-        TextRenderer.DrawText(e.Graphics, e.Header.Text, Tema.Pequena,
-            new Rectangle(e.Bounds.X + 6, e.Bounds.Y, e.Bounds.Width - 6, e.Bounds.Height), Tema.TextoSuave,
-            TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-    }
-
-    protected override void OnDrawItem(DrawListViewItemEventArgs e) { e.DrawDefault = true; }
-    protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) { e.DrawDefault = true; }
-}
-
 // Editor de las reglas del canal (se guardan para todos los proyectos).
 class DialogoReglas : VentanaBase
 {

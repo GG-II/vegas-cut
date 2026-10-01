@@ -286,10 +286,6 @@ class CampoNumero : ControlBase
     }
 }
 
-// Forma de onda con los silencios marcados y el umbral arrastrable.
-// Un carril por pista analizada.
-// Un carril por pista analizada.
-
 class Combo : ComboBox
 {
     public Combo() : this(false) { }
@@ -421,6 +417,36 @@ class CampoTexto : ControlBase
             using (Pen pen = new Pen(Caja.Focused ? Tema.Acento : Tema.Borde)) g.DrawPath(pen, p);
         }
     }
+}
+
+// Lista oscura con casillas (ListView con encabezado dibujado a mano).
+class Lista : ListView
+{
+    public Lista()
+    {
+        View = View.Details;
+        FullRowSelect = true;
+        CheckBoxes = true;
+        HideSelection = false;
+        BorderStyle = BorderStyle.None;
+        BackColor = Tema.Campo;
+        ForeColor = Tema.Texto;
+        Font = Tema.Normal;
+        OwnerDraw = true;
+        HeaderStyle = ColumnHeaderStyle.Nonclickable;
+        DoubleBuffered = true;
+    }
+
+    protected override void OnDrawColumnHeader(DrawListViewColumnHeaderEventArgs e)
+    {
+        using (SolidBrush b = new SolidBrush(Tema.Panel)) e.Graphics.FillRectangle(b, e.Bounds);
+        TextRenderer.DrawText(e.Graphics, e.Header.Text, Tema.Pequena,
+            new Rectangle(e.Bounds.X + 6, e.Bounds.Y, e.Bounds.Width - 6, e.Bounds.Height), Tema.TextoSuave,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+    }
+
+    protected override void OnDrawItem(DrawListViewItemEventArgs e) { e.DrawDefault = true; }
+    protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) { e.DrawDefault = true; }
 }
 
 // Ventana base con el tema oscuro y la linea de acento bajo el titulo.

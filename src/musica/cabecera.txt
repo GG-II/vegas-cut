@@ -1,0 +1,8 @@
+// MusicaAutomatica.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Baja sola la musica (o el juego) cuando alguien habla y la vuelve a subir
+// en las pausas, con puntos en la envolvente de volumen de la pista. Mide
+// las voces en el momento, asi que funciona aunque hayas editado despues de
+// transcribir. Ctrl+Z lo deshace.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

@@ -10,11 +10,15 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
 | `MomentosIA.cs` | Gemini sugiere resumen, momentos, un corte a la duración que pidas, textos y Shorts. |
 | `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
+| `TextosDesdeMarcadores.cs` | Convierte los marcadores `TEXTO:` en Títulos y texto con el estilo de una plantilla. |
+| `MusicaAutomatica.cs` | Baja la música cuando alguien habla y la sube en las pausas (envolvente de volumen). |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
 
 **Flujo sugerido para un gameplay:** *Quitar silencios* (opcional) → *Transcribir* →
-*Momentos con IA* → revisar → *Aplicar corte*. La transcripción sigue los cortes que hacen
-estas herramientas, incluso si los deshaces con Ctrl+Z.
+*Momentos con IA* → revisar → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores*
+→ música → *Música que baja sola*. La transcripción sigue los cortes que hacen estas
+herramientas, incluso si los deshaces con Ctrl+Z. Si después editas a mano no hace falta volver a
+transcribir: los textos usan los marcadores anclados y la música mide las voces en el momento.
 
 ## Estructura
 
@@ -122,6 +126,47 @@ se puede revisar pero no aplicar; deshaz con Ctrl+Z y vuelve a abrir para aplica
 qué segundo del archivo corresponden (`<proyecto>.vegascut-marcas.json`). Si mueves, cortas o
 reordenas clips, ejecuta **ReubicarMarcadores** y vuelven a quedar sobre su clip. En el plan gratuito de Gemini, Google puede usar
 lo que envías para mejorar sus productos.
+
+### `TextosDesdeMarcadores.cs`
+
+![Ventana de Textos desde marcadores](docs/img/textos.png)
+
+Convierte cada marcador `TEXTO: ...` (los que crea MomentosIA, o uno que pongas tú con esa
+etiqueta) en un evento de **Títulos y texto**.
+
+1. Haz un texto con el estilo que quieras (fuente, color, tamaño, efectos del evento, fundidos)
+   y **selecciónalo** en la línea de tiempo. Si no seleccionas ninguno se usa el texto más
+   cercano al cursor; si el proyecto no tiene textos, Títulos y texto con su estilo normal.
+2. Ejecuta el script. Primero reubica los marcadores anclados, por si moviste o recortaste clips.
+3. Revisa la lista: desmarca los que no quieras y corrige el texto abajo (Enter = otra línea).
+4. Elige la **duración** (por defecto la de la plantilla), si van en una **pista nueva arriba** o
+   en la de la plantilla, y si se **quitan los marcadores** ya usados. Un texto termina antes si
+   el siguiente empieza, para que no se encimen.
+5. **Crear**: cada texto es un medio propio (editar uno no cambia los demás). Ctrl+Z lo deshace.
+
+Se copian todos los parámetros de la plantilla y se cambia solo el texto, conservando el
+formato del primer carácter. Si la plantilla tiene animación con fotogramas clave, conviene
+que dure lo mismo que los textos nuevos.
+
+### `MusicaAutomatica.cs`
+
+![Ventana de Música que baja sola](docs/img/musica.png)
+
+Baja la música mientras alguien habla y la vuelve a subir en las pausas (*ducking*), con puntos
+en la **envolvente de volumen** de la pista, que después puedes mover a mano.
+
+1. Pon la música en su pista (si el corte cambia, hazlo al final).
+2. Marca las **voces** (se proponen las que transcribiste) y la **música** (se proponen las
+   pistas con mp3, ogg… o con "música" en el nombre). También puedes bajar el juego.
+3. **Medir voces**: renderiza cada voz y detecta cuándo hablan, con el mismo umbral por pista
+   que *Quitar silencios*. Mide en ese momento, así que sirve aunque hayas editado.
+4. Ajusta mirando la gráfica: **bajar a** (−14 dB por defecto), **baja antes de hablar**
+   (250 ms), **sube al terminar en** (600 ms) y **solo sube en pausas de** (1200 ms: en pausas
+   más cortas se queda abajo para que no suba y baje a cada rato).
+5. **Aplicar a la música**: reemplaza la envolvente de volumen en el rango (todo el proyecto o la
+   selección de tiempo); fuera del rango no se toca. Ctrl+Z lo deshace.
+
+Los ajustes se recuerdan en `%APPDATA%\vegas-cut\musica.ini`.
 
 ### `QuitarSilencios.cs`
 

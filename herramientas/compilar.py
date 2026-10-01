@@ -26,6 +26,10 @@ HERRAMIENTAS = {
     'MomentosIA': ['momentos/cabecera.txt', 'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs',
                    'comun/Editor.cs', 'comun/Anclas.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'ReubicarMarcadores': ['marcadores/cabecera.txt', 'marcadores/Reubicar.cs', 'comun/Anclas.cs', 'comun/Json.cs'],
+    'TextosDesdeMarcadores': ['textos/cabecera.txt', 'textos/Textos.cs', 'textos/Generador.cs', 'comun/Rtf.cs',
+                              'comun/Anclas.cs', 'comun/Audio.cs', 'comun/Json.cs', 'comun/Ui.cs'],
+    'MusicaAutomatica': ['musica/cabecera.txt', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'comun/PistasVegas.cs'] +
+                        COMUN_BASE + ['silencios/Deteccion.cs', 'comun/Ui.cs'],
 }
 
 def separar_usings(texto):
