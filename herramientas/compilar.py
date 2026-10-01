@@ -24,7 +24,8 @@ HERRAMIENTAS = {
     'Transcribir': ['transcribir/cabecera.txt', 'transcribir/Transcribir.cs', 'comun/PistasVegas.cs'] +
                    COMUN_BASE + ['comun/Configuracion.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
     'MomentosIA': ['momentos/cabecera.txt', 'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs',
-                   'comun/Editor.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+                   'comun/Editor.cs', 'comun/Anclas.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'ReubicarMarcadores': ['marcadores/cabecera.txt', 'marcadores/Reubicar.cs', 'comun/Anclas.cs', 'comun/Json.cs'],
 }
 
 def separar_usings(texto):

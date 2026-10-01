@@ -8,14 +8,14 @@ public class Timecode {
   public static Timecode operator +(Timecode a, Timecode b){return new Timecode(a.ms+b.ms);}
   public override string ToString(){return (ms/1000).ToString("0.000");}
 }
-public class Media { public string FilePath; }
+public class Media { public string FilePath; public bool Generada; public bool IsGenerated(){return Generada;} }
 public class Fade { public Timecode Length = new Timecode(0); }
-public class Take { public Media Media; }
+public class Take { public Media Media; public Timecode Offset = new Timecode(0); }
 public class TrackEvent {
   public Timecode Start, Length; public Fade FadeIn = new Fade(), FadeOut = new Fade(); public bool Mute; public double PlaybackRate = 1; public Take ActiveTake; public Track Track; public double Offset;
   public Timecode End { get { return new Timecode(Start.ms+Length.ms);} }
   public TrackEvent Split(Timecode off){
-    var e=(TrackEvent)MemberwiseClone(); e.FadeIn=new Fade(); e.FadeOut=FadeOut; FadeOut=new Fade(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms;
+    var e=(TrackEvent)MemberwiseClone(); e.FadeIn=new Fade(); e.FadeOut=FadeOut; FadeOut=new Fade(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms; if (ActiveTake!=null) { e.ActiveTake=new Take(); e.ActiveTake.Media=ActiveTake.Media; e.ActiveTake.Offset=new Timecode(ActiveTake.Offset.ms+off.ms*PlaybackRate); }
     Length=new Timecode(off.ms); Track.Events.Add(e); return e; }
 }
 public class AudioEvent: TrackEvent {} public class VideoEvent: TrackEvent {}

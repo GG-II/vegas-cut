@@ -78,26 +78,61 @@ class Lista : ListView
     protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) { e.DrawDefault = true; }
 }
 
+// Editor de las reglas del canal (se guardan para todos los proyectos).
+class DialogoReglas : VentanaBase
+{
+    CampoTexto txt = new CampoTexto();
+    public string Reglas { get { return txt.Text.Trim(); } }
+
+    public DialogoReglas(string reglas) : base("Reglas del canal", 640)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Reglas del canal", "Se aplican siempre, en todos los videos. Una regla por l\u00ednea.");
+        txt.Multilinea = true;
+        txt.Text = reglas;
+        Pos(txt, m, 92, w, 300);
+        Boton restaurar = new Boton("Restaurar las de siempre", EstiloBoton.Secundario);
+        Boton cancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+        Boton guardar = new Boton("Guardar", EstiloBoton.Primario);
+        Pos(restaurar, m, 408, 200, 38);
+        Pos(cancelar, m + w - 250, 408, 110, 38);
+        Pos(guardar, m + w - 130, 408, 130, 38);
+        ClientSize = new Size(ClientSize.Width, 470);
+        restaurar.Click += delegate { txt.Text = PeticionIA.ReglasPorDefecto; };
+        cancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        guardar.Click += delegate { DialogResult = DialogResult.OK; Close(); };
+    }
+}
+
 class VentanaMomentos : VentanaBase
 {
     readonly Vegas vegas;
     readonly Transcripcion transcripcion;
-    readonly string rutaTranscripcion, rutaIA, rutaInforme;
+    readonly string rutaTranscripcion, rutaIA, rutaInforme, rutaHistorial;
     readonly Configuracion config = Configuracion.Cargar();
     readonly double total;
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
-    bool cargando, aplicado;
+    List<string> contexto = new List<string>();   // respuestas de episodios anteriores
+    List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
+    bool cargando, aplicado, vigente;
 
     Segmentado segTipo = new Segmentado(new string[] { "Gameplay", "Narraci\u00f3n", "Podcast", "Otro" });
-    CampoNumero numMinutos = new CampoNumero();
+    CampoNumero numMin = new CampoNumero(), numMax = new CampoNumero();
     Segmentado segAcelerar = new Segmentado(new string[] { "Cortar", "Acelerar" });
     Segmentado segAudio = new Segmentado(new string[] { "Mudo", "Acelerado" });
     List<CampoTexto> nombres = new List<CampoTexto>();
     CampoTexto txtInstrucciones = new CampoTexto();
+    Boton btnReglas = new Boton("Reglas del canal\u2026", EstiloBoton.Secundario);
+    Boton btnContexto = new Boton("Episodios anteriores\u2026", EstiloBoton.Secundario);
+    Etiqueta lblContexto;
+    Combo comboModelo = new Combo(true);
+    Etiqueta lblModelo;
     Boton btnPedir = new Boton("Pedir a Gemini", EstiloBoton.Primario);
     Etiqueta lblEstado;
 
+    Combo comboHistorial = new Combo();
     Segmentado pestanas = new Segmentado(new string[] { "Corte", "Momentos", "Textos", "Resumen", "Shorts y t\u00edtulos" });
     Lista lstCorte = new Lista(), lstMomentos = new Lista(), lstTextos = new Lista(), lstShorts = new Lista();
     CampoTexto txtResumen = new CampoTexto();
@@ -110,7 +145,7 @@ class VentanaMomentos : VentanaBase
 
     static readonly string[] Tipos = { "Gameplay", "Narraci\u00f3n", "Podcast", "Otro" };
 
-    public VentanaMomentos(Vegas vegas, Transcripcion t, string ruta) : base("Momentos con IA", 1000)
+    public VentanaMomentos(Vegas vegas, Transcripcion t, string ruta) : base("Momentos con IA", 1040)
     {
         this.vegas = vegas;
         transcripcion = t;
@@ -119,6 +154,7 @@ class VentanaMomentos : VentanaBase
         string baseNombre = Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg));
         rutaIA = baseNombre + ".vegascut-ia.json";
         rutaInforme = baseNombre + ".vegascut-informe.md";
+        rutaHistorial = baseNombre + ".vegascut-ia-historial";
         total = vegas.Project.Length.ToMilliseconds() / 1000.0;
 
         int m = Margen, w = Ancho;
@@ -128,23 +164,30 @@ class VentanaMomentos : VentanaBase
         string aviso = t.Sincronizar(total);
         if (aviso.StartsWith("Se detect")) { try { t.Guardar(ruta); } catch { } }
         int frases = t.SegmentosActuales().Count;
-        Etiqueta lblTrans = Texto("Transcripci\u00f3n del " + t.Creada + ": " + frases + " frases \u00b7 proyecto de " +
+        Texto("Transcripci\u00f3n del " + t.Creada + ": " + frases + " frases \u00b7 proyecto de " +
             Formato.Tiempo(total) + (aviso.Length > 0 ? "\n" + aviso : ""), Tema.Pequena,
             aviso.Length > 0 && !aviso.StartsWith("Se detect") ? Tema.AcentoHover : Tema.TextoSuave, m, 88, w, 34);
 
         // ---------------- Columna izquierda: lo que se pide
-        int y = 130, ci = 300;
+        int y = 130, ci = 320;
         Texto("Tipo de video", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         Pos(segTipo, m, y + 22, ci, 34);
-        y += 68;
-        Texto("Duraci\u00f3n objetivo", Tema.Negrita, Tema.Texto, m, y, 108, 20);
-        numMinutos.Sufijo = "min"; numMinutos.Minimo = 1; numMinutos.Maximo = 600; numMinutos.Paso = 1;
-        Pos(numMinutos, m, y + 22, 100, 36);
-        Texto("Transiciones", Tema.Negrita, Tema.Texto, m + 112, y, 100, 20);
-        Pos(segAcelerar, m + 112, y + 23, ci - 112, 34);
         y += 66;
-        Texto("Audio de lo acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 170, 20);
-        Pos(segAudio, m + 170, y, ci - 170, 34);
+        Texto("Duraci\u00f3n del corte", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        foreach (CampoNumero n in new CampoNumero[] { numMin, numMax })
+        {
+            n.Sufijo = "min"; n.Minimo = 1; n.Maximo = 600; n.Paso = 1;
+        }
+        Pos(numMin, m, y + 22, 92, 36);
+        Texto("a", Tema.Normal, Tema.TextoSuave, m + 98, y + 30, 16, 20);
+        Pos(numMax, m + 118, y + 22, 92, 36);
+        Texto("m\u00ednimo y m\u00e1ximo", Tema.Pequena, Tema.TextoSuave, m + 218, y + 30, ci - 218, 20);
+        y += 66;
+        Texto("Transiciones", Tema.Negrita, Tema.Texto, m, y + 8, 110, 20);
+        Pos(segAcelerar, m + 120, y, ci - 120, 34);
+        y += 42;
+        Texto("Audio acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 120, 20);
+        Pos(segAudio, m + 120, y, ci - 120, 34);
         y += 46;
         Texto("Nombres de las personas", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         y += 24;
@@ -159,20 +202,32 @@ class VentanaMomentos : VentanaBase
             nombres.Add(c);
             y += 38;
         }
-        y += 6;
-        Texto("Indicaciones (opcional)", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        y += 4;
+        Texto("Indicaciones de este episodio", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         txtInstrucciones.Multilinea = true;
-        Pos(txtInstrucciones, m, y + 22, ci, 70);
-        y += 102;
-        Texto("Ej.: \u201cEs el episodio 3 de una serie, que se entienda la historia\u201d o \u201cConserva todas las peleas\u201d.",
-              Tema.Pequena, Tema.TextoSuave, m, y, ci, 32);
-        y += 40;
+        Pos(txtInstrucciones, m, y + 22, ci, 84);
+        y += 114;
+        Pos(btnReglas, m, y, 150, 32);
+        Pos(btnContexto, m + 158, y, ci - 158, 32);
+        lblContexto = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 36, ci, 18);
+        y += 60;
+        Texto("Modelo", Tema.Negrita, Tema.Texto, m, y + 6, 70, 20);
+        comboModelo.Items.Add(config.GeminiModelo);
+        foreach (string x in new string[] { "gemini-flash-latest", "gemini-pro-latest", "gemini-flash-lite-latest" })
+            if (!comboModelo.Items.Contains(x)) comboModelo.Items.Add(x);
+        comboModelo.Text = config.GeminiModelo;
+        Pos(comboModelo, m + 70, y + 2, ci - 70, 30);
+        lblModelo = Texto("", Tema.Pequena, Tema.AcentoHover, m, y + 36, ci, 32);
+        y += 72;
         Pos(btnPedir, m, y, ci, 42);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 48, ci, 48);
         int fondoIzq = y + 100;
 
         // ---------------- Columna derecha: resultado
         int dx = m + ci + 24, dw = w - ci - 24, dy = 130;
+        Texto("Respuesta", Tema.Negrita, Tema.Texto, dx, dy + 6, 84, 20);
+        Pos(comboHistorial, dx + 88, dy + 2, dw - 88, 30);
+        dy += 42;
         Pos(pestanas, dx, dy, dw, 34);
         dy += 44;
         int alto = Math.Max(420, fondoIzq - dy - 40);
@@ -196,17 +251,17 @@ class VentanaMomentos : VentanaBase
         Pos(btnCortar, m + w - 180, fondo, 180, 40);
         ClientSize = new Size(ClientSize.Width, fondo + 40 + 24);
 
-        // Valores iniciales
-        cargando = true;
-        CargarOpciones();
-        cargando = false;
-
+        // Eventos
         pestanas.Cambio += delegate { MostrarPestana(); };
         btnPedir.Click += delegate { Pedir(); };
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
+        btnReglas.Click += delegate { EditarReglas(); };
+        btnContexto.Click += delegate { ElegirContexto(); };
+        comboModelo.TextChanged += delegate { AvisoModelo(); };
+        comboHistorial.SelectedIndexChanged += delegate { if (!cargando && comboHistorial.SelectedIndex >= 0) CargarEntrada(historial[comboHistorial.SelectedIndex], false); };
         lstCorte.ItemChecked += delegate (object s, ItemCheckedEventArgs e)
         {
             if (cargando || resultado == null) return;
@@ -221,19 +276,26 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
+        // Valores iniciales: los de la ultima respuesta guardada.
+        cargando = true;
+        LlenarHistorial();
+        PonerOpciones(historial.Count > 0 ? historial[0] : null);
+        cargando = false;
+        if (historial.Count > 0) CargarEntrada(historial[0], true);
+        AvisoModelo();
         if (!config.TieneGemini)
         {
             btnPedir.Enabled = false;
             Estado("Falta la clave de Gemini: ejecuta \u201cConfigurarVegasCut\u201d.", true);
         }
-        CargarRespuestaGuardada();
         MostrarResultado();
     }
 
     void ConfigurarListas()
     {
-        lstCorte.Columns.Add("Inicio", 70); lstCorte.Columns.Add("Fin", 70); lstCorte.Columns.Add("Dura", 60);
-        lstCorte.Columns.Add("Velocidad", 84); lstCorte.Columns.Add("Tramo", 190); lstCorte.Columns.Add("Por qu\u00e9", 900);
+        lstCorte.Columns.Add("Inicio", 70); lstCorte.Columns.Add("Fin", 70); lstCorte.Columns.Add("Dura", 52);
+        lstCorte.Columns.Add("Velocidad", 84); lstCorte.Columns.Add("Imp.", 40); lstCorte.Columns.Add("Tramo", 180);
+        lstCorte.Columns.Add("Por qu\u00e9", 900);
         lstMomentos.Columns.Add("Nota", 60); lstMomentos.Columns.Add("Inicio", 70); lstMomentos.Columns.Add("Fin", 70);
         lstMomentos.Columns.Add("Momento", 200); lstMomentos.Columns.Add("Por qu\u00e9", 900);
         lstTextos.Columns.Add("D\u00f3nde", 70); lstTextos.Columns.Add("Texto", 280); lstTextos.Columns.Add("Qu\u00e9 se salta", 900);
@@ -243,43 +305,48 @@ class VentanaMomentos : VentanaBase
 
     // ------------------------------------------------------- opciones
 
-    void CargarOpciones()
+    void PonerOpciones(string archivo)
     {
-        // Ultimas opciones usadas (se guardan junto a la respuesta).
-        opciones.Tipo = "Gameplay";
-        opciones.MinutosObjetivo = Math.Max(1, Math.Min(20, Math.Round(total / 60 / 3)));
+        double mins = Math.Max(1, Math.Round(total / 60 / 4));
+        opciones.MinutosMin = mins; opciones.MinutosMax = mins + 4;
+        opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         try
         {
-            if (File.Exists(rutaIA))
+            object op = archivo != null ? Json.Obj(Json.Leer(File.ReadAllText(archivo, Encoding.UTF8)), "opciones") : null;
+            if (op != null)
             {
-                object o = Json.Leer(File.ReadAllText(rutaIA, Encoding.UTF8));
-                object op = Json.Obj(o, "opciones");
-                if (op != null)
-                {
-                    opciones.Tipo = Json.Texto(op, "tipo");
-                    opciones.MinutosObjetivo = Json.Numero(op, "minutos", opciones.MinutosObjetivo);
-                    opciones.Instrucciones = Json.Texto(op, "instrucciones");
-                    opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
-                    opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
-                }
+                opciones.Tipo = Json.Texto(op, "tipo");
+                double viejo = Json.Numero(op, "minutos", -1); // respuestas de antes de min/max
+                opciones.MinutosMin = Json.Numero(op, "minutosMin", viejo > 0 ? viejo : opciones.MinutosMin);
+                opciones.MinutosMax = Json.Numero(op, "minutosMax", viejo > 0 ? viejo + 2 : opciones.MinutosMax);
+                opciones.Instrucciones = Json.Texto(op, "instrucciones");
+                opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
+                opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
+                contexto.Clear();
+                foreach (object x in Json.Lista(op, "contexto")) if (x is string && File.Exists((string)x)) contexto.Add((string)x);
             }
         }
         catch { }
         segTipo.Seleccion = Math.Max(0, Array.IndexOf(Tipos, opciones.Tipo));
-        numMinutos.Valor = (int)opciones.MinutosObjetivo;
+        numMin.Valor = (int)opciones.MinutosMin;
+        numMax.Valor = (int)opciones.MinutosMax;
         txtInstrucciones.Text = opciones.Instrucciones;
         segAcelerar.Seleccion = opciones.PermitirAcelerar ? 1 : 0;
         segAudio.Seleccion = opciones.SilenciarAcelerado ? 0 : 1;
         segAudio.Enabled = opciones.PermitirAcelerar;
+        MostrarContexto();
     }
 
     void LeerOpciones()
     {
         opciones.Tipo = Tipos[segTipo.Seleccion];
-        opciones.MinutosObjetivo = numMinutos.Valor;
+        opciones.MinutosMin = Math.Min(numMin.Valor, numMax.Valor);
+        opciones.MinutosMax = Math.Max(numMin.Valor, numMax.Valor);
         opciones.Instrucciones = txtInstrucciones.Text;
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
+        opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
+        opciones.Contexto = PeticionIA.ContextoDe(contexto);
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -287,24 +354,132 @@ class VentanaMomentos : VentanaBase
         }
     }
 
-    // La respuesta anterior sirve mientras el proyecto no haya cambiado.
-    void CargarRespuestaGuardada()
+    void EditarReglas()
+    {
+        string actuales = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
+        using (DialogoReglas d = new DialogoReglas(actuales))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            config.ReglasCanal = d.Reglas == PeticionIA.ReglasPorDefecto.Trim() ? "" : d.Reglas;
+            try { config.Guardar(); Estado("\u2714 Reglas del canal guardadas.", false); }
+            catch (Exception ex) { Estado("No se pudieron guardar las reglas: " + ex.Message, true); }
+        }
+    }
+
+    void ElegirContexto()
+    {
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Title = "Respuestas de MomentosIA de episodios anteriores (opcional)";
+            d.Filter = "Respuestas de MomentosIA|*.vegascut-ia.json;*.json";
+            d.Multiselect = true;
+            string carpeta = Path.GetDirectoryName(Path.GetDirectoryName(vegas.Project.FilePath) ?? "");
+            if (!String.IsNullOrEmpty(carpeta) && Directory.Exists(carpeta)) d.InitialDirectory = carpeta;
+            DialogResult r = d.ShowDialog(this);
+            if (r != DialogResult.OK) return;
+            contexto.Clear();
+            foreach (string f in d.FileNames) if (f != rutaIA && !f.StartsWith(rutaHistorial)) contexto.Add(f);
+            MostrarContexto();
+        }
+    }
+
+    void MostrarContexto()
+    {
+        if (contexto.Count == 0) { lblContexto.Text = "Sin contexto de episodios anteriores."; return; }
+        List<string> n = new List<string>();
+        foreach (string f in contexto) n.Add(Path.GetFileName(f).Replace(".vegascut-ia.json", ""));
+        lblContexto.Text = "Contexto: " + String.Join(", ", n.ToArray());
+    }
+
+    void AvisoModelo()
+    {
+        string mo = comboModelo.Text.ToLowerInvariant();
+        lblModelo.Text = mo.Contains("lite")
+            ? "Lite es m\u00e1s barato pero sigue peor las reglas y la duraci\u00f3n. Para cortes largos usa flash o pro."
+            : "";
+    }
+
+    // ------------------------------------------------------- historial
+
+    void LlenarHistorial()
+    {
+        historial.Clear();
+        if (Directory.Exists(rutaHistorial))
+        {
+            string[] f = Directory.GetFiles(rutaHistorial, "*.json");
+            Array.Sort(f);
+            Array.Reverse(f);
+            historial.AddRange(f);
+        }
+        if (historial.Count == 0 && File.Exists(rutaIA)) historial.Add(rutaIA);
+        comboHistorial.Items.Clear();
+        foreach (string f in historial)
+        {
+            string texto = Path.GetFileName(f);
+            try
+            {
+                object o = Json.Leer(File.ReadAllText(f, Encoding.UTF8));
+                object op = Json.Obj(o, "opciones");
+                double mn = Json.Numero(op, "minutosMin", Json.Numero(op, "minutos", 0)), mx = Json.Numero(op, "minutosMax", mn);
+                texto = Json.Texto(o, "fecha") + "  \u00b7  " + Json.Texto(o, "modelo") + "  \u00b7  " + mn + "\u2013" + mx + " min" +
+                        (Math.Abs(Json.Numero(o, "duracionProyecto", -1) - total) > 0.5 ? "  \u00b7  (proyecto distinto)" : "");
+            }
+            catch { }
+            comboHistorial.Items.Add(texto);
+        }
+        if (comboHistorial.Items.Count == 0) comboHistorial.Items.Add("Todav\u00eda no hay respuestas");
+        comboHistorial.SelectedIndex = 0;
+        comboHistorial.Enabled = historial.Count > 1;
+    }
+
+    // Arma el resultado desde la respuesta y la revision guardadas, con los
+    // mismos pasos siempre (asi los indices de la revision cuadran).
+    ResultadoIA Construir(string respuesta, string revision, double duracion, double min, double max, out string nota)
+    {
+        ResultadoIA r = ResultadoIA.Leer(respuesta, duracion);
+        r.AjustarAPalabras(transcripcion.SegmentosActuales());
+        nota = "";
+        if (!String.IsNullOrEmpty(revision))
+        {
+            try
+            {
+                int n = r.AplicarRevision(revision);
+                if (n > 0) nota = "revisi\u00f3n: " + n + (n == 1 ? " tramo quitado o recortado" : " tramos quitados o recortados");
+            }
+            catch { }
+        }
+        string ajuste = r.AjustarDuracion(min * 60, max * 60);
+        if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
+        return r;
+    }
+
+    void CargarEntrada(string archivo, bool inicial)
     {
         try
         {
-            if (!File.Exists(rutaIA)) return;
-            object o = Json.Leer(File.ReadAllText(rutaIA, Encoding.UTF8));
-            double duracion = Json.Numero(o, "duracionProyecto", -1);
-            if (Math.Abs(duracion - total) > 0.05)
-            {
-                Estado("Hay una respuesta anterior, pero el proyecto cambi\u00f3 desde entonces: pide una nueva.", false);
-                return;
-            }
-            resultado = ResultadoIA.Leer(Json.Texto(o, "respuesta"), total);
-            resultado.AjustarAPalabras(transcripcion.SegmentosActuales());
-            Estado("Mostrando la respuesta del " + Json.Texto(o, "fecha") + " (" + Json.Texto(o, "modelo") + ").", false);
+            object o = Json.Leer(File.ReadAllText(archivo, Encoding.UTF8));
+            double duracion = Json.Numero(o, "duracionProyecto", total);
+            object op = Json.Obj(o, "opciones");
+            double mn = Json.Numero(op, "minutosMin", Json.Numero(op, "minutos", 1));
+            double mx = Json.Numero(op, "minutosMax", Json.Numero(op, "minutos", 600) + 2);
+            string nota;
+            resultado = Construir(Json.Texto(o, "respuesta"), Json.Texto(o, "revision"), duracion, mn, mx, out nota);
+            vigente = Math.Abs(duracion - total) <= 0.5;
+            aplicado = false;
+            if (vigente)
+                Estado("Mostrando la respuesta del " + Json.Texto(o, "fecha") + " (" + Json.Texto(o, "modelo") + ")." +
+                       (nota.Length > 0 ? " Ajustes: " + nota + "." : ""), false);
+            else
+                Estado("Respuesta del " + Json.Texto(o, "fecha") + ": el proyecto cambi\u00f3 desde entonces (duraba " +
+                       Formato.Tiempo(duracion) + ", ahora " + Formato.Tiempo(total) + "). Puedes revisarla, pero para " +
+                       "aplicarla deshaz los cambios (Ctrl+Z) o pide una nueva.", !inicial);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            resultado = null;
+            Estado("No se pudo abrir esa respuesta: " + ex.Message, true);
+        }
+        MostrarResultado();
     }
 
     // ------------------------------------------------------- Gemini
@@ -313,7 +488,9 @@ class VentanaMomentos : VentanaBase
     {
         LeerOpciones();
         try { transcripcion.Guardar(rutaTranscripcion); } catch { } // guarda los nombres
-        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        string clave = config.GeminiClave, modelo = comboModelo.Text.Trim();
+        if (modelo.Length == 0) modelo = config.GeminiModelo;
+        if (modelo != config.GeminiModelo) { config.GeminiModelo = modelo; try { config.Guardar(); } catch { } }
         OpcionesIA op = opciones;
         Transcripcion t = transcripcion;
         double duracion = total;
@@ -338,8 +515,15 @@ class VentanaMomentos : VentanaBase
 
         Thread hilo = new Thread(delegate ()
         {
-            string respuesta = null, error = null;
-            try { respuesta = asistente.Ejecutar(t, duracion, op); }
+            string respuesta = null, revision = "", error = null;
+            try
+            {
+                respuesta = asistente.Ejecutar(t, duracion, op);
+                // Segunda pasada: revisa el corte contra las reglas.
+                ResultadoIA previo = ResultadoIA.Leer(respuesta, duracion);
+                previo.AjustarAPalabras(t.SegmentosActuales());
+                revision = asistente.Revisar(t, previo, op);
+            }
             catch (Exception ex) { error = ex.Message; }
             try
             {
@@ -348,7 +532,7 @@ class VentanaMomentos : VentanaBase
                     reloj.Stop();
                     btnPedir.Enabled = true;
                     if (error != null) { Estado(error, true); return; }
-                    Recibir(respuesta, modelo);
+                    Recibir(respuesta, revision, modelo);
                 });
             }
             catch { }
@@ -357,12 +541,12 @@ class VentanaMomentos : VentanaBase
         hilo.Start();
     }
 
-    void Recibir(string respuesta, string modelo)
+    void Recibir(string respuesta, string revision, string modelo)
     {
+        string nota;
         try
         {
-            resultado = ResultadoIA.Leer(respuesta, total);
-            resultado.AjustarAPalabras(transcripcion.SegmentosActuales());
+            resultado = Construir(respuesta, revision, total, opciones.MinutosMin, opciones.MinutosMax, out nota);
         }
         catch (Exception ex)
         {
@@ -370,28 +554,52 @@ class VentanaMomentos : VentanaBase
             return;
         }
 
+        // Se guarda cada respuesta (historial) y la ultima aparte.
         Dictionary<string, object> guardar = new Dictionary<string, object>();
         guardar["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         guardar["modelo"] = modelo;
         guardar["duracionProyecto"] = total;
         Dictionary<string, object> op = new Dictionary<string, object>();
         op["tipo"] = opciones.Tipo;
-        op["minutos"] = opciones.MinutosObjetivo;
+        op["minutosMin"] = opciones.MinutosMin;
+        op["minutosMax"] = opciones.MinutosMax;
         op["instrucciones"] = opciones.Instrucciones;
         op["acelerar"] = opciones.PermitirAcelerar;
         op["silenciarAcelerado"] = opciones.SilenciarAcelerado;
+        op["reglasCanal"] = opciones.ReglasCanal;
+        List<object> ctx = new List<object>();
+        foreach (string f in contexto) ctx.Add(f);
+        op["contexto"] = ctx;
         guardar["opciones"] = op;
         guardar["respuesta"] = respuesta;
-        try { File.WriteAllText(rutaIA, Json.Escribir(guardar), new UTF8Encoding(false)); } catch { }
+        guardar["revision"] = revision;
+        string texto = Json.Escribir(guardar);
+        try
+        {
+            Directory.CreateDirectory(rutaHistorial);
+            File.WriteAllText(Path.Combine(rutaHistorial, DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json"), texto, new UTF8Encoding(false));
+            File.WriteAllText(rutaIA, texto, new UTF8Encoding(false));
+        }
+        catch { }
+        cargando = true;
+        LlenarHistorial();
+        cargando = false;
 
         aplicado = false;
-        Estado("\u2714 Listo. Revisa las pesta\u00f1as; desmarca lo que no quieras.", false);
+        vigente = true;
+        Estado("\u2714 Listo. Revisa las pesta\u00f1as; desmarca lo que no quieras." +
+               (nota.Length > 0 ? " Ajustes autom\u00e1ticos: " + nota + "." : ""), false);
         MostrarResultado();
     }
 
     // ------------------------------------------------------- mostrar
 
     static string T(double s) { return Formato.TiempoPreciso(s); }
+
+    static string PorQue(Tramo t)
+    {
+        return t.Nota.Length > 0 ? "\u26a0 " + t.Nota + " \u00b7 " + t.Motivo : t.Motivo;
+    }
 
     void MostrarResultado()
     {
@@ -401,7 +609,8 @@ class VentanaMomentos : VentanaBase
         if (hay)
         {
             foreach (Tramo t in resultado.Corte)
-                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t), t.Titulo, t.Motivo);
+                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t),
+                     t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
             foreach (Tramo t in resultado.Momentos)
                 Fila(lstMomentos, t, t.Elegido, t.Puntuacion.ToString("0") + "/10", T(t.Inicio), T(t.Fin), t.Titulo, t.Motivo);
             foreach (TextoResumen t in resultado.Textos)
@@ -420,8 +629,8 @@ class VentanaMomentos : VentanaBase
         cargando = false;
 
         btnInforme.Enabled = hay;
-        btnMarcar.Enabled = hay;
-        btnCortar.Enabled = hay && !aplicado;
+        btnMarcar.Enabled = hay && vigente;
+        btnCortar.Enabled = hay && vigente && !aplicado;
         ActualizarResumenCorte();
         MostrarPestana();
     }
@@ -466,8 +675,11 @@ class VentanaMomentos : VentanaBase
     {
         if (pestanas.Seleccion == 4) return;
         if (resultado == null) { lblCorte.Text = "Pide una sugerencia a Gemini para ver los resultados aqu\u00ed."; return; }
-        lblCorte.Text = "Conserva " + Formato.Tiempo(resultado.DuracionCorte) + " de " + Formato.Tiempo(total) +
-                        " (objetivo " + numMinutos.Valor + " min) \u00b7 clic en Velocidad: cambiarla \u00b7 doble clic: ir";
+        double d = resultado.DuracionCorte;
+        bool fuera = d < numMin.Valor * 60 - 0.5 || d > numMax.Valor * 60 + 0.5;
+        lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
+        lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "\u2013" +
+                        numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") \u00b7 clic en Velocidad: cambiarla \u00b7 doble clic: ir";
     }
 
     void IrA(ListView l)
@@ -500,29 +712,34 @@ class VentanaMomentos : VentanaBase
     void CrearMarcas()
     {
         Project p = vegas.Project;
+        List<Ancla> anclas = new List<Ancla>();
         int n = 0;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
             foreach (Tramo t in resultado.Corte)
-                if (t.Elegido) { Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
             foreach (Tramo t in resultado.Momentos)
-                if (t.Elegido) { Marcador(p, t.Inicio, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Marcador(p, t.Inicio, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo)); n++; }
             foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) { Marcador(p, t.Posicion, "TEXTO: " + t.Texto); n++; }
+                if (t.Elegido) { anclas.Add(Marcador(p, t.Posicion, "TEXTO: " + t.Texto)); n++; }
             foreach (Tramo t in resultado.Shorts)
-                if (t.Elegido) { Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
         }
-        Estado("\u2714 " + n + " regiones y marcadores creados (Ctrl+Z los quita).", false);
+        Anclas.Guardar(p.FilePath, anclas);
+        Estado("\u2714 " + n + " regiones y marcadores creados y anclados a sus clips (Ctrl+Z los quita). " +
+               "Si mueves clips, ejecuta ReubicarMarcadores.", false);
     }
 
-    static void Marcador(Project p, double t, string texto)
+    static Ancla Marcador(Project p, double t, string texto)
     {
         p.Markers.Add(new Marker(Timecode.FromMilliseconds(t * 1000), texto));
+        return Anclas.Crear(p, t, -1, texto);
     }
 
-    static void Region(Project p, double a, double b, string texto)
+    static Ancla Region(Project p, double a, double b, string texto)
     {
         p.Regions.Add(new ScriptPortal.Vegas.Region(Timecode.FromMilliseconds(a * 1000), Timecode.FromMilliseconds((b - a) * 1000), texto));
+        return Anclas.Crear(p, a, b, texto);
     }
 
     void AplicarCorte()
@@ -546,12 +763,13 @@ class VentanaMomentos : VentanaBase
                     (silenciar ? "sin audio" : "con audio acelerado") + ")" : "") +
                 ". El video quedar\u00e1 de " + Formato.Tiempo(total - quitado - ahorro) + ".\n\n" +
                 "Se aplica en todas las pistas para mantener la sincron\u00eda (haz esto antes de poner m\u00fasica). " +
-                "Los textos y momentos marcados quedan como marcadores en su nuevo lugar.\n\n\u00bfAplicar? (Ctrl+Z lo deshace)",
+                "Los textos y momentos marcados quedan como marcadores anclados a sus clips.\n\n\u00bfAplicar? (Ctrl+Z lo deshace)",
                 "Aplicar corte", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
         Project p = vegas.Project;
         List<Track> todas = new List<Track>();
         foreach (Track t in p.Tracks) todas.Add(t);
+        List<Ancla> anclas = new List<Ancla>();
         double trasCortar;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: corte"))
         {
@@ -559,21 +777,24 @@ class VentanaMomentos : VentanaBase
             trasCortar = p.Length.ToMilliseconds() / 1000.0;
             if (acelerar.Count > 0) Editor.Acelerar(p, todas, acelerar, silenciar, true, 0.02);
             foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto);
+                if (t.Elegido) anclas.Add(Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto));
             foreach (Tramo t in resultado.Momentos)
             {
                 if (!t.Elegido || Dentro(t.Inicio, quitar)) continue;
                 double nuevo = Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Inicio, quitar), acelerar);
-                Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo);
+                anclas.Add(Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo));
             }
         }
+        Anclas.Guardar(p.FilePath, anclas);
         double despues = p.Length.ToMilliseconds() / 1000.0;
         string aviso = "";
         if (quitar.Count > 0) aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, trasCortar);
         if (acelerar.Count > 0) aviso = Transcripcion.RegistrarAceleracion(p.FilePath, acelerar, trasCortar, despues);
         aplicado = true;
         btnCortar.Enabled = false;
-        Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " "), false);
+        btnMarcar.Enabled = false;
+        Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " ") +
+               " Si lo deshaces (Ctrl+Z), al volver a abrir esta ventana la respuesta aparece lista otra vez.", false);
     }
 
     static bool Dentro(double t, List<Rango> rangos)
@@ -600,6 +821,8 @@ public class Tramo
     public double Inicio, Fin, Puntuacion;
     public string Titulo = "", Motivo = "";
     public bool Elegido = true;
+    public string Nota = "";       // por que se marco o desmarco solo (revision, duracion)
+    public bool PorRevision;       // desmarcado por incumplir reglas: no se vuelve a marcar solo
     public bool Acelerar;          // en el corte: se conserva pero mas rapido
     public double Velocidad = 1;   // 2 = el doble de rapido
 
@@ -618,7 +841,10 @@ public class TextoResumen
 public class OpcionesIA
 {
     public string Tipo = "Gameplay";
-    public double MinutosObjetivo = 15;
+    public double MinutosMin = 11, MinutosMax = 15;
+    public double MinutosObjetivo { get { return (MinutosMin + MinutosMax) / 2; } }
+    public string ReglasCanal = PeticionIA.ReglasPorDefecto;
+    public string Contexto = "";   // resumenes de episodios anteriores (opcional)
     public string Instrucciones = "";
     public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
@@ -633,6 +859,9 @@ public class ResultadoIA
     public List<TextoResumen> Textos = new List<TextoResumen>();
     public List<Tramo> Shorts = new List<Tramo>();
     public List<string> Titulos = new List<string>();
+    // Tramos que propusieron las partes (videos largos): sirven para completar
+    // el corte si queda corto.
+    public List<Tramo> Candidatos = new List<Tramo>();
 
     public double DuracionCorte
     {
@@ -682,6 +911,7 @@ public class ResultadoIA
         r.Momentos.Sort(delegate (Tramo a, Tramo b) { return b.Puntuacion.CompareTo(a.Puntuacion); });
         r.Shorts = Tramos(o, "shorts", total);
         r.Corte = UnirSolapados(Tramos(o, "corte", total));
+        r.Candidatos = Tramos(o, "candidatos", total);
         foreach (object x in Json.Lista(o, "textos"))
         {
             TextoResumen t = new TextoResumen();
@@ -718,6 +948,96 @@ public class ResultadoIA
             r.Add(t);
         }
         return r;
+    }
+
+    // Aplica la revision: {"tramos":[{"indice":n,"quitar":bool,"inicio":s,"fin":s,"motivo":"..."}]}.
+    // Devuelve cuantos tramos cambio.
+    public int AplicarRevision(string json)
+    {
+        int cambios = 0;
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        foreach (object x in Json.Lista(o, "tramos"))
+        {
+            int i = (int)Json.Numero(x, "indice", -1);
+            if (i < 0 || i >= Corte.Count) continue;
+            Tramo t = Corte[i];
+            string motivo = Json.Texto(x, "motivo");
+            object quitar;
+            Dictionary<string, object> d = x as Dictionary<string, object>;
+            if (d != null && d.TryGetValue("quitar", out quitar) && quitar is bool && (bool)quitar)
+            {
+                t.Elegido = false;
+                t.PorRevision = true;
+                t.Nota = "Quitado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
+                cambios++;
+                continue;
+            }
+            // Recorte: conservar solo una parte del tramo.
+            double a = Json.Numero(x, "inicio", t.Inicio), b = Json.Numero(x, "fin", t.Fin);
+            if ((a > t.Inicio + 0.5 || b < t.Fin - 0.5) && a >= t.Inicio - 0.01 && b <= t.Fin + 0.01 && b - a >= 2)
+            {
+                t.Inicio = a; t.Fin = b;
+                t.Nota = "Recortado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
+                cambios++;
+            }
+        }
+        return cambios;
+    }
+
+    bool SeEncima(Tramo c)
+    {
+        foreach (Tramo t in Corte)
+            if (t != c && t.Elegido && c.Inicio < t.Fin - 0.05 && c.Fin > t.Inicio + 0.05) return true;
+        return false;
+    }
+
+    // Deja el corte entre el minimo y el maximo (segundos). Si sobra, desmarca
+    // los tramos de menor importancia (nunca el primero ni el ultimo); si falta,
+    // vuelve a marcar tramos desmarcados por duracion o agrega candidatos.
+    // Devuelve un resumen de lo que hizo ("" si no hizo nada).
+    public string AjustarDuracion(double minimo, double maximo)
+    {
+        int quitados = 0, agregados = 0;
+        while (DuracionCorte > maximo + 0.5)
+        {
+            List<Tramo> elegidos = Corte.FindAll(delegate (Tramo t) { return t.Elegido; });
+            Tramo peor = null;
+            for (int i = 1; i < elegidos.Count - 1; i++)
+            {
+                Tramo t = elegidos[i];
+                if (peor == null || t.Puntuacion < peor.Puntuacion ||
+                    (t.Puntuacion == peor.Puntuacion && t.DuracionFinal > peor.DuracionFinal)) peor = t;
+            }
+            if (peor == null) break;
+            peor.Elegido = false;
+            peor.Nota = "Desmarcado para no pasar del m\u00e1ximo (importancia " + peor.Puntuacion.ToString("0") + ")";
+            quitados++;
+        }
+        while (DuracionCorte < minimo - 0.5)
+        {
+            Tramo mejor = null;
+            bool nuevo = false;
+            foreach (Tramo t in Corte)
+                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionCorte + t.DuracionFinal <= maximo + 0.5 &&
+                    (mejor == null || t.Puntuacion > mejor.Puntuacion)) mejor = t;
+            if (mejor == null)
+                foreach (Tramo c in Candidatos)
+                    if (!Corte.Contains(c) && !SeEncima(c) && DuracionCorte + c.DuracionFinal <= maximo + 0.5 &&
+                        (mejor == null || c.Puntuacion > mejor.Puntuacion)) { mejor = c; nuevo = true; }
+            if (mejor == null) break;
+            mejor.Elegido = true;
+            mejor.Nota = "Agregado para llegar al m\u00ednimo";
+            if (nuevo)
+            {
+                Corte.Add(mejor);
+                Corte.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+            }
+            agregados++;
+        }
+        List<string> partes = new List<string>();
+        if (quitados > 0) partes.Add(quitados + (quitados == 1 ? " tramo desmarcado" : " tramos desmarcados") + " por pasar del m\u00e1ximo");
+        if (agregados > 0) partes.Add(agregados + (agregados == 1 ? " tramo agregado" : " tramos agregados") + " para llegar al m\u00ednimo");
+        return String.Join("; ", partes.ToArray());
     }
 
     // Lleva los bordes del corte al inicio/fin de la palabra que cortarian,
@@ -781,7 +1101,7 @@ public class ResultadoIA
         StringBuilder sb = new StringBuilder();
         sb.Append("# " + Path.GetFileNameWithoutExtension(proyecto) + "\n\n");
         sb.Append("Generado con vegas-cut y Gemini el " + DateTime.Now.ToString("yyyy-MM-dd HH:mm") +
-                  ". Tipo: " + op.Tipo + ". Objetivo: " + op.MinutosObjetivo + " min. Duraci\u00f3n original: " +
+                  ". Tipo: " + op.Tipo + ". Objetivo: " + op.MinutosMin + "\u2013" + op.MinutosMax + " min. Duraci\u00f3n original: " +
                   Formato.Tiempo(total) + ".\n\n");
         sb.Append("## Resumen\n\n" + Resumen + "\n\n");
         if (Secciones.Count > 0)
@@ -795,7 +1115,7 @@ public class ResultadoIA
         foreach (Tramo t in Corte)
             sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "\u2013" + Formato.Tiempo(t.Fin) +
                       " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado \u00d7" + t.Velocidad + " \u2192 " + Formato.Tiempo(t.DuracionFinal) : "") +
-                      ") **" + t.Titulo + "**: " + t.Motivo + "\n");
+                      ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
         sb.Append("\n## Momentos destacados\n\n");
         foreach (Tramo t in Momentos)
             sb.Append("- " + t.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + "/10 \u00b7 " + Formato.Tiempo(t.Inicio) + "\u2013" +
@@ -829,6 +1149,16 @@ public static class PeticionIA
 {
     public static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
 
+    // Reglas editoriales que aplican siempre (se pueden editar en la ventana;
+    // se guardan para todos los proyectos).
+    public const string ReglasPorDefecto =
+        "- Empieza directo en la acci\u00f3n o en un gancho: nada de saludos largos, \u201c\u00bfme escuchan?\u201d, cargas de mundo, problemas t\u00e9cnicos ni preparaci\u00f3n.\r\n" +
+        "- Excluye conversaciones personales o privadas aunque sean graciosas: vida amorosa, parejas, ex, familia, salud, dinero, escuela o trabajo, y cualquier dato personal.\r\n" +
+        "- Excluye charla que no tenga que ver con el juego ni con la historia, problemas t\u00e9cnicos (lag, micr\u00f3fono, Discord, OBS), silencios, AFK y grindeo repetitivo.\r\n" +
+        "- Mant\u00e9n el hilo: antes de cambiar de lugar o de actividad, conserva de 1 a 3 frases que digan a d\u00f3nde van o qu\u00e9 van a hacer. Si no existen, prop\u00f3n un texto de resumen.\r\n" +
+        "- No cortes a mitad de una idea, chiste o reacci\u00f3n: incluye el remate.\r\n" +
+        "- Termina con el cl\u00edmax o con un cierre o suspenso claro.";
+
     const string Rol =
         "Eres un editor de video experto en contenido de YouTube en espa\u00f1ol (gameplays con amigos, " +
         "narraciones, video ensayos). Recibes la transcripci\u00f3n de un video con tiempos en segundos de la " +
@@ -837,7 +1167,11 @@ public static class PeticionIA
     const string ReglasCorte =
         "- \"corte\": tramos a CONSERVAR, en orden, sin solaparse. Deben contar la historia completa sin omitir " +
         "partes importantes (objetivos, decisiones, resultados, momentos graciosos o intensos). Empieza y termina " +
-        "cada tramo en l\u00edmites de frase, nunca a mitad de una palabra. Prefiere tramos de 10 s a 3 min.\n";
+        "cada tramo en l\u00edmites de frase, nunca a mitad de una palabra. Prefiere tramos de 10 s a 3 min.\n" +
+        "- Cada tramo del corte lleva \"importancia\" de 1 a 10 (10 = imprescindible para la historia; 1 = relleno). " +
+        "Se usa para ajustar la duraci\u00f3n quitando primero lo menos importante.\n" +
+        "- Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias: un tramo que las incumple no va " +
+        "en el corte aunque sea gracioso o intenso.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve m\u00e1s r\u00e1pido, " +
@@ -853,7 +1187,7 @@ public static class PeticionIA
         "  \"resumen\": \"qu\u00e9 pasa en el video, en orden, en 1 a 3 p\u00e1rrafos\",\n" +
         "  \"secciones\": [{\"inicio\": s, \"fin\": s, \"titulo\": \"...\", \"descripcion\": \"qu\u00e9 pasa\"}],\n" +
         "  \"momentos\": [{\"inicio\": s, \"fin\": s, \"puntuacion\": 1-10, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 es bueno\"}],\n" +
-        "  \"corte\": [{\"inicio\": s, \"fin\": s, \"accion\": \"conservar\" o \"acelerar\", \"velocidad\": 1-4, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 se conserva\"}],\n" +
+        "  \"corte\": [{\"inicio\": s, \"fin\": s, \"importancia\": 1-10, \"accion\": \"conservar\" o \"acelerar\", \"velocidad\": 1-4, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 se conserva\"}],\n" +
         "  \"textos\": [{\"posicion\": s, \"texto\": \"texto corto en pantalla\", \"motivo\": \"qu\u00e9 se salta\"}],\n" +
         "  \"shorts\": [{\"inicio\": s, \"fin\": s, \"titulo\": \"...\", \"gancho\": \"por qu\u00e9 funciona solo\"}],\n" +
         "  \"titulos\": [\"t\u00edtulo para el video\", \"...\"]\n" +
@@ -875,7 +1209,8 @@ public static class PeticionIA
     public static string Instrucciones(OpcionesIA op)
     {
         return Rol + EsquemaFinal + "Reglas:\n" + ReglasCorte +
-               "- El corte completo debe durar cerca de la duraci\u00f3n objetivo (\u00b110 %).\n" +
+               "- El corte completo debe durar entre la duraci\u00f3n m\u00ednima y la m\u00e1xima (apunta a la ideal). Antes de " +
+               "responder, suma las duraciones de los tramos (los acelerados cuentan duraci\u00f3n/velocidad) y corrige si te pasas.\n" +
                (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasResto;
     }
 
@@ -883,8 +1218,12 @@ public static class PeticionIA
     {
         sb.Append("Tipo de video: " + op.Tipo + "\n");
         sb.Append("Duraci\u00f3n actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
-        sb.Append("Duraci\u00f3n objetivo del corte: " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosObjetivo + " min)\n");
-        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("Indicaciones del editor: " + op.Instrucciones.Trim() + "\n");
+        sb.Append("Duraci\u00f3n del corte: m\u00ednimo " + S(op.MinutosMin * 60) + " s, m\u00e1ximo " + S(op.MinutosMax * 60) +
+                  " s, ideal " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosMin + " a " + op.MinutosMax + " min)\n");
+        if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + op.ReglasCanal.Trim() + "\n");
+        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + op.Instrucciones.Trim() + "\n");
+        if (!String.IsNullOrEmpty(op.Contexto))
+            sb.Append("\nCONTEXTO DE EPISODIOS ANTERIORES (solo para entender la historia; no los cortes):\n" + op.Contexto.Trim() + "\n");
         sb.Append("\nPersonas (cada una es una pista de audio):\n");
         foreach (Hablante h in t.Hablantes)
             if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
@@ -991,8 +1330,9 @@ public static class PeticionIA
         return Rol +
             "Este video es largo y ya se analiz\u00f3 por partes. Recibes el resumen de cada parte y una lista de " +
             "CANDIDATOS (tramos posibles con su importancia). Arma el video final.\n\n" + EsquemaFinal + "Reglas:\n" +
-            "- \"corte\": elige y ordena candidatos para que el video final dure cerca de la duraci\u00f3n objetivo " +
-            "(\u00b110 %). Usa sus tiempos tal cual o rec\u00f3rtalos por dentro; no inventes tramos fuera de los candidatos. " +
+            "- \"corte\": elige y ordena candidatos para que el video final dure entre la duraci\u00f3n m\u00ednima y la m\u00e1xima " +
+            "(apunta a la ideal; suma antes de responder). Usa sus tiempos tal cual o rec\u00f3rtalos por dentro; no inventes tramos fuera de los candidatos. " +
+            "Cada tramo lleva \"importancia\" de 1 a 10. Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias. " +
             "Que la historia completa se entienda de principio a fin: no te saltes objetivos, decisiones ni " +
             "resultados importantes. Prefiere los de mayor importancia, pero mant\u00e9n el ritmo y la variedad.\n" +
             (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) +
@@ -1019,6 +1359,70 @@ public static class PeticionIA
         foreach (Tramo m in momentos)
             sb.Append("[" + S(m.Inicio) + "-" + S(m.Fin) + "] " + m.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + ": " +
                       m.Titulo + " \u2014 " + m.Motivo + "\n");
+        return sb.ToString();
+    }
+
+    // Contexto de episodios anteriores: el resumen y las secciones de sus
+    // respuestas de MomentosIA (opcional; solo para entender la historia).
+    public static string ContextoDe(List<string> rutas)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (string ruta in rutas)
+        {
+            try
+            {
+                object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+                object r = Json.Leer(Gemini.QuitarCercas(Json.Texto(o, "respuesta")));
+                string nombre = Path.GetFileName(ruta).Replace(".vegascut-ia.json", "");
+                StringBuilder ep = new StringBuilder();
+                ep.Append("- " + nombre + ": " + Json.Texto(r, "resumen").Replace("\n", " ") + "\n");
+                foreach (object s in Json.Lista(r, "secciones"))
+                    ep.Append("  \u00b7 " + Json.Texto(s, "titulo") + ": " + Json.Texto(s, "descripcion") + "\n");
+                string texto = ep.ToString();
+                if (texto.Length > 3000) texto = texto.Substring(0, 3000) + "\u2026\n";
+                sb.Append(texto);
+            }
+            catch { }
+        }
+        return sb.ToString();
+    }
+
+    // ------------------------------------------------------- revision
+
+    public static string InstruccionesRevision()
+    {
+        return "Eres un revisor estricto de cortes de video. Recibes las REGLAS DEL CANAL, las INDICACIONES DEL " +
+            "EPISODIO y la lista numerada de tramos que se van a conservar, con lo que se dice en cada uno.\n\n" +
+            "Revisa cada tramo contra las reglas y las indicaciones:\n" +
+            "- Si la mayor parte del tramo las incumple (por ejemplo, una conversaci\u00f3n personal o de vida amorosa), " +
+            "m\u00e1rcalo con \"quitar\": true.\n" +
+            "- Si solo una parte las incumple, deja \"quitar\": false y da \"inicio\" y \"fin\" (segundos) de la parte que " +
+            "S\u00cd se puede conservar, dentro del tramo y en l\u00edmites de frase.\n" +
+            "- Si cumple, no lo incluyas en la respuesta.\n\n" +
+            "Responde SOLO con JSON: {\"tramos\": [{\"indice\": n, \"quitar\": true o false, \"inicio\": s, \"fin\": s, " +
+            "\"motivo\": \"qu\u00e9 regla incumple\"}]}. Si todo cumple: {\"tramos\": []}.";
+    }
+
+    public static string MensajeRevision(Transcripcion t, ResultadoIA r, OpcionesIA op)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("REGLAS DEL CANAL:\n" + (op.ReglasCanal ?? "").Trim() + "\n");
+        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + op.Instrucciones.Trim() + "\n");
+        sb.Append("\nTramos del corte:\n");
+        List<Segmento> segmentos = t.SegmentosActuales();
+        for (int i = 0; i < r.Corte.Count; i++)
+        {
+            Tramo c = r.Corte[i];
+            if (!c.Elegido) continue;
+            sb.Append("\n#" + i + " [" + S(c.Inicio) + "-" + S(c.Fin) + "] " + c.Titulo + "\n");
+            StringBuilder texto = new StringBuilder();
+            foreach (Segmento s in segmentos)
+                if (s.Fin > c.Inicio && s.Inicio < c.Fin)
+                    texto.Append("[" + S(s.Inicio) + "] " + t.Hablantes[s.Hablante].Nombre + ": " + s.Texto + "\n");
+            string tx = texto.ToString();
+            if (tx.Length > 2500) tx = tx.Substring(0, 2500) + "\u2026\n";
+            sb.Append(tx);
+        }
         return sb.ToString();
     }
 
@@ -1131,8 +1535,33 @@ public class AsistenteIA
         }
 
         Progreso("Armando el video final con " + candidatos.Count + " candidatos\u2026");
-        return PedirJson(PeticionIA.InstruccionesFinal(op),
-                         PeticionIA.MensajeFinal(t, total, op, partes, resumenes, candidatos, momentos));
+        string final = PedirJson(PeticionIA.InstruccionesFinal(op),
+                                 PeticionIA.MensajeFinal(t, total, op, partes, resumenes, candidatos, momentos));
+        // Se guardan los candidatos junto al resultado para poder completar el
+        // corte si queda corto.
+        Dictionary<string, object> d = Json.Leer(Gemini.QuitarCercas(final)) as Dictionary<string, object>;
+        if (d == null) return final;
+        List<object> lista = new List<object>();
+        foreach (Tramo c in candidatos)
+        {
+            Dictionary<string, object> x = new Dictionary<string, object>();
+            x["inicio"] = c.Inicio; x["fin"] = c.Fin; x["importancia"] = c.Puntuacion;
+            x["accion"] = c.Acelerar ? "acelerar" : "conservar"; x["velocidad"] = c.Velocidad;
+            x["titulo"] = c.Titulo; x["motivo"] = c.Motivo;
+            lista.Add(x);
+        }
+        d["candidatos"] = lista;
+        return Json.Escribir(d);
+    }
+
+    // Segunda opinion: revisa el corte contra las reglas. Devuelve el JSON de
+    // la revision ("" si fallo; la revision es opcional).
+    public string Revisar(Transcripcion t, ResultadoIA r, OpcionesIA op)
+    {
+        if (r.Corte.Count == 0) return "";
+        Progreso("Revisando que el corte cumpla las reglas\u2026");
+        try { return PedirJson(PeticionIA.InstruccionesRevision(), PeticionIA.MensajeRevision(t, r, op)); }
+        catch (Exception ex) { Progreso("No se pudo revisar (" + ex.Message + ")."); return ""; }
     }
 }
 
@@ -1357,6 +1786,197 @@ static class Editor
     {
         foreach (Rango r in rangos)
             proyecto.Regions.Add(new Region(TC(r.Inicio), TC(r.Fin - r.Inicio), "Silencio"));
+    }
+}
+
+// ---- src/comun/Anclas.cs ----
+
+// =====================================================================
+// Marcadores anclados a los clips
+//
+// Vegas pone los marcadores en la linea de tiempo, no en los clips. Para que
+// sigan a su clip, al crearlos se guarda en <proyecto>.vegascut-marcas.json
+// a que archivo y a que segundo de ese archivo corresponden. Despues, el
+// script ReubicarMarcadores busca el clip que tiene ese segundo y vuelve a
+// poner el marcador encima, aunque hayas movido, cortado o reordenado clips.
+// =====================================================================
+
+public class Ancla
+{
+    public string Etiqueta = "", Media = "", MediaFin = "";
+    public double Fuente, FuenteFin = -1;   // segundos dentro del archivo
+    public bool Region;
+}
+
+public static class Anclas
+{
+    const double Tol = 0.0005;
+
+    public static string RutaPara(string veg)
+    {
+        if (String.IsNullOrEmpty(veg)) return null;
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-marcas.json");
+    }
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+
+    // Clip de video (si no hay, de audio) que esta en el instante t, con un
+    // archivo real (no textos ni colores generados).
+    static TrackEvent ClipEn(Project p, double t)
+    {
+        foreach (bool video in new bool[] { true, false })
+            foreach (Track pista in p.Tracks)
+            {
+                if (pista.IsAudio() == video) continue;
+                foreach (TrackEvent e in pista.Events)
+                {
+                    if (S(e.Start) > t + Tol || S(e.End) <= t + Tol) continue;
+                    Take toma = e.ActiveTake;
+                    if (toma == null || toma.Media == null || toma.Media.IsGenerated()) continue;
+                    return e;
+                }
+            }
+        return null;
+    }
+
+    static bool Fuente(Project p, double t, out string media, out double fuente)
+    {
+        media = ""; fuente = 0;
+        TrackEvent e = ClipEn(p, t);
+        if (e == null) return false;
+        media = e.ActiveTake.Media.FilePath;
+        fuente = S(e.ActiveTake.Offset) + (t - S(e.Start)) * e.PlaybackRate;
+        return true;
+    }
+
+    // Crea el ancla de un marcador (fin < 0) o de una region.
+    public static Ancla Crear(Project p, double t, double fin, string etiqueta)
+    {
+        Ancla a = new Ancla();
+        a.Etiqueta = etiqueta;
+        a.Region = fin >= 0;
+        if (!Fuente(p, t, out a.Media, out a.Fuente)) return null;
+        if (a.Region && !Fuente(p, Math.Max(t, fin - 0.001), out a.MediaFin, out a.FuenteFin)) a.FuenteFin = -1;
+        return a;
+    }
+
+    public static List<Ancla> Cargar(string veg)
+    {
+        List<Ancla> r = new List<Ancla>();
+        string ruta = RutaPara(veg);
+        if (ruta == null || !File.Exists(ruta)) return r;
+        try
+        {
+            foreach (object x in Json.Lista(Json.Leer(File.ReadAllText(ruta, Encoding.UTF8)), "anclas"))
+            {
+                Ancla a = new Ancla();
+                a.Etiqueta = Json.Texto(x, "etiqueta");
+                a.Media = Json.Texto(x, "media");
+                a.MediaFin = Json.Texto(x, "mediaFin");
+                a.Fuente = Json.Numero(x, "fuente", 0);
+                a.FuenteFin = Json.Numero(x, "fuenteFin", -1);
+                a.Region = Json.Texto(x, "region") == "True";
+                r.Add(a);
+            }
+        }
+        catch { }
+        return r;
+    }
+
+    // Agrega anclas nuevas (reemplaza las que tengan la misma etiqueta).
+    public static void Guardar(string veg, List<Ancla> nuevas)
+    {
+        string ruta = RutaPara(veg);
+        if (ruta == null) return;
+        List<Ancla> todas = Cargar(veg);
+        foreach (Ancla n in nuevas)
+        {
+            if (n == null) continue;
+            todas.RemoveAll(delegate (Ancla a) { return a.Etiqueta == n.Etiqueta && a.Region == n.Region; });
+            todas.Add(n);
+        }
+        List<object> lista = new List<object>();
+        foreach (Ancla a in todas)
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d["etiqueta"] = a.Etiqueta; d["region"] = a.Region;
+            d["media"] = a.Media; d["fuente"] = Math.Round(a.Fuente, 3);
+            if (a.Region) { d["mediaFin"] = a.MediaFin; d["fuenteFin"] = Math.Round(a.FuenteFin, 3); }
+            lista.Add(d);
+        }
+        Dictionary<string, object> raiz = new Dictionary<string, object>();
+        raiz["formato"] = "vegas-cut-marcas";
+        raiz["anclas"] = lista;
+        try { File.WriteAllText(ruta, Json.Escribir(raiz), new UTF8Encoding(false)); } catch { }
+    }
+
+    // Instantes de la linea de tiempo donde se ve ese segundo del archivo
+    // (puede haber varios si el clip esta repetido).
+    static List<double> Donde(Project p, string media, double fuente)
+    {
+        List<double> r = new List<double>();
+        foreach (Track pista in p.Tracks)
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || !String.Equals(toma.Media.FilePath, media, StringComparison.OrdinalIgnoreCase)) continue;
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                if (fuente >= desde - Tol && fuente < desde + largo - Tol)
+                    r.Add(S(e.Start) + (fuente - desde) / e.PlaybackRate);
+            }
+        return r;
+    }
+
+    static double MasCerca(List<double> l, double t)
+    {
+        double mejor = l[0];
+        foreach (double x in l) if (Math.Abs(x - t) < Math.Abs(mejor - t)) mejor = x;
+        return mejor;
+    }
+
+    // Vuelve a poner cada marcador/region anclado sobre su clip. Devuelve
+    // cuantos se movieron; "perdidos" son los que ya no tienen clip (esa
+    // parte se borro).
+    public static int Reubicar(Project p, string veg, out int perdidos, out int revisados)
+    {
+        perdidos = 0; revisados = 0;
+        List<Ancla> anclas = Cargar(veg);
+        Dictionary<string, Ancla> marcas = new Dictionary<string, Ancla>(), regiones = new Dictionary<string, Ancla>();
+        foreach (Ancla a in anclas) (a.Region ? regiones : marcas)[a.Etiqueta] = a;
+        int movidos = 0;
+
+        List<Marker> lista = new List<Marker>();
+        foreach (Marker m in p.Markers) lista.Add(m);
+        foreach (Region r in p.Regions) lista.Add(r);
+        foreach (Marker m in lista)
+        {
+            Region region = m as Region;
+            Ancla a;
+            if (!(region != null ? regiones : marcas).TryGetValue(m.Label ?? "", out a)) continue;
+            revisados++;
+            List<double> donde = Donde(p, a.Media, a.Fuente);
+            if (donde.Count == 0) { perdidos++; continue; }
+            double actual = S(m.Position), nuevo = MasCerca(donde, actual);
+            bool cambio = Math.Abs(nuevo - actual) > 0.001;
+            if (region != null && a.FuenteFin >= 0)
+            {
+                List<double> fines = Donde(p, a.MediaFin, a.FuenteFin);
+                if (fines.Count > 0)
+                {
+                    double fin = MasCerca(fines, nuevo + S(region.Length));
+                    if (fin > nuevo + 0.01 && Math.Abs((fin - nuevo) - S(region.Length)) > 0.001)
+                    {
+                        try { region.Length = Timecode.FromMilliseconds((fin - nuevo) * 1000); cambio = true; } catch { }
+                    }
+                }
+            }
+            if (Math.Abs(nuevo - actual) > 0.001)
+            {
+                try { m.Position = Timecode.FromMilliseconds(nuevo * 1000); } catch { }
+            }
+            if (cambio) movidos++;
+        }
+        return movidos;
     }
 }
 
@@ -2186,6 +2806,7 @@ public class Configuracion
     public string WhisperPrecision = "int8";     // int8 usa menos memoria de video
     public string Idioma = "es";
     public string WhisperExtra = "";             // opciones extra para el .exe
+    public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
 
     public static string Carpeta
     {
@@ -2213,6 +2834,7 @@ public class Configuracion
             c.WhisperPrecision = Valor(Json.Texto(o, "whisperPrecision"), c.WhisperPrecision);
             c.Idioma = Valor(Json.Texto(o, "idioma"), c.Idioma);
             c.WhisperExtra = Json.Texto(o, "whisperExtra");
+            c.ReglasCanal = Json.Texto(o, "reglasCanal");
         }
         catch { }
         return c;
@@ -2232,6 +2854,7 @@ public class Configuracion
         d["whisperPrecision"] = WhisperPrecision;
         d["idioma"] = Idioma;
         d["whisperExtra"] = WhisperExtra;
+        d["reglasCanal"] = ReglasCanal;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

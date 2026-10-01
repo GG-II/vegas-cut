@@ -9,6 +9,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
 | `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
 | `MomentosIA.cs` | Gemini sugiere resumen, momentos, un corte a la duración que pidas, textos y Shorts. |
+| `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
 
 **Flujo sugerido para un gameplay:** *Quitar silencios* (opcional) → *Transcribir* →
@@ -74,8 +75,15 @@ quién habla y el nivel de sonido por segundo de cada pista. El audio no sale de
 
 Necesita la transcripción y la clave de Gemini.
 
-1. Elige el **tipo de video**, la **duración objetivo**, los **nombres** de las personas
-   y, si quieres, **indicaciones** ("es el episodio 3, que se entienda la historia").
+1. Elige el **tipo de video**, la **duración mínima y máxima**, los **nombres** de las personas
+   y, si quieres, **indicaciones de este episodio** ("es el episodio 3, que se entienda la historia").
+   - **Reglas del canal…**: reglas que aplican siempre, en todos los videos, para no escribirlas cada
+     vez. Vienen unas de base (empezar sin perder tiempo, nada de conversaciones personales o de vida
+     amorosa, nada de problemas técnicos, mantener el hilo entre escenas, no cortar chistes a la
+     mitad, terminar con clímax o suspenso). Se editan y se guardan en `config.json`.
+   - **Episodios anteriores…** (opcional): eliges respuestas de MomentosIA de otros videos de la
+     serie y su resumen se envía como contexto para entender la historia.
+   - **Modelo**: se elige aquí mismo. *Lite* es barato pero sigue peor las reglas y la duración.
    - **Transiciones: Cortar o Acelerar.** Con *Acelerar*, Gemini puede marcar tramos con poca
      conversación (viajar, minar, construir) para verse ×2–×4 en vez de desaparecer, así la historia
      no da saltos. **Audio de lo acelerado:** mudo (recomendado) o acelerado.
@@ -85,6 +93,11 @@ Necesita la transcripción y la clave de Gemini.
      pausa más larga: cada parte elige candidatos (con importancia 1–10) y resume lo que pasa,
      sabiendo lo que pasó antes; una pasada final arma el corte completo cuidando la historia.
      Si una respuesta llega incompleta se reintenta, y si no cupo se pasa solo al modo por partes.
+   - **Revisión:** una segunda pasada solo comprueba que cada tramo cumpla las reglas y las
+     indicaciones, y quita o recorta los que no (aparecen desmarcados con ⚠ y el motivo).
+   - **Duración garantizada:** si el corte pasa del máximo, se desmarcan los tramos de menor
+     importancia (nunca el primero ni el último); si no llega al mínimo, se agregan los mejores
+     candidatos que no se usaron. Todo queda visible y lo puedes cambiar.
 3. Revisa las pestañas y desmarca lo que no quieras:
    - **Corte**: tramos a conservar, en orden, cerca de la duración objetivo. Los bordes se
      ajustan para no partir palabras. La columna **Velocidad** dice si un tramo va normal o
@@ -100,8 +113,14 @@ Necesita la transcripción y la clave de Gemini.
      marcadores en su nuevo lugar. Ctrl+Z lo deshace. Vegas permite hasta ×4 por evento.
    - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
 
-La respuesta se guarda en `<proyecto>.vegascut-ia.json` y se vuelve a mostrar al abrir la
-herramienta mientras el proyecto no cambie. En el plan gratuito de Gemini, Google puede usar
+**Historial:** cada respuesta se guarda en `<proyecto>.vegascut-ia-historial/` (y la última en
+`<proyecto>.vegascut-ia.json`). Al abrir se muestra la última, y en *Respuesta* puedes elegir
+cualquier anterior. Si el proyecto cambió desde esa respuesta (por ejemplo, aplicaste el corte),
+se puede revisar pero no aplicar; deshaz con Ctrl+Z y vuelve a abrir para aplicarla otra vez.
+
+**Marcadores anclados:** los marcadores y regiones que crea MomentosIA guardan a qué archivo y a
+qué segundo del archivo corresponden (`<proyecto>.vegascut-marcas.json`). Si mueves, cortas o
+reordenas clips, ejecuta **ReubicarMarcadores** y vuelven a quedar sobre su clip. En el plan gratuito de Gemini, Google puede usar
 lo que envías para mejorar sus productos.
 
 ### `QuitarSilencios.cs`

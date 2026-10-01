@@ -119,7 +119,7 @@ class PruebaIA
                   !guardado.Contains("AIza-prueba"), "configuración: se guarda y la clave no queda en texto plano");
 
         // ---------------------------------------------------- Peticion IA
-        OpcionesIA op = new OpcionesIA(); op.MinutosObjetivo = 1; op.Instrucciones = "Conserva lo gracioso";
+        OpcionesIA op = new OpcionesIA(); op.MinutosMin = 1; op.MinutosMax = 1; op.Instrucciones = "Conserva lo gracioso";
         string mensaje = PeticionIA.Mensaje(t4, 26.7, op);
         Verificar(mensaje.Contains("Gerbert: Hola a todos.") && mensaje.Contains("[13.0-") && mensaje.Contains("Conserva lo gracioso") &&
                   !mensaje.Contains("- A3"), "mensaje a Gemini: transcripción con tiempos actuales, nombres e indicaciones");
@@ -274,9 +274,10 @@ class PruebaIA
         });
         List<string> pasos = new List<string>();
         asis.Progreso = delegate (string x) { pasos.Add(x); };
-        OpcionesIA opl = new OpcionesIA(); opl.MinutosObjetivo = 24;
+        OpcionesIA opl = new OpcionesIA(); opl.MinutosMin = 22; opl.MinutosMax = 26;
         string final = asis.Ejecutar(larga, 3600, opl);
         string ultima = llamadas[llamadas.Count - 1];
+        Verificar(ResultadoIA.Leer(final, 3600).Candidatos.Count == 3, "por partes: los candidatos se guardan junto al resultado");
         Verificar(llamadas.Count == 5 && ResultadoIA.Leer(final, 3600).Corte.Count == 1 &&
                   ultima.Contains("Parte 2 (") && ultima.Contains("Parte 3 resumida") && ultima.Contains("C3") && ultima.Contains("M2") &&
                   llamadas[2].Contains("Parte 1: Parte 1 resumida") && pasos.Exists(delegate (string x) { return x.Contains("reintentando"); }),
@@ -294,6 +295,70 @@ class PruebaIA
         });
         cort.Ejecutar(t4, 26.7, op);
         Verificar(llamadasCorto == 3, "si la respuesta sale cortada, se pasa solo al modo por partes");
+
+
+        // ------------------------------------- reglas, contexto y revision
+        string ctxRuta = Path.Combine(tmp, "S01E01 SCR.vegascut-ia.json");
+        File.WriteAllText(ctxRuta, "{\"respuesta\":\"{\\\"resumen\\\":\\\"Llegan al pueblo vaquero.\\\",\\\"secciones\\\":[{\\\"titulo\\\":\\\"Llegada\\\",\\\"descripcion\\\":\\\"Exploran\\\"}]}\"}");
+        OpcionesIA opr = new OpcionesIA(); opr.Instrucciones = "Sin vida amorosa"; opr.Contexto = PeticionIA.ContextoDe(new List<string> { ctxRuta });
+        string msgr = PeticionIA.Mensaje(t4, 26.7, opr);
+        Verificar(msgr.Contains("REGLAS DEL CANAL") && msgr.Contains("vida amorosa, parejas") && msgr.Contains("INDICACIONES DEL EPISODIO") &&
+                  msgr.Contains("S01E01 SCR: Llegan al pueblo vaquero.") && msgr.Contains("Llegada: Exploran") && msgr.Contains("m\u00ednimo 660.0 s, m\u00e1ximo 900.0 s"),
+                  "mensaje: reglas fijas del canal, indicaciones, contexto de episodios anteriores y duraci\u00f3n m\u00edn/m\u00e1x");
+        Verificar(PeticionIA.Instrucciones(opr).Contains("\"importancia\": 1-10"), "el corte pide importancia por tramo");
+
+        string seis = "{\"corte\":[" +
+            "{\"inicio\":0,\"fin\":60,\"importancia\":9,\"titulo\":\"Inicio\"}," +
+            "{\"inicio\":100,\"fin\":160,\"importancia\":3,\"titulo\":\"Relleno\"}," +
+            "{\"inicio\":200,\"fin\":290,\"importancia\":5,\"titulo\":\"Red flags amorosas\"}," +
+            "{\"inicio\":300,\"fin\":360,\"importancia\":8,\"titulo\":\"Pelea\"}," +
+            "{\"inicio\":400,\"fin\":460,\"importancia\":2,\"titulo\":\"Final\"}]," +
+            "\"candidatos\":[{\"inicio\":500,\"fin\":530,\"importancia\":7,\"titulo\":\"Extra\"},{\"inicio\":100,\"fin\":160,\"importancia\":3}]}";
+        ResultadoIA rr = ResultadoIA.Leer(seis, 600);
+        int cambios = rr.AplicarRevision("{\"tramos\":[{\"indice\":2,\"quitar\":true,\"motivo\":\"vida amorosa\"},{\"indice\":3,\"quitar\":false,\"inicio\":310,\"fin\":350}]}");
+        Verificar(cambios == 2 && !rr.Corte[2].Elegido && rr.Corte[2].PorRevision && rr.Corte[2].Nota.Contains("vida amorosa") &&
+                  Cerca(rr.Corte[3].Inicio, 310) && Cerca(rr.Corte[3].Fin, 350),
+                  "revisi\u00f3n: quita el tramo de vida amorosa y recorta otro");
+        // Ahora suman 60+60+40+60 = 220 s. M\u00e1ximo 150 s: se desmarca el de menor importancia (nunca el primero ni el \u00faltimo).
+        string aj = rr.AjustarDuracion(100, 165);
+        Verificar(!rr.Corte[1].Elegido && rr.Corte[0].Elegido && rr.Corte[4].Elegido && rr.DuracionCorte <= 165 && aj.Contains("desmarcado"),
+                  "duraci\u00f3n: si sobra, se desmarca lo menos importante (" + Formato.Tiempo(rr.DuracionCorte) + ")");
+        string aj2 = rr.AjustarDuracion(190, 200);
+        Verificar(rr.Corte.Exists(delegate (Tramo x) { return x.Titulo == "Extra" && x.Elegido; }) && !rr.Corte[2].Elegido &&
+                  rr.DuracionCorte >= 189.5 && aj2.Contains("agregado"),
+                  "duraci\u00f3n: si falta, se agregan candidatos, pero nunca lo que quit\u00f3 la revisi\u00f3n (" + Formato.Tiempo(rr.DuracionCorte) + ")");
+
+        AsistenteIA rev = new AsistenteIA(delegate (string ins, string men)
+        {
+            return men.Contains("Red flags amorosas") ? "{\"tramos\":[{\"indice\":2,\"quitar\":true}]}" : "{\"tramos\":[]}";
+        });
+        ResultadoIA rr2 = ResultadoIA.Leer(seis, 600);
+        string jsonRev = rev.Revisar(t4, rr2, opr);
+        Verificar(rr2.AplicarRevision(jsonRev) == 1 && !rr2.Corte[2].Elegido, "la revisi\u00f3n recibe los tramos y su texto, y su respuesta se aplica");
+
+        // ------------------------------------------------ marcadores anclados
+        Project pm = new Project(); pm.FilePath = Path.Combine(tmp, "Ep2.veg");
+        VideoTrack vm = new VideoTrack(); vm.Index = 0; pm.Tracks.Add(vm);
+        TrackEvent ev = new VideoEvent(); ev.Start = new Timecode(0); ev.Length = new Timecode(30000); ev.Track = vm;
+        ev.ActiveTake = new Take(); ev.ActiveTake.Media = new Media(); ev.ActiveTake.Media.FilePath = "K:/grab/a.mp4";
+        ev.ActiveTake.Offset = new Timecode(100000); vm.Events.Add(ev);
+        Marker mm = new Marker(new Timecode(10000), "TEXTO: Llegan al pueblo"); pm.Markers.Add(mm);
+        Region rg = new Region(new Timecode(5000), new Timecode(10000), "Conservar: Pelea"); pm.Regions.Add(rg);
+        Ancla am = Anclas.Crear(pm, 10, -1, mm.Label), ar = Anclas.Crear(pm, 5, 15, rg.Label);
+        Verificar(am != null && Cerca(am.Fuente, 110) && ar.Region && Cerca(ar.FuenteFin, 115), "ancla: archivo y segundo del archivo bajo el marcador");
+        Anclas.Guardar(pm.FilePath, new List<Ancla> { am, ar });
+        ev.Start = new Timecode(50000); // el usuario mueve el clip 50 s a la derecha
+        int perd, revs;
+        int mov = Anclas.Reubicar(pm, pm.FilePath, out perd, out revs);
+        Verificar(mov == 2 && perd == 0 && Cerca(mm.Position.ms / 1000, 60) && Cerca(rg.Position.ms / 1000, 55) && Cerca(rg.Length.ms / 1000, 10),
+                  "reubicar: el marcador y la regi\u00f3n siguen a su clip movido");
+        ev.Split(new Timecode(8000)); // corta el clip: el segundo 110 queda en el segundo pedazo
+        foreach (TrackEvent x in vm.Events) if (x != ev) x.Start = new Timecode(x.Start.ms + 20000);
+        Anclas.Reubicar(pm, pm.FilePath, out perd, out revs);
+        Verificar(Cerca(mm.Position.ms / 1000, 80), "reubicar: tambi\u00e9n si el clip se cort\u00f3 y se movi\u00f3 un pedazo");
+        vm.Events.Clear();
+        Anclas.Reubicar(pm, pm.FilePath, out perd, out revs);
+        Verificar(perd == 2 && revs == 2, "reubicar: avisa si el clip ya no existe");
 
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " fallos.");

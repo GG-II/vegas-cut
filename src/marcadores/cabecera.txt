@@ -1,0 +1,9 @@
+// ReubicarMarcadores.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Vuelve a poner sobre su clip los marcadores y regiones que creo
+// MomentosIA, aunque hayas movido, cortado o reordenado los clips.
+// Cada marcador se guardo con el archivo y el segundo del archivo que tenia
+// debajo (<proyecto>.vegascut-marcas.json); aqui se busca donde quedo ese
+// segundo en la linea de tiempo. Conviene asignarle un atajo de teclado.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

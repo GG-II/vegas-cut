@@ -57,26 +57,61 @@ class Lista : ListView
     protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) { e.DrawDefault = true; }
 }
 
+// Editor de las reglas del canal (se guardan para todos los proyectos).
+class DialogoReglas : VentanaBase
+{
+    CampoTexto txt = new CampoTexto();
+    public string Reglas { get { return txt.Text.Trim(); } }
+
+    public DialogoReglas(string reglas) : base("Reglas del canal", 640)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Reglas del canal", "Se aplican siempre, en todos los videos. Una regla por línea.");
+        txt.Multilinea = true;
+        txt.Text = reglas;
+        Pos(txt, m, 92, w, 300);
+        Boton restaurar = new Boton("Restaurar las de siempre", EstiloBoton.Secundario);
+        Boton cancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+        Boton guardar = new Boton("Guardar", EstiloBoton.Primario);
+        Pos(restaurar, m, 408, 200, 38);
+        Pos(cancelar, m + w - 250, 408, 110, 38);
+        Pos(guardar, m + w - 130, 408, 130, 38);
+        ClientSize = new Size(ClientSize.Width, 470);
+        restaurar.Click += delegate { txt.Text = PeticionIA.ReglasPorDefecto; };
+        cancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        guardar.Click += delegate { DialogResult = DialogResult.OK; Close(); };
+    }
+}
+
 class VentanaMomentos : VentanaBase
 {
     readonly Vegas vegas;
     readonly Transcripcion transcripcion;
-    readonly string rutaTranscripcion, rutaIA, rutaInforme;
+    readonly string rutaTranscripcion, rutaIA, rutaInforme, rutaHistorial;
     readonly Configuracion config = Configuracion.Cargar();
     readonly double total;
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
-    bool cargando, aplicado;
+    List<string> contexto = new List<string>();   // respuestas de episodios anteriores
+    List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
+    bool cargando, aplicado, vigente;
 
     Segmentado segTipo = new Segmentado(new string[] { "Gameplay", "Narración", "Podcast", "Otro" });
-    CampoNumero numMinutos = new CampoNumero();
+    CampoNumero numMin = new CampoNumero(), numMax = new CampoNumero();
     Segmentado segAcelerar = new Segmentado(new string[] { "Cortar", "Acelerar" });
     Segmentado segAudio = new Segmentado(new string[] { "Mudo", "Acelerado" });
     List<CampoTexto> nombres = new List<CampoTexto>();
     CampoTexto txtInstrucciones = new CampoTexto();
+    Boton btnReglas = new Boton("Reglas del canal…", EstiloBoton.Secundario);
+    Boton btnContexto = new Boton("Episodios anteriores…", EstiloBoton.Secundario);
+    Etiqueta lblContexto;
+    Combo comboModelo = new Combo(true);
+    Etiqueta lblModelo;
     Boton btnPedir = new Boton("Pedir a Gemini", EstiloBoton.Primario);
     Etiqueta lblEstado;
 
+    Combo comboHistorial = new Combo();
     Segmentado pestanas = new Segmentado(new string[] { "Corte", "Momentos", "Textos", "Resumen", "Shorts y títulos" });
     Lista lstCorte = new Lista(), lstMomentos = new Lista(), lstTextos = new Lista(), lstShorts = new Lista();
     CampoTexto txtResumen = new CampoTexto();
@@ -89,7 +124,7 @@ class VentanaMomentos : VentanaBase
 
     static readonly string[] Tipos = { "Gameplay", "Narración", "Podcast", "Otro" };
 
-    public VentanaMomentos(Vegas vegas, Transcripcion t, string ruta) : base("Momentos con IA", 1000)
+    public VentanaMomentos(Vegas vegas, Transcripcion t, string ruta) : base("Momentos con IA", 1040)
     {
         this.vegas = vegas;
         transcripcion = t;
@@ -98,6 +133,7 @@ class VentanaMomentos : VentanaBase
         string baseNombre = Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg));
         rutaIA = baseNombre + ".vegascut-ia.json";
         rutaInforme = baseNombre + ".vegascut-informe.md";
+        rutaHistorial = baseNombre + ".vegascut-ia-historial";
         total = vegas.Project.Length.ToMilliseconds() / 1000.0;
 
         int m = Margen, w = Ancho;
@@ -107,23 +143,30 @@ class VentanaMomentos : VentanaBase
         string aviso = t.Sincronizar(total);
         if (aviso.StartsWith("Se detect")) { try { t.Guardar(ruta); } catch { } }
         int frases = t.SegmentosActuales().Count;
-        Etiqueta lblTrans = Texto("Transcripción del " + t.Creada + ": " + frases + " frases · proyecto de " +
+        Texto("Transcripción del " + t.Creada + ": " + frases + " frases · proyecto de " +
             Formato.Tiempo(total) + (aviso.Length > 0 ? "\n" + aviso : ""), Tema.Pequena,
             aviso.Length > 0 && !aviso.StartsWith("Se detect") ? Tema.AcentoHover : Tema.TextoSuave, m, 88, w, 34);
 
         // ---------------- Columna izquierda: lo que se pide
-        int y = 130, ci = 300;
+        int y = 130, ci = 320;
         Texto("Tipo de video", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         Pos(segTipo, m, y + 22, ci, 34);
-        y += 68;
-        Texto("Duración objetivo", Tema.Negrita, Tema.Texto, m, y, 108, 20);
-        numMinutos.Sufijo = "min"; numMinutos.Minimo = 1; numMinutos.Maximo = 600; numMinutos.Paso = 1;
-        Pos(numMinutos, m, y + 22, 100, 36);
-        Texto("Transiciones", Tema.Negrita, Tema.Texto, m + 112, y, 100, 20);
-        Pos(segAcelerar, m + 112, y + 23, ci - 112, 34);
         y += 66;
-        Texto("Audio de lo acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 170, 20);
-        Pos(segAudio, m + 170, y, ci - 170, 34);
+        Texto("Duración del corte", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        foreach (CampoNumero n in new CampoNumero[] { numMin, numMax })
+        {
+            n.Sufijo = "min"; n.Minimo = 1; n.Maximo = 600; n.Paso = 1;
+        }
+        Pos(numMin, m, y + 22, 92, 36);
+        Texto("a", Tema.Normal, Tema.TextoSuave, m + 98, y + 30, 16, 20);
+        Pos(numMax, m + 118, y + 22, 92, 36);
+        Texto("mínimo y máximo", Tema.Pequena, Tema.TextoSuave, m + 218, y + 30, ci - 218, 20);
+        y += 66;
+        Texto("Transiciones", Tema.Negrita, Tema.Texto, m, y + 8, 110, 20);
+        Pos(segAcelerar, m + 120, y, ci - 120, 34);
+        y += 42;
+        Texto("Audio acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 120, 20);
+        Pos(segAudio, m + 120, y, ci - 120, 34);
         y += 46;
         Texto("Nombres de las personas", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         y += 24;
@@ -138,20 +181,32 @@ class VentanaMomentos : VentanaBase
             nombres.Add(c);
             y += 38;
         }
-        y += 6;
-        Texto("Indicaciones (opcional)", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        y += 4;
+        Texto("Indicaciones de este episodio", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         txtInstrucciones.Multilinea = true;
-        Pos(txtInstrucciones, m, y + 22, ci, 70);
-        y += 102;
-        Texto("Ej.: “Es el episodio 3 de una serie, que se entienda la historia” o “Conserva todas las peleas”.",
-              Tema.Pequena, Tema.TextoSuave, m, y, ci, 32);
-        y += 40;
+        Pos(txtInstrucciones, m, y + 22, ci, 84);
+        y += 114;
+        Pos(btnReglas, m, y, 150, 32);
+        Pos(btnContexto, m + 158, y, ci - 158, 32);
+        lblContexto = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 36, ci, 18);
+        y += 60;
+        Texto("Modelo", Tema.Negrita, Tema.Texto, m, y + 6, 70, 20);
+        comboModelo.Items.Add(config.GeminiModelo);
+        foreach (string x in new string[] { "gemini-flash-latest", "gemini-pro-latest", "gemini-flash-lite-latest" })
+            if (!comboModelo.Items.Contains(x)) comboModelo.Items.Add(x);
+        comboModelo.Text = config.GeminiModelo;
+        Pos(comboModelo, m + 70, y + 2, ci - 70, 30);
+        lblModelo = Texto("", Tema.Pequena, Tema.AcentoHover, m, y + 36, ci, 32);
+        y += 72;
         Pos(btnPedir, m, y, ci, 42);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 48, ci, 48);
         int fondoIzq = y + 100;
 
         // ---------------- Columna derecha: resultado
         int dx = m + ci + 24, dw = w - ci - 24, dy = 130;
+        Texto("Respuesta", Tema.Negrita, Tema.Texto, dx, dy + 6, 84, 20);
+        Pos(comboHistorial, dx + 88, dy + 2, dw - 88, 30);
+        dy += 42;
         Pos(pestanas, dx, dy, dw, 34);
         dy += 44;
         int alto = Math.Max(420, fondoIzq - dy - 40);
@@ -175,17 +230,17 @@ class VentanaMomentos : VentanaBase
         Pos(btnCortar, m + w - 180, fondo, 180, 40);
         ClientSize = new Size(ClientSize.Width, fondo + 40 + 24);
 
-        // Valores iniciales
-        cargando = true;
-        CargarOpciones();
-        cargando = false;
-
+        // Eventos
         pestanas.Cambio += delegate { MostrarPestana(); };
         btnPedir.Click += delegate { Pedir(); };
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
+        btnReglas.Click += delegate { EditarReglas(); };
+        btnContexto.Click += delegate { ElegirContexto(); };
+        comboModelo.TextChanged += delegate { AvisoModelo(); };
+        comboHistorial.SelectedIndexChanged += delegate { if (!cargando && comboHistorial.SelectedIndex >= 0) CargarEntrada(historial[comboHistorial.SelectedIndex], false); };
         lstCorte.ItemChecked += delegate (object s, ItemCheckedEventArgs e)
         {
             if (cargando || resultado == null) return;
@@ -200,19 +255,26 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
+        // Valores iniciales: los de la ultima respuesta guardada.
+        cargando = true;
+        LlenarHistorial();
+        PonerOpciones(historial.Count > 0 ? historial[0] : null);
+        cargando = false;
+        if (historial.Count > 0) CargarEntrada(historial[0], true);
+        AvisoModelo();
         if (!config.TieneGemini)
         {
             btnPedir.Enabled = false;
             Estado("Falta la clave de Gemini: ejecuta “ConfigurarVegasCut”.", true);
         }
-        CargarRespuestaGuardada();
         MostrarResultado();
     }
 
     void ConfigurarListas()
     {
-        lstCorte.Columns.Add("Inicio", 70); lstCorte.Columns.Add("Fin", 70); lstCorte.Columns.Add("Dura", 60);
-        lstCorte.Columns.Add("Velocidad", 84); lstCorte.Columns.Add("Tramo", 190); lstCorte.Columns.Add("Por qué", 900);
+        lstCorte.Columns.Add("Inicio", 70); lstCorte.Columns.Add("Fin", 70); lstCorte.Columns.Add("Dura", 52);
+        lstCorte.Columns.Add("Velocidad", 84); lstCorte.Columns.Add("Imp.", 40); lstCorte.Columns.Add("Tramo", 180);
+        lstCorte.Columns.Add("Por qué", 900);
         lstMomentos.Columns.Add("Nota", 60); lstMomentos.Columns.Add("Inicio", 70); lstMomentos.Columns.Add("Fin", 70);
         lstMomentos.Columns.Add("Momento", 200); lstMomentos.Columns.Add("Por qué", 900);
         lstTextos.Columns.Add("Dónde", 70); lstTextos.Columns.Add("Texto", 280); lstTextos.Columns.Add("Qué se salta", 900);
@@ -222,43 +284,48 @@ class VentanaMomentos : VentanaBase
 
     // ------------------------------------------------------- opciones
 
-    void CargarOpciones()
+    void PonerOpciones(string archivo)
     {
-        // Ultimas opciones usadas (se guardan junto a la respuesta).
-        opciones.Tipo = "Gameplay";
-        opciones.MinutosObjetivo = Math.Max(1, Math.Min(20, Math.Round(total / 60 / 3)));
+        double mins = Math.Max(1, Math.Round(total / 60 / 4));
+        opciones.MinutosMin = mins; opciones.MinutosMax = mins + 4;
+        opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         try
         {
-            if (File.Exists(rutaIA))
+            object op = archivo != null ? Json.Obj(Json.Leer(File.ReadAllText(archivo, Encoding.UTF8)), "opciones") : null;
+            if (op != null)
             {
-                object o = Json.Leer(File.ReadAllText(rutaIA, Encoding.UTF8));
-                object op = Json.Obj(o, "opciones");
-                if (op != null)
-                {
-                    opciones.Tipo = Json.Texto(op, "tipo");
-                    opciones.MinutosObjetivo = Json.Numero(op, "minutos", opciones.MinutosObjetivo);
-                    opciones.Instrucciones = Json.Texto(op, "instrucciones");
-                    opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
-                    opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
-                }
+                opciones.Tipo = Json.Texto(op, "tipo");
+                double viejo = Json.Numero(op, "minutos", -1); // respuestas de antes de min/max
+                opciones.MinutosMin = Json.Numero(op, "minutosMin", viejo > 0 ? viejo : opciones.MinutosMin);
+                opciones.MinutosMax = Json.Numero(op, "minutosMax", viejo > 0 ? viejo + 2 : opciones.MinutosMax);
+                opciones.Instrucciones = Json.Texto(op, "instrucciones");
+                opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
+                opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
+                contexto.Clear();
+                foreach (object x in Json.Lista(op, "contexto")) if (x is string && File.Exists((string)x)) contexto.Add((string)x);
             }
         }
         catch { }
         segTipo.Seleccion = Math.Max(0, Array.IndexOf(Tipos, opciones.Tipo));
-        numMinutos.Valor = (int)opciones.MinutosObjetivo;
+        numMin.Valor = (int)opciones.MinutosMin;
+        numMax.Valor = (int)opciones.MinutosMax;
         txtInstrucciones.Text = opciones.Instrucciones;
         segAcelerar.Seleccion = opciones.PermitirAcelerar ? 1 : 0;
         segAudio.Seleccion = opciones.SilenciarAcelerado ? 0 : 1;
         segAudio.Enabled = opciones.PermitirAcelerar;
+        MostrarContexto();
     }
 
     void LeerOpciones()
     {
         opciones.Tipo = Tipos[segTipo.Seleccion];
-        opciones.MinutosObjetivo = numMinutos.Valor;
+        opciones.MinutosMin = Math.Min(numMin.Valor, numMax.Valor);
+        opciones.MinutosMax = Math.Max(numMin.Valor, numMax.Valor);
         opciones.Instrucciones = txtInstrucciones.Text;
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
+        opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
+        opciones.Contexto = PeticionIA.ContextoDe(contexto);
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -266,24 +333,132 @@ class VentanaMomentos : VentanaBase
         }
     }
 
-    // La respuesta anterior sirve mientras el proyecto no haya cambiado.
-    void CargarRespuestaGuardada()
+    void EditarReglas()
+    {
+        string actuales = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
+        using (DialogoReglas d = new DialogoReglas(actuales))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            config.ReglasCanal = d.Reglas == PeticionIA.ReglasPorDefecto.Trim() ? "" : d.Reglas;
+            try { config.Guardar(); Estado("✔ Reglas del canal guardadas.", false); }
+            catch (Exception ex) { Estado("No se pudieron guardar las reglas: " + ex.Message, true); }
+        }
+    }
+
+    void ElegirContexto()
+    {
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Title = "Respuestas de MomentosIA de episodios anteriores (opcional)";
+            d.Filter = "Respuestas de MomentosIA|*.vegascut-ia.json;*.json";
+            d.Multiselect = true;
+            string carpeta = Path.GetDirectoryName(Path.GetDirectoryName(vegas.Project.FilePath) ?? "");
+            if (!String.IsNullOrEmpty(carpeta) && Directory.Exists(carpeta)) d.InitialDirectory = carpeta;
+            DialogResult r = d.ShowDialog(this);
+            if (r != DialogResult.OK) return;
+            contexto.Clear();
+            foreach (string f in d.FileNames) if (f != rutaIA && !f.StartsWith(rutaHistorial)) contexto.Add(f);
+            MostrarContexto();
+        }
+    }
+
+    void MostrarContexto()
+    {
+        if (contexto.Count == 0) { lblContexto.Text = "Sin contexto de episodios anteriores."; return; }
+        List<string> n = new List<string>();
+        foreach (string f in contexto) n.Add(Path.GetFileName(f).Replace(".vegascut-ia.json", ""));
+        lblContexto.Text = "Contexto: " + String.Join(", ", n.ToArray());
+    }
+
+    void AvisoModelo()
+    {
+        string mo = comboModelo.Text.ToLowerInvariant();
+        lblModelo.Text = mo.Contains("lite")
+            ? "Lite es más barato pero sigue peor las reglas y la duración. Para cortes largos usa flash o pro."
+            : "";
+    }
+
+    // ------------------------------------------------------- historial
+
+    void LlenarHistorial()
+    {
+        historial.Clear();
+        if (Directory.Exists(rutaHistorial))
+        {
+            string[] f = Directory.GetFiles(rutaHistorial, "*.json");
+            Array.Sort(f);
+            Array.Reverse(f);
+            historial.AddRange(f);
+        }
+        if (historial.Count == 0 && File.Exists(rutaIA)) historial.Add(rutaIA);
+        comboHistorial.Items.Clear();
+        foreach (string f in historial)
+        {
+            string texto = Path.GetFileName(f);
+            try
+            {
+                object o = Json.Leer(File.ReadAllText(f, Encoding.UTF8));
+                object op = Json.Obj(o, "opciones");
+                double mn = Json.Numero(op, "minutosMin", Json.Numero(op, "minutos", 0)), mx = Json.Numero(op, "minutosMax", mn);
+                texto = Json.Texto(o, "fecha") + "  ·  " + Json.Texto(o, "modelo") + "  ·  " + mn + "–" + mx + " min" +
+                        (Math.Abs(Json.Numero(o, "duracionProyecto", -1) - total) > 0.5 ? "  ·  (proyecto distinto)" : "");
+            }
+            catch { }
+            comboHistorial.Items.Add(texto);
+        }
+        if (comboHistorial.Items.Count == 0) comboHistorial.Items.Add("Todavía no hay respuestas");
+        comboHistorial.SelectedIndex = 0;
+        comboHistorial.Enabled = historial.Count > 1;
+    }
+
+    // Arma el resultado desde la respuesta y la revision guardadas, con los
+    // mismos pasos siempre (asi los indices de la revision cuadran).
+    ResultadoIA Construir(string respuesta, string revision, double duracion, double min, double max, out string nota)
+    {
+        ResultadoIA r = ResultadoIA.Leer(respuesta, duracion);
+        r.AjustarAPalabras(transcripcion.SegmentosActuales());
+        nota = "";
+        if (!String.IsNullOrEmpty(revision))
+        {
+            try
+            {
+                int n = r.AplicarRevision(revision);
+                if (n > 0) nota = "revisión: " + n + (n == 1 ? " tramo quitado o recortado" : " tramos quitados o recortados");
+            }
+            catch { }
+        }
+        string ajuste = r.AjustarDuracion(min * 60, max * 60);
+        if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
+        return r;
+    }
+
+    void CargarEntrada(string archivo, bool inicial)
     {
         try
         {
-            if (!File.Exists(rutaIA)) return;
-            object o = Json.Leer(File.ReadAllText(rutaIA, Encoding.UTF8));
-            double duracion = Json.Numero(o, "duracionProyecto", -1);
-            if (Math.Abs(duracion - total) > 0.05)
-            {
-                Estado("Hay una respuesta anterior, pero el proyecto cambió desde entonces: pide una nueva.", false);
-                return;
-            }
-            resultado = ResultadoIA.Leer(Json.Texto(o, "respuesta"), total);
-            resultado.AjustarAPalabras(transcripcion.SegmentosActuales());
-            Estado("Mostrando la respuesta del " + Json.Texto(o, "fecha") + " (" + Json.Texto(o, "modelo") + ").", false);
+            object o = Json.Leer(File.ReadAllText(archivo, Encoding.UTF8));
+            double duracion = Json.Numero(o, "duracionProyecto", total);
+            object op = Json.Obj(o, "opciones");
+            double mn = Json.Numero(op, "minutosMin", Json.Numero(op, "minutos", 1));
+            double mx = Json.Numero(op, "minutosMax", Json.Numero(op, "minutos", 600) + 2);
+            string nota;
+            resultado = Construir(Json.Texto(o, "respuesta"), Json.Texto(o, "revision"), duracion, mn, mx, out nota);
+            vigente = Math.Abs(duracion - total) <= 0.5;
+            aplicado = false;
+            if (vigente)
+                Estado("Mostrando la respuesta del " + Json.Texto(o, "fecha") + " (" + Json.Texto(o, "modelo") + ")." +
+                       (nota.Length > 0 ? " Ajustes: " + nota + "." : ""), false);
+            else
+                Estado("Respuesta del " + Json.Texto(o, "fecha") + ": el proyecto cambió desde entonces (duraba " +
+                       Formato.Tiempo(duracion) + ", ahora " + Formato.Tiempo(total) + "). Puedes revisarla, pero para " +
+                       "aplicarla deshaz los cambios (Ctrl+Z) o pide una nueva.", !inicial);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            resultado = null;
+            Estado("No se pudo abrir esa respuesta: " + ex.Message, true);
+        }
+        MostrarResultado();
     }
 
     // ------------------------------------------------------- Gemini
@@ -292,14 +467,16 @@ class VentanaMomentos : VentanaBase
     {
         LeerOpciones();
         try { transcripcion.Guardar(rutaTranscripcion); } catch { } // guarda los nombres
-        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        string clave = config.GeminiClave, modelo = comboModelo.Text.Trim();
+        if (modelo.Length == 0) modelo = config.GeminiModelo;
+        if (modelo != config.GeminiModelo) { config.GeminiModelo = modelo; try { config.Guardar(); } catch { } }
         OpcionesIA op = opciones;
         Transcripcion t = transcripcion;
         double duracion = total;
 
         btnPedir.Enabled = false;
         DateTime inicio = DateTime.Now;
-        string paso = "Preparando\u2026";
+        string paso = "Preparando…";
         System.Windows.Forms.Timer reloj = new System.Windows.Forms.Timer();
         reloj.Interval = 500;
         reloj.Tick += delegate
@@ -317,8 +494,15 @@ class VentanaMomentos : VentanaBase
 
         Thread hilo = new Thread(delegate ()
         {
-            string respuesta = null, error = null;
-            try { respuesta = asistente.Ejecutar(t, duracion, op); }
+            string respuesta = null, revision = "", error = null;
+            try
+            {
+                respuesta = asistente.Ejecutar(t, duracion, op);
+                // Segunda pasada: revisa el corte contra las reglas.
+                ResultadoIA previo = ResultadoIA.Leer(respuesta, duracion);
+                previo.AjustarAPalabras(t.SegmentosActuales());
+                revision = asistente.Revisar(t, previo, op);
+            }
             catch (Exception ex) { error = ex.Message; }
             try
             {
@@ -327,7 +511,7 @@ class VentanaMomentos : VentanaBase
                     reloj.Stop();
                     btnPedir.Enabled = true;
                     if (error != null) { Estado(error, true); return; }
-                    Recibir(respuesta, modelo);
+                    Recibir(respuesta, revision, modelo);
                 });
             }
             catch { }
@@ -336,12 +520,12 @@ class VentanaMomentos : VentanaBase
         hilo.Start();
     }
 
-    void Recibir(string respuesta, string modelo)
+    void Recibir(string respuesta, string revision, string modelo)
     {
+        string nota;
         try
         {
-            resultado = ResultadoIA.Leer(respuesta, total);
-            resultado.AjustarAPalabras(transcripcion.SegmentosActuales());
+            resultado = Construir(respuesta, revision, total, opciones.MinutosMin, opciones.MinutosMax, out nota);
         }
         catch (Exception ex)
         {
@@ -349,28 +533,52 @@ class VentanaMomentos : VentanaBase
             return;
         }
 
+        // Se guarda cada respuesta (historial) y la ultima aparte.
         Dictionary<string, object> guardar = new Dictionary<string, object>();
         guardar["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         guardar["modelo"] = modelo;
         guardar["duracionProyecto"] = total;
         Dictionary<string, object> op = new Dictionary<string, object>();
         op["tipo"] = opciones.Tipo;
-        op["minutos"] = opciones.MinutosObjetivo;
+        op["minutosMin"] = opciones.MinutosMin;
+        op["minutosMax"] = opciones.MinutosMax;
         op["instrucciones"] = opciones.Instrucciones;
         op["acelerar"] = opciones.PermitirAcelerar;
         op["silenciarAcelerado"] = opciones.SilenciarAcelerado;
+        op["reglasCanal"] = opciones.ReglasCanal;
+        List<object> ctx = new List<object>();
+        foreach (string f in contexto) ctx.Add(f);
+        op["contexto"] = ctx;
         guardar["opciones"] = op;
         guardar["respuesta"] = respuesta;
-        try { File.WriteAllText(rutaIA, Json.Escribir(guardar), new UTF8Encoding(false)); } catch { }
+        guardar["revision"] = revision;
+        string texto = Json.Escribir(guardar);
+        try
+        {
+            Directory.CreateDirectory(rutaHistorial);
+            File.WriteAllText(Path.Combine(rutaHistorial, DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json"), texto, new UTF8Encoding(false));
+            File.WriteAllText(rutaIA, texto, new UTF8Encoding(false));
+        }
+        catch { }
+        cargando = true;
+        LlenarHistorial();
+        cargando = false;
 
         aplicado = false;
-        Estado("✔ Listo. Revisa las pestañas; desmarca lo que no quieras.", false);
+        vigente = true;
+        Estado("✔ Listo. Revisa las pestañas; desmarca lo que no quieras." +
+               (nota.Length > 0 ? " Ajustes automáticos: " + nota + "." : ""), false);
         MostrarResultado();
     }
 
     // ------------------------------------------------------- mostrar
 
     static string T(double s) { return Formato.TiempoPreciso(s); }
+
+    static string PorQue(Tramo t)
+    {
+        return t.Nota.Length > 0 ? "⚠ " + t.Nota + " · " + t.Motivo : t.Motivo;
+    }
 
     void MostrarResultado()
     {
@@ -380,7 +588,8 @@ class VentanaMomentos : VentanaBase
         if (hay)
         {
             foreach (Tramo t in resultado.Corte)
-                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t), t.Titulo, t.Motivo);
+                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t),
+                     t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
             foreach (Tramo t in resultado.Momentos)
                 Fila(lstMomentos, t, t.Elegido, t.Puntuacion.ToString("0") + "/10", T(t.Inicio), T(t.Fin), t.Titulo, t.Motivo);
             foreach (TextoResumen t in resultado.Textos)
@@ -399,15 +608,15 @@ class VentanaMomentos : VentanaBase
         cargando = false;
 
         btnInforme.Enabled = hay;
-        btnMarcar.Enabled = hay;
-        btnCortar.Enabled = hay && !aplicado;
+        btnMarcar.Enabled = hay && vigente;
+        btnCortar.Enabled = hay && vigente && !aplicado;
         ActualizarResumenCorte();
         MostrarPestana();
     }
 
     static string Velocidad(Tramo t)
     {
-        return t.Acelerar ? "\u23e9 \u00d7" + t.Velocidad.ToString("0") + " (" + Formato.Tiempo(t.DuracionFinal) + ")" : "normal";
+        return t.Acelerar ? "⏩ ×" + t.Velocidad.ToString("0") + " (" + Formato.Tiempo(t.DuracionFinal) + ")" : "normal";
     }
 
     // Clic en la columna Velocidad: normal -> x2 -> x3 -> x4 -> normal.
@@ -445,8 +654,11 @@ class VentanaMomentos : VentanaBase
     {
         if (pestanas.Seleccion == 4) return;
         if (resultado == null) { lblCorte.Text = "Pide una sugerencia a Gemini para ver los resultados aquí."; return; }
-        lblCorte.Text = "Conserva " + Formato.Tiempo(resultado.DuracionCorte) + " de " + Formato.Tiempo(total) +
-                        " (objetivo " + numMinutos.Valor + " min) · clic en Velocidad: cambiarla · doble clic: ir";
+        double d = resultado.DuracionCorte;
+        bool fuera = d < numMin.Valor * 60 - 0.5 || d > numMax.Valor * 60 + 0.5;
+        lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
+        lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "–" +
+                        numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") · clic en Velocidad: cambiarla · doble clic: ir";
     }
 
     void IrA(ListView l)
@@ -479,29 +691,34 @@ class VentanaMomentos : VentanaBase
     void CrearMarcas()
     {
         Project p = vegas.Project;
+        List<Ancla> anclas = new List<Ancla>();
         int n = 0;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
             foreach (Tramo t in resultado.Corte)
-                if (t.Elegido) { Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar ×" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
             foreach (Tramo t in resultado.Momentos)
-                if (t.Elegido) { Marcador(p, t.Inicio, "★" + t.Puntuacion.ToString("0") + " " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Marcador(p, t.Inicio, "★" + t.Puntuacion.ToString("0") + " " + t.Titulo)); n++; }
             foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) { Marcador(p, t.Posicion, "TEXTO: " + t.Texto); n++; }
+                if (t.Elegido) { anclas.Add(Marcador(p, t.Posicion, "TEXTO: " + t.Texto)); n++; }
             foreach (Tramo t in resultado.Shorts)
-                if (t.Elegido) { Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo); n++; }
+                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
         }
-        Estado("✔ " + n + " regiones y marcadores creados (Ctrl+Z los quita).", false);
+        Anclas.Guardar(p.FilePath, anclas);
+        Estado("✔ " + n + " regiones y marcadores creados y anclados a sus clips (Ctrl+Z los quita). " +
+               "Si mueves clips, ejecuta ReubicarMarcadores.", false);
     }
 
-    static void Marcador(Project p, double t, string texto)
+    static Ancla Marcador(Project p, double t, string texto)
     {
         p.Markers.Add(new Marker(Timecode.FromMilliseconds(t * 1000), texto));
+        return Anclas.Crear(p, t, -1, texto);
     }
 
-    static void Region(Project p, double a, double b, string texto)
+    static Ancla Region(Project p, double a, double b, string texto)
     {
         p.Regions.Add(new ScriptPortal.Vegas.Region(Timecode.FromMilliseconds(a * 1000), Timecode.FromMilliseconds((b - a) * 1000), texto));
+        return Anclas.Crear(p, a, b, texto);
     }
 
     void AplicarCorte()
@@ -520,17 +737,18 @@ class VentanaMomentos : VentanaBase
         if (quitar.Count == 0 && acelerar.Count == 0) { Estado("El corte no cambia nada.", true); return; }
         bool silenciar = segAudio.Seleccion == 0;
         if (MessageBox.Show(this,
-                "Se quitar\u00e1n " + Formato.Tiempo(quitado) + " en " + quitar.Count + " tramos" +
-                (acelerar.Count > 0 ? " y se acelerar\u00e1n " + acelerar.Count + " tramos (" +
+                "Se quitarán " + Formato.Tiempo(quitado) + " en " + quitar.Count + " tramos" +
+                (acelerar.Count > 0 ? " y se acelerarán " + acelerar.Count + " tramos (" +
                     (silenciar ? "sin audio" : "con audio acelerado") + ")" : "") +
-                ". El video quedar\u00e1 de " + Formato.Tiempo(total - quitado - ahorro) + ".\n\n" +
-                "Se aplica en todas las pistas para mantener la sincron\u00eda (haz esto antes de poner m\u00fasica). " +
-                "Los textos y momentos marcados quedan como marcadores en su nuevo lugar.\n\n\u00bfAplicar? (Ctrl+Z lo deshace)",
+                ". El video quedará de " + Formato.Tiempo(total - quitado - ahorro) + ".\n\n" +
+                "Se aplica en todas las pistas para mantener la sincronía (haz esto antes de poner música). " +
+                "Los textos y momentos marcados quedan como marcadores anclados a sus clips.\n\n¿Aplicar? (Ctrl+Z lo deshace)",
                 "Aplicar corte", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
         Project p = vegas.Project;
         List<Track> todas = new List<Track>();
         foreach (Track t in p.Tracks) todas.Add(t);
+        List<Ancla> anclas = new List<Ancla>();
         double trasCortar;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: corte"))
         {
@@ -538,21 +756,24 @@ class VentanaMomentos : VentanaBase
             trasCortar = p.Length.ToMilliseconds() / 1000.0;
             if (acelerar.Count > 0) Editor.Acelerar(p, todas, acelerar, silenciar, true, 0.02);
             foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto);
+                if (t.Elegido) anclas.Add(Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto));
             foreach (Tramo t in resultado.Momentos)
             {
                 if (!t.Elegido || Dentro(t.Inicio, quitar)) continue;
                 double nuevo = Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Inicio, quitar), acelerar);
-                Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo);
+                anclas.Add(Marcador(p, nuevo, "★" + t.Puntuacion.ToString("0") + " " + t.Titulo));
             }
         }
+        Anclas.Guardar(p.FilePath, anclas);
         double despues = p.Length.ToMilliseconds() / 1000.0;
         string aviso = "";
         if (quitar.Count > 0) aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, trasCortar);
         if (acelerar.Count > 0) aviso = Transcripcion.RegistrarAceleracion(p.FilePath, acelerar, trasCortar, despues);
         aplicado = true;
         btnCortar.Enabled = false;
-        Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " "), false);
+        btnMarcar.Enabled = false;
+        Estado("✔ Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " ") +
+               " Si lo deshaces (Ctrl+Z), al volver a abrir esta ventana la respuesta aparece lista otra vez.", false);
     }
 
     static bool Dentro(double t, List<Rango> rangos)

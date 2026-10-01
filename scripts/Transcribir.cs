@@ -1427,6 +1427,7 @@ public class Configuracion
     public string WhisperPrecision = "int8";     // int8 usa menos memoria de video
     public string Idioma = "es";
     public string WhisperExtra = "";             // opciones extra para el .exe
+    public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
 
     public static string Carpeta
     {
@@ -1454,6 +1455,7 @@ public class Configuracion
             c.WhisperPrecision = Valor(Json.Texto(o, "whisperPrecision"), c.WhisperPrecision);
             c.Idioma = Valor(Json.Texto(o, "idioma"), c.Idioma);
             c.WhisperExtra = Json.Texto(o, "whisperExtra");
+            c.ReglasCanal = Json.Texto(o, "reglasCanal");
         }
         catch { }
         return c;
@@ -1473,6 +1475,7 @@ public class Configuracion
         d["whisperPrecision"] = WhisperPrecision;
         d["idioma"] = Idioma;
         d["whisperExtra"] = WhisperExtra;
+        d["reglasCanal"] = ReglasCanal;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

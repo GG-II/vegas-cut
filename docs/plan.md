@@ -99,5 +99,7 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 - [x] Probado en Vegas 20: Transcribir (GTX 1650, large-v3-turbo) y Momentos (5 min → 2 min con buen ritmo).
 - [x] Videos largos (2 h → 24 min): análisis por partes + pasada final; reintentos.
 - [x] Transiciones aceleradas (×2–×4) en vez de cortadas.
-- [ ] Probar con un gameplay de 2 h.
+- [x] Probado con un gameplay de 1 h (S01E02): funciona; se corrigieron reglas ignoradas y duración.
+- [x] Reglas del canal, duración mín/máx garantizada, revisión, contexto de episodios, modelo e historial.
+- [x] Marcadores anclados a los clips + ReubicarMarcadores.
 - [ ] Subtítulos desde la transcripción (pospuesto).
