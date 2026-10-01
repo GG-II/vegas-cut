@@ -118,12 +118,13 @@ Necesita la transcripción y la clave de Gemini.
      todas las pistas (hazlo antes de poner música), y deja los textos y momentos como
      marcadores en su nuevo lugar. Ctrl+Z lo deshace. Vegas permite hasta ×4 por evento.
    - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
-   - **Conservar selección** (tramos fijos): selecciona en la línea de tiempo un tramo que quieres
-     completo (por ejemplo una carrera donde casi no hablan) y púlsalo. Entra al corte tal cual, los
-     tramos de la IA que caían adentro se absorben, y si el corte se pasa del máximo se desmarcan
-     otros tramos, nunca el fijo. No hace falta volver a pedir a Gemini; en las próximas peticiones
-     también se le avisa. Desmárcalo en la lista para quitarlo. Se elige **antes** de aplicar el
-     corte (si ya lo aplicaste: Ctrl+Z, vuelve a abrir MomentosIA y elige la selección).
+   - **Conservar tramo…** (tramos fijos): escribe desde y hasta (`57:00` y `1:09:30`) un tramo que
+     quieres completo, por ejemplo una carrera donde casi no hablan. Si antes de abrir MomentosIA
+     dejaste una selección de tiempo o clips seleccionados en Vegas, ya viene llenado. Entra al
+     corte tal cual, los tramos de la IA que caían adentro se absorben, y si el corte se pasa del
+     máximo se desmarcan otros tramos, nunca el fijo. No hace falta volver a pedir a Gemini; en
+     las próximas peticiones también se le avisa. Desmárcalo en la lista para quitarlo. Se elige
+     **antes** de aplicar el corte (si ya lo aplicaste: Ctrl+Z y vuelve a abrir MomentosIA).
      Con **Los fijos cuentan en la duración** activo, todo el corte queda entre el mínimo y el
      máximo; apagado, los fijos van aparte y el mínimo y el máximo son solo para el resto.
 

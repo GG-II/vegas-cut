@@ -437,6 +437,10 @@ class PruebaIA
         Verificar(am2.Count == 2 && Cerca(am2[0].Inicio, 10) && Cerca(am2[1].Inicio, 30),
             "Transcripción: sigue un corte hecho a mano sin volver a transcribir");
 
+        Verificar(DialogoTramo.Leer("1:09:30") == 4170 && DialogoTramo.Leer("57:00") == 3420 && DialogoTramo.Leer(" 3420 ") == 3420 &&
+                  DialogoTramo.Leer("57:00,5") == 3420.5 && double.IsNaN(DialogoTramo.Leer("hola")) && double.IsNaN(DialogoTramo.Leer("")),
+            "Tramo fijo: lee 57:00, 1:09:30 o segundos");
+
         // ------------------------------------------- frases inventadas
         Verificar(Transcripcion.Alucinacion("¡Suscríbete al canal!") && Transcripcion.Alucinacion(" Gracias por ver.") &&
                   !Transcripcion.Alucinacion("Gracias, güey") && !Transcripcion.Alucinacion("¡Corre, corre!"),

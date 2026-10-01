@@ -56,6 +56,72 @@ class DialogoReglas : VentanaBase
     }
 }
 
+// Pide el tramo fijo: desde y hasta, en 57:00, 1:09:30 o segundos.
+class DialogoTramo : VentanaBase
+{
+    CampoTexto txtDesde = new CampoTexto(), txtHasta = new CampoTexto();
+    Etiqueta lblError;
+    readonly double total;
+    public double Inicio, Fin;
+
+    public DialogoTramo(double a, double b, double total) : base("Conservar tramo", 520)
+    {
+        this.total = total;
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Conservar tramo completo", "Entra al corte tal cual, aunque la IA no lo haya elegido.");
+        Texto(a >= 0 ? "Se llenó con lo que tenías seleccionado en Vegas. Puedes corregirlo."
+                     : "Escribe el tramo como 57:00 y 1:09:30 (o selecciónalo en Vegas antes de abrir MomentosIA).",
+              Tema.Pequena, Tema.TextoSuave, m, 90, w, 34);
+        Texto("DESDE", Tema.Pequena, Tema.TextoSuave, m, 130, 200, 18);
+        Texto("HASTA", Tema.Pequena, Tema.TextoSuave, m + 236, 130, 200, 18);
+        txtDesde.Text = a >= 0 ? Formato.Tiempo(a) : "";
+        txtHasta.Text = b >= 0 ? Formato.Tiempo(b) : "";
+        Pos(txtDesde, m, 150, 220, 36);
+        Pos(txtHasta, m + 236, 150, 220, 36);
+        lblError = Texto("", Tema.Pequena, Tema.Silencio, m, 194, w, 20);
+        Boton cancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+        Boton aceptar = new Boton("Conservar", EstiloBoton.Primario);
+        Pos(cancelar, m + w - 260, 226, 110, 38);
+        Pos(aceptar, m + w - 140, 226, 140, 38);
+        ClientSize = new Size(ClientSize.Width, 288);
+        cancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        aceptar.Click += delegate { Aceptar(); };
+        AcceptButton = null;
+        txtHasta.Caja.KeyDown += delegate (object s, KeyEventArgs e) { if (e.KeyCode == Keys.Enter) Aceptar(); };
+        Shown += delegate { (a >= 0 ? txtHasta : txtDesde).Caja.Focus(); };
+    }
+
+    void Aceptar()
+    {
+        double a = Leer(txtDesde.Text), b = Leer(txtHasta.Text);
+        if (double.IsNaN(a) || double.IsNaN(b)) { lblError.Text = "Escribe los tiempos como 57:00, 1:09:30 o en segundos."; return; }
+        if (b < a) { double x = a; a = b; b = x; }
+        a = Math.Max(0, a); b = Math.Min(total, b);
+        if (b - a < 1) { lblError.Text = "El tramo tiene que durar al menos 1 segundo y estar dentro del proyecto (" + Formato.Tiempo(total) + ")."; return; }
+        Inicio = a; Fin = b;
+        DialogResult = DialogResult.OK;
+        Close();
+    }
+
+    // "1:09:30", "57:00", "57:00.5" o "3420".
+    public static double Leer(string texto)
+    {
+        string t = (texto ?? "").Trim().Replace(',', '.');
+        if (t.Length == 0) return double.NaN;
+        string[] partes = t.Split(':');
+        if (partes.Length > 3) return double.NaN;
+        double r = 0;
+        foreach (string p in partes)
+        {
+            double v;
+            if (!double.TryParse(p.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out v) || v < 0) return double.NaN;
+            r = r * 60 + v;
+        }
+        return r;
+    }
+}
+
 class VentanaMomentos : VentanaBase
 {
     readonly Vegas vegas;
@@ -92,7 +158,7 @@ class VentanaMomentos : VentanaBase
     Boton btnInforme = new Boton("Guardar informe", EstiloBoton.Secundario);
     Boton btnMarcar = new Boton("Crear regiones y marcadores", EstiloBoton.Secundario);
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
-    Boton btnFijar = new Boton("Conservar selección", EstiloBoton.Secundario);
+    Boton btnFijar = new Boton("Conservar tramo…", EstiloBoton.Secundario);
     Boton chipCuentan = new Boton("Los fijos cuentan en la duración", EstiloBoton.Chip);
     bool fijosCuentan = true;
     List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selección de tiempo)
@@ -660,22 +726,47 @@ class VentanaMomentos : VentanaBase
     // La seleccion de tiempo de Vegas se conserva completa en el corte, diga
     // lo que diga la IA. Sirve para lo que la IA no puede ver (una carrera
     // con poca conversacion) sin volver a pedir.
+    // Lo que habia seleccionado en Vegas al abrir: la seleccion de tiempo o,
+    // si no hay, los clips seleccionados. Devuelve false si no hay nada.
+    bool SeleccionVegas(out double a, out double b)
+    {
+        a = 0; b = 0;
+        try
+        {
+            a = vegas.Transport.SelectionStart.ToMilliseconds() / 1000.0;
+            double largo = vegas.Transport.SelectionLength.ToMilliseconds() / 1000.0;
+            if (largo < 0) { a += largo; largo = -largo; }
+            if (largo >= 1) { b = a + largo; return true; }
+        }
+        catch { }
+        a = double.MaxValue; b = double.MinValue;
+        foreach (Track pista in vegas.Project.Tracks)
+            foreach (TrackEvent e in pista.Events)
+                if (e.Selected)
+                {
+                    a = Math.Min(a, e.Start.ToMilliseconds() / 1000.0);
+                    b = Math.Max(b, e.End.ToMilliseconds() / 1000.0);
+                }
+        if (b - a >= 1) return true;
+        a = 0; b = 0;
+        return false;
+    }
+
     void Fijar()
     {
-        double a = vegas.Transport.SelectionStart.ToMilliseconds() / 1000.0;
-        double largo = vegas.Transport.SelectionLength.ToMilliseconds() / 1000.0;
-        if (largo < 0) { a += largo; largo = -largo; }
-        if (largo < 1)
-        {
-            Estado("Primero selecciona en la línea de tiempo el tramo que quieres completo (arrastra sobre la regla de tiempo) y luego pulsa “Conservar selección”.", true);
-            return;
-        }
         if (resultado != null && !vigente)
         {
-            Estado("Esta respuesta es de antes de cambiar el proyecto. Deshaz el corte (Ctrl+Z), vuelve a abrir MomentosIA y elige la selección.", true);
+            Estado("Esta respuesta es de antes de cambiar el proyecto. Deshaz el corte (Ctrl+Z), vuelve a abrir MomentosIA y elige el tramo.", true);
             return;
         }
-        double b = Math.Min(total, a + largo);
+        double a, b;
+        bool hay = SeleccionVegas(out a, out b);
+        using (DialogoTramo d = new DialogoTramo(hay ? a : -1, hay ? b : -1, total))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            a = d.Inicio; b = d.Fin;
+        }
+
         string titulo = "Elegido a mano (" + Formato.Tiempo(a) + "–" + Formato.Tiempo(b) + ")";
         fijos = TramosFijos.Agregar(fijos, a, b, titulo);
         TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
