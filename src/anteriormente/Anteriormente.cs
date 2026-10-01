@@ -196,7 +196,9 @@ class VentanaAnteriormente : VentanaBase
     bool cargando;
 
     Lista lstEpisodios = new Lista();
-    Boton btnAgregar = new Boton("Agregar episodios…", EstiloBoton.Secundario);
+    Boton btnSerie = new Boton("Serie…", EstiloBoton.Secundario);
+    Boton btnAgregar = new Boton("Agregar…", EstiloBoton.Secundario);
+    string notasSerie = "";
     Boton btnQuitar = new Boton("Quitar", EstiloBoton.Secundario);
     Segmentado segDuracion = new Segmentado(new string[] { "15 s", "20 s", "30 s", "45 s", "60 s" });
     CampoTexto txtIndicaciones = new CampoTexto();
@@ -227,7 +229,8 @@ class VentanaAnteriormente : VentanaBase
         lstEpisodios.Columns.Add("Trae clips", 150 - SystemInformation.VerticalScrollBarWidth - 4);
         Pos(lstEpisodios, m, y, ci, 120);
         y += 128;
-        Pos(btnAgregar, m, y, ci - 100, 32);
+        Pos(btnSerie, m, y, 110, 32);
+        Pos(btnAgregar, m + 118, y, ci - 118 - 100, 32);
         Pos(btnQuitar, m + ci - 92, y, 92, 32);
         y += 44;
         Texto("Duración", Tema.Negrita, Tema.Texto, m, y, ci, 20);
@@ -273,6 +276,7 @@ class VentanaAnteriormente : VentanaBase
         ClientSize = new Size(ClientSize.Width, fondo + 58 + 24);
 
         btnAgregar.Click += delegate { Agregar(); };
+        btnSerie.Click += delegate { AbrirSerie(); };
         btnQuitar.Click += delegate
         {
             if (lstEpisodios.SelectedIndices.Count == 0) return;
@@ -292,10 +296,14 @@ class VentanaAnteriormente : VentanaBase
 
         segDuracion.Seleccion = 2;
         Cargar();
+        string carpeta;
+        List<CapSerie> caps = Serie.Capitulos(vegas.Project.FilePath, out notasSerie, out carpeta);
+        if (episodios.Count == 0) { DesdeSerie(caps); OrdenarEpisodios(); }
         MostrarEpisodios();
         MostrarClips();
         if (!config.TieneGemini) { btnPedir.Enabled = false; Estado("Falta la clave de Gemini: ejecuta “ConfigurarVegasCut”.", true); }
-        else if (episodios.Count == 0) Estado("Agrega uno o más episodios anteriores (su .veg, ya transcrito).", false);
+        else if (episodios.Count == 0) Estado("No encontré capítulos anteriores (nómbralos como “S01E01 SCR.veg”). Usa “Serie…” para elegir la carpeta o “Agregar…”.", false);
+        else Estado(episodios.Count + (episodios.Count == 1 ? " capítulo anterior" : " capítulos anteriores") + " de la serie. Pulsa “Pedir a Gemini”.", false);
     }
 
     int Segundos { get { return Duraciones[Math.Max(0, segDuracion.Seleccion)]; } }
@@ -325,11 +333,53 @@ class VentanaAnteriormente : VentanaBase
                 }
                 catch (Exception ex) { errores.Add(ex.Message); }
             }
-            episodios.Sort(delegate (Episodio a, Episodio b) { return String.Compare(a.Nombre, b.Nombre, StringComparison.OrdinalIgnoreCase); });
+            OrdenarEpisodios();
             clips.Clear(); respuesta = "";
             MostrarEpisodios(); MostrarClips();
             if (errores.Count > 0) Estado(String.Join("\n", errores.ToArray()), true);
         }
+    }
+
+    // Los capitulos anteriores de la serie (marcados y transcritos).
+    void DesdeSerie(List<CapSerie> caps)
+    {
+        List<string> errores = new List<string>();
+        foreach (CapSerie c in caps)
+        {
+            if (c.Relacion >= 0 || !c.Elegido || !c.Transcrito) continue;
+            if (episodios.Exists(delegate (Episodio x) { return String.Equals(x.Veg, c.Veg, StringComparison.OrdinalIgnoreCase); })) continue;
+            try { episodios.Add(Episodio.Abrir(c.Veg)); } catch (Exception ex) { errores.Add(ex.Message); }
+        }
+        if (errores.Count > 0) Estado(String.Join("\n", errores.ToArray()), true);
+    }
+
+    void AbrirSerie()
+    {
+        string modelo = comboModelo.Text.Trim().Length > 0 ? comboModelo.Text.Trim() : config.GeminiModelo;
+        List<CapSerie> caps;
+        using (DialogoSerie d = new DialogoSerie(vegas.Project.FilePath, config.GeminiClave, modelo))
+        {
+            d.ShowDialog(this);
+            caps = d.Caps; notasSerie = d.Notas;
+        }
+        // Se quitan los de la serie que desmarcaste y se recargan (por si hay fichas nuevas).
+        episodios.RemoveAll(delegate (Episodio e)
+        {
+            return caps.Exists(delegate (CapSerie c) { return String.Equals(c.Veg, e.Veg, StringComparison.OrdinalIgnoreCase); });
+        });
+        DesdeSerie(caps);
+        OrdenarEpisodios();
+        clips.Clear(); respuesta = "";
+        MostrarEpisodios(); MostrarClips();
+    }
+
+    void OrdenarEpisodios()
+    {
+        episodios.Sort(delegate (Episodio a, Episodio b)
+        {
+            int c = Serie.Orden(a.Nombre).CompareTo(Serie.Orden(b.Nombre));
+            return c != 0 ? c : String.Compare(a.Nombre, b.Nombre, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     void MostrarEpisodios()
@@ -352,7 +402,7 @@ class VentanaAnteriormente : VentanaBase
         string clave = config.GeminiClave, modelo = comboModelo.Text.Trim();
         if (modelo.Length == 0) modelo = config.GeminiModelo;
         int segundos = Segundos;
-        string indicaciones = txtIndicaciones.Text;
+        string indicaciones = txtIndicaciones.Text, notas = notasSerie;
         List<Episodio> eps = new List<Episodio>(episodios);
         string actual = LogicaAnteriormente.Actual(TranscripcionActual(), ResumenActual());
 
@@ -365,7 +415,7 @@ class VentanaAnteriormente : VentanaBase
         Thread hilo = new Thread(delegate ()
         {
             string r = null, error = null;
-            try { r = Gemini.Generar(clave, modelo, LogicaAnteriormente.Instrucciones(segundos), LogicaAnteriormente.Mensaje(eps, actual, indicaciones, segundos), true); }
+            try { r = Gemini.Generar(clave, modelo, LogicaAnteriormente.Instrucciones(segundos), LogicaAnteriormente.Mensaje(eps, actual, indicaciones, segundos, notas), true); }
             catch (Exception ex) { error = ex.Message; }
             try
             {

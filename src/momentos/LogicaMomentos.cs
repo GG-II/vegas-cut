@@ -593,7 +593,7 @@ public static class PeticionIA
         if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + ConSegundos(op.Instrucciones.Trim()) + "\n");
         Fijos_(sb, op);
         if (!String.IsNullOrEmpty(op.Contexto))
-            sb.Append("\nCONTEXTO DE EPISODIOS ANTERIORES (solo para entender la historia; no los cortes):\n" + op.Contexto.Trim() + "\n");
+            sb.Append("\nCONTEXTO DE LA SERIE (otros capítulos; solo para entender la historia):\n" + op.Contexto.Trim() + "\n");
         sb.Append("\nPersonas (cada una es una pista de audio):\n");
         foreach (Hablante h in t.Hablantes)
             if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");

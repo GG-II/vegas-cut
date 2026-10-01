@@ -14,52 +14,6 @@ using System.Text;
 // trae al proyecto nuevo sin abrir el proyecto viejo.
 // =====================================================================
 
-public class Episodio
-{
-    public string Veg = "", Nombre = "";
-    public Transcripcion T;
-    public string Resumen = "";   // de su respuesta de MomentosIA, si hay
-    public bool TieneFuentes { get { return T != null && T.TieneFuentes; } }
-
-    public static Episodio Abrir(string ruta)
-    {
-        Episodio e = new Episodio();
-        string veg = ruta;
-        if (ruta.EndsWith(".vegascut.json", StringComparison.OrdinalIgnoreCase))
-            veg = ruta.Substring(0, ruta.Length - ".vegascut.json".Length) + ".veg";
-        e.Veg = veg;
-        e.Nombre = Path.GetFileNameWithoutExtension(veg);
-        string rt = Transcripcion.RutaPara(veg);
-        if (rt == null || !File.Exists(rt)) throw new Exception(e.Nombre + " no tiene transcripción (ejecuta Transcribir en ese proyecto).");
-        e.T = Transcripcion.Cargar(rt);
-        try
-        {
-            string ia = Path.Combine(Path.GetDirectoryName(veg), e.Nombre + ".vegascut-ia.json");
-            if (File.Exists(ia))
-            {
-                object o = Json.Leer(File.ReadAllText(ia, Encoding.UTF8));
-                e.Resumen = Json.Texto(Json.Leer(Gemini.QuitarCercas(Json.Texto(o, "respuesta"))), "resumen");
-            }
-        }
-        catch { }
-        return e;
-    }
-
-    // Frases que quedaron en el video (sin lo cortado con las herramientas),
-    // con los tiempos originales de la transcripcion.
-    public List<Segmento> Publicado()
-    {
-        List<Segmento> r = new List<Segmento>();
-        foreach (Segmento s in T.Segmentos)
-        {
-            if (Transcripcion.Alucinacion(s.Texto) || String.IsNullOrEmpty(s.Texto)) continue;
-            if (double.IsNaN(T.Mapear(s.Inicio)) || double.IsNaN(T.Mapear(s.Fin))) continue;
-            r.Add(s);
-        }
-        return r;
-    }
-}
-
 public class ClipAnterior
 {
     public int Episodio;              // indice en la lista de episodios
@@ -97,7 +51,8 @@ public static class LogicaAnteriormente
                "- En orden cronológico (episodio y tiempo). La suma de los clips debe quedar cerca de " + segundos +
                " s (entre " + (int)(segundos * 0.8) + " y " + (int)(segundos * 1.15) + " s).\n" +
                "- Nada de conversaciones personales, problemas técnicos ni groserías fuertes.\n" +
-               "- Usa solo tiempos que aparecen en la transcripción de ese episodio.\n\n" +
+               "- Usa solo tiempos que aparecen en la transcripción o en las frases clave de ese episodio. De los " +
+               "capítulos más viejos solo tienes su ficha: puedes usar sus frases clave tal cual, con sus tiempos.\n\n" +
                "Responde SOLO con JSON:\n" +
                "{\"clips\": [{\"episodio\": n, \"inicio\": s, \"fin\": s, \"texto\": \"lo que se dice\", " +
                "\"motivo\": \"por qué importa para este episodio\"}], \"resumen\": \"el anteriormente en una o dos frases\"}";
@@ -105,15 +60,28 @@ public static class LogicaAnteriormente
 
     public static string Mensaje(List<Episodio> episodios, string actual, string indicaciones, int segundos)
     {
+        return Mensaje(episodios, actual, indicaciones, segundos, "");
+    }
+
+    // Completa: los 2 capitulos mas cercanos (y los que no tienen ficha);
+    // de los demas solo la ficha, para no mandar horas de transcripcion.
+    public const int Completos = 2;
+
+    public static string Mensaje(List<Episodio> episodios, string actual, string indicaciones, int segundos, string notas)
+    {
         StringBuilder sb = new StringBuilder();
         sb.Append("Duración del anteriormente: " + segundos + " s\n");
+        if (!String.IsNullOrEmpty(notas)) sb.Append("\nNOTAS DE LA SERIE:\n" + notas.Trim() + "\n");
         if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR:\n" + indicaciones.Trim() + "\n");
         sb.Append("\nEPISODIO ACTUAL (de qué trata; para saber qué recordar):\n" + (actual ?? "").Trim() + "\n");
         for (int i = 0; i < episodios.Count; i++)
         {
             Episodio e = episodios[i];
             sb.Append("\n==== EPISODIO " + (i + 1) + ": " + e.Nombre + " ====\n");
-            if (e.Resumen.Length > 0) sb.Append("Resumen: " + e.Resumen.Trim() + "\n");
+            bool completo = e.Ficha == null || i >= episodios.Count - Completos;
+            if (e.Ficha != null) sb.Append("Ficha: " + e.Ficha.Texto(!completo));
+            else if (e.Resumen.Length > 0) sb.Append("Resumen: " + e.Resumen.Trim() + "\n");
+            if (!completo) continue;
             sb.Append("Transcripción de lo que quedó en el video [inicio-fin] persona: texto\n");
             foreach (Segmento s in e.Publicado())
                 sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + Nombre(e.T, s.Hablante) + ": " + s.Texto + "\n");

@@ -216,13 +216,38 @@ aunque muevas o recortes clips; si una parte se borró, aparece como *ya no est�
 transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a
 mano, vuelve a transcribir (un video ya editado de 20 min tarda poco).
 
+### Series (MomentosIA y Anteriormente)
+
+![Cuadro Serie](docs/img/serie.png)
+
+Si nombras los capítulos con temporada y número (`S01E01 SCR.veg`, `S01E02 SCR.veg`…), las
+herramientas los encuentran solas: en la misma carpeta, en las carpetas de al lado (una por
+capítulo) o en la carpeta que elijas con **Elegir carpeta…** (con todas sus subcarpetas). El
+resto del nombre («SCR») dice de qué serie es. El botón **Serie…** abre este cuadro:
+
+- **Capítulos**: anteriores y posteriores (si ya están grabados y transcritos). Desmarca los que
+  no quieras usar.
+- **Fichas**: «Hacer las fichas que faltan» le pide a Gemini, una sola vez por capítulo, un
+  resumen con los **hilos abiertos** (objetivos, promesas, rivalidades, objetos que vuelven), lo
+  **recurrente** (chistes, apodos) y **frases clave** con su tiempo. Se hace de lo que quedó en
+  el video y se guarda junto a su proyecto (`<proyecto>.vegascut-ficha.json`). «Rehacer la
+  elegida» la vuelve a hacer (por ejemplo, después de terminar de editar ese capítulo).
+- **Notas de la serie**: personajes, apodos, lugares y de qué va. Se guardan con el proyecto
+  (`<proyecto>.vegascut-serie.json`) y un capítulo nuevo hereda las del anterior.
+
+Con eso, **MomentosIA** recibe las fichas de los capítulos anteriores (para conservar lo que
+continúa una historia) y de los **posteriores** (para no cortar lo que prepara algo que se
+retoma después), y **Anteriormente** toma los capítulos anteriores solo, con la ficha de los
+viejos (incluidas sus frases clave) y el texto completo de los 2 más recientes.
+
 ### `Anteriormente.cs`
 
 ![Ventana de Anteriormente](docs/img/anteriormente.png)
 
 Arma el «ANTERIORMENTE» que abre un episodio, con frases dichas en los episodios pasados.
 
-1. **Agregar episodios…**: elige los `.veg` de los episodios anteriores (ya transcritos). Para
+1. Los capítulos anteriores de la serie se cargan solos (ver *Series*); con **Agregar…** sumas
+   otros `.veg` a mano. Para
    poder traer sus clips, su transcripción tiene que ser de esta versión de *Transcribir* (la
    columna *Trae clips* lo dice); si no, sirven solo de contexto.
 2. Elige la **duración** (15, 20, 30, 45 o 60 s) y, si quieres, qué recordar («hoy es la

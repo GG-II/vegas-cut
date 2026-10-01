@@ -131,7 +131,8 @@ class VentanaMomentos : VentanaBase
     readonly double total;
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
-    List<string> contexto = new List<string>();   // respuestas de episodios anteriores
+    List<CapSerie> capitulos = new List<CapSerie>();   // capitulos de la misma serie
+    string notasSerie = "", carpetaSerie = "";
     List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
     bool cargando, aplicado, vigente;
 
@@ -142,7 +143,7 @@ class VentanaMomentos : VentanaBase
     List<CampoTexto> nombres = new List<CampoTexto>();
     CampoTexto txtInstrucciones = new CampoTexto();
     Boton btnReglas = new Boton("Reglas del canal…", EstiloBoton.Secundario);
-    Boton btnContexto = new Boton("Episodios anteriores…", EstiloBoton.Secundario);
+    Boton btnContexto = new Boton("Serie…", EstiloBoton.Secundario);
     Etiqueta lblContexto;
     Combo comboModelo = new Combo(true);
     Etiqueta lblModelo;
@@ -304,6 +305,8 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
+        capitulos = Serie.Capitulos(vegas.Project.FilePath, out notasSerie, out carpetaSerie);
+        MostrarContexto();
         fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
         fijosCuentan = TramosFijos.Cuentan(vegas.Project.FilePath);
         chipCuentan.Activo = fijosCuentan;
@@ -354,8 +357,6 @@ class VentanaMomentos : VentanaBase
                 opciones.Instrucciones = Json.Texto(op, "instrucciones");
                 opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
                 opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
-                contexto.Clear();
-                foreach (object x in Json.Lista(op, "contexto")) if (x is string && File.Exists((string)x)) contexto.Add((string)x);
             }
         }
         catch { }
@@ -378,7 +379,7 @@ class VentanaMomentos : VentanaBase
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
-        opciones.Contexto = PeticionIA.ContextoDe(contexto);
+        opciones.Contexto = Serie.Contexto(capitulos, notasSerie);
         opciones.Fijos = new List<Tramo>(fijos);
         opciones.FijosCuentan = fijosCuentan;
         foreach (CampoTexto c in nombres)
@@ -402,27 +403,18 @@ class VentanaMomentos : VentanaBase
 
     void ElegirContexto()
     {
-        using (OpenFileDialog d = new OpenFileDialog())
+        string modelo = comboModelo.Text.Trim().Length > 0 ? comboModelo.Text.Trim() : config.GeminiModelo;
+        using (DialogoSerie d = new DialogoSerie(vegas.Project.FilePath, config.GeminiClave, modelo))
         {
-            d.Title = "Respuestas de MomentosIA de episodios anteriores (opcional)";
-            d.Filter = "Respuestas de MomentosIA|*.vegascut-ia.json;*.json";
-            d.Multiselect = true;
-            string carpeta = Path.GetDirectoryName(Path.GetDirectoryName(vegas.Project.FilePath) ?? "");
-            if (!String.IsNullOrEmpty(carpeta) && Directory.Exists(carpeta)) d.InitialDirectory = carpeta;
-            DialogResult r = d.ShowDialog(this);
-            if (r != DialogResult.OK) return;
-            contexto.Clear();
-            foreach (string f in d.FileNames) if (f != rutaIA && !f.StartsWith(rutaHistorial)) contexto.Add(f);
-            MostrarContexto();
+            d.ShowDialog(this);
+            capitulos = d.Caps; notasSerie = d.Notas; carpetaSerie = d.Carpeta;
         }
+        MostrarContexto();
     }
 
     void MostrarContexto()
     {
-        if (contexto.Count == 0) { lblContexto.Text = "Sin contexto de episodios anteriores."; return; }
-        List<string> n = new List<string>();
-        foreach (string f in contexto) n.Add(Path.GetFileName(f).Replace(".vegascut-ia.json", ""));
-        lblContexto.Text = "Contexto: " + String.Join(", ", n.ToArray());
+        lblContexto.Text = DialogoSerie.Resumen(capitulos) + (notasSerie.Length > 0 ? " · con notas" : "");
     }
 
     void AvisoModelo()
@@ -606,7 +598,7 @@ class VentanaMomentos : VentanaBase
         op["silenciarAcelerado"] = opciones.SilenciarAcelerado;
         op["reglasCanal"] = opciones.ReglasCanal;
         List<object> ctx = new List<object>();
-        foreach (string f in contexto) ctx.Add(f);
+        foreach (CapSerie c in capitulos) if (c.Elegido && c.Relacion != 0 && c.TieneFicha) ctx.Add(c.Nombre);
         op["contexto"] = ctx;
         guardar["opciones"] = op;
         guardar["respuesta"] = respuesta;

@@ -24,14 +24,14 @@ HERRAMIENTAS = {
     'Transcribir': ['transcribir/cabecera.txt', 'transcribir/Transcribir.cs', 'comun/PistasVegas.cs'] +
                    COMUN_BASE + ['comun/Configuracion.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
     'MomentosIA': ['momentos/cabecera.txt', 'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs',
-                   'comun/Editor.cs', 'comun/PistasVegas.cs', 'comun/Anclas.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+                   'comun/Editor.cs', 'comun/PistasVegas.cs', 'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/Anclas.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'ReubicarMarcadores': ['marcadores/cabecera.txt', 'marcadores/Reubicar.cs', 'comun/Anclas.cs', 'comun/Json.cs'],
     'TextosDesdeMarcadores': ['textos/cabecera.txt', 'textos/Textos.cs', 'textos/Generador.cs', 'comun/Rtf.cs',
                               'comun/Anclas.cs', 'comun/Audio.cs', 'comun/Json.cs', 'comun/Ui.cs'],
     'MusicaAutomatica': ['musica/cabecera.txt', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'comun/PistasVegas.cs'] +
                         COMUN_BASE + ['silencios/Deteccion.cs', 'comun/Ui.cs'],
     'Anteriormente': ['anteriormente/cabecera.txt', 'anteriormente/Anteriormente.cs', 'anteriormente/LogicaAnteriormente.cs',
-                      'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
+                      'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
     'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',

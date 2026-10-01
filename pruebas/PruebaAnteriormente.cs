@@ -113,6 +113,59 @@ class PruebaAnteriormente
         string r3 = InsertarAnteriormente.Aplicar(p3, eps, clips, 60, true, false);
         Verificar(r3.Contains("No se encontraron") && r3.Contains("discord.wav"), "Avisa si falta una grabación");
 
+        // ------------------------------------------------------- series
+        int st, sn; string ss1, ss2, ss3;
+        Verificar(Serie.Clave("S01E02 SCR", out st, out sn, out ss1) && st == 1 && sn == 2 &&
+                  Serie.Clave("s1e10_SCR", out st, out sn, out ss2) && sn == 10 && ss1 == ss2 &&
+                  Serie.Clave("S01E03 Avatar", out st, out sn, out ss3) && ss3 != ss1 && !Serie.Clave("Enero", out st, out sn, out ss3),
+            "Serie: reconoce S01E02 y la serie por el resto del nombre");
+        string raiz = Path.Combine(Path.GetTempPath(), "serie-" + Guid.NewGuid().ToString("N"));
+        // Un capitulo por carpeta, otro suelto mas adentro, y uno de otra serie.
+        foreach (string f in new string[] { "S01E01/S01E01 SCR.veg", "S01E02/S01E02 SCR.veg", "S01E03/S01E03 SCR.veg",
+                                             "viejos/2025/S01E00 SCR.veg", "S01E02/S01E02 SCR.veg.bak", "S01E01/S01E01 Avatar.veg" })
+        {
+            string ruta = Path.Combine(raiz, f.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(ruta));
+            File.WriteAllText(ruta, "");
+        }
+        string actual = Path.Combine(raiz, "S01E02", "S01E02 SCR.veg");
+        List<CapSerie> caps = Serie.Buscar(actual);
+        string nombres = "";
+        foreach (CapSerie c in caps) nombres += c.Codigo + (c.Relacion < 0 ? "-" : c.Relacion > 0 ? "+" : "=") + " ";
+        Verificar(nombres == "S01E01- S01E02= S01E03+ ", "Serie: encuentra anteriores y posteriores en carpetas de al lado (" + nombres + ")");
+        Verificar(Serie.Buscar(actual, Path.Combine(raiz, "viejos")).Count == 4, "Serie: con la carpeta elegida busca también en sus subcarpetas");
+
+        Serie.Guardar(Path.Combine(raiz, "S01E01", "S01E01 SCR.veg"), "Gerber = Herbert", Path.Combine(raiz, "viejos"), Serie.Buscar(Path.Combine(raiz, "S01E01", "S01E01 SCR.veg")));
+        string notas, carpeta;
+        List<CapSerie> caps2 = Serie.Capitulos(actual, out notas, out carpeta);
+        Verificar(notas == "Gerber = Herbert" && carpeta.EndsWith("viejos") && caps2.Count == 4, "Serie: un capítulo nuevo hereda notas y carpeta del anterior");
+        caps2[0].Elegido = false;
+        Serie.Guardar(actual, "notas propias", carpeta, caps2);
+        caps2 = Serie.Capitulos(actual, out notas, out carpeta);
+        Verificar(notas == "notas propias" && !caps2[0].Elegido && caps2[1].Elegido, "Serie: guarda por proyecto las notas y los capítulos que quitaste");
+
+        Ficha fi = Ficha.Leer(@"{""resumen"": ""Ganaron la carrera."", ""hilos"": [""El yunque escondido""], ""recurrentes"": [""Gerber pierde su caballo""],
+            ""frases"": [{""inicio"": 10, ""fin"": 12.5, ""quien"": ""AB Fann"", ""texto"": ""¡Ganamos!"", ""por"": ""el final""}]}");
+        string s1 = Path.Combine(raiz, "S01E01", "S01E01 SCR.veg"), s3 = Path.Combine(raiz, "S01E03", "S01E03 SCR.veg");
+        fi.Guardar(s1); fi.Guardar(s3);
+        Ficha fi2 = Ficha.Cargar(s1);
+        Verificar(fi2 != null && fi2.Hilos[0] == "El yunque escondido" && fi2.Frases.Count == 1 && fi2.Texto(true).Contains("[10.0-12.5] AB Fann: ¡Ganamos!"),
+            "Ficha: se guarda junto al proyecto y se lee igual");
+        string ctx = Serie.Contexto(Serie.Buscar(actual), "Steel Ball Run");
+        Verificar(ctx.Contains("Notas de la serie") && ctx.Contains("Capítulos anteriores:\n- S01E01 SCR: Ganaron") &&
+                  ctx.Contains("POSTERIORES") && ctx.Contains("- S01E03 SCR"), "Contexto de MomentosIA: notas, anteriores y posteriores");
+
+        // Anteriormente: de los capitulos viejos solo la ficha; completos los 2 ultimos.
+        Episodio viejo = new Episodio { Nombre = "S01E00", T = t, Ficha = fi };
+        Episodio e2 = new Episodio { Nombre = "S01E01b", T = t };
+        string ma = LogicaAnteriormente.Mensaje(new List<Episodio> { viejo, e1, e2 }, "x", "", 30, "Notas SBR");
+        int bloque0 = ma.IndexOf("EPISODIO 1: S01E00"), bloque1 = ma.IndexOf("EPISODIO 2:");
+        string parte0 = ma.Substring(bloque0, bloque1 - bloque0);
+        Verificar(parte0.Contains("Ficha: Ganaron") && parte0.Contains("[10.0-12.5]") && !parte0.Contains("Transcripción") &&
+                  ma.Substring(bloque1).Contains("Transcripción") && ma.Contains("NOTAS DE LA SERIE"),
+            "Anteriormente: capítulos viejos solo con su ficha, los 2 últimos completos");
+        try { Directory.Delete(raiz, true); } catch { }
+
         try { Directory.Delete(dir, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " pruebas fallaron.");
         return fallos == 0 ? 0 : 1;
