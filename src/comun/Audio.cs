@@ -12,6 +12,27 @@ public struct Rango
     public Rango(double inicio, double fin) { Inicio = inicio; Fin = fin; }
 }
 
+// Tramo que se reproduce mas rapido (Factor 2 = el doble de rapido).
+public class Acelerado
+{
+    public double Inicio, Fin, Factor;
+    public Acelerado(double inicio, double fin, double factor) { Inicio = inicio; Fin = fin; Factor = factor; }
+
+    public double Ahorro { get { return (Fin - Inicio) * (1 - 1 / Factor); } }
+
+    // Nueva posicion de un instante despues de acelerar los tramos.
+    public static double Posicion(double t, List<Acelerado> tramos)
+    {
+        double ahorro = 0;
+        foreach (Acelerado a in tramos)
+        {
+            if (t >= a.Fin - 1e-6) ahorro += a.Ahorro;
+            else if (t > a.Inicio) ahorro += (t - a.Inicio) * (1 - 1 / a.Factor);
+        }
+        return t - ahorro;
+    }
+}
+
 public class Analisis
 {
     public const double Paso = 0.01;  // 10 ms por medicion

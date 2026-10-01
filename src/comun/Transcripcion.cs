@@ -40,6 +40,7 @@ public class Hablante
 public class Edicion
 {
     public List<Rango> Quitados = new List<Rango>();
+    public List<Acelerado> Acelerados = new List<Acelerado>();
     public double Antes, Despues; // duracion del proyecto
 }
 
@@ -66,6 +67,7 @@ public class Transcripcion
     {
         foreach (Edicion e in Ediciones)
         {
+            if (e.Acelerados.Count > 0) t = Acelerado.Posicion(t, e.Acelerados);
             double q = 0;
             foreach (Rango r in e.Quitados)
             {
@@ -142,16 +144,30 @@ public class Transcripcion
     // La llaman las herramientas que cortan (Quitar silencios, Momentos).
     public static string RegistrarCortes(string veg, List<Rango> quitados, double antes, double despues)
     {
+        Edicion e = new Edicion();
+        e.Quitados.AddRange(quitados);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    public static string RegistrarAceleracion(string veg, List<Acelerado> tramos, double antes, double despues)
+    {
+        Edicion e = new Edicion();
+        e.Acelerados.AddRange(tramos);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    static string RegistrarEdicion(string veg, Edicion e)
+    {
         string ruta = RutaPara(veg);
         if (ruta == null || !File.Exists(ruta)) return "";
         try
         {
             Transcripcion t = Cargar(ruta);
-            t.Sincronizar(antes);
-            Edicion e = new Edicion();
-            e.Quitados.AddRange(quitados);
-            e.Antes = antes;
-            e.Despues = despues;
+            t.Sincronizar(e.Antes);
             t.Ediciones.Add(e);
             t.Guardar(ruta);
             return "\nLa transcripción también se ajustó a los cortes.";
@@ -272,6 +288,12 @@ public class Transcripcion
             List<object> qs = new List<object>();
             foreach (Rango r in e.Quitados) qs.Add(new List<object> { R(r.Inicio), R(r.Fin) });
             x["quitados"] = qs;
+            if (e.Acelerados.Count > 0)
+            {
+                List<object> acs = new List<object>();
+                foreach (Acelerado a in e.Acelerados) acs.Add(new List<object> { R(a.Inicio), R(a.Fin), a.Factor });
+                x["acelerados"] = acs;
+            }
             es.Add(x);
         }
         d["ediciones"] = es;
@@ -339,6 +361,14 @@ public class Transcripcion
                 if (l != null && l.Count >= 2)
                     e.Quitados.Add(new Rango(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
                                              Convert.ToDouble(l[1], CultureInfo.InvariantCulture)));
+            }
+            foreach (object q in Json.Lista(x, "acelerados"))
+            {
+                List<object> l = q as List<object>;
+                if (l != null && l.Count >= 3)
+                    e.Acelerados.Add(new Acelerado(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[1], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[2], CultureInfo.InvariantCulture)));
             }
             t.Ediciones.Add(e);
         }

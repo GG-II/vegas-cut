@@ -91,6 +91,8 @@ class VentanaMomentos : VentanaBase
 
     Segmentado segTipo = new Segmentado(new string[] { "Gameplay", "Narraci\u00f3n", "Podcast", "Otro" });
     CampoNumero numMinutos = new CampoNumero();
+    Segmentado segAcelerar = new Segmentado(new string[] { "Cortar", "Acelerar" });
+    Segmentado segAudio = new Segmentado(new string[] { "Mudo", "Acelerado" });
     List<CampoTexto> nombres = new List<CampoTexto>();
     CampoTexto txtInstrucciones = new CampoTexto();
     Boton btnPedir = new Boton("Pedir a Gemini", EstiloBoton.Primario);
@@ -135,10 +137,15 @@ class VentanaMomentos : VentanaBase
         Texto("Tipo de video", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         Pos(segTipo, m, y + 22, ci, 34);
         y += 68;
-        Texto("Duraci\u00f3n objetivo", Tema.Negrita, Tema.Texto, m, y, ci, 20);
+        Texto("Duraci\u00f3n objetivo", Tema.Negrita, Tema.Texto, m, y, 108, 20);
         numMinutos.Sufijo = "min"; numMinutos.Minimo = 1; numMinutos.Maximo = 600; numMinutos.Paso = 1;
-        Pos(numMinutos, m, y + 22, 120, 36);
-        y += 70;
+        Pos(numMinutos, m, y + 22, 100, 36);
+        Texto("Transiciones", Tema.Negrita, Tema.Texto, m + 112, y, 100, 20);
+        Pos(segAcelerar, m + 112, y + 23, ci - 112, 34);
+        y += 66;
+        Texto("Audio de lo acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 170, 20);
+        Pos(segAudio, m + 170, y, ci - 170, 34);
+        y += 46;
         Texto("Nombres de las personas", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         y += 24;
         foreach (Hablante h in t.Hablantes)
@@ -155,8 +162,8 @@ class VentanaMomentos : VentanaBase
         y += 6;
         Texto("Indicaciones (opcional)", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         txtInstrucciones.Multilinea = true;
-        Pos(txtInstrucciones, m, y + 22, ci, 90);
-        y += 122;
+        Pos(txtInstrucciones, m, y + 22, ci, 70);
+        y += 102;
         Texto("Ej.: \u201cEs el episodio 3 de una serie, que se entienda la historia\u201d o \u201cConserva todas las peleas\u201d.",
               Tema.Pequena, Tema.TextoSuave, m, y, ci, 32);
         y += 40;
@@ -209,6 +216,8 @@ class VentanaMomentos : VentanaBase
         foreach (Lista l in new Lista[] { lstMomentos, lstShorts })
             l.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando) ((Tramo)e.Item.Tag).Elegido = e.Item.Checked; };
         lstTextos.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando) ((TextoResumen)e.Item.Tag).Elegido = e.Item.Checked; };
+        lstCorte.MouseClick += delegate (object s, MouseEventArgs e) { CambiarVelocidad(e); };
+        segAcelerar.Cambio += delegate { segAudio.Enabled = segAcelerar.Seleccion == 1; };
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
@@ -224,7 +233,7 @@ class VentanaMomentos : VentanaBase
     void ConfigurarListas()
     {
         lstCorte.Columns.Add("Inicio", 70); lstCorte.Columns.Add("Fin", 70); lstCorte.Columns.Add("Dura", 60);
-        lstCorte.Columns.Add("Tramo", 200); lstCorte.Columns.Add("Por qu\u00e9", 900);
+        lstCorte.Columns.Add("Velocidad", 84); lstCorte.Columns.Add("Tramo", 190); lstCorte.Columns.Add("Por qu\u00e9", 900);
         lstMomentos.Columns.Add("Nota", 60); lstMomentos.Columns.Add("Inicio", 70); lstMomentos.Columns.Add("Fin", 70);
         lstMomentos.Columns.Add("Momento", 200); lstMomentos.Columns.Add("Por qu\u00e9", 900);
         lstTextos.Columns.Add("D\u00f3nde", 70); lstTextos.Columns.Add("Texto", 280); lstTextos.Columns.Add("Qu\u00e9 se salta", 900);
@@ -250,6 +259,8 @@ class VentanaMomentos : VentanaBase
                     opciones.Tipo = Json.Texto(op, "tipo");
                     opciones.MinutosObjetivo = Json.Numero(op, "minutos", opciones.MinutosObjetivo);
                     opciones.Instrucciones = Json.Texto(op, "instrucciones");
+                    opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
+                    opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
                 }
             }
         }
@@ -257,6 +268,9 @@ class VentanaMomentos : VentanaBase
         segTipo.Seleccion = Math.Max(0, Array.IndexOf(Tipos, opciones.Tipo));
         numMinutos.Valor = (int)opciones.MinutosObjetivo;
         txtInstrucciones.Text = opciones.Instrucciones;
+        segAcelerar.Seleccion = opciones.PermitirAcelerar ? 1 : 0;
+        segAudio.Seleccion = opciones.SilenciarAcelerado ? 0 : 1;
+        segAudio.Enabled = opciones.PermitirAcelerar;
     }
 
     void LeerOpciones()
@@ -264,6 +278,8 @@ class VentanaMomentos : VentanaBase
         opciones.Tipo = Tipos[segTipo.Seleccion];
         opciones.MinutosObjetivo = numMinutos.Valor;
         opciones.Instrucciones = txtInstrucciones.Text;
+        opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
+        opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -297,24 +313,33 @@ class VentanaMomentos : VentanaBase
     {
         LeerOpciones();
         try { transcripcion.Guardar(rutaTranscripcion); } catch { } // guarda los nombres
-        string mensaje = PeticionIA.Mensaje(transcripcion, total, opciones);
         string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        OpcionesIA op = opciones;
+        Transcripcion t = transcripcion;
+        double duracion = total;
 
         btnPedir.Enabled = false;
         DateTime inicio = DateTime.Now;
+        string paso = "Preparando\u2026";
         System.Windows.Forms.Timer reloj = new System.Windows.Forms.Timer();
         reloj.Interval = 500;
         reloj.Tick += delegate
         {
-            Estado("Gemini est\u00e1 pensando\u2026 " + Formato.Tiempo((DateTime.Now - inicio).TotalSeconds) +
-                   " (" + (mensaje.Length / 1000) + " mil caracteres enviados). Puede tardar 1 o 2 minutos.", false);
+            Estado(paso + " " + Formato.Tiempo((DateTime.Now - inicio).TotalSeconds) +
+                   (duracion > 35 * 60 ? "\nVideo largo: se analiza por partes (varios minutos)." : "\nPuede tardar 1 o 2 minutos."), false);
         };
         reloj.Start();
+
+        AsistenteIA asistente = new AsistenteIA(delegate (string instrucciones, string mensaje)
+        {
+            return Gemini.Generar(clave, modelo, instrucciones, mensaje, true);
+        });
+        asistente.Progreso = delegate (string texto) { paso = texto; };
 
         Thread hilo = new Thread(delegate ()
         {
             string respuesta = null, error = null;
-            try { respuesta = Gemini.Generar(clave, modelo, PeticionIA.Instrucciones, mensaje, true); }
+            try { respuesta = asistente.Ejecutar(t, duracion, op); }
             catch (Exception ex) { error = ex.Message; }
             try
             {
@@ -353,6 +378,8 @@ class VentanaMomentos : VentanaBase
         op["tipo"] = opciones.Tipo;
         op["minutos"] = opciones.MinutosObjetivo;
         op["instrucciones"] = opciones.Instrucciones;
+        op["acelerar"] = opciones.PermitirAcelerar;
+        op["silenciarAcelerado"] = opciones.SilenciarAcelerado;
         guardar["opciones"] = op;
         guardar["respuesta"] = respuesta;
         try { File.WriteAllText(rutaIA, Json.Escribir(guardar), new UTF8Encoding(false)); } catch { }
@@ -374,7 +401,7 @@ class VentanaMomentos : VentanaBase
         if (hay)
         {
             foreach (Tramo t in resultado.Corte)
-                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), t.Titulo, t.Motivo);
+                Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t), t.Titulo, t.Motivo);
             foreach (Tramo t in resultado.Momentos)
                 Fila(lstMomentos, t, t.Elegido, t.Puntuacion.ToString("0") + "/10", T(t.Inicio), T(t.Fin), t.Titulo, t.Motivo);
             foreach (TextoResumen t in resultado.Textos)
@@ -399,6 +426,24 @@ class VentanaMomentos : VentanaBase
         MostrarPestana();
     }
 
+    static string Velocidad(Tramo t)
+    {
+        return t.Acelerar ? "\u23e9 \u00d7" + t.Velocidad.ToString("0") + " (" + Formato.Tiempo(t.DuracionFinal) + ")" : "normal";
+    }
+
+    // Clic en la columna Velocidad: normal -> x2 -> x3 -> x4 -> normal.
+    void CambiarVelocidad(MouseEventArgs e)
+    {
+        ListViewHitTestInfo hit = lstCorte.HitTest(e.Location);
+        if (hit.Item == null || hit.SubItem == null || hit.Item.SubItems.IndexOf(hit.SubItem) != 3) return;
+        Tramo t = (Tramo)hit.Item.Tag;
+        if (!t.Acelerar) { t.Acelerar = true; t.Velocidad = 2; }
+        else if (t.Velocidad < Editor.VelocidadMaxima) t.Velocidad++;
+        else { t.Acelerar = false; t.Velocidad = 1; }
+        hit.SubItem.Text = Velocidad(t);
+        ActualizarResumenCorte();
+    }
+
     void Fila(Lista l, object dato, bool marcado, params string[] columnas)
     {
         ListViewItem it = new ListViewItem(columnas[0]);
@@ -421,8 +466,8 @@ class VentanaMomentos : VentanaBase
     {
         if (pestanas.Seleccion == 4) return;
         if (resultado == null) { lblCorte.Text = "Pide una sugerencia a Gemini para ver los resultados aqu\u00ed."; return; }
-        lblCorte.Text = "El corte conserva " + Formato.Tiempo(resultado.DuracionCorte) + " de " + Formato.Tiempo(total) +
-                        " (objetivo " + numMinutos.Valor + " min) \u00b7 doble clic: ir a ese punto en Vegas";
+        lblCorte.Text = "Conserva " + Formato.Tiempo(resultado.DuracionCorte) + " de " + Formato.Tiempo(total) +
+                        " (objetivo " + numMinutos.Valor + " min) \u00b7 clic en Velocidad: cambiarla \u00b7 doble clic: ir";
     }
 
     void IrA(ListView l)
@@ -459,7 +504,7 @@ class VentanaMomentos : VentanaBase
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
             foreach (Tramo t in resultado.Corte)
-                if (t.Elegido) { Region(p, t.Inicio, t.Fin, "Conservar: " + t.Titulo); n++; }
+                if (t.Elegido) { Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo); n++; }
             foreach (Tramo t in resultado.Momentos)
                 if (t.Elegido) { Marcador(p, t.Inicio, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo); n++; }
             foreach (TextoResumen t in resultado.Textos)
@@ -484,32 +529,48 @@ class VentanaMomentos : VentanaBase
     {
         double fps = vegas.Project.Video.FrameRate;
         List<Rango> quitar = Editor.AjustarAFotogramas(resultado.Quitar(total), fps);
-        double quitado = 0;
+        List<Acelerado> acelerar = new List<Acelerado>();
+        foreach (Acelerado a in resultado.Acelerados(quitar))
+        {
+            Acelerado f = new Acelerado(Math.Round(a.Inicio * fps) / fps, Math.Round(a.Fin * fps) / fps, a.Factor);
+            if (f.Fin - f.Inicio >= 2 / fps) acelerar.Add(f);
+        }
+        double quitado = 0, ahorro = 0;
         foreach (Rango r in quitar) quitado += r.Fin - r.Inicio;
-        if (quitar.Count == 0) { Estado("El corte no quita nada.", true); return; }
+        foreach (Acelerado a in acelerar) ahorro += a.Ahorro;
+        if (quitar.Count == 0 && acelerar.Count == 0) { Estado("El corte no cambia nada.", true); return; }
+        bool silenciar = segAudio.Seleccion == 0;
         if (MessageBox.Show(this,
-                "Se quitar\u00e1n " + Formato.Tiempo(quitado) + " en " + quitar.Count + " tramos y el video quedar\u00e1 de " +
-                Formato.Tiempo(total - quitado) + ".\n\nSe corta en todas las pistas para mantener la sincron\u00eda. " +
+                "Se quitar\u00e1n " + Formato.Tiempo(quitado) + " en " + quitar.Count + " tramos" +
+                (acelerar.Count > 0 ? " y se acelerar\u00e1n " + acelerar.Count + " tramos (" +
+                    (silenciar ? "sin audio" : "con audio acelerado") + ")" : "") +
+                ". El video quedar\u00e1 de " + Formato.Tiempo(total - quitado - ahorro) + ".\n\n" +
+                "Se aplica en todas las pistas para mantener la sincron\u00eda (haz esto antes de poner m\u00fasica). " +
                 "Los textos y momentos marcados quedan como marcadores en su nuevo lugar.\n\n\u00bfAplicar? (Ctrl+Z lo deshace)",
                 "Aplicar corte", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
         Project p = vegas.Project;
         List<Track> todas = new List<Track>();
         foreach (Track t in p.Tracks) todas.Add(t);
+        double trasCortar;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: corte"))
         {
-            Editor.Eliminar(p, todas, quitar, true, true, 0.02);
+            if (quitar.Count > 0) Editor.Eliminar(p, todas, quitar, true, true, 0.02);
+            trasCortar = p.Length.ToMilliseconds() / 1000.0;
+            if (acelerar.Count > 0) Editor.Acelerar(p, todas, acelerar, silenciar, true, 0.02);
             foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) Marcador(p, Editor.PosicionTrasQuitar(t.Posicion, quitar), "TEXTO: " + t.Texto);
+                if (t.Elegido) Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto);
             foreach (Tramo t in resultado.Momentos)
             {
-                if (!t.Elegido) continue;
-                double nuevo = Editor.PosicionTrasQuitar(t.Inicio, quitar);
-                if (!Dentro(t.Inicio, quitar)) Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo);
+                if (!t.Elegido || Dentro(t.Inicio, quitar)) continue;
+                double nuevo = Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Inicio, quitar), acelerar);
+                Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo);
             }
         }
         double despues = p.Length.ToMilliseconds() / 1000.0;
-        string aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, despues);
+        string aviso = "";
+        if (quitar.Count > 0) aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, trasCortar);
+        if (acelerar.Count > 0) aviso = Transcripcion.RegistrarAceleracion(p.FilePath, acelerar, trasCortar, despues);
         aplicado = true;
         btnCortar.Enabled = false;
         Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " "), false);
@@ -528,6 +589,10 @@ class VentanaMomentos : VentanaBase
 // Momentos con IA: que se le pide a Gemini y como se lee la respuesta.
 // Todos los tiempos estan en la linea de tiempo ACTUAL (despues de los
 // cortes que ya se hayan hecho).
+//
+// Videos cortos: una sola peticion. Videos largos (mas de ~35 min): por
+// partes de ~20 min (cada parte elige candidatos y resume lo que pasa) y una
+// pasada final que arma el corte completo cuidando la historia.
 // =====================================================================
 
 public class Tramo
@@ -535,7 +600,12 @@ public class Tramo
     public double Inicio, Fin, Puntuacion;
     public string Titulo = "", Motivo = "";
     public bool Elegido = true;
+    public bool Acelerar;          // en el corte: se conserva pero mas rapido
+    public double Velocidad = 1;   // 2 = el doble de rapido
+
     public double Duracion { get { return Fin - Inicio; } }
+    // Lo que dura en el video final.
+    public double DuracionFinal { get { return Acelerar ? Duracion / Velocidad : Duracion; } }
 }
 
 public class TextoResumen
@@ -550,6 +620,8 @@ public class OpcionesIA
     public string Tipo = "Gameplay";
     public double MinutosObjetivo = 15;
     public string Instrucciones = "";
+    public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
+    public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
 }
 
 public class ResultadoIA
@@ -567,9 +639,15 @@ public class ResultadoIA
         get
         {
             double d = 0;
-            foreach (Tramo t in Corte) if (t.Elegido) d += t.Duracion;
+            foreach (Tramo t in Corte) if (t.Elegido) d += t.DuracionFinal;
             return d;
         }
+    }
+
+    public static double LimitarVelocidad(double v)
+    {
+        if (double.IsNaN(v) || v < 1.5) return 2;
+        return Math.Min(4, Math.Round(v));
     }
 
     static List<Tramo> Tramos(object o, string clave, double total)
@@ -580,11 +658,13 @@ public class ResultadoIA
             Tramo t = new Tramo();
             t.Inicio = Math.Max(0, Json.Numero(x, "inicio", 0));
             t.Fin = Math.Min(total, Json.Numero(x, "fin", 0));
-            t.Puntuacion = Json.Numero(x, "puntuacion", 0);
+            t.Puntuacion = Json.Numero(x, "puntuacion", Json.Numero(x, "importancia", 0));
             t.Titulo = Json.Texto(x, "titulo");
             t.Motivo = Json.Texto(x, "motivo");
             if (t.Motivo.Length == 0) t.Motivo = Json.Texto(x, "descripcion");
             if (t.Motivo.Length == 0) t.Motivo = Json.Texto(x, "gancho");
+            t.Acelerar = Json.Texto(x, "accion").ToLowerInvariant().StartsWith("aceler");
+            t.Velocidad = t.Acelerar ? LimitarVelocidad(Json.Numero(x, "velocidad", 3)) : 1;
             if (t.Fin - t.Inicio >= 0.2) r.Add(t);
         }
         r.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
@@ -616,18 +696,26 @@ public class ResultadoIA
         return r;
     }
 
+    // Une tramos que se tocan con la misma accion; si se enciman con distinta
+    // accion, el segundo empieza donde termina el primero.
     static List<Tramo> UnirSolapados(List<Tramo> l)
     {
         List<Tramo> r = new List<Tramo>();
         foreach (Tramo t in l)
         {
-            if (r.Count > 0 && t.Inicio <= r[r.Count - 1].Fin + 0.05)
+            Tramo u = r.Count > 0 ? r[r.Count - 1] : null;
+            if (u != null && t.Inicio <= u.Fin + 0.05)
             {
-                Tramo u = r[r.Count - 1];
-                u.Fin = Math.Max(u.Fin, t.Fin);
-                if (t.Titulo.Length > 0 && u.Titulo.IndexOf(t.Titulo) < 0) u.Titulo += " / " + t.Titulo;
+                if (u.Acelerar == t.Acelerar && u.Velocidad == t.Velocidad)
+                {
+                    u.Fin = Math.Max(u.Fin, t.Fin);
+                    if (t.Titulo.Length > 0 && u.Titulo.IndexOf(t.Titulo) < 0) u.Titulo += " / " + t.Titulo;
+                    continue;
+                }
+                t.Inicio = u.Fin;
+                if (t.Fin - t.Inicio < 0.2) continue;
             }
-            else r.Add(t);
+            r.Add(t);
         }
         return r;
     }
@@ -664,6 +752,28 @@ public class ResultadoIA
         return r;
     }
 
+    // Instante despues de quitar los rangos (si cae adentro, queda en el corte).
+    public static double TrasQuitar(double t, List<Rango> quitados)
+    {
+        double q = 0;
+        foreach (Rango r in quitados)
+        {
+            if (t >= r.Fin) q += r.Fin - r.Inicio;
+            else if (t > r.Inicio) q += t - r.Inicio;
+        }
+        return t - q;
+    }
+
+    // Tramos a acelerar, ya en la linea de tiempo que queda despues de quitar.
+    public List<Acelerado> Acelerados(List<Rango> quitados)
+    {
+        List<Acelerado> r = new List<Acelerado>();
+        foreach (Tramo t in Corte)
+            if (t.Elegido && t.Acelerar && t.Velocidad > 1)
+                r.Add(new Acelerado(TrasQuitar(t.Inicio, quitados), TrasQuitar(t.Fin, quitados), t.Velocidad));
+        return r;
+    }
+
     // ------------------------------------------------------------ informe
 
     public string Informe(string proyecto, OpcionesIA op, double total)
@@ -684,7 +794,8 @@ public class ResultadoIA
         sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
         foreach (Tramo t in Corte)
             sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "\u2013" + Formato.Tiempo(t.Fin) +
-                      " (" + Formato.Tiempo(t.Duracion) + ") **" + t.Titulo + "**: " + t.Motivo + "\n");
+                      " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado \u00d7" + t.Velocidad + " \u2192 " + Formato.Tiempo(t.DuracionFinal) : "") +
+                      ") **" + t.Titulo + "**: " + t.Motivo + "\n");
         sb.Append("\n## Momentos destacados\n\n");
         foreach (Tramo t in Momentos)
             sb.Append("- " + t.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + "/10 \u00b7 " + Formato.Tiempo(t.Inicio) + "\u2013" +
@@ -710,30 +821,45 @@ public class ResultadoIA
     }
 }
 
+// =====================================================================
+// Textos que se envian a Gemini
+// =====================================================================
+
 public static class PeticionIA
 {
-    static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
+    public static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
 
-    public const string Instrucciones =
+    const string Rol =
         "Eres un editor de video experto en contenido de YouTube en espa\u00f1ol (gameplays con amigos, " +
         "narraciones, video ensayos). Recibes la transcripci\u00f3n de un video con tiempos en segundos de la " +
-        "l\u00ednea de tiempo y una tabla de intensidad de sonido. Tu trabajo es ayudar a editarlo.\n\n" +
+        "l\u00ednea de tiempo y una tabla de intensidad de sonido. Tu trabajo es ayudar a editarlo.\n\n";
+
+    const string ReglasCorte =
+        "- \"corte\": tramos a CONSERVAR, en orden, sin solaparse. Deben contar la historia completa sin omitir " +
+        "partes importantes (objetivos, decisiones, resultados, momentos graciosos o intensos). Empieza y termina " +
+        "cada tramo en l\u00edmites de frase, nunca a mitad de una palabra. Prefiere tramos de 10 s a 3 min.\n";
+
+    const string ReglasAcelerar =
+        "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve m\u00e1s r\u00e1pido, " +
+        "sin audio): \u00fasalo para transiciones con poca conversaci\u00f3n que ayudan a entender el progreso (viajar, " +
+        "minar, construir, preparar). \"velocidad\" de 2 a 4. Un tramo acelerado cuenta para la duraci\u00f3n como " +
+        "duraci\u00f3n/velocidad. No aceleres tramos con di\u00e1logo importante.\n";
+
+    const string SinAcelerar = "- Todos los tramos del corte llevan \"accion\": \"conservar\" (no se acelera nada).\n";
+
+    const string EsquemaFinal =
         "Responde SOLO con un objeto JSON con exactamente estas claves:\n" +
         "{\n" +
         "  \"resumen\": \"qu\u00e9 pasa en el video, en orden, en 1 a 3 p\u00e1rrafos\",\n" +
         "  \"secciones\": [{\"inicio\": s, \"fin\": s, \"titulo\": \"...\", \"descripcion\": \"qu\u00e9 pasa\"}],\n" +
         "  \"momentos\": [{\"inicio\": s, \"fin\": s, \"puntuacion\": 1-10, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 es bueno\"}],\n" +
-        "  \"corte\": [{\"inicio\": s, \"fin\": s, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 se conserva\"}],\n" +
+        "  \"corte\": [{\"inicio\": s, \"fin\": s, \"accion\": \"conservar\" o \"acelerar\", \"velocidad\": 1-4, \"titulo\": \"...\", \"motivo\": \"por qu\u00e9 se conserva\"}],\n" +
         "  \"textos\": [{\"posicion\": s, \"texto\": \"texto corto en pantalla\", \"motivo\": \"qu\u00e9 se salta\"}],\n" +
         "  \"shorts\": [{\"inicio\": s, \"fin\": s, \"titulo\": \"...\", \"gancho\": \"por qu\u00e9 funciona solo\"}],\n" +
         "  \"titulos\": [\"t\u00edtulo para el video\", \"...\"]\n" +
-        "}\n\n" +
-        "Reglas:\n" +
-        "- Todos los tiempos son segundos (n\u00famero) de la l\u00ednea de tiempo dada; no inventes tiempos fuera del video.\n" +
-        "- \"corte\": tramos a CONSERVAR, en orden, sin solaparse, que juntos duren cerca de la duraci\u00f3n objetivo " +
-        "(\u00b110 %). Deben contar la historia completa sin omitir partes importantes (objetivos, decisiones, " +
-        "resultados, momentos graciosos o intensos). Empieza y termina cada tramo en l\u00edmites de frase, nunca a mitad " +
-        "de una palabra. Prefiere tramos de 10 s a 3 min.\n" +
+        "}\n\n";
+
+    const string ReglasResto =
         "- \"textos\": frases muy cortas tipo \"Construimos la base\" o \"3 horas despu\u00e9s\u2026\" para explicar lo que " +
         "el corte se salta; \"posicion\" es el inicio del tramo conservado donde conviene mostrarlo. Solo donde " +
         "realmente ayude a no perderse.\n" +
@@ -741,27 +867,158 @@ public static class PeticionIA
         "intensidad: valores altos de voz suelen ser gritos o risas; de ambiente, explosiones o peleas.\n" +
         "- \"shorts\": 2 a 5 tramos de 15 a 60 s que se entiendan sin contexto.\n" +
         "- \"titulos\": 3 a 5 opciones atractivas.\n" +
+        "- Todos los tiempos son segundos (n\u00famero) de la l\u00ednea de tiempo dada; no inventes tiempos fuera del video.\n" +
         "- Escribe todo en espa\u00f1ol natural. Usa los nombres de las personas.";
+
+    // ---------------------------------------------------- una peticion
+
+    public static string Instrucciones(OpcionesIA op)
+    {
+        return Rol + EsquemaFinal + "Reglas:\n" + ReglasCorte +
+               "- El corte completo debe durar cerca de la duraci\u00f3n objetivo (\u00b110 %).\n" +
+               (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasResto;
+    }
+
+    static void Cabecera(StringBuilder sb, Transcripcion t, double duracionActual, OpcionesIA op)
+    {
+        sb.Append("Tipo de video: " + op.Tipo + "\n");
+        sb.Append("Duraci\u00f3n actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
+        sb.Append("Duraci\u00f3n objetivo del corte: " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosObjetivo + " min)\n");
+        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("Indicaciones del editor: " + op.Instrucciones.Trim() + "\n");
+        sb.Append("\nPersonas (cada una es una pista de audio):\n");
+        foreach (Hablante h in t.Hablantes)
+            if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
+    }
+
+    static void Transcripcion_(StringBuilder sb, Transcripcion t, List<Segmento> segmentos, double desde, double hasta)
+    {
+        sb.Append("\nTranscripci\u00f3n [inicio-fin] persona: texto\n");
+        foreach (Segmento s in segmentos)
+            if (s.Fin > desde && s.Inicio < hasta)
+                sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + t.Hablantes[s.Hablante].Nombre + ": " + s.Texto + "\n");
+    }
+
+    static void Intensidad_(StringBuilder sb, Transcripcion t, double duracionActual, double desde, double hasta)
+    {
+        sb.Append("\nIntensidad cada 5 s (0 = silencio, 10 = lo m\u00e1s fuerte de esa pista). Columnas: inicio;voz;ambiente\n");
+        foreach (string linea in Intensidad(t, duracionActual, 5))
+        {
+            double inicio = double.Parse(linea.Substring(0, linea.IndexOf(';')), CultureInfo.InvariantCulture);
+            if (inicio + 5 > desde && inicio < hasta) sb.Append(linea + "\n");
+        }
+    }
 
     // Mensaje con la transcripcion e intensidad en la linea de tiempo actual.
     public static string Mensaje(Transcripcion t, double duracionActual, OpcionesIA op)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("Tipo de video: " + op.Tipo + "\n");
-        sb.Append("Duraci\u00f3n actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
-        sb.Append("Duraci\u00f3n objetivo del corte: " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosObjetivo + " min)\n");
-        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("Indicaciones del editor: " + op.Instrucciones.Trim() + "\n");
+        Cabecera(sb, t, duracionActual, op);
+        Transcripcion_(sb, t, t.SegmentosActuales(), 0, duracionActual);
+        Intensidad_(sb, t, duracionActual, 0, duracionActual);
+        return sb.ToString();
+    }
 
-        sb.Append("\nPersonas (cada una es una pista de audio):\n");
-        foreach (Hablante h in t.Hablantes)
-            if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
+    // ------------------------------------------------------- por partes
 
-        sb.Append("\nTranscripci\u00f3n [inicio-fin] persona: texto\n");
-        foreach (Segmento s in t.SegmentosActuales())
-            sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + t.Hablantes[s.Hablante].Nombre + ": " + s.Texto + "\n");
+    // Divide el video en partes de ~"tamano" segundos, cortando en la pausa
+    // mas larga entre frases cerca de cada limite.
+    public static List<Rango> Partes(List<Segmento> segmentos, double total, double tamano)
+    {
+        List<Rango> r = new List<Rango>();
+        int n = Math.Max(1, (int)Math.Round(total / tamano));
+        double inicio = 0;
+        for (int i = 1; i < n; i++)
+        {
+            double ideal = total * i / n, mejor = ideal, hueco = -1;
+            for (int k = 0; k + 1 < segmentos.Count; k++)
+            {
+                double a = segmentos[k].Fin, b = segmentos[k + 1].Inicio;
+                double medio = (a + b) / 2;
+                if (Math.Abs(medio - ideal) > tamano * 0.15 || b - a <= hueco) continue;
+                hueco = b - a;
+                mejor = medio;
+            }
+            if (mejor <= inicio + 60) mejor = ideal;
+            r.Add(new Rango(inicio, mejor));
+            inicio = mejor;
+        }
+        r.Add(new Rango(inicio, total));
+        return r;
+    }
 
-        sb.Append("\nIntensidad cada 5 s (0 = silencio, 10 = lo m\u00e1s fuerte de esa pista). Columnas: inicio;voz;ambiente\n");
-        foreach (string linea in Intensidad(t, duracionActual, 5)) sb.Append(linea + "\n");
+    public static string InstruccionesParte(OpcionesIA op)
+    {
+        return Rol +
+            "Este video es largo, as\u00ed que lo recibes POR PARTES. Ahora te toca UNA parte. Elige candidatos para el " +
+            "corte final (despu\u00e9s se elegir\u00e1 entre los candidatos de todas las partes) y resume lo que pasa.\n\n" +
+            "Responde SOLO con un objeto JSON con exactamente estas claves:\n" +
+            "{\n" +
+            "  \"resumen\": \"qu\u00e9 pasa en esta parte, en orden, en 2 a 5 frases (con nombres y hechos concretos)\",\n" +
+            "  \"candidatos\": [{\"inicio\": s, \"fin\": s, \"importancia\": 1-10, \"accion\": \"conservar\" o \"acelerar\", \"velocidad\": 1-4, \"titulo\": \"...\", \"motivo\": \"...\"}],\n" +
+            "  \"momentos\": [{\"inicio\": s, \"fin\": s, \"puntuacion\": 1-10, \"titulo\": \"...\", \"motivo\": \"...\"}]\n" +
+            "}\n\n" +
+            "Reglas:\n" + ReglasCorte +
+            "- Los candidatos de esta parte deben sumar cerca de la duraci\u00f3n sugerida para la parte (es generosa: " +
+            "luego se recorta). \"importancia\": 10 = imprescindible para entender la historia o lo m\u00e1s gracioso; " +
+            "1 = relleno prescindible.\n" +
+            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) +
+            "- \"momentos\": los mejores de esta parte (0 a 6).\n" +
+            "- Usa solo tiempos dentro de esta parte. Escribe en espa\u00f1ol natural y usa los nombres de las personas.";
+    }
+
+    public static string MensajeParte(Transcripcion t, List<Segmento> segmentos, double duracionActual, OpcionesIA op,
+                                      int numero, List<Rango> partes, List<string> resumenesPrevios)
+    {
+        Rango p = partes[numero];
+        double sugerido = op.MinutosObjetivo * 60 * (p.Fin - p.Inicio) / duracionActual * 1.5;
+        StringBuilder sb = new StringBuilder();
+        Cabecera(sb, t, duracionActual, op);
+        sb.Append("\nParte " + (numero + 1) + " de " + partes.Count + ": de " + S(p.Inicio) + " s a " + S(p.Fin) + " s (" +
+                  Formato.Tiempo(p.Inicio) + "\u2013" + Formato.Tiempo(p.Fin) + ").\n");
+        sb.Append("Duraci\u00f3n sugerida para los candidatos de esta parte: " + S(sugerido) + " s.\n");
+        if (resumenesPrevios.Count > 0)
+        {
+            sb.Append("\nLo que pas\u00f3 en las partes anteriores:\n");
+            for (int i = 0; i < resumenesPrevios.Count; i++) sb.Append("Parte " + (i + 1) + ": " + resumenesPrevios[i] + "\n");
+        }
+        Transcripcion_(sb, t, segmentos, p.Inicio, p.Fin);
+        Intensidad_(sb, t, duracionActual, p.Inicio, p.Fin);
+        return sb.ToString();
+    }
+
+    public static string InstruccionesFinal(OpcionesIA op)
+    {
+        return Rol +
+            "Este video es largo y ya se analiz\u00f3 por partes. Recibes el resumen de cada parte y una lista de " +
+            "CANDIDATOS (tramos posibles con su importancia). Arma el video final.\n\n" + EsquemaFinal + "Reglas:\n" +
+            "- \"corte\": elige y ordena candidatos para que el video final dure cerca de la duraci\u00f3n objetivo " +
+            "(\u00b110 %). Usa sus tiempos tal cual o rec\u00f3rtalos por dentro; no inventes tramos fuera de los candidatos. " +
+            "Que la historia completa se entienda de principio a fin: no te saltes objetivos, decisiones ni " +
+            "resultados importantes. Prefiere los de mayor importancia, pero mant\u00e9n el ritmo y la variedad.\n" +
+            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) +
+            "- \"secciones\": cubren todo el video original (una por etapa de la historia).\n" + ReglasResto;
+    }
+
+    public static string MensajeFinal(Transcripcion t, double duracionActual, OpcionesIA op, List<Rango> partes,
+                                      List<string> resumenes, List<Tramo> candidatos, List<Tramo> momentos)
+    {
+        StringBuilder sb = new StringBuilder();
+        Cabecera(sb, t, duracionActual, op);
+        sb.Append("\nResumen por partes:\n");
+        for (int i = 0; i < partes.Count; i++)
+            sb.Append("Parte " + (i + 1) + " (" + S(partes[i].Inicio) + "-" + S(partes[i].Fin) + " s): " +
+                      (i < resumenes.Count ? resumenes[i] : "") + "\n");
+        double suma = 0;
+        foreach (Tramo c in candidatos) suma += c.DuracionFinal;
+        sb.Append("\nCandidatos [inicio-fin] importancia acci\u00f3n: t\u00edtulo \u2014 motivo (suman " + S(suma) + " s):\n");
+        foreach (Tramo c in candidatos)
+            sb.Append("[" + S(c.Inicio) + "-" + S(c.Fin) + "] " + c.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + " " +
+                      (c.Acelerar ? "acelerar\u00d7" + c.Velocidad.ToString("0", CultureInfo.InvariantCulture) : "conservar") + ": " +
+                      c.Titulo + " \u2014 " + c.Motivo + "\n");
+        sb.Append("\nMomentos destacados encontrados [inicio-fin] puntuaci\u00f3n: t\u00edtulo \u2014 motivo:\n");
+        foreach (Tramo m in momentos)
+            sb.Append("[" + S(m.Inicio) + "-" + S(m.Fin) + "] " + m.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + ": " +
+                      m.Titulo + " \u2014 " + m.Motivo + "\n");
         return sb.ToString();
     }
 
@@ -793,6 +1050,89 @@ public static class PeticionIA
             if (voz[b] >= 1 || amb[b] >= 1)
                 r.Add((b * bloque) + ";" + Math.Round(voz[b]) + ";" + Math.Round(amb[b]));
         return r;
+    }
+}
+
+// =====================================================================
+// Orquesta las peticiones (una sola o por partes) y reintenta si hace falta.
+// =====================================================================
+
+public delegate string LlamadaIA(string instrucciones, string mensaje);
+
+public class AsistenteIA
+{
+    // Videos mas largos que esto se analizan por partes.
+    public double UmbralPartes = 35 * 60;
+    public double TamanoParte = 20 * 60;
+    public Action<string> Progreso = delegate { };
+    readonly LlamadaIA llamar;
+
+    public AsistenteIA(LlamadaIA llamar) { this.llamar = llamar; }
+
+    // Pide y comprueba que sea JSON valido; un reintento si sale roto.
+    string PedirJson(string instrucciones, string mensaje)
+    {
+        for (int intento = 1; ; intento++)
+        {
+            string r = llamar(instrucciones, mensaje);
+            try { Json.Leer(Gemini.QuitarCercas(r)); return r; }
+            catch (FormatException)
+            {
+                if (intento >= 2) throw new Exception("Gemini devolvi\u00f3 una respuesta que no se pudo leer dos veces seguidas.");
+                Progreso("La respuesta lleg\u00f3 incompleta; reintentando\u2026");
+            }
+        }
+    }
+
+    // Devuelve el JSON final con el mismo formato en ambos modos.
+    public string Ejecutar(Transcripcion t, double total, OpcionesIA op)
+    {
+        if (total <= UmbralPartes)
+        {
+            try
+            {
+                Progreso("Gemini est\u00e1 analizando el video completo\u2026");
+                return PedirJson(PeticionIA.Instrucciones(op), PeticionIA.Mensaje(t, total, op));
+            }
+            catch (RespuestaCortada)
+            {
+                Progreso("La respuesta no cupo completa: se analizar\u00e1 por partes.");
+            }
+        }
+        return PorPartes(t, total, op);
+    }
+
+    string PorPartes(Transcripcion t, double total, OpcionesIA op)
+    {
+        List<Segmento> segmentos = t.SegmentosActuales();
+        List<Rango> partes = PeticionIA.Partes(segmentos, total, TamanoParte);
+        List<string> resumenes = new List<string>();
+        List<Tramo> candidatos = new List<Tramo>(), momentos = new List<Tramo>();
+        string instrucciones = PeticionIA.InstruccionesParte(op);
+
+        for (int i = 0; i < partes.Count; i++)
+        {
+            Progreso("Analizando la parte " + (i + 1) + " de " + partes.Count + " (" +
+                     Formato.Tiempo(partes[i].Inicio) + "\u2013" + Formato.Tiempo(partes[i].Fin) + ")\u2026");
+            string r = PedirJson(instrucciones, PeticionIA.MensajeParte(t, segmentos, total, op, i, partes, resumenes));
+            object o = Json.Leer(Gemini.QuitarCercas(r));
+            resumenes.Add(Json.Texto(o, "resumen"));
+            // Los candidatos y momentos se leen con el mismo lector del resultado
+            // final, limitados a esta parte.
+            ResultadoIA parte = ResultadoIA.Leer("{\"corte\": " + Json.Escribir(Json.Lista(o, "candidatos"), false) +
+                                                  ", \"momentos\": " + Json.Escribir(Json.Lista(o, "momentos"), false) + "}", total);
+            foreach (Tramo c in parte.Corte)
+            {
+                c.Inicio = Math.Max(c.Inicio, partes[i].Inicio);
+                c.Fin = Math.Min(c.Fin, partes[i].Fin);
+                if (c.Fin - c.Inicio >= 0.5) candidatos.Add(c);
+            }
+            momentos.AddRange(parte.Momentos);
+        }
+
+        Progreso("Armando el video final con " + candidatos.Count + " candidatos\u2026");
+        return PedirJson(PeticionIA.InstruccionesFinal(op),
+                         PeticionIA.MensajeFinal(t, total, op, partes, resumenes, candidatos, momentos));
     }
 }
 
@@ -933,6 +1273,73 @@ static class Editor
         }
     }
 
+    // Vegas no acepta velocidades de evento mayores a 4x.
+    public const double VelocidadMaxima = 4;
+
+    // Reproduce mas rapido los tramos indicados: corta en sus bordes, sube la
+    // velocidad de cada evento de adentro (y acorta su duracion en la misma
+    // proporcion) y corre hacia la izquierda lo que sigue. Con
+    // "silenciarAudio" el audio de esos tramos queda mudo (acelerado suena raro).
+    public static void Acelerar(Project proyecto, List<Track> pistas, List<Acelerado> tramos, bool silenciarAudio,
+                                bool moverMarcadores, double suavizado)
+    {
+        List<Rango> bordes = new List<Rango>();
+        foreach (Acelerado a in tramos) bordes.Add(new Rango(a.Inicio, a.Fin));
+
+        foreach (Track pista in pistas)
+        {
+            List<TrackEvent> eventos = CortarEnBordes(pista, bordes);
+            eventos.Sort(delegate (TrackEvent x, TrackEvent y) { return S(x.Start).CompareTo(S(y.Start)); });
+
+            // De izquierda a derecha: primero se acorta el evento y luego se
+            // mueve, asi nunca se encima con el siguiente.
+            foreach (TrackEvent e in eventos)
+            {
+                double ini = S(e.Start), fin = S(e.End), medio = (ini + fin) / 2;
+                foreach (Acelerado a in tramos)
+                {
+                    if (medio <= a.Inicio || medio >= a.Fin) continue;
+                    double antes = e.PlaybackRate;
+                    double despues = Math.Min(VelocidadMaxima, antes * a.Factor);
+                    e.PlaybackRate = despues;
+                    e.Length = TC((fin - ini) * antes / despues);
+                    if (silenciarAudio && e is AudioEvent) e.Mute = true;
+                    break;
+                }
+                double nuevo = Acelerado.Posicion(ini, tramos);
+                if (nuevo < ini - Tolerancia) e.Start = TC(nuevo);
+            }
+
+            // Fundido corto donde el audio normal se junta con el acelerado.
+            if (suavizado > 0 && pista.IsAudio())
+            {
+                List<Rango> nuevosBordes = new List<Rango>();
+                foreach (Acelerado a in tramos)
+                    nuevosBordes.Add(new Rango(Acelerado.Posicion(a.Inicio, tramos), Acelerado.Posicion(a.Fin, tramos)));
+                List<TrackEvent> todos = new List<TrackEvent>();
+                foreach (TrackEvent e in pista.Events) todos.Add(e);
+                Suavizar(todos, nuevosBordes, suavizado);
+                // Los bordes de adentro del tramo tambien llevan fundido.
+                List<Rango> invertidos = new List<Rango>();
+                foreach (Rango r in nuevosBordes) invertidos.Add(new Rango(r.Fin, r.Inicio));
+                Suavizar(todos, invertidos, suavizado);
+            }
+        }
+
+        if (!moverMarcadores) return;
+        List<Marker> marcadores = new List<Marker>();
+        foreach (Marker m in proyecto.Markers) marcadores.Add(m);
+        foreach (Region m in proyecto.Regions) marcadores.Add(m);
+        foreach (Marker m in marcadores)
+        {
+            double t = S(m.Position), nuevo = Acelerado.Posicion(t, tramos);
+            if (nuevo < t - Tolerancia)
+            {
+                try { m.Position = TC(nuevo); } catch { }
+            }
+        }
+    }
+
     public static void Silenciar(List<Track> pistas, List<Rango> rangos, double suavizado)
     {
         foreach (Track pista in pistas)
@@ -963,6 +1370,27 @@ public struct Rango
 {
     public double Inicio, Fin; // segundos en la linea de tiempo
     public Rango(double inicio, double fin) { Inicio = inicio; Fin = fin; }
+}
+
+// Tramo que se reproduce mas rapido (Factor 2 = el doble de rapido).
+public class Acelerado
+{
+    public double Inicio, Fin, Factor;
+    public Acelerado(double inicio, double fin, double factor) { Inicio = inicio; Fin = fin; Factor = factor; }
+
+    public double Ahorro { get { return (Fin - Inicio) * (1 - 1 / Factor); } }
+
+    // Nueva posicion de un instante despues de acelerar los tramos.
+    public static double Posicion(double t, List<Acelerado> tramos)
+    {
+        double ahorro = 0;
+        foreach (Acelerado a in tramos)
+        {
+            if (t >= a.Fin - 1e-6) ahorro += a.Ahorro;
+            else if (t > a.Inicio) ahorro += (t - a.Inicio) * (1 - 1 / a.Factor);
+        }
+        return t - ahorro;
+    }
 }
 
 public class Analisis
@@ -1397,6 +1825,7 @@ public class Hablante
 public class Edicion
 {
     public List<Rango> Quitados = new List<Rango>();
+    public List<Acelerado> Acelerados = new List<Acelerado>();
     public double Antes, Despues; // duracion del proyecto
 }
 
@@ -1423,6 +1852,7 @@ public class Transcripcion
     {
         foreach (Edicion e in Ediciones)
         {
+            if (e.Acelerados.Count > 0) t = Acelerado.Posicion(t, e.Acelerados);
             double q = 0;
             foreach (Rango r in e.Quitados)
             {
@@ -1499,16 +1929,30 @@ public class Transcripcion
     // La llaman las herramientas que cortan (Quitar silencios, Momentos).
     public static string RegistrarCortes(string veg, List<Rango> quitados, double antes, double despues)
     {
+        Edicion e = new Edicion();
+        e.Quitados.AddRange(quitados);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    public static string RegistrarAceleracion(string veg, List<Acelerado> tramos, double antes, double despues)
+    {
+        Edicion e = new Edicion();
+        e.Acelerados.AddRange(tramos);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    static string RegistrarEdicion(string veg, Edicion e)
+    {
         string ruta = RutaPara(veg);
         if (ruta == null || !File.Exists(ruta)) return "";
         try
         {
             Transcripcion t = Cargar(ruta);
-            t.Sincronizar(antes);
-            Edicion e = new Edicion();
-            e.Quitados.AddRange(quitados);
-            e.Antes = antes;
-            e.Despues = despues;
+            t.Sincronizar(e.Antes);
             t.Ediciones.Add(e);
             t.Guardar(ruta);
             return "\nLa transcripci\u00f3n tambi\u00e9n se ajust\u00f3 a los cortes.";
@@ -1629,6 +2073,12 @@ public class Transcripcion
             List<object> qs = new List<object>();
             foreach (Rango r in e.Quitados) qs.Add(new List<object> { R(r.Inicio), R(r.Fin) });
             x["quitados"] = qs;
+            if (e.Acelerados.Count > 0)
+            {
+                List<object> acs = new List<object>();
+                foreach (Acelerado a in e.Acelerados) acs.Add(new List<object> { R(a.Inicio), R(a.Fin), a.Factor });
+                x["acelerados"] = acs;
+            }
             es.Add(x);
         }
         d["ediciones"] = es;
@@ -1696,6 +2146,14 @@ public class Transcripcion
                 if (l != null && l.Count >= 2)
                     e.Quitados.Add(new Rango(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
                                              Convert.ToDouble(l[1], CultureInfo.InvariantCulture)));
+            }
+            foreach (object q in Json.Lista(x, "acelerados"))
+            {
+                List<object> l = q as List<object>;
+                if (l != null && l.Count >= 3)
+                    e.Acelerados.Add(new Acelerado(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[1], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[2], CultureInfo.InvariantCulture)));
             }
             t.Ediciones.Add(e);
         }
@@ -1950,6 +2408,9 @@ public static class Gemini
             if (d != null && d.TryGetValue("thought", out pensamiento) && pensamiento is bool && (bool)pensamiento) continue;
             texto.Append(Json.Texto(parte, "text"));
         }
+        // Si se acabo el espacio de respuesta, el JSON queda a medias.
+        if (Json.Texto(candidatos[0], "finishReason") == "MAX_TOKENS")
+            throw new RespuestaCortada();
         if (texto.Length == 0)
             throw new Exception("Gemini devolvi\u00f3 una respuesta vac\u00eda (" + Json.Texto(candidatos[0], "finishReason") + ").");
         return QuitarCercas(texto.ToString());
@@ -1977,6 +2438,12 @@ public static class Gemini
         }
         return s;
     }
+}
+
+// La respuesta no cupo completa (finishReason MAX_TOKENS).
+public class RespuestaCortada : Exception
+{
+    public RespuestaCortada() : base("La respuesta de Gemini sali\u00f3 cortada por ser demasiado larga.") { }
 }
 
 // ---- src/comun/Ui.cs ----

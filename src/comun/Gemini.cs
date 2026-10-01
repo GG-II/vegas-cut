@@ -111,6 +111,9 @@ public static class Gemini
             if (d != null && d.TryGetValue("thought", out pensamiento) && pensamiento is bool && (bool)pensamiento) continue;
             texto.Append(Json.Texto(parte, "text"));
         }
+        // Si se acabo el espacio de respuesta, el JSON queda a medias.
+        if (Json.Texto(candidatos[0], "finishReason") == "MAX_TOKENS")
+            throw new RespuestaCortada();
         if (texto.Length == 0)
             throw new Exception("Gemini devolvió una respuesta vacía (" + Json.Texto(candidatos[0], "finishReason") + ").");
         return QuitarCercas(texto.ToString());
@@ -138,4 +141,10 @@ public static class Gemini
         }
         return s;
     }
+}
+
+// La respuesta no cupo completa (finishReason MAX_TOKENS).
+public class RespuestaCortada : Exception
+{
+    public RespuestaCortada() : base("La respuesta de Gemini sali\u00f3 cortada por ser demasiado larga.") { }
 }

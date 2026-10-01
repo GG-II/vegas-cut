@@ -76,19 +76,28 @@ Necesita la transcripción y la clave de Gemini.
 
 1. Elige el **tipo de video**, la **duración objetivo**, los **nombres** de las personas
    y, si quieres, **indicaciones** ("es el episodio 3, que se entienda la historia").
+   - **Transiciones: Cortar o Acelerar.** Con *Acelerar*, Gemini puede marcar tramos con poca
+     conversación (viajar, minar, construir) para verse ×2–×4 en vez de desaparecer, así la historia
+     no da saltos. **Audio de lo acelerado:** mudo (recomendado) o acelerado.
 2. **Pedir a Gemini**: se envía solo texto (transcripción con tiempos e intensidad del sonido
    cada 5 s). Tarda uno o dos minutos.
+   - **Videos largos (más de 35 min) se analizan por partes** de unos 20 min, cortando en la
+     pausa más larga: cada parte elige candidatos (con importancia 1–10) y resume lo que pasa,
+     sabiendo lo que pasó antes; una pasada final arma el corte completo cuidando la historia.
+     Si una respuesta llega incompleta se reintenta, y si no cupo se pasa solo al modo por partes.
 3. Revisa las pestañas y desmarca lo que no quieras:
    - **Corte**: tramos a conservar, en orden, cerca de la duración objetivo. Los bordes se
-     ajustan para no partir palabras.
+     ajustan para no partir palabras. La columna **Velocidad** dice si un tramo va normal o
+     acelerado; un clic en ella la cambia (normal → ×2 → ×3 → ×4 → normal).
    - **Momentos**: los mejores, con nota del 1 al 10 y por qué.
    - **Textos**: frases cortas ("3 horas después…") para lo que el corte se salta.
    - **Resumen** y secciones, **Shorts** y **títulos**.
    Doble clic en una fila mueve el cursor de Vegas a ese punto.
 4. Acciones:
    - **Crear regiones y marcadores** para revisar en la línea de tiempo.
-   - **Aplicar corte**: quita todo lo que no está marcado, en todas las pistas, y deja los
-     textos y momentos como marcadores en su nuevo lugar. Ctrl+Z lo deshace.
+   - **Aplicar corte**: quita todo lo que no está marcado y acelera los tramos acelerados, en
+     todas las pistas (hazlo antes de poner música), y deja los textos y momentos como
+     marcadores en su nuevo lugar. Ctrl+Z lo deshace. Vegas permite hasta ×4 por evento.
    - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
 
 La respuesta se guarda en `<proyecto>.vegascut-ia.json` y se vuelve a mostrar al abrir la

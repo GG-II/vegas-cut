@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using ScriptPortal.Vegas;
 
 class PruebaIA
 {
@@ -139,7 +140,7 @@ class PruebaIA
             "\"shorts\":[],\"titulos\":[\"T1\",\"T2\"]}\n```";
         Thread hilo = new Thread(delegate ()
         {
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 3; i++)
             {
                 HttpListenerContext ctx = servidor.GetContext();
                 claveRecibida = ctx.Request.Headers["x-goog-api-key"];
@@ -150,11 +151,12 @@ class PruebaIA
                              "{\"name\":\"models/gemini-a\",\"supportedGenerationMethods\":[\"generateContent\",\"countTokens\"]}]}";
                 else
                 {
-                    using (StreamReader sr = new StreamReader(ctx.Request.InputStream, Encoding.UTF8)) cuerpoRecibido = sr.ReadToEnd();
+                    using (StreamReader sr = new StreamReader(ctx.Request.InputStream, Encoding.UTF8)) { string leido = sr.ReadToEnd(); if (cuerpoRecibido == null) cuerpoRecibido = leido; }
                     Dictionary<string, object> parte = new Dictionary<string, object>(); parte["text"] = respuestaIA;
                     Dictionary<string, object> pensado = new Dictionary<string, object>(); pensado["text"] = "pensando..."; pensado["thought"] = true;
                     Dictionary<string, object> contenido = new Dictionary<string, object>(); contenido["parts"] = new List<object> { pensado, parte };
                     Dictionary<string, object> cand = new Dictionary<string, object>(); cand["content"] = contenido;
+                    if (i == 2) cand["finishReason"] = "MAX_TOKENS"; // tercera llamada: respuesta cortada
                     Dictionary<string, object> r = new Dictionary<string, object>(); r["candidates"] = new List<object> { cand };
                     salida = Json.Escribir(r);
                 }
@@ -169,7 +171,10 @@ class PruebaIA
         List<string> modelos = Gemini.ListarModelos("clave-123");
         Verificar(modelos.Count == 2 && modelos[0] == "gemini-a" && claveRecibida == "clave-123",
                   "Gemini: lista solo modelos que generan texto y manda la clave en el encabezado");
-        string respuesta = Gemini.Generar("clave-123", "gemini-a", PeticionIA.Instrucciones, mensaje, true);
+        string respuesta = Gemini.Generar("clave-123", "gemini-a", PeticionIA.Instrucciones(op), mensaje, true);
+        bool cortada = false;
+        try { Gemini.Generar("clave-123", "gemini-a", "x", "y", true); } catch (RespuestaCortada) { cortada = true; }
+        Verificar(cortada, "Gemini: detecta una respuesta cortada (MAX_TOKENS)");
         hilo.Join(2000);
         servidor.Stop();
         object cuerpo = Json.Leer(cuerpoRecibido);
@@ -196,6 +201,99 @@ class PruebaIA
         string informe = res.Informe(veg, op, 26.7);
         Verificar(informe.Contains("## Resumen") && informe.Contains("Construyen una base.") && informe.Contains("- [x] 0:11"),
                   "informe .md con resumen, corte y casillas");
+
+
+        // ------------------------------------------------- acelerar tramos
+        Project pa = new Project();
+        VideoTrack va = new VideoTrack(); va.Index = 0; pa.Tracks.Add(va);
+        AudioTrack aa = new AudioTrack(); aa.Index = 1; pa.Tracks.Add(aa);
+        foreach (Track tr in new Track[] { va, aa })
+        {
+            TrackEvent e = tr.IsAudio() ? (TrackEvent)new AudioEvent() : new VideoEvent();
+            e.Start = new Timecode(0); e.Length = new Timecode(30000); e.Track = tr; tr.Events.Add(e);
+        }
+        Marker mk = new Marker(new Timecode(25000), "m"); pa.Markers.Add(mk);
+        Editor.Acelerar(pa, new List<Track>(pa.Tracks), new List<Acelerado> { new Acelerado(10, 20, 2) }, true, true, 0.02);
+        bool bienAcel = true;
+        foreach (Track tr in new Track[] { va, aa })
+        {
+            List<TrackEvent> l = new List<TrackEvent>(tr.Events);
+            l.Sort(delegate (TrackEvent x, TrackEvent y) { return x.Start.ms.CompareTo(y.Start.ms); });
+            bienAcel &= l.Count == 3 && Cerca(l[1].Start.ms / 1000, 10) && Cerca(l[1].Length.ms / 1000, 5) && l[1].PlaybackRate == 2 &&
+                        Cerca(l[2].Start.ms / 1000, 15) && Cerca(l[2].End.ms / 1000, 25) && l[0].PlaybackRate == 1;
+            if (tr.IsAudio()) bienAcel &= l[1].Mute && !l[0].Mute && Cerca(l[0].FadeOut.Length.ms, 20) && Cerca(l[1].FadeIn.Length.ms, 20);
+            else bienAcel &= !l[1].Mute;
+        }
+        Verificar(bienAcel && Cerca(mk.Position.ms / 1000, 20),
+                  "acelerar 10-20 s a ×2: dura 5 s, lo siguiente se corre, audio mudo con fundidos y el marcador se mueve");
+
+        Transcripcion.RegistrarAceleracion(veg, new List<Acelerado> { new Acelerado(14, 20, 2) }, 26.7, 23.7);
+        Transcripcion t5 = Transcripcion.Cargar(ruta);
+        Verificar(t5.Ediciones.Count == 3 && t5.Ediciones[2].Acelerados.Count == 1 && Cerca(t5.Mapear(t5.Inicio + 15), 18.7) && Cerca(t5.Mapear(t5.Inicio + 10), 15.35),
+                  "la transcripción sigue los tramos acelerados (y se guarda)");
+
+        // -------------------------------------------- corte con velocidades
+        string conAccion = "{\"corte\":[{\"inicio\":0,\"fin\":10,\"accion\":\"conservar\"},{\"inicio\":9,\"fin\":40,\"accion\":\"acelerar\",\"velocidad\":7}," +
+                           "{\"inicio\":50,\"fin\":60,\"accion\":\"conservar\"}]}";
+        ResultadoIA ra = ResultadoIA.Leer(conAccion, 100);
+        List<Rango> qa = ra.Quitar(100);
+        List<Acelerado> aca = ra.Acelerados(qa);
+        Verificar(ra.Corte.Count == 3 && Cerca(ra.Corte[1].Inicio, 10) && ra.Corte[1].Velocidad == 4 && Cerca(ra.DuracionCorte, 10 + 7.5 + 10) &&
+                  aca.Count == 1 && Cerca(aca[0].Inicio, 10) && Cerca(aca[0].Fin, 40),
+                  "corte con tramos acelerados: velocidad máx. ×4, sin encimarse y en la línea de tiempo ya cortada");
+
+        // --------------------------------------------------- video largo
+        Transcripcion larga = new Transcripcion();
+        larga.DuracionProyecto = 3600;
+        Hablante hl = new Hablante(); hl.Etiqueta = "A1"; hl.Nombre = "Gerbert"; hl.Voz = true; larga.Hablantes.Add(hl);
+        for (int i = 0; i < 360; i++)
+        {
+            // Frases cada 10 s; justo antes de 1250 s hay una pausa larga (mejor sitio para partir).
+            Segmento sg = new Segmento(); sg.Hablante = 0; sg.Inicio = i * 10; sg.Fin = i * 10 + (i == 124 ? 2 : 8);
+            sg.Texto = "frase " + i; larga.Segmentos.Add(sg);
+        }
+        List<Rango> partes = PeticionIA.Partes(larga.SegmentosActuales(), 3600, 1200);
+        Verificar(partes.Count == 3 && Cerca(partes[0].Fin, 1246) && Cerca(partes[2].Fin, 3600),
+                  "partes de ~20 min cortadas en la pausa más larga (" + PeticionIA.S(partes[0].Fin) + " s)");
+
+        List<string> llamadas = new List<string>();
+        AsistenteIA asis = new AsistenteIA(delegate (string ins, string men)
+        {
+            llamadas.Add(ins + "\n----\n" + men);
+            if (ins.Contains("POR PARTES"))
+            {
+                int n = llamadas.Count; // 1, 2 o 3
+                double a0 = (n - 1) * 1200 + 100;
+                if (n == 2 && !llamadas[1].Contains("Lo que pasó en las partes anteriores")) return "{}";
+                return "{\"resumen\":\"Parte " + n + " resumida\",\"candidatos\":[{\"inicio\":" + a0 + ",\"fin\":" + (a0 + 300) +
+                       ",\"importancia\":8,\"accion\":\"conservar\",\"titulo\":\"C" + n + "\",\"motivo\":\"m\"}]," +
+                       "\"momentos\":[{\"inicio\":" + a0 + ",\"fin\":" + (a0 + 5) + ",\"puntuacion\":9,\"titulo\":\"M" + n + "\",\"motivo\":\"m\"}]}";
+            }
+            if (llamadas.Count == 4 && men.StartsWith("Tipo")) return "esto no es JSON"; // fuerza un reintento
+            return "{\"resumen\":\"Todo\",\"corte\":[{\"inicio\":100,\"fin\":400,\"accion\":\"conservar\"}],\"titulos\":[\"T\"]}";
+        });
+        List<string> pasos = new List<string>();
+        asis.Progreso = delegate (string x) { pasos.Add(x); };
+        OpcionesIA opl = new OpcionesIA(); opl.MinutosObjetivo = 24;
+        string final = asis.Ejecutar(larga, 3600, opl);
+        string ultima = llamadas[llamadas.Count - 1];
+        Verificar(llamadas.Count == 5 && ResultadoIA.Leer(final, 3600).Corte.Count == 1 &&
+                  ultima.Contains("Parte 2 (") && ultima.Contains("Parte 3 resumida") && ultima.Contains("C3") && ultima.Contains("M2") &&
+                  llamadas[2].Contains("Parte 1: Parte 1 resumida") && pasos.Exists(delegate (string x) { return x.Contains("reintentando"); }),
+                  "video de 1 h: 3 partes con resumen previo, pasada final con candidatos y un reintento si llega roto");
+        Verificar(llamadas[0].Contains("sugerida para los candidatos de esta parte: 747.6 s"),
+                  "cada parte pide una duraci\u00f3n proporcional y generosa (24 min \u00d7 1246/3600 \u00d7 1.5)");
+
+        int llamadasCorto = 0;
+        AsistenteIA cort = new AsistenteIA(delegate (string ins, string men)
+        {
+            llamadasCorto++;
+            if (llamadasCorto == 1) throw new RespuestaCortada();
+            if (ins.Contains("POR PARTES")) return "{\"resumen\":\"r\",\"candidatos\":[],\"momentos\":[]}";
+            return "{\"corte\":[]}";
+        });
+        cort.Ejecutar(t4, 26.7, op);
+        Verificar(llamadasCorto == 3, "si la respuesta sale cortada, se pasa solo al modo por partes");
 
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " fallos.");

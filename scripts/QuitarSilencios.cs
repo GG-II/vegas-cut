@@ -432,6 +432,73 @@ static class Editor
         }
     }
 
+    // Vegas no acepta velocidades de evento mayores a 4x.
+    public const double VelocidadMaxima = 4;
+
+    // Reproduce mas rapido los tramos indicados: corta en sus bordes, sube la
+    // velocidad de cada evento de adentro (y acorta su duracion en la misma
+    // proporcion) y corre hacia la izquierda lo que sigue. Con
+    // "silenciarAudio" el audio de esos tramos queda mudo (acelerado suena raro).
+    public static void Acelerar(Project proyecto, List<Track> pistas, List<Acelerado> tramos, bool silenciarAudio,
+                                bool moverMarcadores, double suavizado)
+    {
+        List<Rango> bordes = new List<Rango>();
+        foreach (Acelerado a in tramos) bordes.Add(new Rango(a.Inicio, a.Fin));
+
+        foreach (Track pista in pistas)
+        {
+            List<TrackEvent> eventos = CortarEnBordes(pista, bordes);
+            eventos.Sort(delegate (TrackEvent x, TrackEvent y) { return S(x.Start).CompareTo(S(y.Start)); });
+
+            // De izquierda a derecha: primero se acorta el evento y luego se
+            // mueve, asi nunca se encima con el siguiente.
+            foreach (TrackEvent e in eventos)
+            {
+                double ini = S(e.Start), fin = S(e.End), medio = (ini + fin) / 2;
+                foreach (Acelerado a in tramos)
+                {
+                    if (medio <= a.Inicio || medio >= a.Fin) continue;
+                    double antes = e.PlaybackRate;
+                    double despues = Math.Min(VelocidadMaxima, antes * a.Factor);
+                    e.PlaybackRate = despues;
+                    e.Length = TC((fin - ini) * antes / despues);
+                    if (silenciarAudio && e is AudioEvent) e.Mute = true;
+                    break;
+                }
+                double nuevo = Acelerado.Posicion(ini, tramos);
+                if (nuevo < ini - Tolerancia) e.Start = TC(nuevo);
+            }
+
+            // Fundido corto donde el audio normal se junta con el acelerado.
+            if (suavizado > 0 && pista.IsAudio())
+            {
+                List<Rango> nuevosBordes = new List<Rango>();
+                foreach (Acelerado a in tramos)
+                    nuevosBordes.Add(new Rango(Acelerado.Posicion(a.Inicio, tramos), Acelerado.Posicion(a.Fin, tramos)));
+                List<TrackEvent> todos = new List<TrackEvent>();
+                foreach (TrackEvent e in pista.Events) todos.Add(e);
+                Suavizar(todos, nuevosBordes, suavizado);
+                // Los bordes de adentro del tramo tambien llevan fundido.
+                List<Rango> invertidos = new List<Rango>();
+                foreach (Rango r in nuevosBordes) invertidos.Add(new Rango(r.Fin, r.Inicio));
+                Suavizar(todos, invertidos, suavizado);
+            }
+        }
+
+        if (!moverMarcadores) return;
+        List<Marker> marcadores = new List<Marker>();
+        foreach (Marker m in proyecto.Markers) marcadores.Add(m);
+        foreach (Region m in proyecto.Regions) marcadores.Add(m);
+        foreach (Marker m in marcadores)
+        {
+            double t = S(m.Position), nuevo = Acelerado.Posicion(t, tramos);
+            if (nuevo < t - Tolerancia)
+            {
+                try { m.Position = TC(nuevo); } catch { }
+            }
+        }
+    }
+
     public static void Silenciar(List<Track> pistas, List<Rango> rangos, double suavizado)
     {
         foreach (Track pista in pistas)
@@ -462,6 +529,27 @@ public struct Rango
 {
     public double Inicio, Fin; // segundos en la linea de tiempo
     public Rango(double inicio, double fin) { Inicio = inicio; Fin = fin; }
+}
+
+// Tramo que se reproduce mas rapido (Factor 2 = el doble de rapido).
+public class Acelerado
+{
+    public double Inicio, Fin, Factor;
+    public Acelerado(double inicio, double fin, double factor) { Inicio = inicio; Fin = fin; Factor = factor; }
+
+    public double Ahorro { get { return (Fin - Inicio) * (1 - 1 / Factor); } }
+
+    // Nueva posicion de un instante despues de acelerar los tramos.
+    public static double Posicion(double t, List<Acelerado> tramos)
+    {
+        double ahorro = 0;
+        foreach (Acelerado a in tramos)
+        {
+            if (t >= a.Fin - 1e-6) ahorro += a.Ahorro;
+            else if (t > a.Inicio) ahorro += (t - a.Inicio) * (1 - 1 / a.Factor);
+        }
+        return t - ahorro;
+    }
 }
 
 public class Analisis
@@ -896,6 +984,7 @@ public class Hablante
 public class Edicion
 {
     public List<Rango> Quitados = new List<Rango>();
+    public List<Acelerado> Acelerados = new List<Acelerado>();
     public double Antes, Despues; // duracion del proyecto
 }
 
@@ -922,6 +1011,7 @@ public class Transcripcion
     {
         foreach (Edicion e in Ediciones)
         {
+            if (e.Acelerados.Count > 0) t = Acelerado.Posicion(t, e.Acelerados);
             double q = 0;
             foreach (Rango r in e.Quitados)
             {
@@ -998,16 +1088,30 @@ public class Transcripcion
     // La llaman las herramientas que cortan (Quitar silencios, Momentos).
     public static string RegistrarCortes(string veg, List<Rango> quitados, double antes, double despues)
     {
+        Edicion e = new Edicion();
+        e.Quitados.AddRange(quitados);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    public static string RegistrarAceleracion(string veg, List<Acelerado> tramos, double antes, double despues)
+    {
+        Edicion e = new Edicion();
+        e.Acelerados.AddRange(tramos);
+        e.Antes = antes;
+        e.Despues = despues;
+        return RegistrarEdicion(veg, e);
+    }
+
+    static string RegistrarEdicion(string veg, Edicion e)
+    {
         string ruta = RutaPara(veg);
         if (ruta == null || !File.Exists(ruta)) return "";
         try
         {
             Transcripcion t = Cargar(ruta);
-            t.Sincronizar(antes);
-            Edicion e = new Edicion();
-            e.Quitados.AddRange(quitados);
-            e.Antes = antes;
-            e.Despues = despues;
+            t.Sincronizar(e.Antes);
             t.Ediciones.Add(e);
             t.Guardar(ruta);
             return "\nLa transcripci\u00f3n tambi\u00e9n se ajust\u00f3 a los cortes.";
@@ -1128,6 +1232,12 @@ public class Transcripcion
             List<object> qs = new List<object>();
             foreach (Rango r in e.Quitados) qs.Add(new List<object> { R(r.Inicio), R(r.Fin) });
             x["quitados"] = qs;
+            if (e.Acelerados.Count > 0)
+            {
+                List<object> acs = new List<object>();
+                foreach (Acelerado a in e.Acelerados) acs.Add(new List<object> { R(a.Inicio), R(a.Fin), a.Factor });
+                x["acelerados"] = acs;
+            }
             es.Add(x);
         }
         d["ediciones"] = es;
@@ -1195,6 +1305,14 @@ public class Transcripcion
                 if (l != null && l.Count >= 2)
                     e.Quitados.Add(new Rango(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
                                              Convert.ToDouble(l[1], CultureInfo.InvariantCulture)));
+            }
+            foreach (object q in Json.Lista(x, "acelerados"))
+            {
+                List<object> l = q as List<object>;
+                if (l != null && l.Count >= 3)
+                    e.Acelerados.Add(new Acelerado(Convert.ToDouble(l[0], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[1], CultureInfo.InvariantCulture),
+                                                   Convert.ToDouble(l[2], CultureInfo.InvariantCulture)));
             }
             t.Ediciones.Add(e);
         }
