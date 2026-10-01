@@ -1187,7 +1187,8 @@ static class Editor
     // Devuelve cuantos pedazos quedaron en su propio grupo.
     public static int Reagrupar(Project proyecto, IEnumerable<Track> pistas)
     {
-        HashSet<string> vistos = new HashSet<string>();
+        // Dictionary y no HashSet: Vegas compila sin System.Core.
+        Dictionary<string, bool> vistos = new Dictionary<string, bool>();
         int separados = 0;
         foreach (Track pista in pistas)
         {
@@ -1195,19 +1196,20 @@ static class Editor
             foreach (TrackEvent e in pista.Events) eventos.Add(e);
             foreach (TrackEvent e in eventos)
             {
-                if (vistos.Contains(Clave(e))) continue;
+                if (vistos.ContainsKey(Clave(e))) continue;
                 TrackEventGroup grupo = null;
                 try { if (e.IsGrouped) grupo = e.Group; } catch { }
                 if (grupo == null) continue;
 
                 List<TrackEvent> miembros = new List<TrackEvent>();
                 foreach (TrackEvent m in grupo) miembros.Add(m);
-                HashSet<int> pistasDelGrupo = new HashSet<int>();
+                Dictionary<int, bool> pistasDelGrupo = new Dictionary<int, bool>();
                 bool roto = false;
                 foreach (TrackEvent m in miembros)
                 {
-                    vistos.Add(Clave(m));
-                    if (!pistasDelGrupo.Add(m.Track.Index)) roto = true;
+                    vistos[Clave(m)] = true;
+                    if (pistasDelGrupo.ContainsKey(m.Track.Index)) roto = true;
+                    pistasDelGrupo[m.Track.Index] = true;
                 }
                 if (!roto) continue;
 

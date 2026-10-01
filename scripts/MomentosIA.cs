@@ -687,13 +687,13 @@ class VentanaMomentos : VentanaBase
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
             foreach (Tramo t in resultado.Corte)
-                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
+                if (t.Elegido) { anclas.Add(Regiones(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
             foreach (Tramo t in resultado.Momentos)
                 if (t.Elegido) { anclas.Add(Marcador(p, t.Inicio, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo)); n++; }
             foreach (TextoResumen t in resultado.Textos)
                 if (t.Elegido) { anclas.Add(Marcador(p, t.Posicion, "TEXTO: " + t.Texto)); n++; }
             foreach (Tramo t in resultado.Shorts)
-                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
+                if (t.Elegido) { anclas.Add(Regiones(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
         }
         Anclas.Guardar(p.FilePath, anclas);
         Estado("\u2714 " + n + " regiones y marcadores creados y anclados a sus clips (Ctrl+Z los quita). " +
@@ -706,7 +706,7 @@ class VentanaMomentos : VentanaBase
         return Anclas.Crear(p, t, -1, texto);
     }
 
-    static Ancla Region(Project p, double a, double b, string texto)
+    static Ancla Regiones(Project p, double a, double b, string texto)
     {
         p.Regions.Add(new ScriptPortal.Vegas.Region(Timecode.FromMilliseconds(a * 1000), Timecode.FromMilliseconds((b - a) * 1000), texto));
         return Anclas.Crear(p, a, b, texto);
@@ -1777,7 +1777,8 @@ static class Editor
     // Devuelve cuantos pedazos quedaron en su propio grupo.
     public static int Reagrupar(Project proyecto, IEnumerable<Track> pistas)
     {
-        HashSet<string> vistos = new HashSet<string>();
+        // Dictionary y no HashSet: Vegas compila sin System.Core.
+        Dictionary<string, bool> vistos = new Dictionary<string, bool>();
         int separados = 0;
         foreach (Track pista in pistas)
         {
@@ -1785,19 +1786,20 @@ static class Editor
             foreach (TrackEvent e in pista.Events) eventos.Add(e);
             foreach (TrackEvent e in eventos)
             {
-                if (vistos.Contains(Clave(e))) continue;
+                if (vistos.ContainsKey(Clave(e))) continue;
                 TrackEventGroup grupo = null;
                 try { if (e.IsGrouped) grupo = e.Group; } catch { }
                 if (grupo == null) continue;
 
                 List<TrackEvent> miembros = new List<TrackEvent>();
                 foreach (TrackEvent m in grupo) miembros.Add(m);
-                HashSet<int> pistasDelGrupo = new HashSet<int>();
+                Dictionary<int, bool> pistasDelGrupo = new Dictionary<int, bool>();
                 bool roto = false;
                 foreach (TrackEvent m in miembros)
                 {
-                    vistos.Add(Clave(m));
-                    if (!pistasDelGrupo.Add(m.Track.Index)) roto = true;
+                    vistos[Clave(m)] = true;
+                    if (pistasDelGrupo.ContainsKey(m.Track.Index)) roto = true;
+                    pistasDelGrupo[m.Track.Index] = true;
                 }
                 if (!roto) continue;
 

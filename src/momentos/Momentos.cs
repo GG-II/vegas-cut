@@ -666,13 +666,13 @@ class VentanaMomentos : VentanaBase
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
             foreach (Tramo t in resultado.Corte)
-                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar ×" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
+                if (t.Elegido) { anclas.Add(Regiones(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar ×" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
             foreach (Tramo t in resultado.Momentos)
                 if (t.Elegido) { anclas.Add(Marcador(p, t.Inicio, "★" + t.Puntuacion.ToString("0") + " " + t.Titulo)); n++; }
             foreach (TextoResumen t in resultado.Textos)
                 if (t.Elegido) { anclas.Add(Marcador(p, t.Posicion, "TEXTO: " + t.Texto)); n++; }
             foreach (Tramo t in resultado.Shorts)
-                if (t.Elegido) { anclas.Add(Region(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
+                if (t.Elegido) { anclas.Add(Regiones(p, t.Inicio, t.Fin, "SHORT: " + t.Titulo)); n++; }
         }
         Anclas.Guardar(p.FilePath, anclas);
         Estado("✔ " + n + " regiones y marcadores creados y anclados a sus clips (Ctrl+Z los quita). " +
@@ -685,7 +685,7 @@ class VentanaMomentos : VentanaBase
         return Anclas.Crear(p, t, -1, texto);
     }
 
-    static Ancla Region(Project p, double a, double b, string texto)
+    static Ancla Regiones(Project p, double a, double b, string texto)
     {
         p.Regions.Add(new ScriptPortal.Vegas.Region(Timecode.FromMilliseconds(a * 1000), Timecode.FromMilliseconds((b - a) * 1000), texto));
         return Anclas.Crear(p, a, b, texto);
