@@ -1276,7 +1276,7 @@ static class Editor
 
     // Segun la version de Vegas el grupo se crea sin argumentos o con el
     // proyecto; por reflexion sirve para ambas.
-    static TrackEventGroup NuevoGrupo(Project proyecto)
+    public static TrackEventGroup NuevoGrupo(Project proyecto)
     {
         TrackEventGroup g;
         try { g = (TrackEventGroup)Activator.CreateInstance(typeof(TrackEventGroup)); }

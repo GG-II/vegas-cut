@@ -27,7 +27,7 @@ public class Media { public string FilePath; public bool Generada; public Effect
   public bool IsGenerated(){return Generada;}
   public Timecode Length=new Timecode(0);
   public Media(){}
-  public Media(string ruta){ FilePath=ruta; Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); Length=new Timecode(LargoFalso); }
+  public Media(string ruta){ FilePath=ruta; if (ruta.EndsWith(".mp4")) Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); if (ruta.EndsWith(".mp4")) { Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); } Length=new Timecode(LargoFalso); }
   public static double LargoFalso=5000;
   public Media(PlugInNode p){ Generada=true; Generator=new Effect(p); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); } }
 public class Fade { public Timecode Length = new Timecode(0); }

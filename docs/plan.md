@@ -107,5 +107,6 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 - [x] `CensurarPalabrotas.cs`: palabrotas desde la transcripción, pitido o efecto propio, voz silenciada.
 - [x] La transcripción guarda las fuentes (archivo + segundo) para seguir ediciones a mano.
 - [ ] Probar en Vegas 20: Títulos y texto por script, envolvente de volumen y censura.
+- [x] `Anteriormente.cs`: resumen de episodios pasados con clips de las grabaciones originales.
 - [ ] Zoom de impacto en ★ y picos, Shorts 9:16 desde regiones `SHORT:`.
 - [ ] Subtítulos desde la transcripción (pospuesto).

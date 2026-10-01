@@ -1,0 +1,10 @@
+// Anteriormente.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Arma el "ANTERIORMENTE" de un episodio: eliges los proyectos de episodios
+// pasados (ya transcritos) y la duracion (15 a 60 s), Gemini elige frases
+// cortas de lo que quedo en esos videos que importan para este capitulo, y
+// se traen al inicio directo de las grabaciones originales (video y audios),
+// corriendo todo el video para dejar espacio libre para editarlo.
+//
+// Requiere la clave de Gemini en ConfigurarVegasCut.cs.
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

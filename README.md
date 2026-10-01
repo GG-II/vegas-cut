@@ -12,6 +12,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
 | `TextosDesdeMarcadores.cs` | Convierte los marcadores `TEXTO:` en Títulos y texto con el estilo de una plantilla. |
 | `MusicaAutomatica.cs` | Baja la música cuando alguien habla y la sube en las pausas (envolvente de volumen). |
+| `Anteriormente.cs` | Arma el «Anteriormente» con frases de episodios pasados que importan para este capítulo. |
 | `DesenlazarClips.cs` | Arregla clips que quedaron unidos todos en un grupo tras cortar con versiones anteriores. |
 | `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
@@ -214,6 +215,30 @@ qué segundo sale cada parte de la voz, así que cada palabra se encuentra en su
 aunque muevas o recortes clips; si una parte se borró, aparece como *ya no está*. Las
 transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a
 mano, vuelve a transcribir (un video ya editado de 20 min tarda poco).
+
+### `Anteriormente.cs`
+
+![Ventana de Anteriormente](docs/img/anteriormente.png)
+
+Arma el «ANTERIORMENTE» que abre un episodio, con frases dichas en los episodios pasados.
+
+1. **Agregar episodios…**: elige los `.veg` de los episodios anteriores (ya transcritos). Para
+   poder traer sus clips, su transcripción tiene que ser de esta versión de *Transcribir* (la
+   columna *Trae clips* lo dice); si no, sirven solo de contexto.
+2. Elige la **duración** (15, 20, 30, 45 o 60 s) y, si quieres, qué recordar («hoy es la
+   segunda carrera»).
+3. **Pedir a Gemini**: lee lo que quedó en cada episodio anterior (sin lo que se cortó con
+   las herramientas) y de qué trata el actual (su resumen de MomentosIA o su transcripción), y
+   elige frases cortas que importan para **este** capítulo: objetivos, conflictos, promesas, o un
+   detalle pequeño que aquí se vuelve importante.
+4. Revisa la lista y desmarca lo que no quieras.
+5. **Insertar al inicio**: corre todo el video (eventos, marcadores y regiones) para dejar
+   **espacio al inicio** (60 s por defecto, o lo que haga falta) y pone los clips en orden desde
+   0:00, sacados **directo de las grabaciones originales** (video y cada audio), cada clip
+   agrupado con sus audios. Van en las **pistas del proyecto** (cada voz a la pista con su misma
+   etiqueta, A2, A3…) o en **pistas nuevas**. Deja una región *ANTERIORMENTE* y un marcador
+   `TEXTO: Anteriormente…` para convertirlo en título con *TextosDesdeMarcadores*. Si el video ya
+   empieza después del espacio, no se corre otra vez. Ctrl+Z lo deshace.
 
 ### `DesenlazarClips.cs`
 
