@@ -96,5 +96,5 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 - [x] `ConfigurarVegasCut.cs`: clave de Gemini (cifrada) y Faster-Whisper-XXL.
 - [x] `Transcribir.cs`: Whisper local + niveles de sonido por pista → `<proyecto>.vegascut.json`.
 - [x] `MomentosIA.cs`: resumen, momentos, corte a duración objetivo, textos, Shorts y títulos con Gemini.
-- [ ] Probar en Vegas 20 real con una grabación.
+- [x] Probado en Vegas 20: Transcribir (GTX 1650, large-v3-turbo) y Momentos (5 min → 2 min con buen ritmo).
 - [ ] Subtítulos desde la transcripción (pospuesto).
