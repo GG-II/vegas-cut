@@ -115,7 +115,7 @@ public static class CensuraVegas
             foreach (KeyValuePair<int, List<Rango>> kv in porPista)
                 foreach (Track pista in p.Tracks)
                     if (pista.IsAudio() && pista.Index == kv.Key)
-                        Editor.Silenciar(new List<Track> { pista }, LogicaCensura.Unir(kv.Value), 0.008);
+                        Editor.Silenciar(p, new List<Track> { pista }, LogicaCensura.Unir(kv.Value), 0.008);
 
         if (o.Sfx != "-")
         {
@@ -1067,6 +1067,7 @@ static class Editor
                 if (q > 0) e.Start = TC(S(e.Start) - q);
             }
         }
+        Reagrupar(proyecto, pistas);
 
         if (!moverMarcadores) return;
         List<Marker> marcadores = new List<Marker>();
@@ -1134,6 +1135,7 @@ static class Editor
                 Suavizar(todos, invertidos, suavizado);
             }
         }
+        Reagrupar(proyecto, pistas);
 
         if (!moverMarcadores) return;
         List<Marker> marcadores = new List<Marker>();
@@ -1147,6 +1149,12 @@ static class Editor
                 try { m.Position = TC(nuevo); } catch { }
             }
         }
+    }
+
+    public static void Silenciar(Project proyecto, List<Track> pistas, List<Rango> rangos, double suavizado)
+    {
+        Silenciar(pistas, rangos, suavizado);
+        Reagrupar(proyecto, pistas);
     }
 
     public static void Silenciar(List<Track> pistas, List<Rango> rangos, double suavizado)
@@ -1166,6 +1174,99 @@ static class Editor
     {
         foreach (Rango r in rangos)
             proyecto.Regions.Add(new Region(TC(r.Inicio), TC(r.Fin - r.Inicio), "Silencio"));
+    }
+
+    // ------------------------------------------------------------ grupos
+
+    // Al cortar con Split, Vegas deja cada pedazo nuevo en el mismo grupo que
+    // el clip original: al final todos los pedazos quedan unidos y mover o
+    // borrar uno mueve o borra todos. Aqui cada grupo asi se separa en
+    // grupos chicos: los eventos que se enciman en el tiempo (el video y sus
+    // audios del mismo pedazo) siguen juntos. Solo se tocan grupos con dos o
+    // mas eventos en la misma pista, que es la marca de este problema.
+    // Devuelve cuantos pedazos quedaron en su propio grupo.
+    public static int Reagrupar(Project proyecto, IEnumerable<Track> pistas)
+    {
+        HashSet<string> vistos = new HashSet<string>();
+        int separados = 0;
+        foreach (Track pista in pistas)
+        {
+            List<TrackEvent> eventos = new List<TrackEvent>();
+            foreach (TrackEvent e in pista.Events) eventos.Add(e);
+            foreach (TrackEvent e in eventos)
+            {
+                if (vistos.Contains(Clave(e))) continue;
+                TrackEventGroup grupo = null;
+                try { if (e.IsGrouped) grupo = e.Group; } catch { }
+                if (grupo == null) continue;
+
+                List<TrackEvent> miembros = new List<TrackEvent>();
+                foreach (TrackEvent m in grupo) miembros.Add(m);
+                HashSet<int> pistasDelGrupo = new HashSet<int>();
+                bool roto = false;
+                foreach (TrackEvent m in miembros)
+                {
+                    vistos.Add(Clave(m));
+                    if (!pistasDelGrupo.Add(m.Track.Index)) roto = true;
+                }
+                if (!roto) continue;
+
+                List<List<TrackEvent>> partes = Partes(miembros);
+                // La primera parte se queda en el grupo original.
+                for (int i = 1; i < partes.Count; i++)
+                {
+                    foreach (TrackEvent m in partes[i])
+                        try { grupo.Remove(m); } catch { }
+                    if (partes[i].Count > 1)
+                    {
+                        TrackEventGroup nuevo = NuevoGrupo(proyecto);
+                        foreach (TrackEvent m in partes[i]) nuevo.Add(m);
+                    }
+                    separados++;
+                }
+            }
+        }
+        return separados;
+    }
+
+    public static int Reagrupar(Project proyecto)
+    {
+        return Reagrupar(proyecto, proyecto.Tracks);
+    }
+
+    // Segun la version de Vegas el grupo se crea sin argumentos o con el
+    // proyecto; por reflexion sirve para ambas.
+    static TrackEventGroup NuevoGrupo(Project proyecto)
+    {
+        TrackEventGroup g;
+        try { g = (TrackEventGroup)Activator.CreateInstance(typeof(TrackEventGroup)); }
+        catch { g = (TrackEventGroup)Activator.CreateInstance(typeof(TrackEventGroup), proyecto); }
+        proyecto.Groups.Add(g);
+        return g;
+    }
+
+    static string Clave(TrackEvent e)
+    {
+        return e.Track.Index + ":" + Math.Round(e.Start.ToMilliseconds());
+    }
+
+    // Eventos que se enciman en el tiempo van juntos.
+    static List<List<TrackEvent>> Partes(List<TrackEvent> eventos)
+    {
+        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return S(a.Start).CompareTo(S(b.Start)); });
+        List<List<TrackEvent>> partes = new List<List<TrackEvent>>();
+        double fin = double.MinValue;
+        foreach (TrackEvent e in eventos)
+        {
+            if (partes.Count == 0 || S(e.Start) >= fin - 0.002)
+            {
+                partes.Add(new List<TrackEvent>());
+                fin = S(e.End);
+            }
+            else fin = Math.Max(fin, S(e.End));
+            partes[partes.Count - 1].Add(e);
+        }
+        return partes;
     }
 }
 

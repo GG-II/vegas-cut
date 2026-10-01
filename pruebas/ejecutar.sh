@@ -10,7 +10,7 @@ mcs -langversion:5 -target:library -out:"$T/ScriptPortal.Vegas.dll" VegasFake.cs
 REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll"
 # Los scripts armados desde src/ deben compilar como C# 5 (ExportarProyecto.cs
 # usa partes de la API que la version falsa no imita).
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs

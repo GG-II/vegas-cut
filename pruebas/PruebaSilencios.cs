@@ -144,6 +144,40 @@ class PruebaSilencios
         foreach (Perfil_ pf in Perfil_.Incluidos)
             orden &= pf.HablaMinMs < pf.SilencioMinMs && pf.MargenAntesMs + pf.MargenDespuesMs < pf.SilencioMinMs;
         Verificar(Perfil_.Incluidos.Length == 5 && orden, "perfiles incluidos: los m\u00e1rgenes caben en el silencio m\u00ednimo");
+        // Grupos: video + 3 audios del mismo clip, agrupados como los pone Vegas.
+        Project pg = new Project();
+        List<TrackEvent> clip = new List<TrackEvent>();
+        TrackEventGroup g0 = new TrackEventGroup(); pg.Groups.Add(g0);
+        for (int i = 0; i < 4; i++)
+        {
+            Track t = i == 0 ? (Track)new VideoTrack(i, "") : new AudioTrack(i, "");
+            pg.Tracks.Add(t);
+            TrackEvent e = Evento(t, 0, 30);
+            g0.Add(e);
+        }
+        Editor.Eliminar(pg, new List<Track>(pg.Tracks), new List<Rango> { new Rango(5, 6), new Rango(12, 14) }, true, false, 0);
+        bool gruposBien = pg.Groups.Count == 3;
+        foreach (Track t in pg.Tracks)
+            foreach (TrackEvent e in t.Events)
+            {
+                int juntos = 0;
+                foreach (TrackEvent o in e.Group) if (Cerca(o.Start.ms, e.Start.ms) && Cerca(o.End.ms, e.End.ms)) juntos++;
+                gruposBien &= e.Group.Count == 4 && juntos == 4;
+            }
+        Verificar(gruposBien, "cada pedazo queda en su grupo con sus 3 audios (no todos unidos)");
+        Verificar(Editor.Reagrupar(pg) == 0, "volver a desenlazar no cambia nada");
+
+        // Proyecto ya roto (como lo dejaba la versión anterior): todo en un grupo.
+        Project pr = new Project();
+        TrackEventGroup todo = new TrackEventGroup(); pr.Groups.Add(todo);
+        for (int i = 0; i < 2; i++)
+        {
+            Track t = i == 0 ? (Track)new VideoTrack(i, "") : new AudioTrack(i, "");
+            pr.Tracks.Add(t);
+            for (int k = 0; k < 3; k++) todo.Add(Evento(t, k * 10, 10));
+        }
+        Verificar(Editor.Reagrupar(pr) == 2 && pr.Groups.Count == 3 && todo.Count == 2, "desenlaza un proyecto ya unido de más");
+
         Perfil_ copia = new Perfil_();
         foreach (string linea in Perfil_.Incluidos[3].Texto().Split('\n'))
         {

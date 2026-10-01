@@ -12,6 +12,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ReubicarMarcadores.cs` | Vuelve a poner los marcadores de MomentosIA sobre su clip si moviste clips. |
 | `TextosDesdeMarcadores.cs` | Convierte los marcadores `TEXTO:` en Títulos y texto con el estilo de una plantilla. |
 | `MusicaAutomatica.cs` | Baja la música cuando alguien habla y la sube en las pausas (envolvente de volumen). |
+| `DesenlazarClips.cs` | Arregla clips que quedaron unidos todos en un grupo tras cortar con versiones anteriores. |
 | `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
 
@@ -198,6 +199,16 @@ qué segundo sale cada parte de la voz, así que cada palabra se encuentra en su
 aunque muevas o recortes clips; si una parte se borró, aparece como *ya no está*. Las
 transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a
 mano, vuelve a transcribir (un video ya editado de 20 min tarda poco).
+
+### `DesenlazarClips.cs`
+
+Al cortar por script, Vegas deja cada pedazo nuevo en el mismo grupo que el clip original, así
+que con versiones anteriores de *Quitar silencios* y *MomentosIA* todos los pedazos quedaban
+unidos: mover o borrar uno movía o borraba todos. Ahora las herramientas lo corrigen solas al
+terminar de cortar. Para proyectos que ya quedaron así, ejecuta **DesenlazarClips**: cada
+pedazo vuelve a su propio grupo y **el video sigue unido a sus audios** de ese pedazo (los
+eventos que coinciden en el tiempo). Solo toca grupos con dos o más eventos en la misma pista.
+Ctrl+Z lo deshace.
 
 ### `QuitarSilencios.cs`
 

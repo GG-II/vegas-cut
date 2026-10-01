@@ -49,7 +49,7 @@ public class EntryPoint
                 else if (modo == Modo.DejarHuecos)
                     Editor.Eliminar(proyecto, destino, rangos, false, false, suavizado);
                 else if (modo == Modo.Silenciar)
-                    Editor.Silenciar(destino, rangos, suavizado);
+                    Editor.Silenciar(proyecto, destino, rangos, suavizado);
                 else
                     Editor.Marcar(proyecto, rangos);
             }

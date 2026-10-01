@@ -34,15 +34,18 @@ public class Fade { public Timecode Length = new Timecode(0); }
 public class Take { public Media Media; public Timecode Offset = new Timecode(0); }
 public class Effects : List<Effect> {}
 public class TrackEvent {
-  public Timecode Start, Length; public Fade FadeIn = new Fade(), FadeOut = new Fade(); public bool Mute, Selected; public double PlaybackRate = 1; public Take ActiveTake; public Track Track; public double Offset;
+  public Timecode Start, Length; public Fade FadeIn = new Fade(), FadeOut = new Fade(); public bool Mute, Selected; public TrackEventGroup Group; public bool IsGrouped { get { return Group != null; } } public double PlaybackRate = 1; public Take ActiveTake; public Track Track; public double Offset;
   public Timecode End { get { return new Timecode(Start.ms+Length.ms);} }
   public TrackEvent Split(Timecode off){
     var e=(TrackEvent)MemberwiseClone(); e.FadeIn=new Fade(); e.FadeOut=FadeOut; FadeOut=new Fade(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms; if (ActiveTake!=null) { e.ActiveTake=new Take(); e.ActiveTake.Media=ActiveTake.Media; e.ActiveTake.Offset=new Timecode(ActiveTake.Offset.ms+off.ms*PlaybackRate); }
-    Length=new Timecode(off.ms); Track.Events.Add(e); return e; }
+    Length=new Timecode(off.ms); Track.Events.Add(e); if (Group!=null) { e.Group=null; Group.Add(e); } return e; }
   public Take AddTake(MediaStream m){ ActiveTake=new Take{Media=m.Parent}; return ActiveTake; }
 }
 public class AudioEvent: TrackEvent {} public class VideoEvent: TrackEvent { public Effects Effects=new Effects(); }
-public class Events : List<TrackEvent> { public new void Remove(TrackEvent e){ base.Remove(e);} }
+public class Events : List<TrackEvent> { public new void Remove(TrackEvent e){ if (e.Group!=null) e.Group.Remove(e); base.Remove(e);} }
+public class TrackEventGroup : List<TrackEvent> {
+  public new void Add(TrackEvent e){ if (e.Group!=null) throw new Exception("ya esta en un grupo"); e.Group=this; base.Add(e); }
+  public new void Remove(TrackEvent e){ if (base.Remove(e)) e.Group=null; } }
 public enum EnvelopeType { Volume, Pan }
 public class EnvelopePoint { public Timecode X; public double Y; public EnvelopePoint(Timecode x, double y){X=x;Y=y;} }
 public class EnvelopePoints : List<EnvelopePoint> { public new void Add(EnvelopePoint p){ foreach(var q in this) if(Math.Abs(q.X.ms-p.X.ms)<0.01) throw new Exception("punto repetido"); base.Add(p); Sort((a,b)=>a.X.ms.CompareTo(b.X.ms)); }
@@ -59,7 +62,7 @@ public class Marker { public Timecode Position; public string Label; public Mark
 public class Region: Marker { public Timecode Length; public Region(Timecode p, Timecode l, string s){Position=p;Length=l;Label=s;} }
 public class VideoProps { public double FrameRate=59.94; }
 public class MediaPool : List<Media> { public Media Find(string r){ foreach(var m in this) if(m.FilePath==r) return m; return null; } }
-public class Project { public string FilePath; public MediaPool MediaPool=new MediaPool(); public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
+public class Project { public string FilePath; public MediaPool MediaPool=new MediaPool(); public List<TrackEventGroup> Groups=new List<TrackEventGroup>(); public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
 public class Transport { public Timecode SelectionStart=new Timecode(0), SelectionLength=new Timecode(0), CursorPosition=new Timecode(0); public int Reproducir; public void Play(){Reproducir++;} }
 public enum RenderStatus { Complete, Canceled, Failed }
 public class RenderTemplate { public string Name="PCM 16"; public bool IsValid(){return true;} }

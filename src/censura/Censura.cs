@@ -96,7 +96,7 @@ public static class CensuraVegas
             foreach (KeyValuePair<int, List<Rango>> kv in porPista)
                 foreach (Track pista in p.Tracks)
                     if (pista.IsAudio() && pista.Index == kv.Key)
-                        Editor.Silenciar(new List<Track> { pista }, LogicaCensura.Unir(kv.Value), 0.008);
+                        Editor.Silenciar(p, new List<Track> { pista }, LogicaCensura.Unir(kv.Value), 0.008);
 
         if (o.Sfx != "-")
         {

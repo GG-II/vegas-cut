@@ -1,0 +1,9 @@
+// DesenlazarClips.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Arregla proyectos donde, despues de cortar con Quitar silencios o
+// MomentosIA, todos los pedazos quedaron en un solo grupo (mover o borrar
+// uno movia o borraba todos). Cada pedazo vuelve a su propio grupo con sus
+// audios: el video y sus pistas de audio del mismo pedazo siguen juntos.
+// Las versiones nuevas de las herramientas ya lo hacen solas.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

@@ -30,6 +30,7 @@ HERRAMIENTAS = {
                               'comun/Anclas.cs', 'comun/Audio.cs', 'comun/Json.cs', 'comun/Ui.cs'],
     'MusicaAutomatica': ['musica/cabecera.txt', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'comun/PistasVegas.cs'] +
                         COMUN_BASE + ['silencios/Deteccion.cs', 'comun/Ui.cs'],
+    'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
     'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
                            'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE + ['comun/Ui.cs'],
 }
