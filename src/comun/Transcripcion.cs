@@ -72,6 +72,19 @@ public class Transcripcion
 
     // --------------------------------------------------- tiempos actuales
 
+    // Si esta puesto, lleva (hablante, tiempo original) a la linea de tiempo
+    // actual buscando el archivo y segundo de cada palabra (fuentes): asi la
+    // transcripcion sigue cualquier edicion, tambien las hechas a mano. Lo
+    // ponen las herramientas que tienen el proyecto de Vegas a mano.
+    public Func<int, double, double> Ubicador;
+
+    public double Mapear(int hablante, double t)
+    {
+        if (Ubicador != null && hablante >= 0 && hablante < Hablantes.Count && Hablantes[hablante].Fuentes.Count > 0)
+            return Ubicador(hablante, t);
+        return Mapear(t);
+    }
+
     // Lleva un tiempo original a la linea de tiempo actual. Devuelve NaN si
     // ese instante fue cortado.
     public double Mapear(double t)
@@ -143,7 +156,7 @@ public class Transcripcion
             {
                 foreach (Palabra p in s.Palabras)
                 {
-                    double a = Mapear(p.Inicio), b = Mapear(p.Fin);
+                    double a = Mapear(s.Hablante, p.Inicio), b = Mapear(s.Hablante, p.Fin);
                     if (double.IsNaN(a) && double.IsNaN(b)) continue;
                     if (double.IsNaN(a)) a = b - Math.Min(0.2, p.Fin - p.Inicio);
                     if (double.IsNaN(b)) b = a + Math.Min(0.2, p.Fin - p.Inicio);
@@ -159,7 +172,7 @@ public class Transcripcion
             }
             else
             {
-                n.Inicio = Mapear(s.Inicio); n.Fin = Mapear(s.Fin); n.Texto = s.Texto;
+                n.Inicio = Mapear(s.Hablante, s.Inicio); n.Fin = Mapear(s.Hablante, s.Fin); n.Texto = s.Texto;
                 if (double.IsNaN(n.Inicio) || double.IsNaN(n.Fin)) continue;
             }
             r.Add(n);

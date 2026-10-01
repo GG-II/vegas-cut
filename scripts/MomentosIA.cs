@@ -45,6 +45,8 @@ public class EntryPoint
         try { t = Transcripcion.Cargar(ruta); }
         catch (Exception ex) { MessageBox.Show("No se pudo leer la transcripci\u00f3n: " + ex.Message, "Momentos con IA"); return; }
 
+        // Con las fuentes, la transcripcion sigue tambien las ediciones a mano.
+        if (t.TieneFuentes) t.Ubicador = PistasVegas.Ubicador(vegas.Project, t);
         using (VentanaMomentos v = new VentanaMomentos(vegas, t, ruta)) v.ShowDialog();
     }
 }
@@ -113,6 +115,8 @@ class VentanaMomentos : VentanaBase
     Boton btnMarcar = new Boton("Crear regiones y marcadores", EstiloBoton.Secundario);
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
     Boton btnFijar = new Boton("Conservar selecci\u00f3n", EstiloBoton.Secundario);
+    Boton chipCuentan = new Boton("Los fijos cuentan en la duraci\u00f3n", EstiloBoton.Chip);
+    bool fijosCuentan = true;
     List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selecci\u00f3n de tiempo)
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
 
@@ -136,6 +140,7 @@ class VentanaMomentos : VentanaBase
         // Estado de la transcripcion
         string aviso = t.Sincronizar(total);
         if (aviso.StartsWith("Se detect")) { try { t.Guardar(ruta); } catch { } }
+        if (t.Ubicador != null && !aviso.StartsWith("Se detect")) aviso = ""; // sigue las ediciones a mano
         int frases = t.SegmentosActuales().Count;
         Texto("Transcripci\u00f3n del " + t.Creada + ": " + frases + " frases \u00b7 proyecto de " +
             Formato.Tiempo(total) + (aviso.Length > 0 ? "\n" + aviso : ""), Tema.Pequena,
@@ -215,7 +220,8 @@ class VentanaMomentos : VentanaBase
         }
         txtResumen.Multilinea = true;
         txtResumen.Caja.ReadOnly = true;
-        lblCorte = Texto("", Tema.Negrita, Tema.Texto, dx, dy + alto + 8, dw, 22);
+        lblCorte = Texto("", Tema.Negrita, Tema.Texto, dx, dy + alto + 8, dw - 262, 22);
+        Pos(chipCuentan, dx + dw - 254, dy + alto + 6, 254, 26);
         int fondo = Math.Max(fondoIzq, dy + alto + 40);
 
         Pos(btnInforme, m, fondo, 150, 40);
@@ -231,6 +237,7 @@ class VentanaMomentos : VentanaBase
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnFijar.Click += delegate { Fijar(); };
+        chipCuentan.Click += delegate { CambiarCuentan(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
         btnReglas.Click += delegate { EditarReglas(); };
@@ -254,6 +261,8 @@ class VentanaMomentos : VentanaBase
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
         fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
+        fijosCuentan = TramosFijos.Cuentan(vegas.Project.FilePath);
+        chipCuentan.Activo = fijosCuentan;
 
         // Valores iniciales: los de la ultima respuesta guardada.
         cargando = true;
@@ -327,6 +336,7 @@ class VentanaMomentos : VentanaBase
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         opciones.Contexto = PeticionIA.ContextoDe(contexto);
         opciones.Fijos = new List<Tramo>(fijos);
+        opciones.FijosCuentan = fijosCuentan;
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -431,6 +441,7 @@ class VentanaMomentos : VentanaBase
         // Los tramos fijos se agregan despues de la revision (no cambian sus indices).
         if (Math.Abs(duracion - total) <= 0.5)
             foreach (Tramo f in fijos) r.AgregarFijo(f.Inicio, f.Fin, f.Titulo);
+        r.FijosCuentan = fijosCuentan;
         string ajuste = r.AjustarDuracion(min * 60, max * 60);
         if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
         return r;
@@ -658,11 +669,12 @@ class VentanaMomentos : VentanaBase
     {
         if (pestanas.Seleccion == 4) return;
         if (resultado == null) { lblCorte.Text = "Pide una sugerencia a Gemini para ver los resultados aqu\u00ed."; return; }
-        double d = resultado.DuracionCorte;
-        bool fuera = d < numMin.Valor * 60 - 0.5 || d > numMax.Valor * 60 + 0.5;
+        double d = resultado.DuracionCorte, ajustable = resultado.DuracionAjustable;
+        bool fuera = ajustable < numMin.Valor * 60 - 0.5 || ajustable > numMax.Valor * 60 + 0.5;
         lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
+        string aparte = Math.Abs(d - ajustable) > 0.5 ? ", " + Formato.Tiempo(d - ajustable) + " fijos aparte" : "";
         lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "\u2013" +
-                        numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") \u00b7 clic en Velocidad: cambiarla \u00b7 doble clic: ir";
+                        numMax.Valor + " min" + aparte + (fuera ? ", fuera del rango" : "") + ") \u00b7 doble clic: ir";
     }
 
     // ------------------------------------------------------- tramos fijos
@@ -688,7 +700,7 @@ class VentanaMomentos : VentanaBase
         double b = Math.Min(total, a + largo);
         string titulo = "Elegido a mano (" + Formato.Tiempo(a) + "\u2013" + Formato.Tiempo(b) + ")";
         fijos = TramosFijos.Agregar(fijos, a, b, titulo);
-        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
         string nota = "";
         if (resultado != null)
         {
@@ -701,12 +713,31 @@ class VentanaMomentos : VentanaBase
                (nota.Length > 0 ? " Ajustes: " + nota + "." : "") + " Desm\u00e1rcalo en la lista para quitarlo.", false);
     }
 
+    // Los tramos fijos cuentan o no para el minimo y el maximo del corte.
+    void CambiarCuentan()
+    {
+        fijosCuentan = !fijosCuentan;
+        chipCuentan.Activo = fijosCuentan;
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
+        string nota = "";
+        if (resultado != null)
+        {
+            resultado.FijosCuentan = fijosCuentan;
+            nota = resultado.AjustarDuracion(Math.Min(numMin.Valor, numMax.Valor) * 60, Math.Max(numMin.Valor, numMax.Valor) * 60);
+            MostrarResultado();
+        }
+        Estado(fijosCuentan
+            ? "Los tramos fijos cuentan en la duraci\u00f3n: todo el corte queda entre el m\u00ednimo y el m\u00e1ximo."
+            : "Los tramos fijos van aparte: el m\u00ednimo y el m\u00e1ximo son solo para el resto del corte." +
+              (nota.Length > 0 ? " Ajustes: " + nota + "." : ""), false);
+    }
+
     void QuitarFijo(Tramo t)
     {
         t.Fijo = false;
         t.Nota = "Ya no es fijo";
         fijos.RemoveAll(delegate (Tramo f) { return f.Inicio < t.Fin - 0.05 && f.Fin > t.Inicio + 0.05; });
-        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
         Estado("Ese tramo ya no es fijo.", false);
     }
 
@@ -879,6 +910,7 @@ public class OpcionesIA
     public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
     public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
+    public bool FijosCuentan = true;              // si cuentan para la duracion minima y maxima
 }
 
 public class ResultadoIA
@@ -893,6 +925,21 @@ public class ResultadoIA
     // Tramos que propusieron las partes (videos largos): sirven para completar
     // el corte si queda corto.
     public List<Tramo> Candidatos = new List<Tramo>();
+
+    public bool FijosCuentan = true;
+
+    public double DuracionFijos
+    {
+        get
+        {
+            double d = 0;
+            foreach (Tramo t in Corte) if (t.Elegido && t.Fijo) d += t.DuracionFinal;
+            return d;
+        }
+    }
+
+    // Lo que se compara con el minimo y el maximo.
+    public double DuracionAjustable { get { return FijosCuentan ? DuracionCorte : DuracionCorte - DuracionFijos; } }
 
     public double DuracionCorte
     {
@@ -1090,7 +1137,7 @@ public class ResultadoIA
     public string AjustarDuracion(double minimo, double maximo)
     {
         int quitados = 0, agregados = 0;
-        while (DuracionCorte > maximo + 0.5)
+        while (DuracionAjustable > maximo + 0.5)
         {
             List<Tramo> elegidos = Corte.FindAll(delegate (Tramo t) { return t.Elegido; });
             Tramo peor = null;
@@ -1106,16 +1153,16 @@ public class ResultadoIA
             peor.Nota = "Desmarcado para no pasar del m\u00e1ximo (importancia " + peor.Puntuacion.ToString("0") + ")";
             quitados++;
         }
-        while (DuracionCorte < minimo - 0.5)
+        while (DuracionAjustable < minimo - 0.5)
         {
             Tramo mejor = null;
             bool nuevo = false;
             foreach (Tramo t in Corte)
-                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionCorte + t.DuracionFinal <= maximo + 0.5 &&
+                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionAjustable + t.DuracionFinal <= maximo + 0.5 &&
                     (mejor == null || t.Puntuacion > mejor.Puntuacion)) mejor = t;
             if (mejor == null)
                 foreach (Tramo c in Candidatos)
-                    if (!Corte.Contains(c) && !SeEncima(c) && DuracionCorte + c.DuracionFinal <= maximo + 0.5 &&
+                    if (!Corte.Contains(c) && !SeEncima(c) && DuracionAjustable + c.DuracionFinal <= maximo + 0.5 &&
                         (mejor == null || c.Puntuacion > mejor.Puntuacion)) { mejor = c; nuevo = true; }
             if (mejor == null) break;
             mejor.Elegido = true;
@@ -1249,6 +1296,18 @@ public static class TramosFijos
         return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-fijos.json");
     }
 
+    public static bool Cuentan(string veg)
+    {
+        string ruta = RutaPara(veg);
+        try
+        {
+            if (ruta != null && File.Exists(ruta))
+                return Json.Texto(Json.Leer(File.ReadAllText(ruta, Encoding.UTF8)), "cuentan") != "False";
+        }
+        catch { }
+        return true;
+    }
+
     public static List<Tramo> Cargar(string veg, double duracion)
     {
         List<Tramo> r = new List<Tramo>();
@@ -1272,6 +1331,11 @@ public static class TramosFijos
 
     public static void Guardar(string veg, double duracion, List<Tramo> fijos)
     {
+        Guardar(veg, duracion, fijos, true);
+    }
+
+    public static void Guardar(string veg, double duracion, List<Tramo> fijos, bool cuentan)
+    {
         string ruta = RutaPara(veg);
         if (ruta == null) return;
         List<object> l = new List<object>();
@@ -1284,6 +1348,7 @@ public static class TramosFijos
         Dictionary<string, object> raiz = new Dictionary<string, object>();
         raiz["duracionProyecto"] = duracion;
         raiz["fijos"] = l;
+        raiz["cuentan"] = cuentan;
         try { File.WriteAllText(ruta, Json.Escribir(raiz), new UTF8Encoding(false)); } catch { }
     }
 
@@ -1334,8 +1399,8 @@ public static class PeticionIA
         "- Poca conversaci\u00f3n no significa que no pase nada: en carreras, peleas, persecuciones, exploraci\u00f3n o " +
         "construcci\u00f3n puede haber acci\u00f3n con poca voz. F\u00edjate en la intensidad de ambiente y en las indicaciones; " +
         "si piden mostrar una actividad completa, cons\u00e9rvala completa aunque hablen poco.\n" +
-        "- Los TRAMOS FIJOS ya los eligi\u00f3 el editor: van completos en el corte (incl\u00fayelos tal cual) y cuentan " +
-        "para la duraci\u00f3n, as\u00ed que el resto tiene que caber en lo que queda.\n";
+        "- Los TRAMOS FIJOS ya los eligi\u00f3 el editor: van completos en el corte (incl\u00fayelos tal cual). Si dicen " +
+        "que cuentan para la duraci\u00f3n, el resto tiene que caber en lo que queda.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve m\u00e1s r\u00e1pido, " +
@@ -1404,7 +1469,11 @@ public static class PeticionIA
             sb.Append("- [" + S(f.Inicio) + "-" + S(f.Fin) + "] " + f.Titulo + " (" + Formato.Tiempo(f.Duracion) + ")\n");
             total += f.Duracion;
         }
-        sb.Append("Suman " + S(total) + " s; el resto del corte debe caber en lo que queda de la duraci\u00f3n.\n");
+        if (op.FijosCuentan)
+            sb.Append("Suman " + S(total) + " s y CUENTAN para la duraci\u00f3n: el resto del corte debe caber en lo que queda.\n");
+        else
+            sb.Append("Suman " + S(total) + " s y NO cuentan para la duraci\u00f3n: el m\u00ednimo y el m\u00e1ximo son solo para el resto " +
+                      "del corte, aparte de estos tramos.\n");
     }
 
     // Los tiempos escritos como 57:00 o 1:09:30 se acompa\u00f1an con su valor en
@@ -1622,8 +1691,9 @@ public static class PeticionIA
     {
         int n = (int)Math.Ceiling(duracionActual / bloque) + 1;
         double[] voz = new double[n], amb = new double[n];
-        foreach (Hablante h in t.Hablantes)
+        for (int ih = 0; ih < t.Hablantes.Count; ih++)
         {
+            Hablante h = t.Hablantes[ih];
             if (h.Pico == null || h.Pico.Length == 0) continue;
             float[] orden = (float[])h.Pico.Clone();
             Array.Sort(orden);
@@ -1631,7 +1701,7 @@ public static class PeticionIA
             if (alto - bajo < 3) continue;
             for (int s = 0; s < h.Pico.Length; s++)
             {
-                double ahora = t.Mapear(t.Inicio + s);
+                double ahora = t.Mapear(ih, t.Inicio + s);
                 if (double.IsNaN(ahora)) continue;
                 int b = (int)(ahora / bloque);
                 if (b < 0 || b >= n) continue;
@@ -2079,6 +2149,278 @@ static class Editor
             partes[partes.Count - 1].Add(e);
         }
         return partes;
+    }
+}
+
+// ---- src/comun/PistasVegas.cs ----
+
+// =====================================================================
+// Pistas de audio del proyecto y render a WAV
+// =====================================================================
+
+public class InfoPista
+{
+    public AudioTrack Pista;
+    public string Nombre;   // corto, para botones: "A3 \u00b7 voz.wav"
+    public string Detalle;  // largo, para ayudas
+    public string Etiqueta; // "A3"
+    public string Archivo;  // archivo mas usado en la pista
+    public int Eventos;
+}
+
+public static class PistasVegas
+{
+    public static List<InfoPista> Listar(Project proyecto)
+    {
+        List<InfoPista> lista = new List<InfoPista>();
+        foreach (Track t in proyecto.Tracks)
+        {
+            AudioTrack a = t as AudioTrack;
+            if (a == null) continue;
+            InfoPista p = new InfoPista();
+            int flujo;
+            ArchivoPrincipal(a, out p.Archivo, out p.Eventos, out flujo);
+            string detalle = !String.IsNullOrEmpty(a.Name) ? a.Name : p.Archivo ?? "vac\u00eda";
+            string corto = detalle.Length > 22 ? detalle.Substring(0, 21) + "\u2026" : detalle;
+            if (String.IsNullOrEmpty(a.Name) && flujo > 0) corto += " (audio " + (flujo + 1) + ")";
+            p.Pista = a;
+            p.Etiqueta = "A" + (a.Index + 1);
+            p.Nombre = p.Etiqueta + " \u00b7 " + corto;
+            p.Detalle = "Pista " + (a.Index + 1) + ": " + detalle +
+                (flujo > 0 ? " (audio " + (flujo + 1) + ")" : "") + " \u00b7 " + p.Eventos + " eventos";
+            lista.Add(p);
+        }
+        return lista;
+    }
+
+    // La pista de voz probable: la que tenga un archivo "mejorada" o, si no
+    // hay, la que tenga mas eventos.
+    public static int SugerirVoz(List<InfoPista> pistas)
+    {
+        int sugerida = 0, mejor = -1;
+        for (int i = 0; i < pistas.Count; i++)
+        {
+            InfoPista p = pistas[i];
+            int puntos = p.Eventos + (p.Archivo != null && p.Archivo.ToLowerInvariant().Contains("mejorada") ? 100000 : 0);
+            if (puntos > mejor) { mejor = puntos; sugerida = i; }
+        }
+        return sugerida;
+    }
+
+    static void ArchivoPrincipal(Track t, out string archivo, out int eventos, out int flujo)
+    {
+        Dictionary<string, int> cuenta = new Dictionary<string, int>();
+        archivo = null;
+        flujo = 0;
+        eventos = t.Events.Count;
+        int max = 0;
+        foreach (TrackEvent e in t.Events)
+        {
+            if (e.ActiveTake == null || e.ActiveTake.Media == null) continue;
+            string f = Path.GetFileName(e.ActiveTake.Media.FilePath ?? "");
+            int c;
+            cuenta.TryGetValue(f, out c);
+            cuenta[f] = ++c;
+            if (c > max)
+            {
+                max = c;
+                archivo = f;
+                flujo = IndiceFlujo(e.ActiveTake);
+            }
+        }
+    }
+
+    // Indice del flujo de audio que usa la toma (OBS graba varias pistas de
+    // audio en el mismo .mp4). Por reflexion para no depender de la API exacta.
+    public static int IndiceFlujo(Take toma)
+    {
+        try
+        {
+            object flujo = toma.GetType().GetProperty("MediaStream").GetValue(toma, null);
+            object indice = flujo.GetType().GetProperty("Index").GetValue(flujo, null);
+            return Convert.ToInt32(indice);
+        }
+        catch { return 0; }
+    }
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+
+    // Eventos de la pista con su archivo, para la transcripcion.
+    public static List<Fuente> Fuentes(Track pista)
+    {
+        List<Fuente> r = new List<Fuente>();
+        foreach (TrackEvent e in pista.Events)
+        {
+            Take toma = e.ActiveTake;
+            if (toma == null || toma.Media == null || toma.Media.IsGenerated() || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+            Fuente f = new Fuente();
+            f.Inicio = S(e.Start); f.Fin = S(e.End);
+            f.Desde = S(toma.Offset); f.Velocidad = e.PlaybackRate;
+            f.Media = toma.Media.FilePath;
+            f.Flujo = IndiceFlujo(toma);
+            r.Add(f);
+        }
+        r.Sort(delegate (Fuente a, Fuente b) { return a.Inicio.CompareTo(b.Inicio); });
+        return r;
+    }
+
+    // Donde suena ahora ese segundo de ese archivo (y flujo): pista e instante
+    // de cada evento de audio que lo contiene.
+    public class Lugar { public Track Pista; public double Tiempo, Velocidad; }
+
+    public static List<Lugar> Donde(Project p, string media, int flujo, double segundo)
+    {
+        List<Lugar> r = new List<Lugar>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || e.Mute ||
+                    !String.Equals(toma.Media.FilePath, media, StringComparison.OrdinalIgnoreCase) || IndiceFlujo(toma) != flujo) continue;
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                if (segundo < desde - 0.0005 || segundo >= desde + largo - 0.0005) continue;
+                Lugar l = new Lugar();
+                l.Pista = pista; l.Velocidad = e.PlaybackRate;
+                l.Tiempo = S(e.Start) + (segundo - desde) / e.PlaybackRate;
+                r.Add(l);
+            }
+        }
+        return r;
+    }
+
+    // Ubicador para la transcripcion: cada palabra se busca por su archivo y
+    // segundo en los eventos de audio actuales, asi sigue cualquier edicion
+    // (tambien a mano). Si un archivo se repite, gana la primera aparicion.
+    public static Func<int, double, double> Ubicador(Project p, Transcripcion t)
+    {
+        Dictionary<string, List<double[]>> eventos = new Dictionary<string, List<double[]>>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+                string clave = toma.Media.FilePath.ToLowerInvariant() + "|" + IndiceFlujo(toma);
+                List<double[]> l;
+                if (!eventos.TryGetValue(clave, out l)) { l = new List<double[]>(); eventos[clave] = l; }
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
+            }
+        }
+        return delegate (int hablante, double tiempo)
+        {
+            Fuente f;
+            double segundo;
+            if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
+            List<double[]> l;
+            if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
+            double mejor = double.NaN;
+            foreach (double[] x in l)
+                if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
+                {
+                    double ahora = x[2] + (segundo - x[0]) / x[3];
+                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                }
+            return mejor;
+        };
+    }
+
+    public static bool HaySeleccion(Vegas vegas)
+    {
+        return Math.Abs(vegas.Transport.SelectionLength.ToMilliseconds()) > 1;
+    }
+
+    // Rango a procesar, en segundos: todo el proyecto o la seleccion de tiempo.
+    public static void ObtenerRango(Vegas vegas, bool usarSeleccion, out double inicio, out double duracion)
+    {
+        if (usarSeleccion)
+        {
+            inicio = vegas.Transport.SelectionStart.ToMilliseconds() / 1000.0;
+            duracion = vegas.Transport.SelectionLength.ToMilliseconds() / 1000.0;
+            if (duracion < 0) { inicio += duracion; duracion = -duracion; }
+        }
+        else
+        {
+            inicio = 0;
+            duracion = vegas.Project.Length.ToMilliseconds() / 1000.0;
+        }
+        if (duracion < 0.1) throw new Exception("El rango a analizar est\u00e1 vac\u00edo.");
+    }
+
+    // Renderiza solo esa pista a un WAV temporal (las demas se silencian
+    // durante el render y se restauran despues). Quien llama borra el archivo.
+    public static string RenderizarWav(Vegas vegas, AudioTrack pista, double inicio, double duracion)
+    {
+        Project proyecto = vegas.Project;
+        RenderTemplate plantilla = PlantillaWav(vegas);
+        string wav = Path.Combine(Path.GetTempPath(), "vegas-cut-" + Guid.NewGuid().ToString("N") + ".wav");
+
+        // Las pistas se identifican por indice: Vegas puede devolver objetos
+        // distintos para la misma pista.
+        Dictionary<int, bool> muteAntes = new Dictionary<int, bool>();
+        try
+        {
+            foreach (Track t in proyecto.Tracks)
+            {
+                if (!t.IsAudio()) continue;
+                muteAntes[t.Index] = t.Mute;
+                t.Mute = t.Index != pista.Index;
+            }
+
+            RenderArgs args = new RenderArgs();
+            args.OutputFile = wav;
+            args.RenderTemplate = plantilla;
+            args.Start = Timecode.FromMilliseconds(inicio * 1000);
+            args.Length = Timecode.FromMilliseconds(duracion * 1000);
+            RenderStatus estado = vegas.Render(args);
+            if (estado != RenderStatus.Complete)
+                throw new Exception("El render del audio no termin\u00f3 (" + estado + ").");
+        }
+        finally
+        {
+            foreach (Track t in proyecto.Tracks)
+                if (muteAntes.ContainsKey(t.Index)) t.Mute = muteAntes[t.Index];
+        }
+        return wav;
+    }
+
+    // Render + niveles cada 10 ms, sin dejar archivos.
+    public static Analisis Niveles(Vegas vegas, AudioTrack pista, double inicio, double duracion)
+    {
+        string wav = RenderizarWav(vegas, pista, inicio, duracion);
+        try
+        {
+            Analisis a = WavNiveles.Leer(wav, Analisis.Paso);
+            a.Inicio = inicio;
+            return a;
+        }
+        finally
+        {
+            try { File.Delete(wav); } catch { }
+        }
+    }
+
+    static RenderTemplate PlantillaWav(Vegas vegas)
+    {
+        RenderTemplate primera = null;
+        foreach (Renderer r in vegas.Renderers)
+        {
+            string ext = (r.FileExtension ?? "").ToLowerInvariant();
+            if (!ext.EndsWith(".wav")) continue;
+            foreach (RenderTemplate t in r.Templates)
+            {
+                if (!t.IsValid()) continue;
+                if (primera == null) primera = t;
+                string n = t.Name ?? "";
+                if (n.Contains("PCM") && n.Contains("16")) return t;
+            }
+        }
+        if (primera == null)
+            throw new Exception("No se encontr\u00f3 la plantilla de render WAV en Vegas.");
+        return primera;
     }
 }
 
@@ -2770,6 +3112,19 @@ public class Transcripcion
 
     // --------------------------------------------------- tiempos actuales
 
+    // Si esta puesto, lleva (hablante, tiempo original) a la linea de tiempo
+    // actual buscando el archivo y segundo de cada palabra (fuentes): asi la
+    // transcripcion sigue cualquier edicion, tambien las hechas a mano. Lo
+    // ponen las herramientas que tienen el proyecto de Vegas a mano.
+    public Func<int, double, double> Ubicador;
+
+    public double Mapear(int hablante, double t)
+    {
+        if (Ubicador != null && hablante >= 0 && hablante < Hablantes.Count && Hablantes[hablante].Fuentes.Count > 0)
+            return Ubicador(hablante, t);
+        return Mapear(t);
+    }
+
     // Lleva un tiempo original a la linea de tiempo actual. Devuelve NaN si
     // ese instante fue cortado.
     public double Mapear(double t)
@@ -2841,7 +3196,7 @@ public class Transcripcion
             {
                 foreach (Palabra p in s.Palabras)
                 {
-                    double a = Mapear(p.Inicio), b = Mapear(p.Fin);
+                    double a = Mapear(s.Hablante, p.Inicio), b = Mapear(s.Hablante, p.Fin);
                     if (double.IsNaN(a) && double.IsNaN(b)) continue;
                     if (double.IsNaN(a)) a = b - Math.Min(0.2, p.Fin - p.Inicio);
                     if (double.IsNaN(b)) b = a + Math.Min(0.2, p.Fin - p.Inicio);
@@ -2857,7 +3212,7 @@ public class Transcripcion
             }
             else
             {
-                n.Inicio = Mapear(s.Inicio); n.Fin = Mapear(s.Fin); n.Texto = s.Texto;
+                n.Inicio = Mapear(s.Hablante, s.Inicio); n.Fin = Mapear(s.Hablante, s.Fin); n.Texto = s.Texto;
                 if (double.IsNaN(n.Inicio) || double.IsNaN(n.Fin)) continue;
             }
             r.Add(n);

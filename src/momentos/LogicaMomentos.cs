@@ -50,6 +50,7 @@ public class OpcionesIA
     public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
     public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
+    public bool FijosCuentan = true;              // si cuentan para la duracion minima y maxima
 }
 
 public class ResultadoIA
@@ -64,6 +65,21 @@ public class ResultadoIA
     // Tramos que propusieron las partes (videos largos): sirven para completar
     // el corte si queda corto.
     public List<Tramo> Candidatos = new List<Tramo>();
+
+    public bool FijosCuentan = true;
+
+    public double DuracionFijos
+    {
+        get
+        {
+            double d = 0;
+            foreach (Tramo t in Corte) if (t.Elegido && t.Fijo) d += t.DuracionFinal;
+            return d;
+        }
+    }
+
+    // Lo que se compara con el minimo y el maximo.
+    public double DuracionAjustable { get { return FijosCuentan ? DuracionCorte : DuracionCorte - DuracionFijos; } }
 
     public double DuracionCorte
     {
@@ -261,7 +277,7 @@ public class ResultadoIA
     public string AjustarDuracion(double minimo, double maximo)
     {
         int quitados = 0, agregados = 0;
-        while (DuracionCorte > maximo + 0.5)
+        while (DuracionAjustable > maximo + 0.5)
         {
             List<Tramo> elegidos = Corte.FindAll(delegate (Tramo t) { return t.Elegido; });
             Tramo peor = null;
@@ -277,16 +293,16 @@ public class ResultadoIA
             peor.Nota = "Desmarcado para no pasar del m\u00e1ximo (importancia " + peor.Puntuacion.ToString("0") + ")";
             quitados++;
         }
-        while (DuracionCorte < minimo - 0.5)
+        while (DuracionAjustable < minimo - 0.5)
         {
             Tramo mejor = null;
             bool nuevo = false;
             foreach (Tramo t in Corte)
-                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionCorte + t.DuracionFinal <= maximo + 0.5 &&
+                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionAjustable + t.DuracionFinal <= maximo + 0.5 &&
                     (mejor == null || t.Puntuacion > mejor.Puntuacion)) mejor = t;
             if (mejor == null)
                 foreach (Tramo c in Candidatos)
-                    if (!Corte.Contains(c) && !SeEncima(c) && DuracionCorte + c.DuracionFinal <= maximo + 0.5 &&
+                    if (!Corte.Contains(c) && !SeEncima(c) && DuracionAjustable + c.DuracionFinal <= maximo + 0.5 &&
                         (mejor == null || c.Puntuacion > mejor.Puntuacion)) { mejor = c; nuevo = true; }
             if (mejor == null) break;
             mejor.Elegido = true;
@@ -420,6 +436,18 @@ public static class TramosFijos
         return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-fijos.json");
     }
 
+    public static bool Cuentan(string veg)
+    {
+        string ruta = RutaPara(veg);
+        try
+        {
+            if (ruta != null && File.Exists(ruta))
+                return Json.Texto(Json.Leer(File.ReadAllText(ruta, Encoding.UTF8)), "cuentan") != "False";
+        }
+        catch { }
+        return true;
+    }
+
     public static List<Tramo> Cargar(string veg, double duracion)
     {
         List<Tramo> r = new List<Tramo>();
@@ -443,6 +471,11 @@ public static class TramosFijos
 
     public static void Guardar(string veg, double duracion, List<Tramo> fijos)
     {
+        Guardar(veg, duracion, fijos, true);
+    }
+
+    public static void Guardar(string veg, double duracion, List<Tramo> fijos, bool cuentan)
+    {
         string ruta = RutaPara(veg);
         if (ruta == null) return;
         List<object> l = new List<object>();
@@ -455,6 +488,7 @@ public static class TramosFijos
         Dictionary<string, object> raiz = new Dictionary<string, object>();
         raiz["duracionProyecto"] = duracion;
         raiz["fijos"] = l;
+        raiz["cuentan"] = cuentan;
         try { File.WriteAllText(ruta, Json.Escribir(raiz), new UTF8Encoding(false)); } catch { }
     }
 
@@ -505,8 +539,8 @@ public static class PeticionIA
         "- Poca conversación no significa que no pase nada: en carreras, peleas, persecuciones, exploración o " +
         "construcción puede haber acción con poca voz. Fíjate en la intensidad de ambiente y en las indicaciones; " +
         "si piden mostrar una actividad completa, consérvala completa aunque hablen poco.\n" +
-        "- Los TRAMOS FIJOS ya los eligió el editor: van completos en el corte (inclúyelos tal cual) y cuentan " +
-        "para la duración, así que el resto tiene que caber en lo que queda.\n";
+        "- Los TRAMOS FIJOS ya los eligió el editor: van completos en el corte (inclúyelos tal cual). Si dicen " +
+        "que cuentan para la duración, el resto tiene que caber en lo que queda.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve más rápido, " +
@@ -575,7 +609,11 @@ public static class PeticionIA
             sb.Append("- [" + S(f.Inicio) + "-" + S(f.Fin) + "] " + f.Titulo + " (" + Formato.Tiempo(f.Duracion) + ")\n");
             total += f.Duracion;
         }
-        sb.Append("Suman " + S(total) + " s; el resto del corte debe caber en lo que queda de la duración.\n");
+        if (op.FijosCuentan)
+            sb.Append("Suman " + S(total) + " s y CUENTAN para la duración: el resto del corte debe caber en lo que queda.\n");
+        else
+            sb.Append("Suman " + S(total) + " s y NO cuentan para la duración: el mínimo y el máximo son solo para el resto " +
+                      "del corte, aparte de estos tramos.\n");
     }
 
     // Los tiempos escritos como 57:00 o 1:09:30 se acompañan con su valor en
@@ -793,8 +831,9 @@ public static class PeticionIA
     {
         int n = (int)Math.Ceiling(duracionActual / bloque) + 1;
         double[] voz = new double[n], amb = new double[n];
-        foreach (Hablante h in t.Hablantes)
+        for (int ih = 0; ih < t.Hablantes.Count; ih++)
         {
+            Hablante h = t.Hablantes[ih];
             if (h.Pico == null || h.Pico.Length == 0) continue;
             float[] orden = (float[])h.Pico.Clone();
             Array.Sort(orden);
@@ -802,7 +841,7 @@ public static class PeticionIA
             if (alto - bajo < 3) continue;
             for (int s = 0; s < h.Pico.Length; s++)
             {
-                double ahora = t.Mapear(t.Inicio + s);
+                double ahora = t.Mapear(ih, t.Inicio + s);
                 if (double.IsNaN(ahora)) continue;
                 int b = (int)(ahora / bloque);
                 if (b < 0 || b >= n) continue;

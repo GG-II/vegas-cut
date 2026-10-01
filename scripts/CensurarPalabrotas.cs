@@ -849,6 +849,44 @@ public static class PistasVegas
         return r;
     }
 
+    // Ubicador para la transcripcion: cada palabra se busca por su archivo y
+    // segundo en los eventos de audio actuales, asi sigue cualquier edicion
+    // (tambien a mano). Si un archivo se repite, gana la primera aparicion.
+    public static Func<int, double, double> Ubicador(Project p, Transcripcion t)
+    {
+        Dictionary<string, List<double[]>> eventos = new Dictionary<string, List<double[]>>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+                string clave = toma.Media.FilePath.ToLowerInvariant() + "|" + IndiceFlujo(toma);
+                List<double[]> l;
+                if (!eventos.TryGetValue(clave, out l)) { l = new List<double[]>(); eventos[clave] = l; }
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
+            }
+        }
+        return delegate (int hablante, double tiempo)
+        {
+            Fuente f;
+            double segundo;
+            if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
+            List<double[]> l;
+            if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
+            double mejor = double.NaN;
+            foreach (double[] x in l)
+                if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
+                {
+                    double ahora = x[2] + (segundo - x[0]) / x[3];
+                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                }
+            return mejor;
+        };
+    }
+
     public static bool HaySeleccion(Vegas vegas)
     {
         return Math.Abs(vegas.Transport.SelectionLength.ToMilliseconds()) > 1;
@@ -1769,6 +1807,19 @@ public class Transcripcion
 
     // --------------------------------------------------- tiempos actuales
 
+    // Si esta puesto, lleva (hablante, tiempo original) a la linea de tiempo
+    // actual buscando el archivo y segundo de cada palabra (fuentes): asi la
+    // transcripcion sigue cualquier edicion, tambien las hechas a mano. Lo
+    // ponen las herramientas que tienen el proyecto de Vegas a mano.
+    public Func<int, double, double> Ubicador;
+
+    public double Mapear(int hablante, double t)
+    {
+        if (Ubicador != null && hablante >= 0 && hablante < Hablantes.Count && Hablantes[hablante].Fuentes.Count > 0)
+            return Ubicador(hablante, t);
+        return Mapear(t);
+    }
+
     // Lleva un tiempo original a la linea de tiempo actual. Devuelve NaN si
     // ese instante fue cortado.
     public double Mapear(double t)
@@ -1840,7 +1891,7 @@ public class Transcripcion
             {
                 foreach (Palabra p in s.Palabras)
                 {
-                    double a = Mapear(p.Inicio), b = Mapear(p.Fin);
+                    double a = Mapear(s.Hablante, p.Inicio), b = Mapear(s.Hablante, p.Fin);
                     if (double.IsNaN(a) && double.IsNaN(b)) continue;
                     if (double.IsNaN(a)) a = b - Math.Min(0.2, p.Fin - p.Inicio);
                     if (double.IsNaN(b)) b = a + Math.Min(0.2, p.Fin - p.Inicio);
@@ -1856,7 +1907,7 @@ public class Transcripcion
             }
             else
             {
-                n.Inicio = Mapear(s.Inicio); n.Fin = Mapear(s.Fin); n.Texto = s.Texto;
+                n.Inicio = Mapear(s.Hablante, s.Inicio); n.Fin = Mapear(s.Hablante, s.Fin); n.Texto = s.Texto;
                 if (double.IsNaN(n.Inicio) || double.IsNaN(n.Fin)) continue;
             }
             r.Add(n);

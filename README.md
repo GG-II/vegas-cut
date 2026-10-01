@@ -124,6 +124,8 @@ Necesita la transcripción y la clave de Gemini.
      otros tramos, nunca el fijo. No hace falta volver a pedir a Gemini; en las próximas peticiones
      también se le avisa. Desmárcalo en la lista para quitarlo. Se elige **antes** de aplicar el
      corte (si ya lo aplicaste: Ctrl+Z, vuelve a abrir MomentosIA y elige la selección).
+     Con **Los fijos cuentan en la duración** activo, todo el corte queda entre el mínimo y el
+     máximo; apagado, los fijos van aparte y el mínimo y el máximo son solo para el resto.
 
 **Tiempos en las indicaciones:** puedes escribir `57:00` o `1:09:30`; a Gemini se le manda también
 en segundos, que es como ve la transcripción. Las frases que Whisper inventa en los silencios
@@ -204,7 +206,9 @@ las tapa.
 6. **Censurar**: los efectos van en una pista nueva *Censura*. Palabrotas seguidas se tapan con
    un solo efecto. Ctrl+Z lo deshace todo.
 
-**Funciona aunque edites a mano:** desde esta versión, *Transcribir* guarda de qué archivo y de
+**Sigue tus ediciones a mano:** MomentosIA y Censurar ubican cada palabra por su archivo y su
+segundo, así que si cortas, mueves o estiras clips a mano no hace falta volver a transcribir.
+Para eso, *Transcribir* guarda de qué archivo y de
 qué segundo sale cada parte de la voz, así que cada palabra se encuentra en su lugar actual
 aunque muevas o recortes clips; si una parte se borró, aparece como *ya no está*. Las
 transcripciones anteriores solo siguen los cortes hechos con estas herramientas: si editaste a

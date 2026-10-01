@@ -23,6 +23,8 @@ public class EntryPoint
         try { t = Transcripcion.Cargar(ruta); }
         catch (Exception ex) { MessageBox.Show("No se pudo leer la transcripción: " + ex.Message, "Momentos con IA"); return; }
 
+        // Con las fuentes, la transcripcion sigue tambien las ediciones a mano.
+        if (t.TieneFuentes) t.Ubicador = PistasVegas.Ubicador(vegas.Project, t);
         using (VentanaMomentos v = new VentanaMomentos(vegas, t, ruta)) v.ShowDialog();
     }
 }
@@ -91,6 +93,8 @@ class VentanaMomentos : VentanaBase
     Boton btnMarcar = new Boton("Crear regiones y marcadores", EstiloBoton.Secundario);
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
     Boton btnFijar = new Boton("Conservar selección", EstiloBoton.Secundario);
+    Boton chipCuentan = new Boton("Los fijos cuentan en la duración", EstiloBoton.Chip);
+    bool fijosCuentan = true;
     List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selección de tiempo)
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
 
@@ -114,6 +118,7 @@ class VentanaMomentos : VentanaBase
         // Estado de la transcripcion
         string aviso = t.Sincronizar(total);
         if (aviso.StartsWith("Se detect")) { try { t.Guardar(ruta); } catch { } }
+        if (t.Ubicador != null && !aviso.StartsWith("Se detect")) aviso = ""; // sigue las ediciones a mano
         int frases = t.SegmentosActuales().Count;
         Texto("Transcripción del " + t.Creada + ": " + frases + " frases · proyecto de " +
             Formato.Tiempo(total) + (aviso.Length > 0 ? "\n" + aviso : ""), Tema.Pequena,
@@ -193,7 +198,8 @@ class VentanaMomentos : VentanaBase
         }
         txtResumen.Multilinea = true;
         txtResumen.Caja.ReadOnly = true;
-        lblCorte = Texto("", Tema.Negrita, Tema.Texto, dx, dy + alto + 8, dw, 22);
+        lblCorte = Texto("", Tema.Negrita, Tema.Texto, dx, dy + alto + 8, dw - 262, 22);
+        Pos(chipCuentan, dx + dw - 254, dy + alto + 6, 254, 26);
         int fondo = Math.Max(fondoIzq, dy + alto + 40);
 
         Pos(btnInforme, m, fondo, 150, 40);
@@ -209,6 +215,7 @@ class VentanaMomentos : VentanaBase
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnFijar.Click += delegate { Fijar(); };
+        chipCuentan.Click += delegate { CambiarCuentan(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
         btnReglas.Click += delegate { EditarReglas(); };
@@ -232,6 +239,8 @@ class VentanaMomentos : VentanaBase
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
 
         fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
+        fijosCuentan = TramosFijos.Cuentan(vegas.Project.FilePath);
+        chipCuentan.Activo = fijosCuentan;
 
         // Valores iniciales: los de la ultima respuesta guardada.
         cargando = true;
@@ -305,6 +314,7 @@ class VentanaMomentos : VentanaBase
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         opciones.Contexto = PeticionIA.ContextoDe(contexto);
         opciones.Fijos = new List<Tramo>(fijos);
+        opciones.FijosCuentan = fijosCuentan;
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -409,6 +419,7 @@ class VentanaMomentos : VentanaBase
         // Los tramos fijos se agregan despues de la revision (no cambian sus indices).
         if (Math.Abs(duracion - total) <= 0.5)
             foreach (Tramo f in fijos) r.AgregarFijo(f.Inicio, f.Fin, f.Titulo);
+        r.FijosCuentan = fijosCuentan;
         string ajuste = r.AjustarDuracion(min * 60, max * 60);
         if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
         return r;
@@ -636,11 +647,12 @@ class VentanaMomentos : VentanaBase
     {
         if (pestanas.Seleccion == 4) return;
         if (resultado == null) { lblCorte.Text = "Pide una sugerencia a Gemini para ver los resultados aquí."; return; }
-        double d = resultado.DuracionCorte;
-        bool fuera = d < numMin.Valor * 60 - 0.5 || d > numMax.Valor * 60 + 0.5;
+        double d = resultado.DuracionCorte, ajustable = resultado.DuracionAjustable;
+        bool fuera = ajustable < numMin.Valor * 60 - 0.5 || ajustable > numMax.Valor * 60 + 0.5;
         lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
+        string aparte = Math.Abs(d - ajustable) > 0.5 ? ", " + Formato.Tiempo(d - ajustable) + " fijos aparte" : "";
         lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "–" +
-                        numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") · clic en Velocidad: cambiarla · doble clic: ir";
+                        numMax.Valor + " min" + aparte + (fuera ? ", fuera del rango" : "") + ") · doble clic: ir";
     }
 
     // ------------------------------------------------------- tramos fijos
@@ -666,7 +678,7 @@ class VentanaMomentos : VentanaBase
         double b = Math.Min(total, a + largo);
         string titulo = "Elegido a mano (" + Formato.Tiempo(a) + "–" + Formato.Tiempo(b) + ")";
         fijos = TramosFijos.Agregar(fijos, a, b, titulo);
-        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
         string nota = "";
         if (resultado != null)
         {
@@ -679,12 +691,31 @@ class VentanaMomentos : VentanaBase
                (nota.Length > 0 ? " Ajustes: " + nota + "." : "") + " Desmárcalo en la lista para quitarlo.", false);
     }
 
+    // Los tramos fijos cuentan o no para el minimo y el maximo del corte.
+    void CambiarCuentan()
+    {
+        fijosCuentan = !fijosCuentan;
+        chipCuentan.Activo = fijosCuentan;
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
+        string nota = "";
+        if (resultado != null)
+        {
+            resultado.FijosCuentan = fijosCuentan;
+            nota = resultado.AjustarDuracion(Math.Min(numMin.Valor, numMax.Valor) * 60, Math.Max(numMin.Valor, numMax.Valor) * 60);
+            MostrarResultado();
+        }
+        Estado(fijosCuentan
+            ? "Los tramos fijos cuentan en la duración: todo el corte queda entre el mínimo y el máximo."
+            : "Los tramos fijos van aparte: el mínimo y el máximo son solo para el resto del corte." +
+              (nota.Length > 0 ? " Ajustes: " + nota + "." : ""), false);
+    }
+
     void QuitarFijo(Tramo t)
     {
         t.Fijo = false;
         t.Nota = "Ya no es fijo";
         fijos.RemoveAll(delegate (Tramo f) { return f.Inicio < t.Fin - 0.05 && f.Fin > t.Inicio + 0.05; });
-        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos, fijosCuentan);
         Estado("Ese tramo ya no es fijo.", false);
     }
 

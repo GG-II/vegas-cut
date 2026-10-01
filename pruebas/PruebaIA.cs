@@ -402,6 +402,41 @@ class PruebaIA
         foreach (Tramo x in rp.Corte) revp += (x.Elegido ? "" : "!") + x.Inicio + "-" + x.Fin + " ";
         Verificar(revp == "30-41 1580-1675 2000-2040 2050-2100 ", "Revisión: quitar un pedazo deja el resto del tramo (" + revp + ")");
 
+        // ------------------------------- fijos que no cuentan en la duración
+        ResultadoIA rn = ResultadoIA.Leer(@"{""corte"": [
+            {""inicio"": 0, ""fin"": 300, ""importancia"": 9},
+            {""inicio"": 1000, ""fin"": 1300, ""importancia"": 5},
+            {""inicio"": 2000, ""fin"": 2300, ""importancia"": 9}]}", 5815);
+        rn.AgregarFijo(3420, 4020, "Carrera");
+        rn.FijosCuentan = false;
+        rn.AjustarDuracion(5 * 60, 10 * 60);
+        Verificar(Cerca(rn.DuracionAjustable, 600) && Cerca(rn.DuracionCorte, 1200) && !rn.Corte[1].Elegido,
+            "Fijos aparte: el mínimo y el máximo son solo para el resto");
+        OpcionesIA opn = new OpcionesIA(); opn.Fijos = rn.Corte.FindAll(delegate (Tramo x) { return x.Fijo; }); opn.FijosCuentan = false;
+        Verificar(PeticionIA.Mensaje(new Transcripcion(), 5815, opn).Contains("NO cuentan"), "Fijos aparte: se le dice a Gemini");
+
+        // ---------------------- la transcripción sigue ediciones a mano
+        Project pmano = new Project();
+        AudioTrack amano = new AudioTrack(0, "Voz"); pmano.Tracks.Add(amano);
+        Media vmano = new Media { FilePath = "K:/voz.wav" };
+        // A mano: se quitaron los segundos 20 a 40 y lo demás se juntó.
+        AudioEvent ea = amano.AddAudioEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(20000)); ea.ActiveTake = new Take { Media = vmano };
+        AudioEvent eb = amano.AddAudioEvent(Timecode.FromMilliseconds(20000), Timecode.FromMilliseconds(60000)); eb.ActiveTake = new Take { Media = vmano, Offset = Timecode.FromMilliseconds(40000) };
+        Transcripcion tm = new Transcripcion();
+        Hablante hm = new Hablante { Etiqueta = "A1", Nombre = "Yo", Voz = true };
+        hm.Fuentes.Add(new Fuente { Inicio = 0, Fin = 100, Desde = 0, Velocidad = 1, Media = "K:/voz.wav" });
+        tm.Hablantes.Add(hm);
+        foreach (double ti in new double[] { 10, 30, 50 })
+        {
+            Segmento sm = new Segmento(); sm.Inicio = ti; sm.Fin = ti + 1; sm.Texto = "frase " + ti;
+            sm.Palabras.Add(new Palabra { Inicio = ti, Fin = ti + 1, Prob = 1, Texto = " frase" });
+            tm.Segmentos.Add(sm);
+        }
+        tm.Ubicador = PistasVegas.Ubicador(pmano, tm);
+        List<Segmento> am2 = tm.SegmentosActuales();
+        Verificar(am2.Count == 2 && Cerca(am2[0].Inicio, 10) && Cerca(am2[1].Inicio, 30),
+            "Transcripción: sigue un corte hecho a mano sin volver a transcribir");
+
         // ------------------------------------------- frases inventadas
         Verificar(Transcripcion.Alucinacion("¡Suscríbete al canal!") && Transcripcion.Alucinacion(" Gracias por ver.") &&
                   !Transcripcion.Alucinacion("Gracias, güey") && !Transcripcion.Alucinacion("¡Corre, corre!"),

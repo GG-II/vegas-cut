@@ -139,6 +139,44 @@ public static class PistasVegas
         return r;
     }
 
+    // Ubicador para la transcripcion: cada palabra se busca por su archivo y
+    // segundo en los eventos de audio actuales, asi sigue cualquier edicion
+    // (tambien a mano). Si un archivo se repite, gana la primera aparicion.
+    public static Func<int, double, double> Ubicador(Project p, Transcripcion t)
+    {
+        Dictionary<string, List<double[]>> eventos = new Dictionary<string, List<double[]>>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            foreach (TrackEvent e in pista.Events)
+            {
+                Take toma = e.ActiveTake;
+                if (toma == null || toma.Media == null || String.IsNullOrEmpty(toma.Media.FilePath)) continue;
+                string clave = toma.Media.FilePath.ToLowerInvariant() + "|" + IndiceFlujo(toma);
+                List<double[]> l;
+                if (!eventos.TryGetValue(clave, out l)) { l = new List<double[]>(); eventos[clave] = l; }
+                double desde = S(toma.Offset), largo = (S(e.End) - S(e.Start)) * e.PlaybackRate;
+                l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
+            }
+        }
+        return delegate (int hablante, double tiempo)
+        {
+            Fuente f;
+            double segundo;
+            if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
+            List<double[]> l;
+            if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
+            double mejor = double.NaN;
+            foreach (double[] x in l)
+                if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
+                {
+                    double ahora = x[2] + (segundo - x[0]) / x[3];
+                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                }
+            return mejor;
+        };
+    }
+
     public static bool HaySeleccion(Vegas vegas)
     {
         return Math.Abs(vegas.Transport.SelectionLength.ToMilliseconds()) > 1;
