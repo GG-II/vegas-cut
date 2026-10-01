@@ -90,6 +90,8 @@ class VentanaMomentos : VentanaBase
     Boton btnInforme = new Boton("Guardar informe", EstiloBoton.Secundario);
     Boton btnMarcar = new Boton("Crear regiones y marcadores", EstiloBoton.Secundario);
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
+    Boton btnFijar = new Boton("Conservar selección", EstiloBoton.Secundario);
+    List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selección de tiempo)
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
 
     static readonly string[] Tipos = { "Gameplay", "Narración", "Podcast", "Otro" };
@@ -196,6 +198,7 @@ class VentanaMomentos : VentanaBase
 
         Pos(btnInforme, m, fondo, 150, 40);
         Pos(btnMarcar, m + 160, fondo, 230, 40);
+        Pos(btnFijar, m + 400, fondo, 190, 40);
         Pos(btnCerrar, m + w - 300, fondo, 110, 40);
         Pos(btnCortar, m + w - 180, fondo, 180, 40);
         ClientSize = new Size(ClientSize.Width, fondo + 40 + 24);
@@ -205,6 +208,7 @@ class VentanaMomentos : VentanaBase
         btnPedir.Click += delegate { Pedir(); };
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
+        btnFijar.Click += delegate { Fijar(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
         btnReglas.Click += delegate { EditarReglas(); };
@@ -214,7 +218,9 @@ class VentanaMomentos : VentanaBase
         lstCorte.ItemChecked += delegate (object s, ItemCheckedEventArgs e)
         {
             if (cargando || resultado == null) return;
-            ((Tramo)e.Item.Tag).Elegido = e.Item.Checked;
+            Tramo tc = (Tramo)e.Item.Tag;
+            tc.Elegido = e.Item.Checked;
+            if (!tc.Elegido && tc.Fijo) QuitarFijo(tc);
             ActualizarResumenCorte();
         };
         foreach (Lista l in new Lista[] { lstMomentos, lstShorts })
@@ -224,6 +230,8 @@ class VentanaMomentos : VentanaBase
         segAcelerar.Cambio += delegate { segAudio.Enabled = segAcelerar.Seleccion == 1; };
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
+
+        fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
 
         // Valores iniciales: los de la ultima respuesta guardada.
         cargando = true;
@@ -296,6 +304,7 @@ class VentanaMomentos : VentanaBase
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         opciones.Contexto = PeticionIA.ContextoDe(contexto);
+        opciones.Fijos = new List<Tramo>(fijos);
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -397,6 +406,9 @@ class VentanaMomentos : VentanaBase
             }
             catch { }
         }
+        // Los tramos fijos se agregan despues de la revision (no cambian sus indices).
+        if (Math.Abs(duracion - total) <= 0.5)
+            foreach (Tramo f in fijos) r.AgregarFijo(f.Inicio, f.Fin, f.Titulo);
         string ajuste = r.AjustarDuracion(min * 60, max * 60);
         if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
         return r;
@@ -559,7 +571,7 @@ class VentanaMomentos : VentanaBase
         {
             foreach (Tramo t in resultado.Corte)
                 Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t),
-                     t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
+                     t.Fijo ? "fijo" : t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
             foreach (Tramo t in resultado.Momentos)
                 Fila(lstMomentos, t, t.Elegido, t.Puntuacion.ToString("0") + "/10", T(t.Inicio), T(t.Fin), t.Titulo, t.Motivo);
             foreach (TextoResumen t in resultado.Textos)
@@ -629,6 +641,51 @@ class VentanaMomentos : VentanaBase
         lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
         lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "–" +
                         numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") · clic en Velocidad: cambiarla · doble clic: ir";
+    }
+
+    // ------------------------------------------------------- tramos fijos
+
+    // La seleccion de tiempo de Vegas se conserva completa en el corte, diga
+    // lo que diga la IA. Sirve para lo que la IA no puede ver (una carrera
+    // con poca conversacion) sin volver a pedir.
+    void Fijar()
+    {
+        double a = vegas.Transport.SelectionStart.ToMilliseconds() / 1000.0;
+        double largo = vegas.Transport.SelectionLength.ToMilliseconds() / 1000.0;
+        if (largo < 0) { a += largo; largo = -largo; }
+        if (largo < 1)
+        {
+            Estado("Primero selecciona en la línea de tiempo el tramo que quieres completo (arrastra sobre la regla de tiempo) y luego pulsa “Conservar selección”.", true);
+            return;
+        }
+        if (resultado != null && !vigente)
+        {
+            Estado("Esta respuesta es de antes de cambiar el proyecto. Deshaz el corte (Ctrl+Z), vuelve a abrir MomentosIA y elige la selección.", true);
+            return;
+        }
+        double b = Math.Min(total, a + largo);
+        string titulo = "Elegido a mano (" + Formato.Tiempo(a) + "–" + Formato.Tiempo(b) + ")";
+        fijos = TramosFijos.Agregar(fijos, a, b, titulo);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        string nota = "";
+        if (resultado != null)
+        {
+            resultado.AgregarFijo(a, b, titulo);
+            nota = resultado.AjustarDuracion(Math.Min(numMin.Valor, numMax.Valor) * 60, Math.Max(numMin.Valor, numMax.Valor) * 60);
+            MostrarResultado();
+        }
+        Estado("✔ " + Formato.Tiempo(a) + "–" + Formato.Tiempo(b) + " se conserva completo" +
+               (resultado != null ? " en el corte" : "") + " y se le avisa a Gemini en las próximas peticiones." +
+               (nota.Length > 0 ? " Ajustes: " + nota + "." : "") + " Desmárcalo en la lista para quitarlo.", false);
+    }
+
+    void QuitarFijo(Tramo t)
+    {
+        t.Fijo = false;
+        t.Nota = "Ya no es fijo";
+        fijos.RemoveAll(delegate (Tramo f) { return f.Inicio < t.Fin - 0.05 && f.Fin > t.Inicio + 0.05; });
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        Estado("Ese tramo ya no es fijo.", false);
     }
 
     void IrA(ListView l)

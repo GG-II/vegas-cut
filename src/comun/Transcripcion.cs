@@ -106,6 +106,24 @@ public class Transcripcion
         return false;
     }
 
+    // Frases que Whisper inventa en los silencios (vienen de los subtitulos de
+    // YouTube con los que se entreno). No se le mandan a la IA.
+    static readonly string[] Inventadas = { "suscribeteacanal", "suscribeteanuestrocanal", "suscribete", "graciasporver",
+        "subtitulosrealizadosporlacomunidaddeamaraorg", "subtitulosporlacomunidaddeamaraorg", "amaraorg",
+        "noolvidesdesuscribirte", "dalelike" };
+
+    public static bool Alucinacion(string texto)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in (texto ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD))
+            if (c < 128 && char.IsLetterOrDigit(c)) sb.Append(c);
+        string n = sb.ToString().Replace("suscribetealcanal", "suscribeteacanal");
+        if (n.Length == 0) return false;
+        foreach (string x in Inventadas)
+            if (n == x || (x.Length >= 10 && n.Contains(x) && n.Length <= x.Length + 12)) return true;
+        return false;
+    }
+
     public bool TieneFuentes
     {
         get { foreach (Hablante h in Hablantes) if (h.Fuentes.Count > 0) return true; return false; }
@@ -117,6 +135,7 @@ public class Transcripcion
         List<Segmento> r = new List<Segmento>();
         foreach (Segmento s in Segmentos)
         {
+            if (Alucinacion(s.Texto)) continue;
             Segmento n = new Segmento();
             n.Hablante = s.Hablante;
             StringBuilder texto = new StringBuilder();

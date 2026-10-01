@@ -118,6 +118,16 @@ Necesita la transcripción y la clave de Gemini.
      todas las pistas (hazlo antes de poner música), y deja los textos y momentos como
      marcadores en su nuevo lugar. Ctrl+Z lo deshace. Vegas permite hasta ×4 por evento.
    - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
+   - **Conservar selección** (tramos fijos): selecciona en la línea de tiempo un tramo que quieres
+     completo (por ejemplo una carrera donde casi no hablan) y púlsalo. Entra al corte tal cual, los
+     tramos de la IA que caían adentro se absorben, y si el corte se pasa del máximo se desmarcan
+     otros tramos, nunca el fijo. No hace falta volver a pedir a Gemini; en las próximas peticiones
+     también se le avisa. Desmárcalo en la lista para quitarlo. Se elige **antes** de aplicar el
+     corte (si ya lo aplicaste: Ctrl+Z, vuelve a abrir MomentosIA y elige la selección).
+
+**Tiempos en las indicaciones:** puedes escribir `57:00` o `1:09:30`; a Gemini se le manda también
+en segundos, que es como ve la transcripción. Las frases que Whisper inventa en los silencios
+(«¡Suscríbete al canal!», «Gracias por ver») no se le mandan.
 
 **Historial:** cada respuesta se guarda en `<proyecto>.vegascut-ia-historial/` (y la última en
 `<proyecto>.vegascut-ia.json`). Al abrir se muestra la última, y en *Respuesta* puedes elegir

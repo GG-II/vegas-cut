@@ -360,6 +360,59 @@ class PruebaIA
         Anclas.Reubicar(pm, pm.FilePath, out perd, out revs);
         Verificar(perd == 2 && revs == 2, "reubicar: avisa si el clip ya no existe");
 
+        // ------------------------------------------------- tramos fijos
+        ResultadoIA rf = ResultadoIA.Leer(@"{""corte"": [
+            {""inicio"": 0, ""fin"": 100, ""importancia"": 9, ""titulo"": ""Inicio""},
+            {""inicio"": 3700, ""fin"": 3812, ""importancia"": 9, ""titulo"": ""Arranque""},
+            {""inicio"": 4120, ""fin"": 4300, ""importancia"": 9, ""titulo"": ""Meta y regreso""},
+            {""inicio"": 5000, ""fin"": 5100, ""importancia"": 5, ""titulo"": ""Relleno""},
+            {""inicio"": 5700, ""fin"": 5800, ""importancia"": 9, ""titulo"": ""Final""}]}", 5815);
+        rf.AgregarFijo(3420, 4170, "Carrera");
+        string cortes = "";
+        foreach (Tramo x in rf.Corte) cortes += x.Inicio + "-" + x.Fin + (x.Fijo ? "F" : "") + " ";
+        Verificar(cortes == "0-100 3420-4170F 4170-4300 5000-5100 5700-5800 ", "Fijo: absorbe lo de adentro y recorta lo que sobresale (" + cortes + ")");
+        rf.AjustarDuracion(10 * 60, 16 * 60);
+        Tramo carrera = rf.Corte.Find(delegate (Tramo x) { return x.Fijo; });
+        Verificar(carrera.Elegido && !rf.Corte[3].Elegido && rf.DuracionCorte <= 16 * 60 + 0.5,
+            "Fijo: el ajuste de duración quita otros tramos, nunca el fijo");
+        Verificar(rf.AplicarRevision(@"{""tramos"": [{""indice"": 1, ""quitar"": true, ""motivo"": ""x""}]}") == 0 && carrera.Elegido,
+            "Fijo: la revisión no lo toca");
+        List<Tramo> lf = TramosFijos.Agregar(new List<Tramo>(), 100, 200, "a");
+        lf = TramosFijos.Agregar(lf, 150, 300, "b");
+        lf = TramosFijos.Agregar(lf, 500, 600, "c");
+        Verificar(lf.Count == 2 && lf[0].Inicio == 100 && lf[0].Fin == 300, "Fijos: se unen los que se enciman");
+        string vegf = Path.Combine(tmp, "fijos.veg");
+        TramosFijos.Guardar(vegf, 5815, lf);
+        Verificar(TramosFijos.Cargar(vegf, 5815).Count == 2 && TramosFijos.Cargar(vegf, 1300).Count == 0,
+            "Fijos: se guardan y solo valen si el proyecto dura lo mismo");
+        OpcionesIA opf = new OpcionesIA();
+        opf.Instrucciones = "La carrera va de 0:57:00 a 1:09:30, el gol en 12:05.";
+        opf.Fijos = lf;
+        string mf = PeticionIA.Mensaje(new Transcripcion(), 5815, opf);
+        Verificar(mf.Contains("0:57:00 (= 3420.0 s)") && mf.Contains("1:09:30 (= 4170.0 s)") && mf.Contains("12:05 (= 725.0 s)"),
+            "Indicaciones: los tiempos h:mm:ss también van en segundos");
+        Verificar(mf.Contains("TRAMOS FIJOS") && mf.Contains("[100.0-300.0]"), "Los tramos fijos van en el mensaje a Gemini");
+
+        ResultadoIA rp = ResultadoIA.Leer(@"{""corte"": [{""inicio"": 30, ""fin"": 130}, {""inicio"": 1580, ""fin"": 1716}, {""inicio"": 2000, ""fin"": 2100}]}", 5815);
+        rp.AplicarRevision(@"{""tramos"": [{""indice"": 0, ""quitar"": false, ""inicio"": 30, ""fin"": 41},
+            {""indice"": 0, ""quitar"": true, ""inicio"": 41, ""fin"": 129},
+            {""indice"": 1, ""quitar"": true, ""inicio"": 1675, ""fin"": 1716},
+            {""indice"": 2, ""quitar"": true, ""inicio"": 2040, ""fin"": 2050}]}");
+        string revp = "";
+        foreach (Tramo x in rp.Corte) revp += (x.Elegido ? "" : "!") + x.Inicio + "-" + x.Fin + " ";
+        Verificar(revp == "30-41 1580-1675 2000-2040 2050-2100 ", "Revisión: quitar un pedazo deja el resto del tramo (" + revp + ")");
+
+        // ------------------------------------------- frases inventadas
+        Verificar(Transcripcion.Alucinacion("¡Suscríbete al canal!") && Transcripcion.Alucinacion(" Gracias por ver.") &&
+                  !Transcripcion.Alucinacion("Gracias, güey") && !Transcripcion.Alucinacion("¡Corre, corre!"),
+            "Detecta frases que Whisper inventa en silencio");
+        Transcripcion ta = new Transcripcion();
+        Segmento sa = new Segmento(); sa.Texto = "¡Suscríbete al canal!"; sa.Inicio = 1; sa.Fin = 2;
+        Segmento sb2 = new Segmento(); sb2.Texto = "¡Vamos!"; sb2.Inicio = 3; sb2.Fin = 4;
+        ta.Hablantes.Add(new Hablante { Etiqueta = "A2", Nombre = "Yo" });
+        ta.Segmentos.Add(sa); ta.Segmentos.Add(sb2);
+        Verificar(ta.SegmentosActuales().Count == 1, "No se le mandan a Gemini");
+
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " fallos.");
         return fallos;

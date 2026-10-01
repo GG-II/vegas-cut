@@ -20,6 +20,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -111,6 +112,8 @@ class VentanaMomentos : VentanaBase
     Boton btnInforme = new Boton("Guardar informe", EstiloBoton.Secundario);
     Boton btnMarcar = new Boton("Crear regiones y marcadores", EstiloBoton.Secundario);
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
+    Boton btnFijar = new Boton("Conservar selecci\u00f3n", EstiloBoton.Secundario);
+    List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selecci\u00f3n de tiempo)
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
 
     static readonly string[] Tipos = { "Gameplay", "Narraci\u00f3n", "Podcast", "Otro" };
@@ -217,6 +220,7 @@ class VentanaMomentos : VentanaBase
 
         Pos(btnInforme, m, fondo, 150, 40);
         Pos(btnMarcar, m + 160, fondo, 230, 40);
+        Pos(btnFijar, m + 400, fondo, 190, 40);
         Pos(btnCerrar, m + w - 300, fondo, 110, 40);
         Pos(btnCortar, m + w - 180, fondo, 180, 40);
         ClientSize = new Size(ClientSize.Width, fondo + 40 + 24);
@@ -226,6 +230,7 @@ class VentanaMomentos : VentanaBase
         btnPedir.Click += delegate { Pedir(); };
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
+        btnFijar.Click += delegate { Fijar(); };
         btnCortar.Click += delegate { AplicarCorte(); };
         btnCerrar.Click += delegate { Close(); };
         btnReglas.Click += delegate { EditarReglas(); };
@@ -235,7 +240,9 @@ class VentanaMomentos : VentanaBase
         lstCorte.ItemChecked += delegate (object s, ItemCheckedEventArgs e)
         {
             if (cargando || resultado == null) return;
-            ((Tramo)e.Item.Tag).Elegido = e.Item.Checked;
+            Tramo tc = (Tramo)e.Item.Tag;
+            tc.Elegido = e.Item.Checked;
+            if (!tc.Elegido && tc.Fijo) QuitarFijo(tc);
             ActualizarResumenCorte();
         };
         foreach (Lista l in new Lista[] { lstMomentos, lstShorts })
@@ -245,6 +252,8 @@ class VentanaMomentos : VentanaBase
         segAcelerar.Cambio += delegate { segAudio.Enabled = segAcelerar.Seleccion == 1; };
         foreach (Lista l in new Lista[] { lstCorte, lstMomentos, lstTextos, lstShorts })
             l.DoubleClick += delegate (object s, EventArgs e) { IrA((ListView)s); };
+
+        fijos = TramosFijos.Cargar(vegas.Project.FilePath, total);
 
         // Valores iniciales: los de la ultima respuesta guardada.
         cargando = true;
@@ -317,6 +326,7 @@ class VentanaMomentos : VentanaBase
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         opciones.Contexto = PeticionIA.ContextoDe(contexto);
+        opciones.Fijos = new List<Tramo>(fijos);
         foreach (CampoTexto c in nombres)
         {
             Hablante h = (Hablante)c.Tag;
@@ -418,6 +428,9 @@ class VentanaMomentos : VentanaBase
             }
             catch { }
         }
+        // Los tramos fijos se agregan despues de la revision (no cambian sus indices).
+        if (Math.Abs(duracion - total) <= 0.5)
+            foreach (Tramo f in fijos) r.AgregarFijo(f.Inicio, f.Fin, f.Titulo);
         string ajuste = r.AjustarDuracion(min * 60, max * 60);
         if (ajuste.Length > 0) nota += (nota.Length > 0 ? "; " : "") + ajuste;
         return r;
@@ -580,7 +593,7 @@ class VentanaMomentos : VentanaBase
         {
             foreach (Tramo t in resultado.Corte)
                 Fila(lstCorte, t, t.Elegido, T(t.Inicio), T(t.Fin), Formato.Tiempo(t.Duracion), Velocidad(t),
-                     t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
+                     t.Fijo ? "fijo" : t.Puntuacion > 0 ? t.Puntuacion.ToString("0") : "", t.Titulo, PorQue(t));
             foreach (Tramo t in resultado.Momentos)
                 Fila(lstMomentos, t, t.Elegido, t.Puntuacion.ToString("0") + "/10", T(t.Inicio), T(t.Fin), t.Titulo, t.Motivo);
             foreach (TextoResumen t in resultado.Textos)
@@ -650,6 +663,51 @@ class VentanaMomentos : VentanaBase
         lblCorte.ForeColor = fuera ? Tema.AcentoHover : Tema.Texto;
         lblCorte.Text = "Conserva " + Formato.Tiempo(d) + " de " + Formato.Tiempo(total) + " (" + numMin.Valor + "\u2013" +
                         numMax.Valor + " min" + (fuera ? ", fuera del rango" : "") + ") \u00b7 clic en Velocidad: cambiarla \u00b7 doble clic: ir";
+    }
+
+    // ------------------------------------------------------- tramos fijos
+
+    // La seleccion de tiempo de Vegas se conserva completa en el corte, diga
+    // lo que diga la IA. Sirve para lo que la IA no puede ver (una carrera
+    // con poca conversacion) sin volver a pedir.
+    void Fijar()
+    {
+        double a = vegas.Transport.SelectionStart.ToMilliseconds() / 1000.0;
+        double largo = vegas.Transport.SelectionLength.ToMilliseconds() / 1000.0;
+        if (largo < 0) { a += largo; largo = -largo; }
+        if (largo < 1)
+        {
+            Estado("Primero selecciona en la l\u00ednea de tiempo el tramo que quieres completo (arrastra sobre la regla de tiempo) y luego pulsa \u201cConservar selecci\u00f3n\u201d.", true);
+            return;
+        }
+        if (resultado != null && !vigente)
+        {
+            Estado("Esta respuesta es de antes de cambiar el proyecto. Deshaz el corte (Ctrl+Z), vuelve a abrir MomentosIA y elige la selecci\u00f3n.", true);
+            return;
+        }
+        double b = Math.Min(total, a + largo);
+        string titulo = "Elegido a mano (" + Formato.Tiempo(a) + "\u2013" + Formato.Tiempo(b) + ")";
+        fijos = TramosFijos.Agregar(fijos, a, b, titulo);
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        string nota = "";
+        if (resultado != null)
+        {
+            resultado.AgregarFijo(a, b, titulo);
+            nota = resultado.AjustarDuracion(Math.Min(numMin.Valor, numMax.Valor) * 60, Math.Max(numMin.Valor, numMax.Valor) * 60);
+            MostrarResultado();
+        }
+        Estado("\u2714 " + Formato.Tiempo(a) + "\u2013" + Formato.Tiempo(b) + " se conserva completo" +
+               (resultado != null ? " en el corte" : "") + " y se le avisa a Gemini en las pr\u00f3ximas peticiones." +
+               (nota.Length > 0 ? " Ajustes: " + nota + "." : "") + " Desm\u00e1rcalo en la lista para quitarlo.", false);
+    }
+
+    void QuitarFijo(Tramo t)
+    {
+        t.Fijo = false;
+        t.Nota = "Ya no es fijo";
+        fijos.RemoveAll(delegate (Tramo f) { return f.Inicio < t.Fin - 0.05 && f.Fin > t.Inicio + 0.05; });
+        TramosFijos.Guardar(vegas.Project.FilePath, total, fijos);
+        Estado("Ese tramo ya no es fijo.", false);
     }
 
     void IrA(ListView l)
@@ -795,8 +853,10 @@ public class Tramo
     public bool PorRevision;       // desmarcado por incumplir reglas: no se vuelve a marcar solo
     public bool Acelerar;          // en el corte: se conserva pero mas rapido
     public double Velocidad = 1;   // 2 = el doble de rapido
+    public bool Fijo;              // lo elegiste tu: ni la IA ni los ajustes lo quitan
 
     public double Duracion { get { return Fin - Inicio; } }
+    public object MemberwiseCopia() { return MemberwiseClone(); }
     // Lo que dura en el video final.
     public double DuracionFinal { get { return Acelerar ? Duracion / Velocidad : Duracion; } }
 }
@@ -818,6 +878,7 @@ public class OpcionesIA
     public string Instrucciones = "";
     public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
+    public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
 }
 
 public class ResultadoIA
@@ -925,17 +986,44 @@ public class ResultadoIA
     public int AplicarRevision(string json)
     {
         int cambios = 0;
+        List<Tramo> nuevos = new List<Tramo>();
         object o = Json.Leer(Gemini.QuitarCercas(json));
         foreach (object x in Json.Lista(o, "tramos"))
         {
             int i = (int)Json.Numero(x, "indice", -1);
             if (i < 0 || i >= Corte.Count) continue;
             Tramo t = Corte[i];
+            if (t.Fijo) continue;
             string motivo = Json.Texto(x, "motivo");
             object quitar;
             Dictionary<string, object> d = x as Dictionary<string, object>;
             if (d != null && d.TryGetValue("quitar", out quitar) && quitar is bool && (bool)quitar)
             {
+                // Si dice que parte quitar y es solo un pedazo del tramo, se
+                // quita ese pedazo y el resto se queda.
+                double qa = Json.Numero(x, "inicio", -1), qb = Json.Numero(x, "fin", -1);
+                if (qb - qa >= 0.5)
+                {
+                    qa = Math.Max(qa, t.Inicio); qb = Math.Min(qb, t.Fin);
+                    if (qb - qa < 0.5) continue; // no toca lo que queda del tramo
+                    bool alInicio = qa <= t.Inicio + 0.5, alFinal = qb >= t.Fin - 0.5;
+                    if (!(alInicio && alFinal))
+                    {
+                        string nota = "Recortado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
+                        if (alInicio) t.Inicio = qb;
+                        else if (alFinal) t.Fin = qa;
+                        else
+                        {
+                            Tramo resto = Pedazo(t, qb, t.Fin);
+                            resto.Nota = nota;
+                            nuevos.Add(resto);
+                            t.Fin = qa;
+                        }
+                        t.Nota = nota;
+                        cambios++;
+                        continue;
+                    }
+                }
                 t.Elegido = false;
                 t.PorRevision = true;
                 t.Nota = "Quitado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
@@ -951,7 +1039,41 @@ public class ResultadoIA
                 cambios++;
             }
         }
+        if (nuevos.Count > 0)
+        {
+            Corte.AddRange(nuevos);
+            Corte.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+        }
         return cambios;
+    }
+
+    // Agrega un tramo elegido a mano. Lo que la IA tenia adentro se absorbe;
+    // lo que sobresale se conserva recortado.
+    public void AgregarFijo(double a, double b, string titulo)
+    {
+        if (b - a < 0.5) return;
+        Tramo n = new Tramo();
+        n.Inicio = a; n.Fin = b; n.Puntuacion = 10; n.Fijo = true;
+        n.Titulo = titulo;
+        n.Motivo = "Lo elegiste t\u00fa: se conserva completo.";
+        List<Tramo> r = new List<Tramo>();
+        foreach (Tramo t in Corte)
+        {
+            if (t.Fin <= a + 0.05 || t.Inicio >= b - 0.05) { r.Add(t); continue; }
+            if (t.Fijo) { n.Inicio = Math.Min(n.Inicio, t.Inicio); n.Fin = Math.Max(n.Fin, t.Fin); continue; }
+            if (t.Inicio < a - 0.5) r.Add(Pedazo(t, t.Inicio, a));
+            if (t.Fin > b + 0.5) r.Add(Pedazo(t, b, t.Fin));
+        }
+        r.Add(n);
+        r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        Corte = r;
+    }
+
+    static Tramo Pedazo(Tramo t, double a, double b)
+    {
+        Tramo p = (Tramo)t.MemberwiseCopia();
+        p.Inicio = a; p.Fin = b;
+        return p;
     }
 
     bool SeEncima(Tramo c)
@@ -975,6 +1097,7 @@ public class ResultadoIA
             for (int i = 1; i < elegidos.Count - 1; i++)
             {
                 Tramo t = elegidos[i];
+                if (t.Fijo) continue;
                 if (peor == null || t.Puntuacion < peor.Puntuacion ||
                     (t.Puntuacion == peor.Puntuacion && t.DuracionFinal > peor.DuracionFinal)) peor = t;
             }
@@ -1115,6 +1238,72 @@ public class ResultadoIA
 // Textos que se envian a Gemini
 // =====================================================================
 
+// Tramos fijos del proyecto (<proyecto>.vegascut-fijos.json), en tiempos de
+// la linea de tiempo de cuando se eligieron. Solo valen mientras el proyecto
+// dure lo mismo (antes de aplicar el corte).
+public static class TramosFijos
+{
+    public static string RutaPara(string veg)
+    {
+        if (String.IsNullOrEmpty(veg)) return null;
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-fijos.json");
+    }
+
+    public static List<Tramo> Cargar(string veg, double duracion)
+    {
+        List<Tramo> r = new List<Tramo>();
+        string ruta = RutaPara(veg);
+        try
+        {
+            if (ruta == null || !File.Exists(ruta)) return r;
+            object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+            if (Math.Abs(Json.Numero(o, "duracionProyecto", -1) - duracion) > 0.5) return r;
+            foreach (object x in Json.Lista(o, "fijos"))
+            {
+                Tramo t = new Tramo();
+                t.Inicio = Json.Numero(x, "inicio", 0); t.Fin = Json.Numero(x, "fin", 0);
+                t.Titulo = Json.Texto(x, "titulo"); t.Fijo = true; t.Puntuacion = 10;
+                if (t.Fin > t.Inicio) r.Add(t);
+            }
+        }
+        catch { }
+        return r;
+    }
+
+    public static void Guardar(string veg, double duracion, List<Tramo> fijos)
+    {
+        string ruta = RutaPara(veg);
+        if (ruta == null) return;
+        List<object> l = new List<object>();
+        foreach (Tramo t in fijos)
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d["inicio"] = Math.Round(t.Inicio, 3); d["fin"] = Math.Round(t.Fin, 3); d["titulo"] = t.Titulo;
+            l.Add(d);
+        }
+        Dictionary<string, object> raiz = new Dictionary<string, object>();
+        raiz["duracionProyecto"] = duracion;
+        raiz["fijos"] = l;
+        try { File.WriteAllText(ruta, Json.Escribir(raiz), new UTF8Encoding(false)); } catch { }
+    }
+
+    // Agrega un tramo a la lista, uniendo los que se enciman.
+    public static List<Tramo> Agregar(List<Tramo> fijos, double a, double b, string titulo)
+    {
+        Tramo n = new Tramo();
+        n.Inicio = a; n.Fin = b; n.Titulo = titulo; n.Fijo = true; n.Puntuacion = 10;
+        List<Tramo> r = new List<Tramo>();
+        foreach (Tramo t in fijos)
+        {
+            if (t.Fin < a - 0.05 || t.Inicio > b + 0.05) { r.Add(t); continue; }
+            n.Inicio = Math.Min(n.Inicio, t.Inicio); n.Fin = Math.Max(n.Fin, t.Fin);
+        }
+        r.Add(n);
+        r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        return r;
+    }
+}
+
 public static class PeticionIA
 {
     public static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
@@ -1141,7 +1330,12 @@ public static class PeticionIA
         "- Cada tramo del corte lleva \"importancia\" de 1 a 10 (10 = imprescindible para la historia; 1 = relleno). " +
         "Se usa para ajustar la duraci\u00f3n quitando primero lo menos importante.\n" +
         "- Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias: un tramo que las incumple no va " +
-        "en el corte aunque sea gracioso o intenso.\n";
+        "en el corte aunque sea gracioso o intenso.\n" +
+        "- Poca conversaci\u00f3n no significa que no pase nada: en carreras, peleas, persecuciones, exploraci\u00f3n o " +
+        "construcci\u00f3n puede haber acci\u00f3n con poca voz. F\u00edjate en la intensidad de ambiente y en las indicaciones; " +
+        "si piden mostrar una actividad completa, cons\u00e9rvala completa aunque hablen poco.\n" +
+        "- Los TRAMOS FIJOS ya los eligi\u00f3 el editor: van completos en el corte (incl\u00fayelos tal cual) y cuentan " +
+        "para la duraci\u00f3n, as\u00ed que el resto tiene que caber en lo que queda.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve m\u00e1s r\u00e1pido, " +
@@ -1190,13 +1384,39 @@ public static class PeticionIA
         sb.Append("Duraci\u00f3n actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
         sb.Append("Duraci\u00f3n del corte: m\u00ednimo " + S(op.MinutosMin * 60) + " s, m\u00e1ximo " + S(op.MinutosMax * 60) +
                   " s, ideal " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosMin + " a " + op.MinutosMax + " min)\n");
-        if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + op.ReglasCanal.Trim() + "\n");
-        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + op.Instrucciones.Trim() + "\n");
+        if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + ConSegundos(op.ReglasCanal.Trim()) + "\n");
+        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + ConSegundos(op.Instrucciones.Trim()) + "\n");
+        Fijos_(sb, op);
         if (!String.IsNullOrEmpty(op.Contexto))
             sb.Append("\nCONTEXTO DE EPISODIOS ANTERIORES (solo para entender la historia; no los cortes):\n" + op.Contexto.Trim() + "\n");
         sb.Append("\nPersonas (cada una es una pista de audio):\n");
         foreach (Hablante h in t.Hablantes)
             if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
+    }
+
+    static void Fijos_(StringBuilder sb, OpcionesIA op)
+    {
+        if (op.Fijos.Count == 0) return;
+        double total = 0;
+        sb.Append("\nTRAMOS FIJOS (elegidos por el editor; van completos en el corte):\n");
+        foreach (Tramo f in op.Fijos)
+        {
+            sb.Append("- [" + S(f.Inicio) + "-" + S(f.Fin) + "] " + f.Titulo + " (" + Formato.Tiempo(f.Duracion) + ")\n");
+            total += f.Duracion;
+        }
+        sb.Append("Suman " + S(total) + " s; el resto del corte debe caber en lo que queda de la duraci\u00f3n.\n");
+    }
+
+    // Los tiempos escritos como 57:00 o 1:09:30 se acompa\u00f1an con su valor en
+    // segundos, que es como estan los tiempos de la transcripcion.
+    public static string ConSegundos(string texto)
+    {
+        return Regex.Replace(texto ?? "", @"(?<![\d:])(\d{1,2}):(\d{2})(?::(\d{2}))?(?![\d:])", delegate (Match m)
+        {
+            int a = int.Parse(m.Groups[1].Value), b = int.Parse(m.Groups[2].Value);
+            double seg = m.Groups[3].Success ? a * 3600 + b * 60 + int.Parse(m.Groups[3].Value) : a * 60 + b;
+            return m.Value + " (= " + S(seg) + " s)";
+        });
     }
 
     static void Transcripcion_(StringBuilder sb, Transcripcion t, List<Segmento> segmentos, double desde, double hasta)
@@ -2584,6 +2804,24 @@ public class Transcripcion
         return false;
     }
 
+    // Frases que Whisper inventa en los silencios (vienen de los subtitulos de
+    // YouTube con los que se entreno). No se le mandan a la IA.
+    static readonly string[] Inventadas = { "suscribeteacanal", "suscribeteanuestrocanal", "suscribete", "graciasporver",
+        "subtitulosrealizadosporlacomunidaddeamaraorg", "subtitulosporlacomunidaddeamaraorg", "amaraorg",
+        "noolvidesdesuscribirte", "dalelike" };
+
+    public static bool Alucinacion(string texto)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in (texto ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD))
+            if (c < 128 && char.IsLetterOrDigit(c)) sb.Append(c);
+        string n = sb.ToString().Replace("suscribetealcanal", "suscribeteacanal");
+        if (n.Length == 0) return false;
+        foreach (string x in Inventadas)
+            if (n == x || (x.Length >= 10 && n.Contains(x) && n.Length <= x.Length + 12)) return true;
+        return false;
+    }
+
     public bool TieneFuentes
     {
         get { foreach (Hablante h in Hablantes) if (h.Fuentes.Count > 0) return true; return false; }
@@ -2595,6 +2833,7 @@ public class Transcripcion
         List<Segmento> r = new List<Segmento>();
         foreach (Segmento s in Segmentos)
         {
+            if (Alucinacion(s.Texto)) continue;
             Segmento n = new Segmento();
             n.Hablante = s.Hablante;
             StringBuilder texto = new StringBuilder();

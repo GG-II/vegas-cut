@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 // =====================================================================
 // Momentos con IA: que se le pide a Gemini y como se lee la respuesta.
@@ -23,8 +24,10 @@ public class Tramo
     public bool PorRevision;       // desmarcado por incumplir reglas: no se vuelve a marcar solo
     public bool Acelerar;          // en el corte: se conserva pero mas rapido
     public double Velocidad = 1;   // 2 = el doble de rapido
+    public bool Fijo;              // lo elegiste tu: ni la IA ni los ajustes lo quitan
 
     public double Duracion { get { return Fin - Inicio; } }
+    public object MemberwiseCopia() { return MemberwiseClone(); }
     // Lo que dura en el video final.
     public double DuracionFinal { get { return Acelerar ? Duracion / Velocidad : Duracion; } }
 }
@@ -46,6 +49,7 @@ public class OpcionesIA
     public string Instrucciones = "";
     public bool PermitirAcelerar = true;   // transiciones aceleradas en vez de cortadas
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
+    public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
 }
 
 public class ResultadoIA
@@ -153,17 +157,44 @@ public class ResultadoIA
     public int AplicarRevision(string json)
     {
         int cambios = 0;
+        List<Tramo> nuevos = new List<Tramo>();
         object o = Json.Leer(Gemini.QuitarCercas(json));
         foreach (object x in Json.Lista(o, "tramos"))
         {
             int i = (int)Json.Numero(x, "indice", -1);
             if (i < 0 || i >= Corte.Count) continue;
             Tramo t = Corte[i];
+            if (t.Fijo) continue;
             string motivo = Json.Texto(x, "motivo");
             object quitar;
             Dictionary<string, object> d = x as Dictionary<string, object>;
             if (d != null && d.TryGetValue("quitar", out quitar) && quitar is bool && (bool)quitar)
             {
+                // Si dice que parte quitar y es solo un pedazo del tramo, se
+                // quita ese pedazo y el resto se queda.
+                double qa = Json.Numero(x, "inicio", -1), qb = Json.Numero(x, "fin", -1);
+                if (qb - qa >= 0.5)
+                {
+                    qa = Math.Max(qa, t.Inicio); qb = Math.Min(qb, t.Fin);
+                    if (qb - qa < 0.5) continue; // no toca lo que queda del tramo
+                    bool alInicio = qa <= t.Inicio + 0.5, alFinal = qb >= t.Fin - 0.5;
+                    if (!(alInicio && alFinal))
+                    {
+                        string nota = "Recortado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
+                        if (alInicio) t.Inicio = qb;
+                        else if (alFinal) t.Fin = qa;
+                        else
+                        {
+                            Tramo resto = Pedazo(t, qb, t.Fin);
+                            resto.Nota = nota;
+                            nuevos.Add(resto);
+                            t.Fin = qa;
+                        }
+                        t.Nota = nota;
+                        cambios++;
+                        continue;
+                    }
+                }
                 t.Elegido = false;
                 t.PorRevision = true;
                 t.Nota = "Quitado en la revisi\u00f3n" + (motivo.Length > 0 ? ": " + motivo : "");
@@ -179,7 +210,41 @@ public class ResultadoIA
                 cambios++;
             }
         }
+        if (nuevos.Count > 0)
+        {
+            Corte.AddRange(nuevos);
+            Corte.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+        }
         return cambios;
+    }
+
+    // Agrega un tramo elegido a mano. Lo que la IA tenia adentro se absorbe;
+    // lo que sobresale se conserva recortado.
+    public void AgregarFijo(double a, double b, string titulo)
+    {
+        if (b - a < 0.5) return;
+        Tramo n = new Tramo();
+        n.Inicio = a; n.Fin = b; n.Puntuacion = 10; n.Fijo = true;
+        n.Titulo = titulo;
+        n.Motivo = "Lo elegiste t\u00fa: se conserva completo.";
+        List<Tramo> r = new List<Tramo>();
+        foreach (Tramo t in Corte)
+        {
+            if (t.Fin <= a + 0.05 || t.Inicio >= b - 0.05) { r.Add(t); continue; }
+            if (t.Fijo) { n.Inicio = Math.Min(n.Inicio, t.Inicio); n.Fin = Math.Max(n.Fin, t.Fin); continue; }
+            if (t.Inicio < a - 0.5) r.Add(Pedazo(t, t.Inicio, a));
+            if (t.Fin > b + 0.5) r.Add(Pedazo(t, b, t.Fin));
+        }
+        r.Add(n);
+        r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        Corte = r;
+    }
+
+    static Tramo Pedazo(Tramo t, double a, double b)
+    {
+        Tramo p = (Tramo)t.MemberwiseCopia();
+        p.Inicio = a; p.Fin = b;
+        return p;
     }
 
     bool SeEncima(Tramo c)
@@ -203,6 +268,7 @@ public class ResultadoIA
             for (int i = 1; i < elegidos.Count - 1; i++)
             {
                 Tramo t = elegidos[i];
+                if (t.Fijo) continue;
                 if (peor == null || t.Puntuacion < peor.Puntuacion ||
                     (t.Puntuacion == peor.Puntuacion && t.DuracionFinal > peor.DuracionFinal)) peor = t;
             }
@@ -343,6 +409,72 @@ public class ResultadoIA
 // Textos que se envian a Gemini
 // =====================================================================
 
+// Tramos fijos del proyecto (<proyecto>.vegascut-fijos.json), en tiempos de
+// la linea de tiempo de cuando se eligieron. Solo valen mientras el proyecto
+// dure lo mismo (antes de aplicar el corte).
+public static class TramosFijos
+{
+    public static string RutaPara(string veg)
+    {
+        if (String.IsNullOrEmpty(veg)) return null;
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-fijos.json");
+    }
+
+    public static List<Tramo> Cargar(string veg, double duracion)
+    {
+        List<Tramo> r = new List<Tramo>();
+        string ruta = RutaPara(veg);
+        try
+        {
+            if (ruta == null || !File.Exists(ruta)) return r;
+            object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+            if (Math.Abs(Json.Numero(o, "duracionProyecto", -1) - duracion) > 0.5) return r;
+            foreach (object x in Json.Lista(o, "fijos"))
+            {
+                Tramo t = new Tramo();
+                t.Inicio = Json.Numero(x, "inicio", 0); t.Fin = Json.Numero(x, "fin", 0);
+                t.Titulo = Json.Texto(x, "titulo"); t.Fijo = true; t.Puntuacion = 10;
+                if (t.Fin > t.Inicio) r.Add(t);
+            }
+        }
+        catch { }
+        return r;
+    }
+
+    public static void Guardar(string veg, double duracion, List<Tramo> fijos)
+    {
+        string ruta = RutaPara(veg);
+        if (ruta == null) return;
+        List<object> l = new List<object>();
+        foreach (Tramo t in fijos)
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d["inicio"] = Math.Round(t.Inicio, 3); d["fin"] = Math.Round(t.Fin, 3); d["titulo"] = t.Titulo;
+            l.Add(d);
+        }
+        Dictionary<string, object> raiz = new Dictionary<string, object>();
+        raiz["duracionProyecto"] = duracion;
+        raiz["fijos"] = l;
+        try { File.WriteAllText(ruta, Json.Escribir(raiz), new UTF8Encoding(false)); } catch { }
+    }
+
+    // Agrega un tramo a la lista, uniendo los que se enciman.
+    public static List<Tramo> Agregar(List<Tramo> fijos, double a, double b, string titulo)
+    {
+        Tramo n = new Tramo();
+        n.Inicio = a; n.Fin = b; n.Titulo = titulo; n.Fijo = true; n.Puntuacion = 10;
+        List<Tramo> r = new List<Tramo>();
+        foreach (Tramo t in fijos)
+        {
+            if (t.Fin < a - 0.05 || t.Inicio > b + 0.05) { r.Add(t); continue; }
+            n.Inicio = Math.Min(n.Inicio, t.Inicio); n.Fin = Math.Max(n.Fin, t.Fin);
+        }
+        r.Add(n);
+        r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        return r;
+    }
+}
+
 public static class PeticionIA
 {
     public static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
@@ -369,7 +501,12 @@ public static class PeticionIA
         "- Cada tramo del corte lleva \"importancia\" de 1 a 10 (10 = imprescindible para la historia; 1 = relleno). " +
         "Se usa para ajustar la duración quitando primero lo menos importante.\n" +
         "- Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias: un tramo que las incumple no va " +
-        "en el corte aunque sea gracioso o intenso.\n";
+        "en el corte aunque sea gracioso o intenso.\n" +
+        "- Poca conversación no significa que no pase nada: en carreras, peleas, persecuciones, exploración o " +
+        "construcción puede haber acción con poca voz. Fíjate en la intensidad de ambiente y en las indicaciones; " +
+        "si piden mostrar una actividad completa, consérvala completa aunque hablen poco.\n" +
+        "- Los TRAMOS FIJOS ya los eligió el editor: van completos en el corte (inclúyelos tal cual) y cuentan " +
+        "para la duración, así que el resto tiene que caber en lo que queda.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve más rápido, " +
@@ -418,13 +555,39 @@ public static class PeticionIA
         sb.Append("Duración actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
         sb.Append("Duración del corte: mínimo " + S(op.MinutosMin * 60) + " s, máximo " + S(op.MinutosMax * 60) +
                   " s, ideal " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosMin + " a " + op.MinutosMax + " min)\n");
-        if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + op.ReglasCanal.Trim() + "\n");
-        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + op.Instrucciones.Trim() + "\n");
+        if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + ConSegundos(op.ReglasCanal.Trim()) + "\n");
+        if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + ConSegundos(op.Instrucciones.Trim()) + "\n");
+        Fijos_(sb, op);
         if (!String.IsNullOrEmpty(op.Contexto))
             sb.Append("\nCONTEXTO DE EPISODIOS ANTERIORES (solo para entender la historia; no los cortes):\n" + op.Contexto.Trim() + "\n");
         sb.Append("\nPersonas (cada una es una pista de audio):\n");
         foreach (Hablante h in t.Hablantes)
             if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
+    }
+
+    static void Fijos_(StringBuilder sb, OpcionesIA op)
+    {
+        if (op.Fijos.Count == 0) return;
+        double total = 0;
+        sb.Append("\nTRAMOS FIJOS (elegidos por el editor; van completos en el corte):\n");
+        foreach (Tramo f in op.Fijos)
+        {
+            sb.Append("- [" + S(f.Inicio) + "-" + S(f.Fin) + "] " + f.Titulo + " (" + Formato.Tiempo(f.Duracion) + ")\n");
+            total += f.Duracion;
+        }
+        sb.Append("Suman " + S(total) + " s; el resto del corte debe caber en lo que queda de la duración.\n");
+    }
+
+    // Los tiempos escritos como 57:00 o 1:09:30 se acompañan con su valor en
+    // segundos, que es como estan los tiempos de la transcripcion.
+    public static string ConSegundos(string texto)
+    {
+        return Regex.Replace(texto ?? "", @"(?<![\d:])(\d{1,2}):(\d{2})(?::(\d{2}))?(?![\d:])", delegate (Match m)
+        {
+            int a = int.Parse(m.Groups[1].Value), b = int.Parse(m.Groups[2].Value);
+            double seg = m.Groups[3].Success ? a * 3600 + b * 60 + int.Parse(m.Groups[3].Value) : a * 60 + b;
+            return m.Value + " (= " + S(seg) + " s)";
+        });
     }
 
     static void Transcripcion_(StringBuilder sb, Transcripcion t, List<Segmento> segmentos, double desde, double hasta)
