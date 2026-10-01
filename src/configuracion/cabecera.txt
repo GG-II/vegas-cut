@@ -1,0 +1,9 @@
+// ConfigurarVegasCut.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Guarda la configuracion que comparten las herramientas de vegas-cut:
+//   - clave de la API de Gemini (cifrada con tu usuario de Windows) y modelo,
+//   - ruta de Faster-Whisper-XXL y sus opciones (modelo, tarjeta o procesador).
+// Todo queda en %APPDATA%\vegas-cut\config.json. Para cambiar la clave,
+// vuelve a ejecutar este script.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

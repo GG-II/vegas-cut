@@ -1,0 +1,10 @@
+// Transcribir.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Transcribe las pistas de voz con Faster-Whisper-XXL (en tu PC) y mide el
+// sonido de cada pista. Guarda todo en <proyecto>.vegascut.json junto al .veg:
+//   - frases y palabras con su tiempo y quien habla (una pista = una persona),
+//   - nivel y pico de sonido por segundo de cada pista (voces y ambiente).
+// Esa transcripcion la usan las demas herramientas (Momentos con IA...).
+//
+// Requiere configurar Faster-Whisper-XXL con ConfigurarVegasCut.cs.
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

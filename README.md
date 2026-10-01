@@ -1,11 +1,25 @@
 # vegas-cut
 
-Herramientas para agilizar la edición en VEGAS Pro 20, inspiradas en AutoCut
-(sin IA de contenido). El plan completo está en [`docs/plan.md`](docs/plan.md).
+Herramientas para agilizar la edición en VEGAS Pro 20, inspiradas en AutoCut.
+El plan completo está en [`docs/plan.md`](docs/plan.md).
+
+| Script | Para qué |
+|---|---|
+| `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
+| `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
+| `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
+| `MomentosIA.cs` | Gemini sugiere resumen, momentos, un corte a la duración que pidas, textos y Shorts. |
+| `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
+
+**Flujo sugerido para un gameplay:** *Quitar silencios* (opcional) → *Transcribir* →
+*Momentos con IA* → revisar → *Aplicar corte*. La transcripción sigue los cortes que hacen
+estas herramientas, incluso si los deshaces con Ctrl+Z.
 
 ## Estructura
 
-- `scripts/`: scripts `.cs` para *Tools → Scripting → Run Script…*
+- `scripts/`: los scripts listos para Vegas (*generados* desde `src/`, no se editan a mano)
+- `src/`: código fuente; `src/comun` se comparte entre herramientas
+- `herramientas/compilar.py`: arma `scripts/*.cs` desde `src/` (un archivo por herramienta)
 - `ejemplos/`: proyectos `.veg` reales para estudiar patrones de edición
   - `avatar/`: video ensayos con avatar
   - `minecraft/`: gameplays y shorts de Minecraft
@@ -28,6 +42,58 @@ Los scripts no se instalan: son archivos `.cs` que Vegas compila al ejecutarlos.
 Al actualizar el repositorio (`git pull`), vuelve a copiar los `.cs` si usas la carpeta del menú.
 
 ## Scripts
+
+### `ConfigurarVegasCut.cs`
+
+![Configurar vegas-cut](docs/img/configurar.png)
+
+Se ejecuta una vez (y cuando quieras cambiar algo). Guarda en `%APPDATA%\vegas-cut\config.json`:
+
+- **Clave de Gemini**, cifrada con tu usuario de Windows (DPAPI). Consíguela gratis en
+  [aistudio.google.com/apikey](https://aistudio.google.com/apikey). *Probar y listar modelos*
+  comprueba la clave y trae los modelos disponibles para tu cuenta.
+- **Faster-Whisper-XXL**: ruta del `.exe`, modelo, tarjeta o procesador y precisión.
+  Guía: [`docs/instalar-whisper.md`](docs/instalar-whisper.md).
+
+### `Transcribir.cs`
+
+![Transcribir](docs/img/transcribir.png)
+
+1. Guarda el proyecto.
+2. Marca las **voces** (se transcriben; cada pista es una persona) y el **ambiente** (juego,
+   música: solo se mide su sonido para detectar explosiones y momentos intensos).
+3. **Transcribir**: Vegas renderiza cada pista y Faster-Whisper-XXL la transcribe en segundo
+   plano, con progreso y tiempo restante. Se puede cancelar.
+
+Resultado: `<proyecto>.vegascut.json` junto al `.veg`, con frases, palabras con su tiempo,
+quién habla y el nivel de sonido por segundo de cada pista. El audio no sale de tu PC.
+
+### `MomentosIA.cs`
+
+![Momentos con IA](docs/img/momentos-ia.png)
+
+Necesita la transcripción y la clave de Gemini.
+
+1. Elige el **tipo de video**, la **duración objetivo**, los **nombres** de las personas
+   y, si quieres, **indicaciones** ("es el episodio 3, que se entienda la historia").
+2. **Pedir a Gemini**: se envía solo texto (transcripción con tiempos e intensidad del sonido
+   cada 5 s). Tarda uno o dos minutos.
+3. Revisa las pestañas y desmarca lo que no quieras:
+   - **Corte**: tramos a conservar, en orden, cerca de la duración objetivo. Los bordes se
+     ajustan para no partir palabras.
+   - **Momentos**: los mejores, con nota del 1 al 10 y por qué.
+   - **Textos**: frases cortas ("3 horas después…") para lo que el corte se salta.
+   - **Resumen** y secciones, **Shorts** y **títulos**.
+   Doble clic en una fila mueve el cursor de Vegas a ese punto.
+4. Acciones:
+   - **Crear regiones y marcadores** para revisar en la línea de tiempo.
+   - **Aplicar corte**: quita todo lo que no está marcado, en todas las pistas, y deja los
+     textos y momentos como marcadores en su nuevo lugar. Ctrl+Z lo deshace.
+   - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
+
+La respuesta se guarda en `<proyecto>.vegascut-ia.json` y se vuelve a mostrar al abrir la
+herramienta mientras el proyecto no cambie. En el plan gratuito de Gemini, Google puede usar
+lo que envías para mejorar sus productos.
 
 ### `QuitarSilencios.cs`
 
@@ -100,3 +166,10 @@ Para tenerlo siempre en el menú, copia el `.cs` a
 `Documentos\Vegas Script Menu\` y usa *Tools → Scripting → Rescan Script Menu Folder*.
 
 Para analizar, sube la carpeta `_vegas-cut-export` (o los `.export.json`).
+
+## Desarrollo
+
+- El código vive en `src/`. Después de cambiarlo: `python3 herramientas/compilar.py`.
+- Los scripts son C# 5 (el compilador de Vegas) y quedan en ASCII (acentos como `\uXXXX`).
+- Pruebas sin Vegas: `sh pruebas/ejecutar.sh` (requiere mono y python3). Compila todo contra una
+  API falsa de Vegas e imita Whisper y Gemini.

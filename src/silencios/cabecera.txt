@@ -1,0 +1,17 @@
+// QuitarSilencios.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Detecta los silencios de una o varias pistas de voz (hay voz si suena
+// cualquiera) y los elimina, silencia o marca en la linea de tiempo.
+//
+// Como funciona:
+//   1. Vegas renderiza a un WAV temporal cada pista elegida (las demas se
+//      silencian durante el render y se restauran despues). Asi se analiza el
+//      audio tal como suena, con sus efectos, sin depender de ffmpeg.
+//   2. Se mide el volumen cada 10 ms. Cada pista recibe su propio umbral
+//      (metodo de Otsu) y se buscan los tramos donde todas estan bajo el suyo.
+//   3. La ventana muestra la forma de onda con los silencios y permite ajustar
+//      umbral, duraciones y margenes viendo el resultado al instante.
+//   4. Al aplicar, todo queda en un solo paso de deshacer (Ctrl+Z).
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.
+// Los textos con acentos usan escapes \u para no depender de la codificacion.

@@ -1,0 +1,11 @@
+// MomentosIA.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Envia a Gemini la transcripcion del proyecto (hecha con Transcribir.cs) y la
+// intensidad del sonido, y recibe: resumen, secciones, momentos destacados, un
+// corte sugerido a la duracion que pidas, textos de resumen para lo que se
+// salta, ideas de Shorts y titulos. Todo se revisa en listas con casillas y se
+// puede convertir en regiones y marcadores, aplicar el corte o guardar un
+// informe. Solo se envia texto: el audio no sale de la PC.
+//
+// Requiere la clave de Gemini en ConfigurarVegasCut.cs.
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

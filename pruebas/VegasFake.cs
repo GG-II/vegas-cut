@@ -23,11 +23,11 @@ public class Events : List<TrackEvent> { public new void Remove(TrackEvent e){ b
 public class Track { public int Index; public string Name; public bool Mute; public Events Events=new Events(); public virtual bool IsAudio(){return false;} }
 public class AudioTrack: Track { public override bool IsAudio(){return true;} }
 public class VideoTrack: Track {}
-public class Marker { public Timecode Position; public string Label; public Marker(){} }
+public class Marker { public Timecode Position; public string Label; public Marker(){} public Marker(Timecode p, string s){Position=p;Label=s;} }
 public class Region: Marker { public Timecode Length; public Region(Timecode p, Timecode l, string s){Position=p;Length=l;Label=s;} }
 public class VideoProps { public double FrameRate=59.94; }
-public class Project { public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
-public class Transport { public Timecode SelectionStart=new Timecode(0), SelectionLength=new Timecode(0);}
+public class Project { public string FilePath; public List<Track> Tracks=new List<Track>(); public List<Marker> Markers=new List<Marker>(); public List<Region> Regions=new List<Region>(); public VideoProps Video=new VideoProps(); public Timecode Length=new Timecode(0);}
+public class Transport { public Timecode SelectionStart=new Timecode(0), SelectionLength=new Timecode(0), CursorPosition=new Timecode(0);}
 public enum RenderStatus { Complete, Canceled, Failed }
 public class RenderTemplate { public string Name="PCM 16"; public bool IsValid(){return true;} }
 public class Renderer { public string FileExtension="*.wav"; public List<RenderTemplate> Templates=new List<RenderTemplate>{new RenderTemplate()}; }

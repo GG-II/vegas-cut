@@ -88,3 +88,13 @@ Whisper corre local y gratis. Si se quiere evitar cualquier modelo de IA, este g
 
 - Empezar por Silences: es el núcleo y lo que más valor aporta.
 - Angles y AutoZoom reutilizan el mismo análisis de audio.
+
+---
+
+## 6. Transcripción e IA (en curso)
+
+- [x] `ConfigurarVegasCut.cs`: clave de Gemini (cifrada) y Faster-Whisper-XXL.
+- [x] `Transcribir.cs`: Whisper local + niveles de sonido por pista → `<proyecto>.vegascut.json`.
+- [x] `MomentosIA.cs`: resumen, momentos, corte a duración objetivo, textos, Shorts y títulos con Gemini.
+- [ ] Probar en Vegas 20 real con una grabación.
+- [ ] Subtítulos desde la transcripción (pospuesto).
