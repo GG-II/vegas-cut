@@ -1,0 +1,9 @@
+// PrepararEpisodio.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Todo de una pasada sobre la grabacion: quita los silencios (con el perfil
+// y las pistas de voz que elijas), transcribe con Whisper y al final abre
+// MomentosIA listo para pedir. Recuerda lo que elegiste para la proxima vez.
+// Cada paso se deshace por separado con Ctrl+Z.
+//
+// Requiere Faster-Whisper-XXL configurado en ConfigurarVegasCut.cs.
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

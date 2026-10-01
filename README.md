@@ -5,6 +5,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 
 | Script | Para qué |
 |---|---|
+| `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe y abre MomentosIA. |
 | `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
 | `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
@@ -18,7 +19,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
 
-**Flujo sugerido para un gameplay:** *Quitar silencios* (opcional) → *Transcribir* →
+**Flujo sugerido para un gameplay:** *PrepararEpisodio* (o *Quitar silencios* → *Transcribir*) →
 *Momentos con IA* → revisar → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores*
 → música → *Música que baja sola* → *Censurar palabrotas*. La transcripción sigue los cortes que hacen estas
 herramientas, incluso si los deshaces con Ctrl+Z. Si después editas a mano no hace falta volver a
@@ -279,6 +280,23 @@ terminar de cortar. Para proyectos que ya quedaron así, ejecuta **DesenlazarCli
 pedazo vuelve a su propio grupo y **el video sigue unido a sus audios** de ese pedazo (los
 eventos que coinciden en el tiempo). Solo toca grupos con dos o más eventos en la misma pista.
 Ctrl+Z lo deshace.
+
+### `PrepararEpisodio.cs`
+
+![Preparar episodio](docs/img/preparar.png)
+
+Todo de una pasada sobre la grabación, para dejarlo corriendo:
+
+1. **Quitar silencios**: mide las voces que marques, detecta las pausas con el umbral de cada
+   pista y el **perfil** elegido (Gameplay, Narración…, o uno tuyo) y las quita de todas las
+   pistas.
+2. **Transcribir**: Whisper transcribe las voces y mide el ambiente, igual que *Transcribir*.
+3. Abre **MomentosIA** con todo listo. Con **Pedir a Gemini al abrir** también le pide la
+   propuesta solo.
+
+Recuerda las pistas (por etiqueta: A2, A3…), el perfil y los pasos para el próximo episodio.
+Puedes saltarte un paso (por ejemplo, si ya quitaste los silencios). Cada paso es su propio
+Ctrl+Z; si uno falla se detiene y te dice dónde.
 
 ### `QuitarSilencios.cs`
 

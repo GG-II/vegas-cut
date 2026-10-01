@@ -23,7 +23,7 @@ HERRAMIENTAS = {
                            'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'Transcribir': ['transcribir/cabecera.txt', 'transcribir/Transcribir.cs', 'comun/PistasVegas.cs'] +
                    COMUN_BASE + ['comun/Configuracion.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
-    'MomentosIA': ['momentos/cabecera.txt', 'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs',
+    'MomentosIA': ['momentos/cabecera.txt', 'momentos/EntryPoint.cs', 'momentos/Entrada.cs', 'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs',
                    'comun/Editor.cs', 'comun/PistasVegas.cs', 'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/Anclas.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'ReubicarMarcadores': ['marcadores/cabecera.txt', 'marcadores/Reubicar.cs', 'comun/Anclas.cs', 'comun/Json.cs'],
     'TextosDesdeMarcadores': ['textos/cabecera.txt', 'textos/Textos.cs', 'textos/Generador.cs', 'comun/Rtf.cs',
@@ -35,6 +35,10 @@ HERRAMIENTAS = {
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'Series': ['series/cabecera.txt', 'series/Series.cs', 'comun/Serie.cs', 'comun/VentanaSerie.cs'] + COMUN_BASE +
               ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'PrepararEpisodio': ['preparar/cabecera.txt', 'preparar/Preparar.cs', 'comun/Proceso.cs', 'momentos/Entrada.cs',
+                         'momentos/Momentos.cs', 'momentos/LogicaMomentos.cs', 'comun/Editor.cs', 'comun/PistasVegas.cs',
+                         'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/Anclas.cs'] + COMUN_BASE +
+                        ['silencios/Deteccion.cs', 'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
     'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
     'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
                            'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE + ['comun/Ui.cs'],

@@ -1246,6 +1246,24 @@ class Lista : ListView
     protected override void OnDrawSubItem(DrawListViewSubItemEventArgs e) { e.DrawDefault = true; }
 }
 
+// Barra de progreso redondeada.
+class BarraProgreso : ControlBase
+{
+    double valor;
+    public double Valor { get { return valor; } set { valor = Math.Max(0, Math.Min(1, value)); Invalidate(); } }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        using (GraphicsPath p = Tema.Redondeado(new RectangleF(0, 0, Width - 1, Height - 1), Height / 2f))
+        using (SolidBrush b = new SolidBrush(Tema.Campo)) g.FillPath(b, p);
+        if (valor > 0)
+            using (GraphicsPath p = Tema.Redondeado(new RectangleF(0, 0, Math.Max(Height, (float)(Width - 1) * (float)valor), Height - 1), Height / 2f))
+            using (SolidBrush b = new SolidBrush(Tema.Acento)) g.FillPath(b, p);
+    }
+}
+
 // Ventana base con el tema oscuro y la linea de acento bajo el titulo.
 class VentanaBase : Form
 {

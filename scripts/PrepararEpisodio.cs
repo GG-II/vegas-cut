@@ -1,19 +1,18 @@
-// MomentosIA.cs
+// PrepararEpisodio.cs
 // Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
-// Envia a Gemini la transcripcion del proyecto (hecha con Transcribir.cs) y la
-// intensidad del sonido, y recibe: resumen, secciones, momentos destacados, un
-// corte sugerido a la duracion que pidas, textos de resumen para lo que se
-// salta, ideas de Shorts y titulos. Todo se revisa en listas con casillas y se
-// puede convertir en regiones y marcadores, aplicar el corte o guardar un
-// informe. Solo se envia texto: el audio no sale de la PC.
+// Todo de una pasada sobre la grabacion: quita los silencios (con el perfil
+// y las pistas de voz que elijas), transcribe con Whisper y al final abre
+// MomentosIA listo para pedir. Recuerda lo que elegiste para la proxima vez.
+// Cada paso se deshace por separado con Ctrl+Z.
 //
-// Requiere la clave de Gemini en ConfigurarVegasCut.cs.
+// Requiere Faster-Whisper-XXL configurado en ConfigurarVegasCut.cs.
 // Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.
 //
 // GENERADO desde src/ con herramientas/compilar.py: no editar este archivo a mano.
 
 using System.Collections.Generic;
 using System.Collections;
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Globalization;
@@ -28,11 +27,565 @@ using System;
 using ScriptPortal.Vegas;
 using Region = ScriptPortal.Vegas.Region;
 
-// ---- src/momentos/EntryPoint.cs ----
+// ---- src/preparar/Preparar.cs ----
 
 public class EntryPoint
 {
-    public void FromVegas(Vegas vegas) { AbrirMomentos.Abrir(vegas, false); }
+    public void FromVegas(Vegas vegas)
+    {
+        Project p = vegas.Project;
+        if (String.IsNullOrEmpty(p.FilePath))
+        {
+            MessageBox.Show("Guarda el proyecto primero: la transcripci\u00f3n se guarda junto al .veg.", "Preparar episodio");
+            return;
+        }
+        List<InfoPista> pistas = PistasVegas.Listar(p);
+        if (pistas.Count == 0)
+        {
+            MessageBox.Show("El proyecto no tiene pistas de audio.", "Preparar episodio");
+            return;
+        }
+        bool abrir, pedir;
+        using (VentanaPreparar v = new VentanaPreparar(vegas, pistas))
+        {
+            v.ShowDialog();
+            abrir = v.AbrirMomentos;
+            pedir = v.Pedir;
+        }
+        if (abrir) AbrirMomentos.Abrir(vegas, pedir);
+    }
+}
+
+// Lo que se recuerda entre episodios (%APPDATA%\vegas-cut\preparar.ini).
+public class AjustesPreparar
+{
+    public List<string> Voces = new List<string>(), Ambiente = new List<string>();
+    public string Perfil = "Gameplay";
+    public bool Silencios = true, Transcribir = true, Pedir = false;
+
+    static string Ruta
+    {
+        get { return Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut"), "preparar.ini"); }
+    }
+
+    static List<string> Lista(string v)
+    {
+        List<string> r = new List<string>();
+        foreach (string x in v.Split(',')) if (x.Trim().Length > 0) r.Add(x.Trim());
+        return r;
+    }
+
+    public static AjustesPreparar Cargar()
+    {
+        AjustesPreparar a = new AjustesPreparar();
+        try
+        {
+            if (!File.Exists(Ruta)) return a;
+            foreach (string l in File.ReadAllLines(Ruta, Encoding.UTF8))
+            {
+                int i = l.IndexOf('=');
+                if (i < 0) continue;
+                string k = l.Substring(0, i).Trim(), v = l.Substring(i + 1).Trim();
+                switch (k)
+                {
+                    case "voces": a.Voces = Lista(v); break;
+                    case "ambiente": a.Ambiente = Lista(v); break;
+                    case "perfil": a.Perfil = v; break;
+                    case "silencios": a.Silencios = v != "0"; break;
+                    case "transcribir": a.Transcribir = v != "0"; break;
+                    case "pedir": a.Pedir = v == "1"; break;
+                }
+            }
+        }
+        catch { }
+        return a;
+    }
+
+    public void Guardar()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Ruta));
+            File.WriteAllText(Ruta, "voces=" + String.Join(",", Voces.ToArray()) + "\nambiente=" + String.Join(",", Ambiente.ToArray()) +
+                "\nperfil=" + Perfil + "\nsilencios=" + (Silencios ? "1" : "0") + "\ntranscribir=" + (Transcribir ? "1" : "0") +
+                "\npedir=" + (Pedir ? "1" : "0") + "\n", new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+class VentanaPreparar : VentanaBase
+{
+    readonly Vegas vegas;
+    readonly List<InfoPista> pistas;
+    readonly Configuracion config = Configuracion.Cargar();
+    readonly AjustesPreparar ajustes = AjustesPreparar.Cargar();
+    readonly string ruta;
+    List<Perfil_> perfiles = new List<Perfil_>();
+    public bool AbrirMomentos, Pedir;
+
+    List<Boton> chipsVoz = new List<Boton>(), chipsAmbiente = new List<Boton>();
+    Combo comboPerfil = new Combo();
+    Etiqueta lblPerfil, lblPaso1, lblPaso2, lblPaso3, lblEstado, lblDetalle, lblWhisper;
+    Boton chipSilencios = new Boton("Quitar silencios", EstiloBoton.Chip);
+    Boton chipTranscribir = new Boton("Transcribir", EstiloBoton.Chip);
+    Boton chipPedir = new Boton("Pedir a Gemini al abrir", EstiloBoton.Chip);
+    BarraProgreso barra = new BarraProgreso();
+    Boton btnEmpezar = new Boton("Empezar", EstiloBoton.Primario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+    System.Windows.Forms.Timer reloj = new System.Windows.Forms.Timer();
+    ProcesoTranscripcion proceso;
+    bool trabajando;
+    DateTime comienzo;
+
+    public VentanaPreparar(Vegas vegas, List<InfoPista> pistas) : base("Preparar episodio", 820)
+    {
+        this.vegas = vegas;
+        this.pistas = pistas;
+        ruta = Transcripcion.RutaPara(vegas.Project.FilePath);
+        int m = Margen, w = Ancho;
+        Encabezado("Preparar episodio", "Quita los silencios y transcribe de una pasada; al final abre MomentosIA.");
+
+        int y = 92;
+        if (File.Exists(ruta))
+        {
+            Texto("Este proyecto ya tiene transcripci\u00f3n: si transcribes otra vez, se reemplaza.", Tema.Pequena, Tema.AcentoHover, m, y, w, 18);
+            y += 24;
+        }
+        Texto("VOCES", Tema.Pequena, Tema.TextoSuave, m, y, 60, 18);
+        Texto("Se usan para detectar los silencios y se transcriben.", Tema.Pequena, Tema.TextoSuave, m + 64, y, w - 64, 18);
+        y = Chips(chipsVoz, y + 22) + 12;
+        Texto("AMBIENTE", Tema.Pequena, Tema.TextoSuave, m, y, 80, 18);
+        Texto("Solo se mide su sonido (juego, m\u00fasica) para encontrar momentos intensos.", Tema.Pequena, Tema.TextoSuave, m + 84, y, w - 84, 18);
+        y = Chips(chipsAmbiente, y + 22) + 16;
+        Elegir();
+        for (int i = 0; i < pistas.Count; i++)
+        {
+            int k = i;
+            chipsVoz[k].Click += delegate { if (trabajando) return; chipsVoz[k].Activo = !chipsVoz[k].Activo; if (chipsVoz[k].Activo) chipsAmbiente[k].Activo = false; Actualizar(); };
+            chipsAmbiente[k].Click += delegate { if (trabajando) return; chipsAmbiente[k].Activo = !chipsAmbiente[k].Activo; if (chipsAmbiente[k].Activo) chipsVoz[k].Activo = false; Actualizar(); };
+        }
+
+        Texto("PERFIL DE SILENCIOS", Tema.Pequena, Tema.TextoSuave, m, y, 200, 18);
+        perfiles.AddRange(Perfil_.Incluidos);
+        perfiles.AddRange(Perfil_.CargarPropios());
+        foreach (Perfil_ p in perfiles) comboPerfil.Items.Add(p.Nombre);
+        int ip = perfiles.FindIndex(delegate (Perfil_ p) { return p.Nombre == ajustes.Perfil; });
+        comboPerfil.SelectedIndex = ip >= 0 ? ip : 3;
+        Pos(comboPerfil, m, y + 22, 260, 30);
+        lblPerfil = Texto("", Tema.Pequena, Tema.TextoSuave, m + 276, y + 20, w - 276, 36);
+        y += 66;
+
+        // Pasos
+        Texto("PASOS", Tema.Pequena, Tema.TextoSuave, m, y, 200, 18);
+        y += 22;
+        chipSilencios.Activo = ajustes.Silencios;
+        chipTranscribir.Activo = ajustes.Transcribir;
+        chipPedir.Activo = ajustes.Pedir;
+        lblPaso1 = Paso(chipSilencios, "1", y); y += 34;
+        lblPaso2 = Paso(chipTranscribir, "2", y); y += 34;
+        lblPaso3 = Paso(chipPedir, "3", y); y += 40;
+        lblPaso3.Text = "Al final se abre MomentosIA. Activa esto para que adem\u00e1s le pida a Gemini solo.";
+        lblWhisper = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 18);
+        y += 26;
+
+        lblEstado = Texto("", Tema.Negrita, Tema.Texto, m, y, w, 22);
+        Pos(barra, m, y + 28, w, 10);
+        lblDetalle = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 44, w, 18);
+        y += 76;
+        Pos(btnCerrar, m + w - 330, y, 110, 40);
+        Pos(btnEmpezar, m + w - 210, y, 210, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        foreach (Boton c in new Boton[] { chipSilencios, chipTranscribir, chipPedir })
+        {
+            Boton b = c;
+            b.Click += delegate { if (!trabajando) { b.Activo = !b.Activo; Actualizar(); } };
+        }
+        comboPerfil.SelectedIndexChanged += delegate { Actualizar(); };
+        btnEmpezar.Click += delegate { if (trabajando) Cancelar(); else Empezar(); };
+        btnCerrar.Click += delegate { Close(); };
+        FormClosing += delegate (object s, FormClosingEventArgs e)
+        {
+            if (trabajando && MessageBox.Show(this, "\u00bfCancelar la preparaci\u00f3n?", "Preparar episodio", MessageBoxButtons.YesNo) == DialogResult.No)
+            { e.Cancel = true; return; }
+            if (trabajando) Cancelar();
+        };
+        reloj.Interval = 300;
+        reloj.Tick += delegate { Revisar(); };
+        Actualizar();
+    }
+
+    Etiqueta Paso(Boton chip, string n, int y)
+    {
+        Pos(chip, Margen, y, 210, 28);
+        return Texto("", Tema.Pequena, Tema.TextoSuave, Margen + 222, y + 4, Ancho - 222, 20);
+    }
+
+    int Chips(List<Boton> lista, int y)
+    {
+        int cx = Margen;
+        foreach (InfoPista p in pistas)
+        {
+            Boton c = new Boton(p.Nombre, EstiloBoton.Chip);
+            int w = Math.Min(Ancho, TextRenderer.MeasureText(c.Text, Tema.Normal).Width + 26);
+            if (cx + w > Margen + Ancho) { cx = Margen; y += 34; }
+            Pos(c, cx, y, w, 28);
+            lista.Add(c);
+            cx += w + 6;
+        }
+        return y + 28;
+    }
+
+    // Las pistas de la vez pasada (por etiqueta); si no hay, la voz sugerida.
+    void Elegir()
+    {
+        bool alguna = false;
+        for (int i = 0; i < pistas.Count; i++)
+        {
+            chipsVoz[i].Activo = ajustes.Voces.Contains(pistas[i].Etiqueta);
+            chipsAmbiente[i].Activo = !chipsVoz[i].Activo && ajustes.Ambiente.Contains(pistas[i].Etiqueta);
+            alguna |= chipsVoz[i].Activo;
+        }
+        if (!alguna) chipsVoz[PistasVegas.SugerirVoz(pistas)].Activo = true;
+    }
+
+    List<int> Elegidas(List<Boton> chips)
+    {
+        List<int> r = new List<int>();
+        for (int i = 0; i < chips.Count; i++) if (chips[i].Activo) r.Add(i);
+        return r;
+    }
+
+    Perfil_ PerfilElegido { get { return perfiles[Math.Max(0, comboPerfil.SelectedIndex)]; } }
+
+    void Actualizar()
+    {
+        lblPerfil.Text = PerfilElegido.Descripcion;
+        lblPaso1.Text = chipSilencios.Activo ? "Mide las voces y quita las pausas de todas las pistas, con el perfil elegido." : "Se salta (ya est\u00e1n quitados).";
+        lblPaso2.Text = chipTranscribir.Activo ? "Whisper transcribe las voces; tarda seg\u00fan la duraci\u00f3n y tu tarjeta." : "Se salta (usa la transcripci\u00f3n que ya hay).";
+        bool voces = Elegidas(chipsVoz).Count > 0;
+        if (chipTranscribir.Activo && !config.TieneWhisper)
+        {
+            lblWhisper.ForeColor = Tema.Silencio;
+            lblWhisper.Text = "Falta configurar Faster-Whisper-XXL: ejecuta \u201cConfigurarVegasCut\u201d.";
+        }
+        else if (!chipTranscribir.Activo && !File.Exists(ruta))
+        {
+            lblWhisper.ForeColor = Tema.Silencio;
+            lblWhisper.Text = "Sin transcribir no hay transcripci\u00f3n para MomentosIA: activa \u201cTranscribir\u201d.";
+        }
+        else
+        {
+            lblWhisper.ForeColor = Tema.TextoSuave;
+            lblWhisper.Text = "Whisper: " + config.WhisperModelo + " \u00b7 " + (config.WhisperDispositivo == "cpu" ? "procesador" : "tarjeta") +
+                              " \u00b7 idioma " + config.Idioma;
+        }
+        btnEmpezar.Enabled = trabajando || (voces && (!chipTranscribir.Activo || config.TieneWhisper) &&
+                                            (chipTranscribir.Activo || File.Exists(ruta)));
+    }
+
+    void Estado(string texto, double fraccion)
+    {
+        lblEstado.ForeColor = Tema.Texto;
+        lblEstado.Text = texto;
+        barra.Valor = fraccion;
+        Application.DoEvents();
+    }
+
+    void Bloquear(bool si)
+    {
+        trabajando = si;
+        btnEmpezar.Text = si ? "Cancelar" : "Empezar";
+        btnCerrar.Enabled = !si;
+        comboPerfil.Enabled = !si;
+        foreach (Boton b in chipsVoz) b.Enabled = !si;
+        foreach (Boton b in chipsAmbiente) b.Enabled = !si;
+        foreach (Boton b in new Boton[] { chipSilencios, chipTranscribir, chipPedir }) b.Enabled = !si;
+    }
+
+    void Empezar()
+    {
+        // Se recuerda lo elegido.
+        ajustes.Voces.Clear(); ajustes.Ambiente.Clear();
+        foreach (int i in Elegidas(chipsVoz)) ajustes.Voces.Add(pistas[i].Etiqueta);
+        foreach (int i in Elegidas(chipsAmbiente)) ajustes.Ambiente.Add(pistas[i].Etiqueta);
+        ajustes.Perfil = PerfilElegido.Nombre;
+        ajustes.Silencios = chipSilencios.Activo; ajustes.Transcribir = chipTranscribir.Activo; ajustes.Pedir = chipPedir.Activo;
+        ajustes.Guardar();
+
+        Bloquear(true);
+        comienzo = DateTime.Now;
+        if (chipSilencios.Activo)
+        {
+            lblPaso1.ForeColor = Tema.Texto;
+            try
+            {
+                List<InfoPista> voces = new List<InfoPista>();
+                foreach (int i in Elegidas(chipsVoz)) voces.Add(pistas[i]);
+                double quitado;
+                int n = PasoSilencios.Ejecutar(vegas, voces, PerfilElegido, delegate (string t, double f) { Estado("1 \u00b7 " + t, f * 0.1); }, out quitado);
+                Hecho(lblPaso1, n == 0 ? "No hab\u00eda silencios que quitar." : "\u2714 " + n + " silencios quitados (" + Formato.Tiempo(quitado) + ").");
+            }
+            catch (Exception ex) { Fallo(lblPaso1, "No se pudieron quitar los silencios: " + ex.Message); return; }
+        }
+        if (!chipTranscribir.Activo) { Terminar(); return; }
+
+        lblPaso2.ForeColor = Tema.Texto;
+        proceso = new ProcesoTranscripcion(vegas, config, ruta);
+        try
+        {
+            proceso.Empezar(pistas, Elegidas(chipsVoz), Elegidas(chipsAmbiente), delegate (string t, double f) { Estado("2 \u00b7 " + t, 0.1 + f * 0.9); });
+        }
+        catch (Exception ex) { Fallo(lblPaso2, ex.Message); return; }
+        reloj.Start();
+    }
+
+    void Revisar()
+    {
+        if (proceso == null) return;
+        proceso.Revisar();
+        if (!proceso.Terminado)
+        {
+            Estado("2 \u00b7 " + proceso.Texto, 0.1 + 0.9 * proceso.Fraccion);
+            string d = proceso.Detalle ?? "";
+            lblDetalle.Text = d.Length > 140 ? d.Substring(0, 140) + "\u2026" : d;
+            return;
+        }
+        reloj.Stop();
+        ProcesoTranscripcion p = proceso;
+        proceso = null;
+        if (p.Error != null) { Fallo(lblPaso2, p.Error); return; }
+        Hecho(lblPaso2, "\u2714 " + p.Texto);
+        Terminar();
+    }
+
+    void Hecho(Etiqueta l, string texto)
+    {
+        l.ForeColor = Color.FromArgb(120, 220, 150);
+        l.Text = texto;
+        Application.DoEvents();
+    }
+
+    void Fallo(Etiqueta l, string mensaje)
+    {
+        reloj.Stop();
+        Bloquear(false);
+        Actualizar();
+        l.ForeColor = Tema.Silencio;
+        l.Text = "\u2716 " + mensaje;
+        lblEstado.ForeColor = Tema.Silencio;
+        lblEstado.Text = "Se detuvo. Lo que ya se hizo se puede deshacer con Ctrl+Z.";
+    }
+
+    void Terminar()
+    {
+        Bloquear(false);
+        barra.Valor = 1;
+        lblEstado.Text = "\u2714 Listo en " + Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + ". Abriendo MomentosIA\u2026";
+        Application.DoEvents();
+        AbrirMomentos = true;
+        Pedir = chipPedir.Activo;
+        DialogResult = DialogResult.OK;
+        Close();
+    }
+
+    void Cancelar()
+    {
+        if (proceso != null) { reloj.Stop(); proceso.Cancelar(); proceso = null; }
+        Fallo(lblPaso2, "Transcripci\u00f3n cancelada; no se guard\u00f3.");
+    }
+}
+
+// ---- src/comun/Proceso.cs ----
+
+// =====================================================================
+// Pasos sin ventana para PrepararEpisodio: quitar silencios y transcribir.
+// Hacen lo mismo que sus herramientas, con lo que ya elegiste guardado.
+// =====================================================================
+
+public static class PasoSilencios
+{
+    // Mide las voces de todo el proyecto, detecta las pausas con el umbral
+    // de cada pista y las quita de todas las pistas (Ctrl+Z lo deshace).
+    // Devuelve cuantos silencios quito y cuanto tiempo.
+    public static int Ejecutar(Vegas vegas, List<InfoPista> voces, Valores v, Action<string, double> estado, out double quitado)
+    {
+        Project p = vegas.Project;
+        double duracion = p.Length.ToMilliseconds() / 1000.0;
+        List<Analisis> datos = new List<Analisis>();
+        List<double> umbrales = new List<double>();
+        for (int i = 0; i < voces.Count; i++)
+        {
+            estado("Midiendo " + voces[i].Nombre + " (" + (i + 1) + " de " + voces.Count + ")\u2026", (double)i / voces.Count);
+            Analisis a = PistasVegas.Niveles(vegas, voces[i].Pista, 0, duracion);
+            datos.Add(a);
+            umbrales.Add(Detector.UmbralAutomatico(a.Db));
+        }
+        List<Rango> rangos = Editor.AjustarAFotogramas(Detector.Detectar(datos, umbrales, v), p.Video.FrameRate);
+        quitado = 0;
+        foreach (Rango r in rangos) quitado += r.Fin - r.Inicio;
+        if (rangos.Count == 0) return 0;
+
+        estado("Quitando " + rangos.Count + " silencios\u2026", 1);
+        List<Track> todas = new List<Track>();
+        foreach (Track t in p.Tracks) todas.Add(t);
+        using (UndoBlock deshacer = new UndoBlock("Quitar silencios"))
+            Editor.Eliminar(p, todas, rangos, true, true, v.SuavizadoMs / 1000.0);
+        Transcripcion.RegistrarCortes(p.FilePath, rangos, duracion, p.Length.ToMilliseconds() / 1000.0);
+        return rangos.Count;
+    }
+}
+
+// Transcribe las voces con Whisper en segundo plano. Se llama a Revisar()
+// cada poco (con un temporizador) hasta que Terminado sea true.
+public class ProcesoTranscripcion
+{
+    readonly Vegas vegas;
+    readonly Configuracion config;
+    readonly string ruta;
+    double inicio, duracion, segundosHechos, segundosTotales;
+    List<int> cola = new List<int>();
+    Dictionary<int, string> wavs = new Dictionary<int, string>();
+    TareaWhisper tarea;
+    int actual = -1;
+    DateTime comienzo;
+
+    public Transcripcion Resultado;
+    public string Texto = "", Detalle = "", Error;
+    public double Fraccion;
+    public bool Terminado;
+
+    public ProcesoTranscripcion(Vegas vegas, Configuracion config, string ruta)
+    {
+        this.vegas = vegas; this.config = config; this.ruta = ruta;
+    }
+
+    // Render y niveles de cada pista (en el hilo de Vegas) y arranca Whisper.
+    public void Empezar(List<InfoPista> pistas, List<int> voces, List<int> ambiente, Action<string, double> estado)
+    {
+        comienzo = DateTime.Now;
+        inicio = 0;
+        duracion = vegas.Project.Length.ToMilliseconds() / 1000.0;
+        Resultado = new Transcripcion();
+        Resultado.Proyecto = vegas.Project.FilePath;
+        Resultado.Creada = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        Resultado.Idioma = config.Idioma;
+        Resultado.Modelo = config.WhisperModelo;
+        Resultado.Inicio = inicio;
+        Resultado.Duracion = duracion;
+        Resultado.DuracionProyecto = duracion;
+
+        Dictionary<string, string> nombresPrevios = new Dictionary<string, string>();
+        try
+        {
+            if (File.Exists(ruta))
+                foreach (Hablante h in Transcripcion.Cargar(ruta).Hablantes) nombresPrevios[h.Etiqueta] = h.Nombre;
+        }
+        catch { }
+
+        List<int> leer = new List<int>(voces);
+        foreach (int i in ambiente) if (!leer.Contains(i)) leer.Add(i);
+        leer.Sort();
+        try
+        {
+            for (int k = 0; k < leer.Count; k++)
+            {
+                InfoPista p = pistas[leer[k]];
+                estado("Leyendo el audio de " + p.Nombre + " (" + (k + 1) + " de " + leer.Count + ")\u2026", 0.02 * (k + 1) / leer.Count);
+                string wav = PistasVegas.RenderizarWav(vegas, p.Pista, inicio, duracion);
+                Analisis a = WavNiveles.Leer(wav, Analisis.Paso);
+                Hablante h = new Hablante();
+                h.Etiqueta = p.Etiqueta;
+                string previo;
+                h.Nombre = nombresPrevios.TryGetValue(h.Etiqueta, out previo) && previo.Length > 0 ? previo : h.Etiqueta;
+                h.Archivo = p.Archivo ?? "";
+                h.Voz = voces.Contains(leer[k]);
+                Transcripcion.NivelesPorSegundo(a, out h.Nivel, out h.Pico);
+                h.Fuentes = PistasVegas.Fuentes(p.Pista);
+                Resultado.Hablantes.Add(h);
+                if (h.Voz)
+                {
+                    wavs[Resultado.Hablantes.Count - 1] = wav;
+                    cola.Add(Resultado.Hablantes.Count - 1);
+                }
+                else try { File.Delete(wav); } catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            Limpiar();
+            throw new Exception("No se pudo leer el audio: " + ex.Message);
+        }
+        segundosTotales = duracion * cola.Count;
+        segundosHechos = 0;
+        Siguiente();
+    }
+
+    void Siguiente()
+    {
+        if (cola.Count == 0) { Guardar(); return; }
+        actual = cola[0];
+        cola.RemoveAt(0);
+        tarea = new TareaWhisper();
+        tarea.Iniciar(config, wavs[actual], duracion);
+    }
+
+    public void Revisar()
+    {
+        if (Terminado || tarea == null) return;
+        double hecho = (segundosHechos + tarea.Avance) / Math.Max(1, segundosTotales);
+        double pasado = (DateTime.Now - comienzo).TotalSeconds;
+        Fraccion = 0.02 + 0.98 * hecho;
+        Texto = "Transcribiendo " + Resultado.Hablantes[actual].Etiqueta + ": " + Formato.Tiempo(tarea.Avance) + " de " +
+                Formato.Tiempo(duracion) + " \u00b7 " + Formato.Tiempo(pasado) + " transcurrido" +
+                (hecho > 0.03 ? " \u00b7 faltan ~" + Formato.Tiempo(pasado * (1 - hecho) / hecho) : "");
+        Detalle = tarea.UltimaLinea;
+        if (!tarea.Terminada) return;
+
+        TareaWhisper t = tarea;
+        tarea = null;
+        if (t.Cancelada) { t.Limpiar(); return; }
+        try { Resultado.AgregarWhisper(t.Resultado(), actual, inicio); }
+        catch (Exception ex) { t.Limpiar(); Limpiar(); Fallar(ex.Message); return; }
+        t.Limpiar();
+        try { File.Delete(wavs[actual]); } catch { }
+        wavs.Remove(actual);
+        segundosHechos += duracion;
+        try { Siguiente(); }
+        catch (Exception ex) { Limpiar(); Fallar("No se pudo iniciar Whisper: " + ex.Message); }
+    }
+
+    void Guardar()
+    {
+        try
+        {
+            Resultado.Guardar(ruta);
+            int palabras = 0;
+            foreach (Segmento s in Resultado.Segmentos) palabras += s.Palabras.Count;
+            Texto = Resultado.Segmentos.Count + " frases y " + palabras + " palabras en " +
+                    Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + ".";
+            Fraccion = 1;
+        }
+        catch (Exception ex) { Fallar("No se pudo guardar la transcripci\u00f3n: " + ex.Message); return; }
+        Terminado = true;
+    }
+
+    void Fallar(string mensaje) { Error = mensaje; Terminado = true; }
+
+    public void Cancelar()
+    {
+        if (tarea != null) { tarea.Cancelar(); tarea.Limpiar(); tarea = null; }
+        cola.Clear();
+        Limpiar();
+        Fallar("Cancelado.");
+    }
+
+    void Limpiar()
+    {
+        foreach (string w in wavs.Values) { try { File.Delete(w); } catch { } }
+        wavs.Clear();
+    }
 }
 
 // ---- src/momentos/Entrada.cs ----
@@ -4583,6 +5136,346 @@ public class Transcripcion
     }
 }
 
+// ---- src/silencios/Deteccion.cs ----
+
+public enum Modo { Eliminar, DejarHuecos, Silenciar, Marcar }
+
+// Valores de deteccion. Un perfil es un conjunto de estos valores con nombre.
+public class Valores
+{
+    public int SilencioMinMs = 500;   // solo se quitan pausas mas largas
+    public int HablaMinMs = 150;      // sonidos mas cortos no cuentan como voz
+    public int MargenAntesMs = 150;   // pausa que queda antes de hablar
+    public int MargenDespuesMs = 250; // pausa que queda al terminar de hablar
+    public int PedazoMinMs = 800;     // no deja clips mas cortos que esto
+    public int SuavizadoMs = 20;      // fundido del audio en cada corte
+    public int Sensibilidad = 0;      // dB que se suman al umbral de cada pista
+
+    public bool Igual(Valores o)
+    {
+        return SilencioMinMs == o.SilencioMinMs && HablaMinMs == o.HablaMinMs &&
+               MargenAntesMs == o.MargenAntesMs && MargenDespuesMs == o.MargenDespuesMs &&
+               PedazoMinMs == o.PedazoMinMs && SuavizadoMs == o.SuavizadoMs && Sensibilidad == o.Sensibilidad;
+    }
+
+    public void CopiarDe(Valores o)
+    {
+        SilencioMinMs = o.SilencioMinMs; HablaMinMs = o.HablaMinMs;
+        MargenAntesMs = o.MargenAntesMs; MargenDespuesMs = o.MargenDespuesMs;
+        PedazoMinMs = o.PedazoMinMs; SuavizadoMs = o.SuavizadoMs; Sensibilidad = o.Sensibilidad;
+    }
+
+    public string Texto()
+    {
+        return "silencioMin=" + SilencioMinMs + "\n" + "hablaMin=" + HablaMinMs + "\n" +
+               "margenAntes=" + MargenAntesMs + "\n" + "margenDespues=" + MargenDespuesMs + "\n" +
+               "pedazoMin=" + PedazoMinMs + "\n" + "suavizado=" + SuavizadoMs + "\n" +
+               "sensibilidad=" + Sensibilidad + "\n";
+    }
+
+    // Devuelve true si la clave era de estos valores.
+    public bool Leer(string k, string v)
+    {
+        int n;
+        if (!int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out n)) return false;
+        switch (k)
+        {
+            case "silencioMin": SilencioMinMs = n; return true;
+            case "hablaMin": HablaMinMs = n; return true;
+            case "margenAntes": MargenAntesMs = n; return true;
+            case "margenDespues": MargenDespuesMs = n; return true;
+            case "pedazoMin": PedazoMinMs = n; return true;
+            case "suavizado": SuavizadoMs = n; return true;
+            case "sensibilidad": Sensibilidad = n; return true;
+        }
+        return false;
+    }
+
+    public static string Carpeta
+    {
+        get
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut");
+        }
+    }
+}
+
+public class Ajustes : Valores
+{
+    public Modo Modo = Modo.Eliminar;
+    public bool TodasLasPistas = true;
+    public string Perfil = "Narraci\u00f3n";
+
+    static string Ruta { get { return Path.Combine(Carpeta, "silencios.ini"); } }
+
+    public static Ajustes Cargar()
+    {
+        Ajustes a = new Ajustes();
+        a.CopiarDe(Perfil_.Incluidos[0]);
+        try
+        {
+            if (!File.Exists(Ruta)) return a;
+            foreach (string linea in File.ReadAllLines(Ruta))
+            {
+                int i = linea.IndexOf('=');
+                if (i < 0) continue;
+                string k = linea.Substring(0, i).Trim(), v = linea.Substring(i + 1).Trim();
+                if (a.Leer(k, v)) continue;
+                switch (k)
+                {
+                    case "modo": a.Modo = (Modo)Enum.Parse(typeof(Modo), v); break;
+                    case "todas": a.TodasLasPistas = v == "1"; break;
+                    case "perfil": a.Perfil = v; break;
+                }
+            }
+        }
+        catch { }
+        return a;
+    }
+
+    public void Guardar()
+    {
+        try
+        {
+            Directory.CreateDirectory(Carpeta);
+            File.WriteAllText(Ruta, Texto() +
+                "modo=" + Modo + "\n" +
+                "todas=" + (TodasLasPistas ? "1" : "0") + "\n" +
+                "perfil=" + Perfil + "\n", new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+// Perfil_ (con guion bajo) para no chocar con nombres de la API de Vegas.
+public class Perfil_ : Valores
+{
+    public string Nombre, Descripcion;
+    public bool Incluido;
+
+    static Perfil_ Nuevo(string nombre, string descripcion, int silencio, int voz, int antes, int despues,
+                         int pedazo, int suavizado, int sensibilidad)
+    {
+        Perfil_ p = new Perfil_();
+        p.Nombre = nombre; p.Descripcion = descripcion; p.Incluido = true;
+        p.SilencioMinMs = silencio; p.HablaMinMs = voz; p.MargenAntesMs = antes; p.MargenDespuesMs = despues;
+        p.PedazoMinMs = pedazo; p.SuavizadoMs = suavizado; p.Sensibilidad = sensibilidad;
+        return p;
+    }
+
+    // Valores pensados para cada tipo de video. En tus video ensayos las pausas
+    // que quitas a mano duran 1 a 1.5 s y los pedazos 4 a 7 s.
+    public static readonly Perfil_[] Incluidos = new Perfil_[]
+    {
+        Nuevo("Narraci\u00f3n", "Voz en off y video ensayos: quita casi todas las pausas y deja la voz fluida.",
+              350, 150, 100, 180, 700, 20, 0),
+        Nuevo("Tutorial", "Explicaciones con pantalla: deja respirar para que se entienda cada paso.",
+              600, 150, 150, 300, 1000, 25, 0),
+        Nuevo("Podcast / charla", "Conversaci\u00f3n entre varios: solo quita pausas largas y conserva las reacciones.",
+              900, 200, 200, 350, 1500, 30, 0),
+        Nuevo("Gameplay", "Partidas con voz: quita los silencios largos, deja que el juego respire e ignora clics de teclado.",
+              1200, 250, 250, 450, 2000, 30, -3),
+        Nuevo("Shorts / r\u00e1pido", "Clips cortos y din\u00e1micos: corta hasta las pausas peque\u00f1as.",
+              200, 100, 50, 80, 400, 15, 2),
+    };
+
+    static string Ruta { get { return Path.Combine(Carpeta, "perfiles.ini"); } }
+
+    // Perfiles guardados por el usuario, en formato:
+    //   [Nombre]
+    //   silencioMin=...
+    public static List<Perfil_> CargarPropios()
+    {
+        List<Perfil_> lista = new List<Perfil_>();
+        try
+        {
+            if (!File.Exists(Ruta)) return lista;
+            Perfil_ actual = null;
+            foreach (string l in File.ReadAllLines(Ruta, Encoding.UTF8))
+            {
+                string linea = l.Trim();
+                if (linea.StartsWith("[") && linea.EndsWith("]"))
+                {
+                    actual = new Perfil_();
+                    actual.Nombre = linea.Substring(1, linea.Length - 2);
+                    actual.Descripcion = "Perfil guardado por ti.";
+                    lista.Add(actual);
+                    continue;
+                }
+                int i = linea.IndexOf('=');
+                if (actual != null && i > 0) actual.Leer(linea.Substring(0, i).Trim(), linea.Substring(i + 1).Trim());
+            }
+        }
+        catch { }
+        return lista;
+    }
+
+    public static void GuardarPropios(List<Perfil_> propios)
+    {
+        try
+        {
+            Directory.CreateDirectory(Carpeta);
+            StringBuilder sb = new StringBuilder();
+            foreach (Perfil_ p in propios) sb.Append("[" + p.Nombre + "]\n" + p.Texto() + "\n");
+            File.WriteAllText(Ruta, sb.ToString(), new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+public static class Detector
+{
+    // Umbral de una pista por el metodo de Otsu: se hace un histograma de los
+    // niveles (1 dB por barra) y se busca el corte que mejor separa los dos
+    // grupos, ruido de fondo y voz. Asi cada pista tiene su propio umbral
+    // aunque tengan volumenes distintos.
+    public static double UmbralAutomatico(float[] db)
+    {
+        int[] h = new int[101];
+        int total = 0;
+        foreach (float x in db)
+        {
+            if (x <= -99) continue; // silencio digital
+            int i = Math.Max(0, Math.Min(100, 100 + (int)Math.Round(x)));
+            h[i]++;
+            total++;
+        }
+        if (total < 50) return -40;
+
+        double suma = 0;
+        for (int i = 0; i <= 100; i++) suma += (double)i * h[i];
+        double sumaFondo = 0, mejor = -1;
+        long pesoFondo = 0;
+        int corte = 60;
+        for (int i = 0; i <= 100; i++)
+        {
+            pesoFondo += h[i];
+            if (pesoFondo == 0) continue;
+            long pesoVoz = total - pesoFondo;
+            if (pesoVoz == 0) break;
+            sumaFondo += (double)i * h[i];
+            double mFondo = sumaFondo / pesoFondo, mVoz = (suma - sumaFondo) / pesoVoz;
+            double entre = (double)pesoFondo * pesoVoz * (mFondo - mVoz) * (mFondo - mVoz);
+            if (entre > mejor) { mejor = entre; corte = i; }
+        }
+        // Otsu solo separa los grupos; el umbral va a la mitad entre el borde
+        // alto del ruido (percentil 90 del fondo) y el borde bajo de la voz
+        // (percentil 20), para no quedar pegado al ruido.
+        double bordeRuido = Percentil(h, 0, corte, 0.90) - 100;
+        double bordeVoz = Percentil(h, corte + 1, 100, 0.20) - 100;
+        double u = Math.Max(bordeRuido + 3, (bordeRuido + bordeVoz) / 2);
+        return Math.Max(-70, Math.Min(-15, Math.Round(u)));
+    }
+
+    // Percentil de las barras desde..hasta del histograma (devuelve la barra).
+    static int Percentil(int[] h, int desde, int hasta, double fraccion)
+    {
+        long total = 0;
+        for (int i = desde; i <= hasta; i++) total += h[i];
+        if (total == 0) return hasta;
+        long objetivo = (long)Math.Ceiling(total * fraccion), acumulado = 0;
+        for (int i = desde; i <= hasta; i++)
+        {
+            acumulado += h[i];
+            if (acumulado >= objetivo) return i;
+        }
+        return hasta;
+    }
+
+    public static List<Rango> Detectar(Analisis a, double umbral, Valores v)
+    {
+        return Detectar(new List<Analisis> { a }, new List<double> { umbral }, v);
+    }
+
+    // Hay voz en un instante si cualquier pista supera su propio umbral
+    // (mas la sensibilidad general).
+    public static List<Rango> Detectar(List<Analisis> pistas, List<double> umbrales, Valores v)
+    {
+        List<Rango> resultado = new List<Rango>();
+        if (pistas.Count == 0) return resultado;
+        int n = int.MaxValue;
+        foreach (Analisis p in pistas) n = Math.Min(n, p.Db.Length);
+        if (n == 0) return resultado;
+        double paso = Analisis.Paso, inicio = pistas[0].Inicio;
+
+        bool[] hay = new bool[n];
+        for (int k = 0; k < pistas.Count; k++)
+        {
+            float[] db = pistas[k].Db;
+            double u = umbrales[k] + v.Sensibilidad;
+            for (int i = 0; i < n; i++) if (db[i] >= u) hay[i] = true;
+        }
+
+        // 1. Tramos de voz.
+        List<int[]> voz = new List<int[]>();
+        int j = 0;
+        while (j < n)
+        {
+            if (hay[j])
+            {
+                int f = j;
+                while (f < n && hay[f]) f++;
+                voz.Add(new int[] { j, f });
+                j = f;
+            }
+            else j++;
+        }
+
+        // 2. Descartar voz demasiado corta (clics, respiraciones).
+        int hablaMin = (int)Math.Round(v.HablaMinMs / 1000.0 / paso);
+        List<int[]> vozBuena = new List<int[]>();
+        foreach (int[] t in voz) if (t[1] - t[0] >= hablaMin) vozBuena.Add(t);
+
+        // 3. Los huecos entre voz son silencios candidatos (incluye inicio y final).
+        int silMin = (int)Math.Round(v.SilencioMinMs / 1000.0 / paso);
+        int antes = (int)Math.Round(v.MargenAntesMs / 1000.0 / paso);
+        int despues = (int)Math.Round(v.MargenDespuesMs / 1000.0 / paso);
+        int cursor = 0;
+        for (int k = 0; k <= vozBuena.Count; k++)
+        {
+            int ini = cursor;
+            int fin = k < vozBuena.Count ? vozBuena[k][0] : n;
+            bool alInicio = k == 0, alFinal = k == vozBuena.Count;
+            if (fin - ini >= silMin)
+            {
+                // Margen: se deja algo de silencio despues de la voz anterior y
+                // antes de la siguiente para que los cortes no suenen bruscos.
+                int a0 = ini + (alInicio ? 0 : despues);
+                int b0 = fin - (alFinal ? 0 : antes);
+                if (b0 - a0 >= 2)
+                    resultado.Add(new Rango(inicio + a0 * paso, inicio + b0 * paso));
+            }
+            if (k < vozBuena.Count) cursor = vozBuena[k][1];
+        }
+
+        return PedazoMinimo(resultado, inicio, inicio + n * paso, v.PedazoMinMs / 1000.0);
+    }
+
+    // Si entre dos silencios queda un clip mas corto que el minimo, no se
+    // corta el segundo silencio: el clip se une con lo que sigue.
+    static List<Rango> PedazoMinimo(List<Rango> rangos, double inicio, double fin, double minimo)
+    {
+        if (minimo <= 0) return rangos;
+        List<Rango> r = new List<Rango>();
+        double ultimoFin = inicio;
+        foreach (Rango x in rangos)
+        {
+            double pedazo = x.Inicio - ultimoFin;
+            if (pedazo > 0.001 && pedazo < minimo) continue;
+            r.Add(x);
+            ultimoFin = x.Fin;
+        }
+        // El ultimo clip, entre el ultimo silencio y el final.
+        while (r.Count > 0)
+        {
+            double pedazo = fin - r[r.Count - 1].Fin;
+            if (pedazo > 0.001 && pedazo < minimo) r.RemoveAt(r.Count - 1);
+            else break;
+        }
+        return r;
+    }
+}
+
 // ---- src/comun/Configuracion.cs ----
 
 // =====================================================================
@@ -4862,6 +5755,129 @@ public static class Gemini
 public class RespuestaCortada : Exception
 {
     public RespuestaCortada() : base("La respuesta de Gemini sali\u00f3 cortada por ser demasiado larga.") { }
+}
+
+// ---- src/comun/Whisper.cs ----
+
+// =====================================================================
+// Faster-Whisper-XXL en segundo plano: lanza el .exe, sigue su avance
+// leyendo las lineas "[00:01.000 --> 00:04.000] texto" y al final deja el
+// JSON con los tiempos de cada palabra.
+// =====================================================================
+
+public class TareaWhisper
+{
+    Process proceso;
+    readonly object candado = new object();
+    readonly StringBuilder registro = new StringBuilder();
+    string carpeta, wav;
+    double duracion, avance;
+    string ultimaLinea = "";
+
+    public bool Terminada { get; private set; }
+    public bool Cancelada { get; private set; }
+    public int Codigo { get; private set; }
+
+    // Segundos de audio ya procesados (segun lo que imprime Whisper).
+    public double Avance { get { lock (candado) return avance; } }
+    public double Fraccion { get { return duracion > 0 ? Math.Min(1, Avance / duracion) : 0; } }
+    public string UltimaLinea { get { lock (candado) return ultimaLinea; } }
+    public string Registro { get { lock (candado) return registro.ToString(); } }
+
+    public static string Argumentos(Configuracion c, string wav, string carpeta)
+    {
+        string a = "\"" + wav + "\"" +
+            " --model " + c.WhisperModelo +
+            " --language " + c.Idioma +
+            " --output_format json" +
+            " --output_dir \"" + carpeta + "\"" +
+            " --word_timestamps True" +
+            " --vad_filter True" +
+            " --device " + c.WhisperDispositivo +
+            " --compute_type " + c.WhisperPrecision;
+        if (!String.IsNullOrEmpty(c.WhisperExtra)) a += " " + c.WhisperExtra;
+        return a;
+    }
+
+    public void Iniciar(Configuracion c, string wav, double duracionAudio)
+    {
+        if (!c.TieneWhisper) throw new Exception("Configura la ruta de Faster-Whisper-XXL en \u201cConfigurar vegas-cut\u201d.");
+        this.wav = wav;
+        duracion = duracionAudio;
+        carpeta = Path.Combine(Path.GetTempPath(), "vegas-cut-whisper-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(carpeta);
+
+        ProcessStartInfo info = new ProcessStartInfo(c.WhisperExe, Argumentos(c, wav, carpeta));
+        info.UseShellExecute = false;
+        info.CreateNoWindow = true;
+        info.RedirectStandardOutput = true;
+        info.RedirectStandardError = true;
+        info.StandardOutputEncoding = Encoding.UTF8;
+        info.StandardErrorEncoding = Encoding.UTF8;
+        info.WorkingDirectory = Path.GetDirectoryName(c.WhisperExe);
+
+        proceso = new Process();
+        proceso.StartInfo = info;
+        proceso.EnableRaisingEvents = true;
+        proceso.OutputDataReceived += delegate (object s, DataReceivedEventArgs e) { Linea(e.Data); };
+        proceso.ErrorDataReceived += delegate (object s, DataReceivedEventArgs e) { Linea(e.Data); };
+        proceso.Exited += delegate
+        {
+            try { proceso.WaitForExit(); Codigo = proceso.ExitCode; } catch { }
+            Terminada = true;
+        };
+        proceso.Start();
+        proceso.BeginOutputReadLine();
+        proceso.BeginErrorReadLine();
+    }
+
+    static readonly Regex Marca = new Regex(@"-->\s*(?:(\d+):)?(\d+):(\d+(?:[.,]\d+)?)\]");
+
+    void Linea(string l)
+    {
+        if (l == null) return;
+        lock (candado)
+        {
+            registro.AppendLine(l);
+            if (registro.Length > 200000) registro.Remove(0, 100000);
+            if (l.Trim().Length > 0) ultimaLinea = l.Trim();
+            Match m = Marca.Match(l);
+            if (m.Success)
+            {
+                double h = m.Groups[1].Success ? double.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) : 0;
+                double min = double.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+                double s = double.Parse(m.Groups[3].Value.Replace(',', '.'), CultureInfo.InvariantCulture);
+                avance = Math.Max(avance, h * 3600 + min * 60 + s);
+            }
+        }
+    }
+
+    public void Cancelar()
+    {
+        Cancelada = true;
+        try { if (proceso != null && !proceso.HasExited) proceso.Kill(); } catch { }
+    }
+
+    // JSON resultante; lanza un error con el final del registro si fallo.
+    public string Resultado()
+    {
+        string esperado = Path.Combine(carpeta, Path.GetFileNameWithoutExtension(wav) + ".json");
+        string ruta = File.Exists(esperado) ? esperado : null;
+        if (ruta == null)
+            foreach (string f in Directory.GetFiles(carpeta, "*.json")) { ruta = f; break; }
+        if (ruta == null)
+        {
+            string r = Registro.Trim();
+            if (r.Length > 1200) r = "\u2026" + r.Substring(r.Length - 1200);
+            throw new Exception("Whisper no gener\u00f3 la transcripci\u00f3n (c\u00f3digo " + Codigo + ").\n\n" + r);
+        }
+        return File.ReadAllText(ruta, Encoding.UTF8);
+    }
+
+    public void Limpiar()
+    {
+        try { if (carpeta != null) Directory.Delete(carpeta, true); } catch { }
+    }
 }
 
 // ---- src/comun/Ui.cs ----

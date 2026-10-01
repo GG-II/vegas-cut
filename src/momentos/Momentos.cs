@@ -8,27 +8,6 @@ using System.Threading;
 using System.Windows.Forms;
 using ScriptPortal.Vegas;
 
-public class EntryPoint
-{
-    public void FromVegas(Vegas vegas)
-    {
-        string veg = vegas.Project.FilePath;
-        string ruta = Transcripcion.RutaPara(veg);
-        if (ruta == null || !File.Exists(ruta))
-        {
-            MessageBox.Show("Este proyecto aún no tiene transcripción.\n\nEjecuta primero “Transcribir”.", "Momentos con IA");
-            return;
-        }
-        Transcripcion t;
-        try { t = Transcripcion.Cargar(ruta); }
-        catch (Exception ex) { MessageBox.Show("No se pudo leer la transcripción: " + ex.Message, "Momentos con IA"); return; }
-
-        // Con las fuentes, la transcripcion sigue tambien las ediciones a mano.
-        if (t.TieneFuentes) t.Ubicador = PistasVegas.Ubicador(vegas.Project, t);
-        using (VentanaMomentos v = new VentanaMomentos(vegas, t, ruta)) v.ShowDialog();
-    }
-}
-
 // Editor de las reglas del canal (se guardan para todos los proyectos).
 class DialogoReglas : VentanaBase
 {
@@ -131,6 +110,7 @@ class VentanaMomentos : VentanaBase
     readonly double total;
     ResultadoIA resultado;
     OpcionesIA opciones = new OpcionesIA();
+    public bool PedirAlAbrir;                          // PrepararEpisodio: pedir a Gemini al abrir
     List<CapSerie> capitulos = new List<CapSerie>();   // capitulos de la misma serie
     SerieProyecto serie;
     List<string> historial = new List<string>();  // respuestas guardadas de este proyecto
@@ -324,6 +304,7 @@ class VentanaMomentos : VentanaBase
             Estado("Falta la clave de Gemini: ejecuta “ConfigurarVegasCut”.", true);
         }
         MostrarResultado();
+        Shown += delegate { if (PedirAlAbrir && btnPedir.Enabled) Pedir(); };
     }
 
     void ConfigurarListas()
