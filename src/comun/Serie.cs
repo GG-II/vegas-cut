@@ -89,6 +89,7 @@ public class FraseClave
 public class Ficha
 {
     public string Resumen = "", Generada = "";
+    public string Estructura = "";   // como abre, como avanza y como cierra (para no repetir la formula)
     public List<string> Hilos = new List<string>(), Recurrentes = new List<string>();
     public List<FraseClave> Frases = new List<FraseClave>();
 
@@ -103,6 +104,7 @@ public class Ficha
         Ficha f = new Ficha();
         f.Resumen = Json.Texto(o, "resumen");
         f.Generada = Json.Texto(o, "generada");
+        f.Estructura = Json.Texto(o, "estructura");
         foreach (object x in Json.Lista(o, "hilos")) if (x is string) f.Hilos.Add((string)x);
         foreach (object x in Json.Lista(o, "recurrentes")) if (x is string) f.Recurrentes.Add((string)x);
         foreach (object x in Json.Lista(o, "frases"))
@@ -131,6 +133,7 @@ public class Ficha
         Dictionary<string, object> d = new Dictionary<string, object>();
         d["resumen"] = Resumen;
         d["generada"] = Generada;
+        d["estructura"] = Estructura;
         d["hilos"] = new List<object>(Hilos.ToArray());
         d["recurrentes"] = new List<object>(Recurrentes.ToArray());
         List<object> fs = new List<object>();
@@ -168,6 +171,7 @@ public class CapSerie
     public int Posicion;          // 1, 2, 3... en la serie
     public int Relacion = -1;     // -1 anterior, 0 el proyecto abierto, 1 posterior
     public bool Elegido = true;   // usarlo de contexto en este proyecto
+    public string Papel = "Normal";
     public bool Existe { get { return File.Exists(Veg); } }
     public bool Transcrito { get { return File.Exists(Transcripcion.RutaPara(Veg)); } }
     public bool TieneFicha { get { return File.Exists(Ficha.RutaPara(Veg)); } }
@@ -178,7 +182,12 @@ public class SerieProyecto
     public static readonly string[] Tipos = { "Gameplay", "Video ensayo", "Podcast", "Otro" };
 
     public string Ruta = "", Nombre = "", Tipo = "Gameplay", Notas = "", Carpeta = "";
+    public FormatoSerie Formato = FormatoSerie.Preset("100 días");
     public List<string> Episodios = new List<string>();   // rutas de los .veg, en orden
+    // Papel de cada capitulo (primero, especial, final...) y su nota, por
+    // ruta del .veg. Lo que no esta aqui es "Normal" (o "Primer capítulo").
+    public Dictionary<string, string> Papeles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> NotasEpisodio = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     public static string Extension = ".vegascut-serie.json";
 
@@ -200,13 +209,20 @@ public class SerieProyecto
         if (Array.IndexOf(Tipos, s.Tipo) < 0) s.Tipo = "Otro";
         s.Notas = Json.Texto(o, "notas");
         s.Carpeta = Json.Texto(o, "carpeta");
+        object f = Json.Valor(o, "estructura");
+        s.Formato = f != null ? FormatoSerie.Leer(f) : FormatoSerie.Preset(FormatoSerie.SegunTipo(s.Tipo));
         string dir = Path.GetDirectoryName(ruta);
         foreach (object x in Json.Lista(o, "episodios"))
         {
             string veg = Json.Texto(x, "veg"), rel = Json.Texto(x, "relativo");
             // Si se movio la carpeta (u otra letra de disco), se busca junto al archivo de la serie.
             if (!File.Exists(veg) && rel.Length > 0 && File.Exists(Path.Combine(dir, rel))) veg = Path.GetFullPath(Path.Combine(dir, rel));
-            if (veg.Length > 0) s.Episodios.Add(veg);
+            if (veg.Length == 0) continue;
+            s.Episodios.Add(veg);
+            string papel = Json.Texto(x, "papel");
+            if (Array.IndexOf(PapelEpisodio.Papeles, papel) >= 0) s.Papeles[veg] = papel;
+            string nota = Json.Texto(x, "nota");
+            if (nota.Length > 0) s.NotasEpisodio[veg] = nota;
         }
         return s;
     }
@@ -216,12 +232,16 @@ public class SerieProyecto
         Dictionary<string, object> d = new Dictionary<string, object>();
         d["formato"] = "vegas-cut-serie";
         d["nombre"] = Nombre; d["tipo"] = Tipo; d["notas"] = Notas; d["carpeta"] = Carpeta;
+        d["estructura"] = Formato.Escribir();
         List<object> l = new List<object>();
         foreach (string veg in Episodios)
         {
             Dictionary<string, object> x = new Dictionary<string, object>();
             x["veg"] = veg;
             x["relativo"] = Relativa(Path.GetDirectoryName(Ruta), veg);
+            string papel, nota;
+            if (Papeles.TryGetValue(veg, out papel)) x["papel"] = papel;
+            if (NotasEpisodio.TryGetValue(veg, out nota) && nota.Trim().Length > 0) x["nota"] = nota.Trim();
             l.Add(x);
         }
         d["episodios"] = l;
@@ -235,6 +255,26 @@ public class SerieProyecto
     {
         string d = dir.TrimEnd(Path.DirectorySeparatorChar, '/') + Path.DirectorySeparatorChar;
         return veg.StartsWith(d, StringComparison.OrdinalIgnoreCase) ? veg.Substring(d.Length) : "";
+    }
+
+    // Papel del capitulo: el elegido o, si no, "Primer capítulo" para el
+    // primero de la lista y "Normal" para los demas.
+    public string Papel(string veg)
+    {
+        string p;
+        if (!String.IsNullOrEmpty(veg) && Papeles.TryGetValue(veg, out p)) return p;
+        return IndiceDe(veg ?? "") == 0 ? "Primer capítulo" : "Normal";
+    }
+
+    public void CambiarPapel(string veg, string papel)
+    {
+        if (Array.IndexOf(PapelEpisodio.Papeles, papel) >= 0) Papeles[veg] = papel;
+    }
+
+    public string NotaEpisodio(string veg)
+    {
+        string n;
+        return !String.IsNullOrEmpty(veg) && NotasEpisodio.TryGetValue(veg, out n) ? n : "";
     }
 
     public int IndiceDe(string veg)
@@ -292,6 +332,7 @@ public class SerieProyecto
             CapSerie c = new CapSerie();
             c.Veg = Episodios[i]; c.Nombre = Path.GetFileNameWithoutExtension(Episodios[i]); c.Posicion = i + 1;
             c.Relacion = actual < 0 ? -1 : i.CompareTo(actual);
+            c.Papel = Papel(Episodios[i]);
             r.Add(c);
         }
         return r;
@@ -359,6 +400,211 @@ public class SerieProyecto
             }
             catch { }
         return null;
+    }
+}
+
+// De que va la serie y como se edita: formato, premisa, como se marca el
+// avance (Dia N, Parte N...), el narrador y las reglas de ritmo. Lo usan
+// MomentosIA (contexto) y PulirEpisodio (medidor, estructura y narracion).
+public class FormatoSerie
+{
+    public static readonly string[] Formatos = { "100 días", "Aventura por episodios", "Retos / minijuegos", "Video ensayo",
+                                                 "Top / lista", "Podcast", "Otro" };
+    public static readonly string[] Avances = { "Día N", "Parte N", "Ronda N", "Acto N", "Número N", "Ninguno" };
+
+    public string Nombre = "100 días";
+    public string Premisa = "";            // de que va y que se busca (el objetivo de la serie)
+    public string Avance = "Día N";
+    public bool Narrador = true;
+    public string NarradorNombre = "Narrador";   // hablante de la transcripcion
+    public string EstiloNarrador = "";
+    public string Aprendido = "";          // de que proyecto salieron las reglas
+    public ReglasRitmo Reglas = new ReglasRitmo();
+
+    public static string SegunTipo(string tipo)
+    {
+        switch (tipo)
+        {
+            case "Video ensayo": return "Video ensayo";
+            case "Podcast": return "Podcast";
+            case "Gameplay": return "100 días";
+            default: return "Otro";
+        }
+    }
+
+    // Valores de partida de cada formato. "100 días" sale de lo que funcionó
+    // en JoJoMania (docs/estilo-jojomania.md).
+    public static FormatoSerie Preset(string formato)
+    {
+        FormatoSerie f = new FormatoSerie();
+        f.Nombre = Array.IndexOf(Formatos, formato) >= 0 ? formato : "Otro";
+        ReglasRitmo r = f.Reglas;
+        switch (f.Nombre)
+        {
+            case "100 días":
+                f.Avance = "Día N";
+                f.EstiloNarrador = "En pasado, como un cuento, con humor; deja ganchos de anticipación (\"lo cual seguramente no fue " +
+                                   "la mejor idea\") y resume cada día en una o dos frases.";
+                break;
+            case "Aventura por episodios":
+                f.Avance = "Parte N";
+                f.EstiloNarrador = "En pasado, como un cuento: presenta el objetivo de la parte, los obstáculos y deja el gancho " +
+                                   "para la siguiente.";
+                r.NarradorCadaSeg = 90; r.DuracionMin = 12; r.DuracionMax = 16;
+                break;
+            case "Retos / minijuegos":
+                f.Avance = "Ronda N";
+                f.EstiloNarrador = "Rápido y con energía: reglas del reto en una frase, marcador y quién va ganando.";
+                r.NarradorCadaSeg = 60; r.RecursosPorMin = 5; r.CortesMin = 18; r.CortesMax = 25; r.MusicaCadaSeg = 30;
+                r.DuracionMin = 10; r.DuracionMax = 14;
+                break;
+            case "Video ensayo":
+                f.Avance = "Acto N";
+                f.EstiloNarrador = "Primera persona, cercano; plantea una pregunta al inicio y la responde paso a paso, con ejemplos.";
+                r.NarradorCadaSeg = 20; r.RecursosPorMin = 6; r.CortesMin = 8; r.CortesMax = 14; r.MusicaCadaSeg = 60;
+                r.ZonaCriticaSeg = 120; r.DuracionMin = 12; r.DuracionMax = 20;
+                break;
+            case "Top / lista":
+                f.Avance = "Número N";
+                f.EstiloNarrador = "Directo: presenta cada puesto con un dato que sorprenda; guarda el mejor para el final.";
+                r.NarradorCadaSeg = 30; r.RecursosPorMin = 6; r.CortesMin = 12; r.CortesMax = 18; r.MusicaCadaSeg = 45;
+                r.ZonaCriticaSeg = 120; r.DuracionMin = 8; r.DuracionMax = 12;
+                break;
+            case "Podcast":
+                f.Avance = "Ninguno";
+                f.Narrador = false;
+                r.NarradorCadaSeg = 300; r.RecursosPorMin = 1; r.CortesMin = 4; r.CortesMax = 10; r.MusicaCadaSeg = 300;
+                r.ZonaCriticaSeg = 120; r.DuracionMin = 30; r.DuracionMax = 60;
+                break;
+            default:
+                f.Avance = "Ninguno";
+                break;
+        }
+        return f;
+    }
+
+    // Que busca cada formato (para Gemini).
+    public static string Objetivo(string formato)
+    {
+        switch (formato)
+        {
+            case "100 días": return "sobrevivir y progresar día a día; cada día debe aportar un avance, un problema o una risa, y el video " +
+                                    "termina con algo pendiente para el siguiente";
+            case "Aventura por episodios": return "avanzar en una historia por partes; cada parte tiene un objetivo, obstáculos y un final con gancho";
+            case "Retos / minijuegos": return "competir en rondas; se entiende quién va ganando y la tensión sube hasta la última ronda";
+            case "Video ensayo": return "responder una pregunta o defender una idea con argumentos y ejemplos, en actos claros";
+            case "Top / lista": return "recorrer una lista de menor a mayor; cada puesto se justifica y el mejor queda para el final";
+            case "Podcast": return "una charla con temas claros; se marcan los cambios de tema y los mejores momentos";
+            default: return "";
+        }
+    }
+
+    public FormatoSerie Copia()
+    {
+        FormatoSerie f = (FormatoSerie)MemberwiseClone();
+        f.Reglas = Reglas.Copia();
+        return f;
+    }
+
+    public Dictionary<string, object> Escribir()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["formato"] = Nombre; d["premisa"] = Premisa; d["avance"] = Avance; d["narrador"] = Narrador;
+        d["narradorNombre"] = NarradorNombre; d["estiloNarrador"] = EstiloNarrador; d["aprendido"] = Aprendido;
+        Dictionary<string, object> r = new Dictionary<string, object>();
+        Reglas.Escribir(r);
+        d["ritmo"] = r;
+        return d;
+    }
+
+    public static FormatoSerie Leer(object o)
+    {
+        string nombre = Json.Texto(o, "formato");
+        FormatoSerie f = Preset(nombre);
+        f.Premisa = Json.Texto(o, "premisa");
+        string av = Json.Texto(o, "avance");
+        if (Array.IndexOf(Avances, av) >= 0) f.Avance = av;
+        object n = Json.Valor(o, "narrador");
+        if (n is bool) f.Narrador = (bool)n;
+        string nn = Json.Texto(o, "narradorNombre");
+        if (nn.Length > 0) f.NarradorNombre = nn;
+        if (Json.Valor(o, "estiloNarrador") != null) f.EstiloNarrador = Json.Texto(o, "estiloNarrador");
+        f.Aprendido = Json.Texto(o, "aprendido");
+        f.Reglas = ReglasRitmo.Leer(Json.Valor(o, "ritmo"), f.Reglas);
+        return f;
+    }
+
+    // "Día 3", "Parte 3"... o "" si no se marca.
+    public string Marca(int n) { return Avance == "Ninguno" ? "" : Avance.Replace("N", n.ToString()); }
+
+    public string Texto()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Formato: " + Nombre);
+        string obj = Objetivo(Nombre);
+        if (obj.Length > 0) sb.Append(" (" + obj + ")");
+        sb.Append("\n");
+        if (Premisa.Trim().Length > 0) sb.Append("Premisa / objetivo de la serie: " + Premisa.Trim() + "\n");
+        if (Avance != "Ninguno") sb.Append("El avance se marca con \"" + Avance + "\" en pantalla.\n");
+        sb.Append(Narrador ? "Hay narrador (" + NarradorNombre + ")" + (EstiloNarrador.Trim().Length > 0 ? ": " + EstiloNarrador.Trim() : "") + "\n"
+                           : "Sin narrador.\n");
+        sb.Append("Duración objetivo: " + Reglas.DuracionMin + "–" + Reglas.DuracionMax + " min\n");
+        return sb.ToString();
+    }
+}
+
+// No todos los capitulos son iguales: el primero presenta, uno intermedio
+// avanza, un especial rompe el formato y el final cierra hilos. Cada papel
+// cambia las reglas de ritmo y lo que se le pide a Gemini, para que la serie
+// no parezca hecha en fabrica.
+public static class PapelEpisodio
+{
+    public static readonly string[] Papeles = { "Primer capítulo", "Normal", "Especial", "Final de temporada", "Final de la serie" };
+
+    public static string Instrucciones(string papel)
+    {
+        switch (papel)
+        {
+            case "Primer capítulo":
+                return "Es el PRIMER capítulo: presenta la premisa, a cada persona (quién es, un rasgo) y las reglas o el objetivo " +
+                       "antes del minuto 1; el espectador no sabe nada. Promete lo que va a venir en la serie.";
+            case "Especial":
+                return "Es un capítulo ESPECIAL: puede romper el formato (otra estructura, otro ritmo, otro tipo de inicio). " +
+                       "Que se note desde el inicio qué lo hace distinto; no repitas la fórmula de los capítulos normales.";
+            case "Final de temporada":
+                return "Es el FINAL DE TEMPORADA: retoma y paga los hilos abiertos de la temporada, sube la tensión hacia el " +
+                       "clímax, deja tiempo a un cierre emotivo o épico y termina con un gancho para la próxima temporada.";
+            case "Final de la serie":
+                return "Es el FINAL DE LA SERIE: cierra todos los hilos importantes, recuerda momentos de capítulos anteriores, " +
+                       "dale peso al clímax y un cierre con despedida; no anuncies un próximo episodio.";
+            default:
+                return "Es un capítulo intermedio: recuerda en pocos segundos dónde quedó la historia, avanza con algo nuevo " +
+                       "(un logro, un problema, alguien nuevo) y termina con un pendiente para el siguiente. Varía el inicio y " +
+                       "los recursos respecto a los capítulos anteriores.";
+        }
+    }
+
+    // Reglas ajustadas al papel.
+    public static ReglasRitmo Reglas(ReglasRitmo r, string papel)
+    {
+        ReglasRitmo x = r.Copia();
+        switch (papel)
+        {
+            case "Primer capítulo":
+                x.ZonaCriticaSeg = Math.Max(x.ZonaCriticaSeg, 180);
+                x.NarradorCadaSeg = Math.Max(30, (int)(x.NarradorCadaSeg * 0.8));
+                break;
+            case "Especial":
+                x.DuracionMin = Math.Max(1, Math.Round(x.DuracionMin * 0.7));
+                x.DuracionMax = Math.Round(x.DuracionMax * 1.4);
+                break;
+            case "Final de temporada":
+            case "Final de la serie":
+                x.DuracionMax = Math.Round(x.DuracionMax * 1.4);
+                x.MusicaCadaSeg = (int)(x.MusicaCadaSeg * 1.3);   // temas mas largos en el climax
+                break;
+        }
+        return x;
     }
 }
 
@@ -490,6 +736,7 @@ public static class Serie
                "Haz su ficha para usarla de contexto al editar los otros capítulos.\n\n" +
                "Responde SOLO con JSON:\n" +
                "{\"resumen\": \"qué pasa en el capítulo, en orden, en 3 a 6 frases\",\n " + QueGuardar(tipo) +
+ " \"estructura\": \"cómo abre (tipo de gancho), cómo avanza y cómo cierra el capítulo, en una frase\",\n" +
                " \"frases\": [{\"inicio\": s, \"fin\": s, \"quien\": \"nombre\", \"texto\": \"lo que se dice\", \"por\": \"por qué es clave\"}]}\n\n" +
                "Reglas:\n- \"frases\": de 5 a 15 frases cortas (2 a 7 s) que mejor cuentan lo importante del capítulo; " +
                "sirven para un \"anteriormente\". Usa solo tiempos de la transcripción.\n" +
@@ -512,7 +759,15 @@ public static class Serie
         if (serie != null)
         {
             sb.Append("Serie: " + serie.Nombre + " (" + serie.Tipo + ")\n");
+            sb.Append(serie.Formato.Texto());
             if (!String.IsNullOrEmpty(serie.Notas)) sb.Append("Notas de la serie:\n" + serie.Notas.Trim() + "\n");
+            foreach (CapSerie c in caps)
+            {
+                if (c.Relacion != 0) continue;
+                sb.Append("Este capítulo (" + c.Posicion + " de " + caps.Count + "): " + c.Papel + ". " + PapelEpisodio.Instrucciones(c.Papel) + "\n");
+                string nota = serie.NotaEpisodio(c.Veg);
+                if (nota.Length > 0) sb.Append("Nota del editor para este capítulo: " + nota + "\n");
+            }
         }
         foreach (int rel in new int[] { -1, 1 })
         {

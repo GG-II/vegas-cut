@@ -28,13 +28,19 @@ class VentanaSeries : VentanaBase
     Boton btnBuscar = new Boton("Buscar capítulos ahí", EstiloBoton.Secundario);
     Lista lstCaps = new Lista();
     Boton btnAgregar = new Boton("Agregar…", EstiloBoton.Secundario);
-    Boton btnEste = new Boton("Agregar este proyecto", EstiloBoton.Secundario);
+    Boton btnEste = new Boton("Este proyecto", EstiloBoton.Secundario);
     Boton btnSubir = new Boton("Subir", EstiloBoton.Secundario);
     Boton btnBajar = new Boton("Bajar", EstiloBoton.Secundario);
     Boton btnQuitar = new Boton("Quitar", EstiloBoton.Secundario);
     Boton btnFichas = new Boton("Hacer las fichas que faltan", EstiloBoton.Secundario);
     Boton btnRehacer = new Boton("Rehacer la elegida", EstiloBoton.Secundario);
     CampoTexto txtNotas = new CampoTexto();
+    Combo cmbPapel = new Combo();
+    Boton btnNota = new Boton("Nota…", EstiloBoton.Secundario);
+    Boton btnFormato = new Boton("Formato y ritmo…", EstiloBoton.Secundario);
+    Etiqueta lblFormato;
+    // Mide el proyecto abierto (para "Aprender de este proyecto"); null si no se puede.
+    public Func<string, Medicion> Medidor;
     Boton btnSinSerie = new Boton("Sin serie", EstiloBoton.Secundario);
     Boton btnListo;
 
@@ -68,28 +74,35 @@ class VentanaSeries : VentanaBase
         Pos(btnBuscar, dx + dw - 162, y, 162, 30);
         y += 38;
         lstCaps.Columns.Add("#", 36);
-        lstCaps.Columns.Add("Capítulo", dw - 36 - 90 - 84 - 84 - SystemInformation.VerticalScrollBarWidth - 4);
+        lstCaps.Columns.Add("Capítulo", dw - 36 - 90 - 130 - 84 - 84 - SystemInformation.VerticalScrollBarWidth - 4);
         lstCaps.Columns.Add("Es", 90);
+        lstCaps.Columns.Add("Papel", 130);
         lstCaps.Columns.Add("Transcrito", 84);
         lstCaps.Columns.Add("Ficha", 84);
         Pos(lstCaps, dx, y, dw, 200);
         y += 208;
         int bx = dx;
         foreach (KeyValuePair<Boton, int> b in new KeyValuePair<Boton, int>[] {
-            new KeyValuePair<Boton, int>(btnAgregar, 100), new KeyValuePair<Boton, int>(btnEste, 180),
-            new KeyValuePair<Boton, int>(btnSubir, 80), new KeyValuePair<Boton, int>(btnBajar, 80), new KeyValuePair<Boton, int>(btnQuitar, 90) })
+            new KeyValuePair<Boton, int>(btnAgregar, 100), new KeyValuePair<Boton, int>(btnEste, 130),
+            new KeyValuePair<Boton, int>(btnSubir, 70), new KeyValuePair<Boton, int>(btnBajar, 70), new KeyValuePair<Boton, int>(btnQuitar, 80) })
         {
             Pos(b.Key, bx, y, b.Value, 32);
             bx += b.Value + 8;
         }
+        foreach (string p in PapelEpisodio.Papeles) cmbPapel.Items.Add(p);
+        Pos(cmbPapel, dx + dw - 230, y + 1, 152, 30);
+        Pos(btnNota, dx + dw - 70, y, 70, 32);
         y += 40;
         Pos(btnFichas, dx, y, 230, 32);
         Pos(btnRehacer, dx + 238, y, 170, 32);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 418, y - 2, dw - 418, 38);
         y += 44;
-        Texto("Notas de la serie (personajes, apodos, lugares, de qué va)", Tema.Negrita, Tema.Texto, dx, y, dw, 20);
+        Texto("Notas de la serie (personajes, apodos, lugares)", Tema.Negrita, Tema.Texto, dx, y, 340, 20);
+        lblFormato = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 350, y + 4, dw - 520, 20);
+        lblFormato.TextAlign = ContentAlignment.MiddleRight;
+        Pos(btnFormato, dx + dw - 160, y - 6, 160, 30);
         txtNotas.Multilinea = true;
-        Pos(txtNotas, dx, y + 22, dw, 90);
+        Pos(txtNotas, dx, y + 28, dw, 84);
         y += 124;
         if (elegir) Pos(btnSinSerie, m + w - 300, y, 130, 40);
         Pos(btnListo, m + w - 160, y, 160, 40);
@@ -132,6 +145,48 @@ class VentanaSeries : VentanaBase
             Serie_.Episodios.RemoveAt(i);
             Cambio();
         };
+        lstCaps.SelectedIndexChanged += delegate
+        {
+            int i = Elegido();
+            cmbPapel.Enabled = btnNota.Enabled = i >= 0 && Serie_ != null;
+            if (i < 0) return;
+            cargando = true;
+            cmbPapel.SelectedIndex = Math.Max(0, Array.IndexOf(PapelEpisodio.Papeles, Caps[i].Papel));
+            cargando = false;
+        };
+        cmbPapel.SelectedIndexChanged += delegate
+        {
+            int i = Elegido();
+            if (cargando || i < 0 || Serie_ == null) return;
+            Serie_.CambiarPapel(Caps[i].Veg, (string)cmbPapel.SelectedItem);
+            Cambio();
+            lstCaps.Items[i].Selected = true;
+        };
+        btnNota.Click += delegate
+        {
+            int i = Elegido();
+            if (i < 0 || Serie_ == null) return;
+            using (DialogoNombre d = new DialogoNombre(Serie_.NotaEpisodio(Caps[i].Veg), "Nota de " + Caps[i].Nombre,
+                                                       "Qué tiene de distinto este capítulo (se la paso a Gemini)"))
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Serie_.NotasEpisodio[Caps[i].Veg] = d.Nombre;
+            }
+            Cambio();
+            lstCaps.Items[i].Selected = true;
+        };
+        btnFormato.Click += delegate
+        {
+            if (Serie_ == null) return;
+            GuardarActual();
+            using (VentanaFormato f = new VentanaFormato(Serie_.Formato, veg, Medidor))
+            {
+                if (f.ShowDialog(this) != DialogResult.OK) return;
+                Serie_.Formato = f.Resultado;
+            }
+            Cambio();
+            Estado("✔ Formato guardado.", false);
+        };
         btnFichas.Click += delegate { Fichas(false); };
         btnRehacer.Click += delegate { Fichas(true); };
         lstCaps.ItemCheck += delegate (object s, ItemCheckEventArgs e)
@@ -165,7 +220,7 @@ class VentanaSeries : VentanaBase
         if (Serie_ == null)
             Estado(rutas.Count == 0 ? "Crea tu primera serie con “Nueva…”." : "Elige una serie de la lista o crea una nueva.", false);
         else if (veg.Length > 0 && Serie_.IndiceDe(veg) < 0)
-            Estado("Este proyecto no está en la serie: “Agregar este proyecto” lo pone en su lugar.", false);
+            Estado("Este proyecto no está en la serie: “Este proyecto” lo agrega en su lugar.", false);
     }
 
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
@@ -202,8 +257,9 @@ class VentanaSeries : VentanaBase
     {
         bool hay = Serie_ != null;
         foreach (Control c in new Control[] { txtNombre, segTipo, btnCarpeta, btnBuscar, lstCaps, btnAgregar, btnEste, btnSubir,
-                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar })
+                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato })
             c.Enabled = hay;
+        cmbPapel.Enabled = btnNota.Enabled = false;
         btnListo.Enabled = hay || !elegir;
         cargando = true;
         txtNombre.Text = hay ? Serie_.Nombre : "";
@@ -228,6 +284,8 @@ class VentanaSeries : VentanaBase
             it.SubItems.Add(c.Nombre);
             it.SubItems.Add(!c.Existe ? "no se encuentra" : c.Relacion < 0 ? (veg.Length > 0 && Serie_.IndiceDe(veg) >= 0 ? "anterior" : "—") :
                             c.Relacion > 0 ? "posterior" : "este");
+            string nota = Serie_.NotaEpisodio(c.Veg);
+            it.SubItems.Add(c.Papel + (nota.Length > 0 ? " ✎" : ""));
             it.SubItems.Add(c.Transcrito ? "sí" : "no");
             it.SubItems.Add(c.TieneFicha ? "sí" : c.Transcrito ? "falta" : "—");
             it.Checked = c.Relacion != 0 && c.Transcrito && c.Elegido;
@@ -236,6 +294,7 @@ class VentanaSeries : VentanaBase
             lstCaps.Items.Add(it);
         }
         cargando = false;
+        lblFormato.Text = Serie_ == null ? "" : Serie_.Formato.Nombre + (String.IsNullOrEmpty(Serie_.Formato.Aprendido) ? "" : " · aprendido");
         lblCarpeta.Text = Serie_ == null ? "" : "Carpeta: " + (String.IsNullOrEmpty(Serie_.Carpeta) ? "(sin elegir)" : Serie_.Carpeta) +
                                                 " · " + Caps.Count + " capítulos";
     }

@@ -237,11 +237,42 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
   resumen con los **hilos abiertos**, lo **recurrente** y **frases clave** con su tiempo, de lo
   que quedó en el video. Se guarda junto al proyecto de ese capítulo
   (`<proyecto>.vegascut-ficha.json`). «Rehacer la elegida» la vuelve a hacer.
-- **Notas de la serie**: personajes, apodos, lugares y de qué va.
+- **Notas de la serie**: personajes, apodos y lugares.
+- **Papel de cada capítulo**: elige un capítulo y su papel: *Primer capítulo*, *Normal*,
+  *Especial*, *Final de temporada* o *Final de la serie*. El primero de la lista es «Primer
+  capítulo» si no eliges otro. **Nota…** guarda qué tiene de distinto ese capítulo («carrera de
+  caballos completa», «capítulo sin Jason»). El papel cambia lo que se le pide a Gemini (el
+  primero presenta a todos y la premisa, un especial puede romper la fórmula, un final paga los
+  hilos abiertos) y las reglas de ritmo (un final puede durar más). Así no todos los capítulos
+  salen iguales. Las fichas también guardan **cómo abre y cómo cierra** cada capítulo, para que
+  PulirEpisodio no repita el mismo inicio.
+- **Formato y ritmo…**:
+
+  ![Formato y ritmo](docs/img/formato.png)
+
+  - **Formato**: *100 días*, *Aventura por episodios*, *Retos / minijuegos*, *Video ensayo*,
+    *Top / lista*, *Podcast* u *Otro*.
+  - **Premisa y objetivo**: de qué va la serie y hacia dónde quieres llevarla.
+  - **Avance en pantalla**: *Día N*, *Parte N*, *Ronda N*, *Acto N*, *Número N* o ninguno.
+  - **Narrador**: si lo hay, cómo se llama su voz en la transcripción y su estilo.
+  - **Reglas de ritmo**: velocidad del narrador (ppm), máximo sin narrador, recursos y cortes por
+    minuto, cada cuánto cambiar la música, la zona crítica del inicio y la duración objetivo.
+
+  **Usar valores del formato** carga unos valores de partida; los de *100 días* salen de
+  [lo que funcionó en JoJoMania](docs/estilo-jojomania.md). **Aprender de este proyecto** mide el
+  proyecto abierto en Vegas (un episodio que funcionó bien) y toma su ritmo como objetivo. La
+  medición busca sola:
+  - la pista principal y sus cortes;
+  - la narración, con la transcripción y sin contar los memes de esa misma pista;
+  - las grabaciones encima (POV), que cuentan una vez por aparición;
+  - los textos, las imágenes y los efectos;
+  - la música: audio largo, cada cambio de tema.
+
+  Con Cap1 de JoJoMania da 18 cortes/min, narrador al 32 % a 199 ppm y música cada ~30 s.
 
 **MomentosIA** y **Anteriormente** reconocen solos a qué serie pertenece el proyecto abierto
 (su botón **Serie…** abre esta misma ventana para elegir otra o agregar el proyecto).
-MomentosIA recibe las fichas de los capítulos anteriores (para conservar lo que continúa una
+MomentosIA recibe el formato, la premisa, el papel y la nota del capítulo, las fichas de los capítulos anteriores (para conservar lo que continúa una
 historia) y de los **posteriores** (para no cortar lo que prepara algo que se retoma después);
 Anteriormente toma los capítulos anteriores con la ficha de los viejos (incluidas sus frases
 clave) y el texto completo de los 2 más recientes.

@@ -1069,6 +1069,14 @@ public static class Json
         return d != null && d.TryGetValue(clave, out v) ? v as Dictionary<string, object> : null;
     }
 
+    // El valor tal cual (o null): para booleanos o lo que pueda faltar.
+    public static object Valor(object o, string clave)
+    {
+        Dictionary<string, object> d = o as Dictionary<string, object>;
+        object v;
+        return d != null && d.TryGetValue(clave, out v) ? v : null;
+    }
+
     public static List<object> Lista(object o, string clave)
     {
         Dictionary<string, object> d = o as Dictionary<string, object>;
