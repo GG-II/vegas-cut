@@ -858,7 +858,8 @@ public static class Serie
                 {
                     sb.Append(rel < 0 ? "\nCapítulos anteriores:\n"
                                       : "\nCapítulos POSTERIORES (ya grabados): si algo de este capítulo prepara lo que se retoma " +
-                                        "después, consérvalo aunque aquí parezca menor; no adelantes lo que pasa después.\n");
+                                        "después, consérvalo aunque aquí parezca menor; no adelantes lo que pasa después ni uses sus lugares o hechos en " +
+                                        "este capítulo.\n");
                     titulo = true;
                 }
                 RegistroCapitulo rc = serie != null ? serie.Producido(c.Veg) : null;

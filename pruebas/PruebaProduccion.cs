@@ -122,6 +122,20 @@ class PruebaProduccion
                   TiposCapitulo.Opciones()[0] == TiposCapitulo.Detectar && TiposCapitulo.Normalizar("Misterio o investigación") == "misterio",
                   "Escaleta final: sigue el tipo de la propuesta elegida");
 
+        // ------------------------------------------------ lo inventado
+        Transcripcion tf = new Transcripcion();
+        tf.Hablantes.Add(new Hablante { Nombre = "AB Fann" });
+        tf.Segmentos.Add(new Segmento { Hablante = 0, Inicio = 0, Fin = 5, Texto = "Bienvenidos al salvaje oeste, aquí están los forajidos y los caballos." });
+        Propuesta pf = new Propuesta { Nombre = "Elegía del Oeste", ColdOpen = "Vistas del Salvaje Oeste" };
+        pf.Titulos.Add("Etapa 1 · El amanecer en la Palma del Diablo"); pf.Titulos.Add("Parte 1: Forajidos y Monturas");
+        pf.Escaleta.Add("[00:00] AB Fann entrega el kit a Jason");
+        List<string> nf = LogicaProduccion.NoEnMaterial(pf, tf, "Jason: caótico");
+        string mrf = LogicaProduccion.MensajeRefinar(new AnalisisCapitulo { Propuestas = new List<Propuesta> { pf } }, "", "", tf);
+        Verificar(nf.Contains("Palma") && nf.Contains("Diablo") && nf.Contains("Monturas") && !nf.Contains("Forajidos") && !nf.Contains("Oeste") &&
+                  !nf.Contains("Jason") && !nf.Contains("Fann") && !nf.Contains("Etapa") && mrf.Contains("NO SALEN EN EL MATERIAL") &&
+                  ia.Contains("FIDELIDAD") && ia.Contains("MISMO material"),
+                  "Fidelidad: marca lo que no sale en el material (" + String.Join(", ", nf.ToArray()) + ") y Refinar lo corrige; las tres cubren lo mismo");
+
         // ------------------------------------------------ no repetir material
         PlanFinal rep = LogicaProduccion.LeerFinal(@"{""partes"": [{""titulo"": ""X"", ""estructura"": [{""bloque"": ""cold_open"", ""tipo"": ""contenido""},
             {""bloque"": ""acto_a"", ""tipo"": ""contenido""}, {""bloque"": ""avance"", ""tipo"": ""contenido""}],

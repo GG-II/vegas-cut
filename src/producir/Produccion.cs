@@ -66,6 +66,28 @@ class OpcionTriple : ControlBase
     }
 }
 
+// La propuesta completa, para leerla entera (la tarjeta la corta).
+static class VerTexto
+{
+    public static void Mostrar(IWin32Window duenio, string titulo, string texto)
+    {
+        using (Form f = new Form())
+        {
+            f.Text = titulo; f.StartPosition = FormStartPosition.CenterParent; f.ClientSize = new Size(640, 560);
+            f.BackColor = Tema.Fondo; f.MinimizeBox = false; f.MaximizeBox = false; f.ShowIcon = false; f.KeyPreview = true;
+            TextBox t = new TextBox();
+            t.Multiline = true; t.ReadOnly = true; t.ScrollBars = ScrollBars.Vertical; t.BorderStyle = BorderStyle.None;
+            t.BackColor = Tema.Panel; t.ForeColor = Tema.Texto; t.Font = Tema.Normal;
+            t.Text = (texto ?? "").Replace("\r", "").Replace("\n", "\r\n");
+            t.SetBounds(16, 16, 608, 528);
+            f.Controls.Add(t);
+            f.KeyDown += delegate (object s, KeyEventArgs e) { if (e.KeyCode == Keys.Escape) f.Close(); };
+            f.Shown += delegate { t.SelectionLength = 0; };
+            f.ShowDialog(duenio);
+        }
+    }
+}
+
 // Una tarjeta de propuesta con su cuadro de notas.
 class TarjetaPropuesta : Panel
 {
@@ -82,6 +104,10 @@ class TarjetaPropuesta : Panel
         foreach (Label l in new Label[] { Titulo, Cuerpo, lblNotas }) l.BackColor = Tema.Panel;
         Cuerpo.TextAlign = ContentAlignment.TopLeft;
         Cuerpo.AutoEllipsis = true;
+        Titulo.TextAlign = ContentAlignment.TopLeft;
+        Titulo.AutoEllipsis = true;
+        Cuerpo.Cursor = Cursors.Hand;
+        Cuerpo.Click += delegate { if (P != null) VerTexto.Mostrar(FindForm(), Titulo.Text, completo); };
         Notas.Multilinea = true;
         Controls.Add(Titulo); Controls.Add(Cuerpo); Controls.Add(lblNotas); Controls.Add(Notas); Controls.Add(Elegir);
     }
@@ -91,8 +117,8 @@ class TarjetaPropuesta : Panel
     protected override void OnLayout(LayoutEventArgs e)
     {
         int w = Width - 24;
-        Titulo.SetBounds(12, 10, w, 24);
-        Cuerpo.SetBounds(12, 38, w, Height - 38 - 130);
+        Titulo.SetBounds(12, 8, w, 42);
+        Cuerpo.SetBounds(12, 52, w, Height - 52 - 130);
         lblNotas.SetBounds(12, Height - 124, w, 16);
         Notas.SetBounds(12, Height - 106, w, 58);
         Elegir.SetBounds(12, Height - 42, w, 30);
@@ -105,10 +131,12 @@ class TarjetaPropuesta : Panel
         using (Pen p = new Pen(elegida ? Tema.Acento : Tema.Borde, elegida ? 2 : 1)) e.Graphics.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
     }
 
-    public void Mostrar(Propuesta p) { Mostrar(p, 0); }
+    string completo = "";
 
-    // maximo: minutos que puede durar el video (0 = sin aviso).
-    public void Mostrar(Propuesta p, int maximo)
+    public void Mostrar(Propuesta p) { Mostrar(p, 0, null); }
+
+    // maximo: minutos que puede durar el video (0 = sin aviso); raras: lo que no sale en el material.
+    public void Mostrar(Propuesta p, int maximo, List<string> raras)
     {
         P = p;
         Titulo.Text = p.Id + " · " + p.Nombre;
@@ -121,7 +149,10 @@ class TarjetaPropuesta : Panel
         sb.Append("\nCold open: " + p.ColdOpen + "\nCierre: " + p.Cierre + "\n\n");
         foreach (string x in p.Escaleta) sb.Append("• " + x + "\n");
         sb.Append("\n" + p.PorQue);
-        Cuerpo.Text = sb.ToString();
+        if (raras != null && raras.Count > 0)
+            sb.Insert(0, "⚠ No salen en el material: " + String.Join(", ", raras.ToArray()) + " (Refinar lo corrige)\n");
+        completo = sb.ToString();
+        Cuerpo.Text = completo;
         Notas.Text = p.Notas ?? "";
     }
 }
@@ -385,6 +416,15 @@ class VentanaProduccion : VentanaBase
         return opc.Texto(duracion) + (txtIndicaciones.Text.Trim().Length > 0 ? txtIndicaciones.Text.Trim() + "\n" : "");
     }
 
+    // Lo que el editor dio (nombres del reparto, de la serie, indicaciones): no cuenta como inventado.
+    string Vocabulario()
+    {
+        string v = txtIndicaciones.Text + " " + txtNotas.Text;
+        if (serie != null) v += " " + serie.Nombre + " " + serie.Notas + " " + serie.Formato.Premisa + " " + serie.Musica.Reparto + " " + serie.NotaEpisodio(original);
+        foreach (TarjetaPropuesta t in tarjetas) v += " " + t.Notas.Text;
+        return v;
+    }
+
     static string Corto(string t, int n) { t = (t ?? "").Replace("\n", " "); return t.Length > n ? t.Substring(0, n - 1) + "…" : t; }
 
     string TipoPedido()
@@ -489,7 +529,7 @@ class VentanaProduccion : VentanaBase
         {
             bool con = hay && i < analisis.Propuestas.Count;   // (Visible da false mientras la ventana no se muestra)
             tarjetas[i].Visible = con;
-            if (con) tarjetas[i].Mostrar(analisis.Propuestas[i], opc.MinutosMax);
+            if (con) tarjetas[i].Mostrar(analisis.Propuestas[i], opc.MinutosMax, LogicaProduccion.NoEnMaterial(analisis.Propuestas[i], trans, Vocabulario()));
         }
         lblAnalisis.Text = !hay ? "Pulsa «Analizar y proponer»: Gemini lee todo el material con el contexto de la serie y propone tres formas de hacer el capítulo." :
             Corto(analisis.Resumen, 260) + "\n" + analisis.Momentos.Count + " momentos · ~" + Math.Round(analisis.MinutosUtiles) + " min útiles" +
@@ -500,7 +540,7 @@ class VentanaProduccion : VentanaBase
             (analisis.DobleRecomendado ? " · recomienda más de un video: " + Corto(analisis.DobleMotivo, 100) : "") +
             (analisis.Hilos.Count > 0 ? " · hilos: " + Corto(String.Join("; ", analisis.Hilos.ToArray()), 120) : "");
         btnFinal.Enabled = Elegida() != null;
-        if (hay && Elegida() == null) Estado("Elige una propuesta (puedes escribir notas en cualquiera) y pulsa «Armar propuesta final».", false);
+        if (hay && Elegida() == null) Estado("Elige una propuesta (clic en su texto para leerla completa; puedes escribir notas en cualquiera) y pulsa «Armar propuesta final».", false);
     }
 
     void Habilitar(bool si)
@@ -590,7 +630,8 @@ class VentanaProduccion : VentanaBase
         LeerNotas();
         if (analisis == null) return;
         bool hayNotas = txtNotas.Text.Trim().Length > 0 || txtIndicaciones.Text.Trim().Length > 0;
-        foreach (Propuesta p in analisis.Propuestas) if (p.Notas.Trim().Length > 0) hayNotas = true;
+        foreach (Propuesta p in analisis.Propuestas)
+            if (p.Notas.Trim().Length > 0 || LogicaProduccion.NoEnMaterial(p, trans, Vocabulario()).Count > 0) hayNotas = true;
         if (!hayNotas) { Estado("Escribe notas en las propuestas (o en «Otras notas») para refinarlas.", true); return; }
         string elegida = Elegida() != null ? Elegida().Id : "";
         string instr = LogicaProduccion.InstruccionesRefinar(formato, papel);

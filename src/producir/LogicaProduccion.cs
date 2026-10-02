@@ -209,7 +209,17 @@ public static class LogicaProduccion
     public const string Prioridad =
         "PRIORIDAD: las NOTAS, INDICACIONES y CAMBIOS del editor mandan. Si contradicen la plantilla, la estructura de referencia, " +
         "las reglas de ritmo o la propuesta, sigue lo que pide el editor (por ejemplo: sin opening, una intro más larga, otro orden, " +
-        "unir dos mitades con un eyecatch). Lo demás son guías, no obligaciones.\n";
+        "unir dos mitades con un eyecatch). Lo demás son guías, no obligaciones.\n" +
+        "FIDELIDAD: todo lo que propongas (títulos, lugares, carteles, escaleta, cold open, cierre, narración) tiene que PASAR en " +
+        "la TRANSCRIPCIÓN de este material. No inventes lugares, nombres ni hechos: ni del anime (Steel Ball Run, JoJo) ni de los " +
+        "capítulos posteriores (esos son solo contexto para no cortar lo que se retoma). El estilo JoJo es la forma, no el " +
+        "contenido. Si un título usa un lugar, que sea uno que se nombra o se ve en el material.\n";
+
+    // Las tres propuestas: el mismo capitulo visto de tres maneras.
+    public const string Variantes =
+        "LAS TRES PROPUESTAS cubren el MISMO material y los mismos momentos fuertes (el mismo arco de este capítulo, de principio " +
+        "a fin); lo que cambia es el ENFOQUE: cómo abre, qué se destaca, el orden, el ritmo, desde quién se cuenta y cómo cierra. " +
+        "Ninguna cuenta otra historia ni deja fuera los momentos clave.\n";
 
     // Lo que salio de analizar los 48 episodios de Stardust Crusaders y SBR
     // (docs/estructura-episodio-sc.md), resumido para Gemini.
@@ -304,7 +314,7 @@ public static class LogicaProduccion
         TipoCapitulo pedido = TiposCapitulo.Buscar(tipoPedido);
         return "Eres el director de " + Serie.QueEs(tipo) + " que se edita como una serie de TV estilo anime de JoJo's Bizarre " +
                "Adventure. Recibes TODO el material grabado de un capítulo (ya sin silencios) y el contexto de la serie. Analízalo y " +
-               "propón TRES formas distintas de hacer el capítulo.\n\n" + Prioridad + "\n" +
+               "propón TRES formas distintas de hacer el capítulo.\n\n" + Prioridad + Variantes + "\n" +
                "FORMATO: " + f.Nombre + ". " + FormatoSerie.Objetivo(f.Nombre) + "\n" +
                "PAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
                "DURACIÓN DE REFERENCIA: " + r.DuracionMin + "–" + r.DuracionMax + " min por video (el doble si es de doble duración).\n\n" +
@@ -444,10 +454,11 @@ public static class LogicaProduccion
         return "Eres el director de una serie de YouTube editada como un anime de JoJo. Ya propusiste tres formas de hacer un capítulo " +
                "y el editor dejó NOTAS. Rehaz las propuestas siguiéndolas:\n" +
                "- Una propuesta con notas se corrige según sus notas (manteniendo lo que no se pide cambiar).\n" +
-               "- Una propuesta sin notas se deja igual, salvo que las notas generales digan otra cosa.\n" +
+               "- Una propuesta sin notas se deja igual, salvo que las notas generales digan otra cosa o tenga cosas que NO SALEN EN EL " +
+               "MATERIAL (esas se corrigen siempre con lo que sí pasa).\n" +
                "- Si una nota pide combinar propuestas («la B con el cold open de la A»), hazlo en esa propuesta.\n" +
                "- Mantén los ids.\n- Si una nota pide otro tipo de capítulo («que sea un juego»), cambia su tipo_capitulo y su " +
-               "estructura a ese tipo.\n\n" + Prioridad + "\n" + TiposCapitulo.Catalogo() + "\n" +
+               "estructura a ese tipo.\n\n" + Prioridad + Variantes + "\n" + TiposCapitulo.Catalogo() + "\n" +
                "PAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" + Guia + "\n" +
                "PLANTILLA DE LA SERIE (punto de partida):\n" + Plantilla(f) + "\n" +
                "Responde SOLO con JSON:\n{" + FormatoPropuestas + "}";
@@ -459,7 +470,12 @@ public static class LogicaProduccion
         if (!String.IsNullOrEmpty(indicaciones)) sb.Append("INDICACIONES DEL EDITOR (mandan):\n" + indicaciones.Trim() + "\n\n");
         sb.Append("PROPUESTAS ACTUALES Y SUS NOTAS:\n");
         foreach (Propuesta p in a.Propuestas)
-            sb.Append(PropuestaTexto(p) + "  NOTAS DEL EDITOR: " + (p.Notas.Trim().Length > 0 ? p.Notas.Trim() : "(ninguna)") + "\n\n");
+        {
+            sb.Append(PropuestaTexto(p) + "  NOTAS DEL EDITOR: " + (p.Notas.Trim().Length > 0 ? p.Notas.Trim() : "(ninguna)") + "\n");
+            List<string> raras = NoEnMaterial(p, t, (indicaciones ?? "") + " " + (notasGenerales ?? "") + " " + p.Notas);
+            if (raras.Count > 0) sb.Append("  NO SALEN EN EL MATERIAL (corrígelo aunque no tenga notas): " + String.Join(", ", raras.ToArray()) + "\n");
+            sb.Append("\n");
+        }
         if (!String.IsNullOrEmpty(notasGenerales)) sb.Append("NOTAS GENERALES: " + notasGenerales.Trim() + "\n\n");
         sb.Append("ANÁLISIS: " + a.Resumen + "\nMomentos:\n");
         foreach (MomentoMaterial x in a.Momentos)
@@ -468,13 +484,71 @@ public static class LogicaProduccion
         return sb.ToString();
     }
 
+    // ---------------------------------------------- lo que no sale en el material
+
+    static readonly string[] Generales = { "etapa", "parte", "acto", "opening", "ending", "eyecatch", "intro", "introduccion", "titulo",
+        "continuara", "avance", "capitulo", "cold", "open", "regancho", "gancho", "cierre", "recap", "epilogo", "prologo", "episodio",
+        "jojo", "minecraft", "narrador", "narracion", "estreno", "especial", "doble", "duracion" };
+
+    static string Plano(string w)
+    {
+        string d = (w ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD);
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in d) if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) sb.Append(c);
+        return sb.ToString();
+    }
+
+    static void Vocabulario(Dictionary<string, bool> v, string texto)
+    {
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(Plano(texto), @"\p{L}+"))
+        {
+            string w = m.Value;
+            v[w] = true;
+            for (int n = 5; n < w.Length; n++) v[w.Substring(0, n)] = true;   // forajido / forajidos
+        }
+    }
+
+    // Nombres propios de la propuesta (palabras con mayuscula que no abren la
+    // frase) que no aparecen en el material ni en lo que dio el editor: lo mas
+    // probable es que Gemini los haya inventado o sacado del anime.
+    public static List<string> NoEnMaterial(Propuesta p, Transcripcion t, string extra)
+    {
+        Dictionary<string, bool> v = new Dictionary<string, bool>();
+        if (t != null)
+        {
+            foreach (Segmento x in t.Segmentos) Vocabulario(v, x.Texto);
+            foreach (Hablante h in t.Hablantes) Vocabulario(v, h.Nombre);
+        }
+        Vocabulario(v, extra);
+        foreach (string g in Generales) v[g] = true;
+        foreach (TipoCapitulo tc in TiposCapitulo.Todos) Vocabulario(v, tc.Nombre);
+        List<string> textos = new List<string>(p.Titulos);
+        textos.Add(p.Nombre); textos.Add(p.ColdOpen); textos.Add(p.Cierre);
+        textos.AddRange(p.Escaleta);
+        List<string> r = new List<string>();
+        foreach (string texto in textos)
+            foreach (string trozo in System.Text.RegularExpressions.Regex.Split(texto ?? "", @"[.:;!?¡¿«»""“”/·\-–—\[\]()]"))
+            {
+                System.Text.RegularExpressions.MatchCollection ms = System.Text.RegularExpressions.Regex.Matches(trozo, @"\p{L}+");
+                for (int i = 1; i < ms.Count; i++)   // la primera palabra del trozo va con mayuscula de todos modos
+                {
+                    string w = ms[i].Value;
+                    if (w.Length < 4 || !char.IsUpper(w[0])) continue;
+                    string pl = Plano(w);
+                    if (v.ContainsKey(pl) || (pl.Length > 5 && v.ContainsKey(pl.Substring(0, pl.Length - 1)))) continue;
+                    if (!r.Contains(w)) r.Add(w);
+                }
+            }
+        return r;
+    }
+
     // Completar: cuando Gemini devolvio menos de tres propuestas.
     public static string InstruccionesCompletar(FormatoSerie f, string papel)
     {
         return "Eres el director de una serie de YouTube editada como un anime de JoJo. Propusiste formas de hacer un capítulo pero " +
                "faltan propuestas: tiene que haber TRES. Devuelve las que ya hay SIN cambios (mismo id) y agrega las que faltan, " +
                "distintas de verdad (otro tipo de capítulo, otro inicio, otro foco, otro cierre), respetando lo que pide el " +
-               "editor.\n\n" + Prioridad + "\nPAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" +
+               "editor.\n\n" + Prioridad + Variantes + "\nPAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" +
                TiposCapitulo.Catalogo() + "\n" + Guia + "\nPLANTILLA DE LA SERIE (punto de partida):\n" + Plantilla(f) + "\n" +
                "Responde SOLO con JSON:\n{" + FormatoPropuestas + "}";
     }
@@ -583,7 +657,10 @@ public static class LogicaProduccion
         if (anterior != null && !String.IsNullOrEmpty(cambios)) notas.Append("- CAMBIOS PEDIDOS AHORA: " + cambios.Trim() + "\n");
         if (notas.Length > 0) sb.Append("LO QUE PIDE EL EDITOR (cumplir todo, manda sobre todo lo demás):\n" + notas + "\n");
 
-        sb.Append("PROPUESTA ELEGIDA:\n" + PropuestaTexto(elegida) + "\n");
+        sb.Append("PROPUESTA ELEGIDA:\n" + PropuestaTexto(elegida));
+        List<string> raras = NoEnMaterial(elegida, t, (indicaciones ?? "") + " " + (notasGenerales ?? "") + " " + elegida.Notas + " " + reparto);
+        if (raras.Count > 0) sb.Append("  NO SALEN EN EL MATERIAL (no los uses; cámbialos por lo que sí pasa): " + String.Join(", ", raras.ToArray()) + "\n");
+        sb.Append("\n");
         sb.Append("ANÁLISIS: " + a.Resumen + "\n");
         if (a.Hilos.Count > 0) sb.Append("Hilos: " + String.Join("; ", a.Hilos.ToArray()) + "\n");
         sb.Append("Momentos:\n");

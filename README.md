@@ -377,7 +377,14 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    - En el primer capítulo ya vienen marcados el inicio cinematográfico, las presentaciones y el
      contexto antes de cada escena, y el tipo «Estreno». En el 2 y el 3, el inicio cinematográfico.
 
-   Siempre hay **tres propuestas**: si Gemini devuelve menos, se piden las que faltan.
+   Siempre hay **tres propuestas**: si Gemini devuelve menos, se piden las que faltan. Las tres
+   cubren el **mismo material** y los mismos momentos fuertes; cambia el enfoque (cómo abre, qué
+   destaca, el orden, desde quién se cuenta, cómo cierra).
+
+   **Fidelidad.** Títulos, lugares y escaleta tienen que salir del material, no del anime ni de
+   capítulos posteriores. La tarjeta avisa con ⚠ de los nombres propios que no aparecen en la
+   transcripción (por ejemplo «Palma, Diablo»). **Refinar** los corrige aunque no escribas notas,
+   y la escaleta final tampoco los usa. Clic en el texto de una tarjeta para leerla completa.
 
    Cada tarjeta tiene su cuadro de **notas** («sin opening», «con el cold open de la A»).
    **Refinar propuestas** corrige las tres con tus notas sin volver a analizar todo, las veces
