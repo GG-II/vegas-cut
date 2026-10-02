@@ -579,28 +579,55 @@ public class FormatoSerie
 // no parezca hecha en fabrica.
 public static class PapelEpisodio
 {
-    public static readonly string[] Papeles = { "Primer capítulo", "Normal", "Especial", "Final de temporada", "Final de la serie" };
+    // Salen de analizar los primeros capitulos, los finales y los capitulos
+    // clave de todas las partes del anime de JoJo (docs/estructura-episodio-sc.md).
+    public static readonly string[] Papeles = { "Primer capítulo", "Normal", "Inicio de arco", "Capítulo clave", "Capítulo de respiro",
+                                                "Especial", "Penúltimo (clímax)", "Final de temporada", "Final de la serie" };
 
     public static string Instrucciones(string papel)
     {
         switch (papel)
         {
             case "Primer capítulo":
-                return "Es el PRIMER capítulo: presenta la premisa, a cada persona (quién es, un rasgo) y las reglas o el objetivo " +
-                       "antes del minuto 1; el espectador no sabe nada. Promete lo que va a venir en la serie.";
+                return "Es el PRIMER capítulo. En todas las partes de JoJo el primer episodio NO abre con el opening: empieza mostrando " +
+                       "el mundo con calma (la ciudad, la radio del pueblo, el barco con el ataúd), presenta al protagonista con una " +
+                       "escena que muestra cómo es, tiene una escena de «mentor» que explica las reglas, revela el poder hacia la mitad y " +
+                       "cierra presentando la amenaza o el rival. Aquí: presenta la premisa y a cada jugador (quién es, un rasgo) sin prisa " +
+                       "(la intro puede durar 2–4 min), explica de qué va la serie y termina prometiendo lo que viene. Ritmo pausado al " +
+                       "inicio; el opening puede ir después de la intro o no ir.";
+            case "Inicio de arco":
+                return "Empieza un ARCO nuevo (otra etapa, otro rival, otro objetivo). Como en Golden Wind 20–21: arranque tranquilo " +
+                       "con el grupo, un giro o traición hacia el 40 %, el re-gancho o eyecatch, un flashback o explicación de por qué " +
+                       "importa, y cierre con una decisión del grupo o el nuevo rival en escena.";
+            case "Capítulo clave":
+                return "Es un capítulo CLAVE (una muerte, una revelación grande, la llegada al destino). En JoJo estos capítulos van " +
+                       "más LENTOS que la media: menos diálogo, silencios largos, temas de música largos y más voz interna. Dale aire " +
+                       "al momento (respiros largos, ritmo lento alrededor) y ponlo hacia el final como cierre (la muerte de Avdol e " +
+                       "Iggy está al 90 %) o a la mitad con sus consecuencias después.";
+            case "Capítulo de respiro":
+                return "Es un capítulo de RESPIRO (humor, vida diaria, exploración tranquila), como los de Diamond is Unbreakable: " +
+                       "sin pelea al inicio, el foco en los personajes y sus manías, un pequeño problema que crece y un final feliz o " +
+                       "cómico. Ritmo ligero, música de comedia y calma.";
             case "Especial":
                 return "Es un capítulo ESPECIAL: puede romper el formato (otra estructura, otro ritmo, otro tipo de inicio). " +
                        "Que se note desde el inicio qué lo hace distinto; no repitas la fórmula de los capítulos normales.";
+            case "Penúltimo (clímax)":
+                return "Es el PENÚLTIMO capítulo: abre con el recap del cliffhanger anterior, la tensión está al máximo de principio a " +
+                       "fin, puede caer alguien importante y termina en el PEOR momento («DIO está totalmente sincronizado»), sin remate " +
+                       "cómico.";
             case "Final de temporada":
-                return "Es el FINAL DE TEMPORADA: retoma y paga los hilos abiertos de la temporada, sube la tensión hacia el " +
-                       "clímax, deja tiempo a un cierre emotivo o épico y termina con un gancho para la próxima temporada.";
+                return "Es el FINAL DE TEMPORADA. En los finales de JoJo el clímax se resuelve entre el 40 y el 75 % y después viene " +
+                       "un EPÍLOGO largo (25–50 %): despedidas, la broma de siempre del grupo, «la vida sigue», con música tranquila y " +
+                       "el ending sonando sobre el epílogo; a veces sin opening. Paga los hilos abiertos de la temporada y termina con " +
+                       "un nuevo estado de cosas y un gancho pequeño para la próxima.";
             case "Final de la serie":
-                return "Es el FINAL DE LA SERIE: cierra todos los hilos importantes, recuerda momentos de capítulos anteriores, " +
-                       "dale peso al clímax y un cierre con despedida; no anuncies un próximo episodio.";
+                return "Es el FINAL DE LA SERIE. Como los finales de JoJo: el clímax se resuelve entre el 40 y el 75 % y queda un " +
+                       "EPÍLOGO largo con despedidas, recuerdos de capítulos anteriores, la broma de siempre del grupo y el ending " +
+                       "sobre el epílogo; puede no tener opening. Cierra todos los hilos; no anuncies un próximo episodio.";
             default:
-                return "Es un capítulo intermedio: recuerda en pocos segundos dónde quedó la historia, avanza con algo nuevo " +
-                       "(un logro, un problema, alguien nuevo) y termina con un pendiente para el siguiente. Varía el inicio y " +
-                       "los recursos respecto a los capítulos anteriores.";
+                return "Es un capítulo intermedio: recuerda en pocos segundos dónde quedó la historia (si el anterior terminó en " +
+                       "cliffhanger, el cold open es su recap), avanza con algo nuevo (un logro, un problema, alguien nuevo) y termina " +
+                       "con un pendiente para el siguiente. Varía el inicio y los recursos respecto a los capítulos anteriores.";
         }
     }
 
@@ -613,15 +640,27 @@ public static class PapelEpisodio
             case "Primer capítulo":
                 x.ZonaCriticaSeg = Math.Max(x.ZonaCriticaSeg, 180);
                 x.NarradorCadaSeg = Math.Max(30, (int)(x.NarradorCadaSeg * 0.8));
+                x.DuracionMax = Math.Round(x.DuracionMax * 1.3);      // SBR estreno con un episodio doble
+                break;
+            case "Capítulo clave":
+                x.CortesMin = Math.Max(4, (int)(x.CortesMin * 0.75));
+                x.CortesMax = Math.Max(x.CortesMin + 2, (int)(x.CortesMax * 0.8));
+                x.MusicaCadaSeg = (int)(x.MusicaCadaSeg * 2);       // temas largos (E46 de SC: mediana de 2 min)
+                break;
+            case "Capítulo de respiro":
+                x.MusicaCadaSeg = (int)(x.MusicaCadaSeg * 1.2);
                 break;
             case "Especial":
                 x.DuracionMin = Math.Max(1, Math.Round(x.DuracionMin * 0.7));
                 x.DuracionMax = Math.Round(x.DuracionMax * 1.4);
                 break;
+            case "Penúltimo (clímax)":
+                x.CortesMax = (int)(x.CortesMax * 1.15);
+                break;
             case "Final de temporada":
             case "Final de la serie":
                 x.DuracionMax = Math.Round(x.DuracionMax * 1.4);
-                x.MusicaCadaSeg = (int)(x.MusicaCadaSeg * 1.3);   // temas mas largos en el climax
+                x.MusicaCadaSeg = (int)(x.MusicaCadaSeg * 1.3);   // temas mas largos en el climax y el epilogo
                 break;
         }
         return x;

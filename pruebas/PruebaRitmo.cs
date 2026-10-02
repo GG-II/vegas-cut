@@ -144,6 +144,11 @@ class PruebaRitmo
             Verificar(l.Formato.Nombre == "Aventura por episodios" && l.Formato.Avance == "Parte N" && l.Formato.Reglas.PPM == 190 &&
                       l.Formato.Premisa.StartsWith("Recorrer"), "Formato: se guarda en la serie y se lee igual");
             Verificar(l.Papel(e3) == "Final de temporada" && l.NotaEpisodio(e2).Contains("caballos"), "Papel y nota de cada capítulo se guardan");
+            ReglasRitmo clave = PapelEpisodio.Reglas(l.Formato.Reglas, "Capítulo clave");
+            Verificar(PapelEpisodio.Papeles.Length == 9 && clave.CortesMin < l.Formato.Reglas.CortesMin && clave.MusicaCadaSeg > l.Formato.Reglas.MusicaCadaSeg &&
+                      PapelEpisodio.Instrucciones("Primer capítulo").Contains("NO abre con el opening") &&
+                      PapelEpisodio.Instrucciones("Final de temporada").Contains("EPÍLOGO"),
+                      "Papeles del anime: primer capítulo sin opening, capítulo clave más lento, finales con epílogo");
             ReglasRitmo fin = PapelEpisodio.Reglas(l.Formato.Reglas, "Final de temporada");
             Verificar(fin.DuracionMax > l.Formato.Reglas.DuracionMax, "Final de temporada: puede durar más (" + fin.DuracionMax + " min)");
             string ctx = Serie.Contexto(l, l.Capitulos(e2));

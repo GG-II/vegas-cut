@@ -72,3 +72,19 @@ Si una etapa da para mucho, conviene hacerla en **dos partes**, como SC: la prim
 crisis y la segunda abre con el recap.
 
 La música de cada bloque, con tus archivos, está en `docs/musica-sc-gw.md`.
+
+## Según el papel del capítulo (todas las partes)
+
+Revisé los primeros capítulos, los finales, los penúltimos y algunos capítulos clave de Phantom
+Blood/Battle Tendency, SC, DU, GW, SO y SBR (escenas de jojowiki y medidas de los subtítulos). Cada
+tipo se arma distinto; por eso cada capítulo de la serie tiene un **papel** (Series → combo junto a
+«Quitar»), que cambia lo que se le pide a Gemini y las reglas de ritmo.
+
+| Papel | Cómo lo hace JoJo | Ejemplos |
+|---|---|---|
+| **Primer capítulo** | **Ninguno abre con el opening.** Empieza mostrando el mundo con calma, presenta al protagonista con una escena que muestra cómo es, una escena de «mentor» explica las reglas, el poder se revela a la mitad y cierra con la amenaza. Mucho diálogo (18 líneas/min), más narrador (hasta 15 %) y casi sin silencios largos. SBR estrena con un episodio doble. | SC 1 (barco con el ataúd → Jotaro en la celda → Star Platinum al 54 % → DIO al final), DU 1 («Morioh-cho RADIO» → Josuke y su pelo → Jotaro explica los stands → «algo acecha en el pueblo»), GW 1 (la ciudad → Giorno roba dinero → Gold Experience → Bucciarati) |
+| **Inicio de arco** | Arranque tranquilo con el grupo, giro o traición hacia el 40 %, eyecatch, flashback que explica por qué importa, cierre con una decisión del grupo o el nuevo rival. | GW 20–21 (la traición del jefe, el pasado de Bucciarati, el equipo decide) |
+| **Capítulo clave** (muerte, revelación, llegada) | **Más lento:** 12–14 líneas/min, 4–5 silencios de más de 20 s, temas largos (mediana de 2 min en SC 46), voz interna hasta el 19 %. La muerte al 90 % como cierre, o a la mitad con sus consecuencias. | SC 10 (Avdol), SC 43 (Iggy), SC 46 (Kakyoin), SC 24 (por fin Egipto, con recap del viaje) |
+| **Capítulo de respiro** | Sin pelea al inicio, humor y manías de los personajes, un problema pequeño que crece, final feliz. | DU 20 (el salón de Aya Tsuji), DU 27 (Mikitaka y los dados) |
+| **Penúltimo** | Recap del cliffhanger, tensión máxima todo el capítulo, puede caer alguien importante, termina en el peor momento y sin remate. | SC 47 («DIO está totalmente sincronizado»), DU 38, SO 37 (muere Jotaro) |
+| **Final** | El clímax se resuelve entre el 40 y el 75 % y queda un **epílogo largo** (25–50 %): despedidas, la broma de siempre, «la vida sigue», el ending sobre el epílogo; a veces sin opening. Termina con un nuevo estado de cosas. | SC 48 (DIO cae al 60 %; bromas de Joseph y vuelta a casa), DU 39 (Kira cae al 40 %; despedida de Reimi), GW 39 (Giorno nuevo jefe), PB/BT 26 (partida a Tokio) |

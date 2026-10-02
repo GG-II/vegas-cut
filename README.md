@@ -267,7 +267,9 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
     tus **preferencias** («para Gerber algo de Golden Wind»). **Cambiar…** pone otro a mano.
     Quedan guardados en la serie para todos los capítulos.
 - **Papel de cada capítulo**: elige un capítulo y su papel: *Primer capítulo*, *Normal*,
-  *Especial*, *Final de temporada* o *Final de la serie*. El primero de la lista es «Primer
+  *Inicio de arco*, *Capítulo clave*, *Capítulo de respiro*, *Especial*, *Penúltimo (clímax)*,
+  *Final de temporada* o *Final de la serie*. Cada uno sale de cómo arma el anime de JoJo esos
+  capítulos ([análisis](docs/estructura-episodio-sc.md#según-el-papel-del-capítulo-todas-las-partes)). El primero de la lista es «Primer
   capítulo» si no eliges otro. **Nota…** guarda qué tiene de distinto ese capítulo («carrera de
   caballos completa», «capítulo sin Jason»). El papel cambia lo que se le pide a Gemini (el
   primero presenta a todos y la premisa, un especial puede romper la fórmula, un final paga los
