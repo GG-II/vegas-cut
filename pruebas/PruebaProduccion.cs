@@ -122,6 +122,32 @@ class PruebaProduccion
                   TiposCapitulo.Opciones()[0] == TiposCapitulo.Detectar && TiposCapitulo.Normalizar("Misterio o investigación") == "misterio",
                   "Escaleta final: sigue el tipo de la propuesta elegida");
 
+        // ------------------------------------------------ no repetir material
+        PlanFinal rep = LogicaProduccion.LeerFinal(@"{""partes"": [{""titulo"": ""X"", ""estructura"": [{""bloque"": ""cold_open"", ""tipo"": ""contenido""},
+            {""bloque"": ""acto_a"", ""tipo"": ""contenido""}, {""bloque"": ""avance"", ""tipo"": ""contenido""}],
+            ""bloques"": [{""bloque"": ""acto_a"", ""clips"": [{""inicio"": 0, ""fin"": 60}, {""inicio"": 100, ""fin"": 130, ""respiro"": 2}, {""inicio"": 200, ""fin"": 201.5}]},
+                          {""bloque"": ""cold_open"", ""clips"": [{""inicio"": 10, ""fin"": 40}, {""inicio"": 195, ""fin"": 205}]},
+                          {""bloque"": ""avance"", ""clips"": [{""inicio"": 110, ""fin"": 120}]}]}]}", 600, 0, 195);
+        List<ItemFinal> rc = rep.Partes[0].Items.FindAll(delegate (ItemFinal i) { return i.Tipo == "clip"; });
+        Verificar(rc.Count == 6 && rc[0].Bloque == "cold_open" && rc[2].Inicio == 0 && rc[2].Fin == 10 && rc[3].Inicio == 40 && rc[3].Fin == 60 &&
+                  rc[4].Inicio == 100 && rc[4].Respiro == 2 && rc[5].Bloque == "avance" && Math.Abs(rep.Repetido - 31.5) < 0.01,
+                  "Escaleta: lo del cold open no se repite en los actos (se recorta; lo que queda corto se quita); el avance sí repite");
+
+        // ------------------------------------------------ opciones, estreno, tres propuestas
+        OpcionesCapitulo opx = OpcionesCapitulo.PorDefecto("Primer capítulo", 1, PapelEpisodio.Reglas(f.Reglas, "Primer capítulo"));
+        opx.Estado["op"] = 0; opx.Estado["doble"] = 1; opx.MinutosMin = 30; opx.MinutosMax = 40;
+        string ot = opx.Texto(5622);
+        OpcionesCapitulo op2 = OpcionesCapitulo.Leer(Json.Leer(Json.Escribir(opx.Escribir())));
+        Verificar(ot.Contains("INICIO CINEMATOGRÁFICO") && ot.Contains("PRESENTAR A CADA PERSONAJE") && ot.Contains("SIN opening") &&
+                  ot.Contains("SIN recap") && ot.Contains("DOBLE DURACIÓN") && ot.Contains("entre 30 y 40 min") && ot.Contains("El material dura 94 min") &&
+                  !ot.Contains("Ending") && op2.Valor("op") == 0 && op2.Valor("cine") == 1 && op2.Valor("ed") == -1 && op2.MinutosMax == 40,
+                  "Opciones: el primer capítulo empieza cinematográfico y presenta a cada uno; las casillas en sí/no se piden, las demás decide la IA");
+        AnalisisCapitulo uno = LogicaProduccion.LeerAnalisis(@"{""resumen"": ""x"", ""minutos_utiles"": 5622, ""propuestas"": [{""id"": ""A"", ""nombre"": ""Sola"", ""minutos"": 93}]}", 5622);
+        Verificar(Math.Abs(uno.MinutosUtiles - 93.7) < 0.1 && uno.Propuestas.Count == 1 &&
+                  LogicaProduccion.InstruccionesCompletar(f, "Primer capítulo").Contains("TRES") && ia.Contains("SIEMPRE TRES") &&
+                  TiposCapitulo.Buscar("estreno") != null && TiposCapitulo.Instrucciones("estreno").Contains("CINEMATOGRÁFICO"),
+                  "Tres propuestas siempre (se piden las que faltan), minutos útiles en segundos se corrigen, tipo Estreno");
+
         a.Propuestas[1].Notas = "que sea un solo video de doble duración, sin opening en la segunda mitad, unido por eyecatch";
         string mr = LogicaProduccion.MensajeRefinar(a, "más intro", "es el primer capítulo", null);
         Verificar(mr.Contains("NOTAS DEL EDITOR: que sea un solo video") && mr.Contains("NOTAS DEL EDITOR: (ninguna)") && mr.Contains("más intro") &&
@@ -268,6 +294,7 @@ class PruebaProduccion
             Track mus = pr.Tracks.Find(delegate (Track x) { return x.Name == ArmarCapitulo.PistaMusica; });
             Verificar(mus != null && mus.Events.Count == 2 && r.Temas == 2 && mus.Envelopes.Count == 0,
                       "Música: un tema por entrada (también el del personaje) y sin balancear");
+            Verificar(Math.Abs(((AudioTrack)mus).Volume - 0.0891) < 0.001, "Música: la pista queda a -21 dB");
             Track narrP = pr.Tracks.Find(delegate (Track x) { return x.Name == RitmoVegas.PistaNarracion; });
             Verificar(narrP != null && narrP.Events.Count == 3 && r.Narraciones == 3, "Narración: las frases con la voz provisional");
             Track ph = pr.Tracks.Find(delegate (Track x) { return x.Name == AplicarPlan.PistaPlaceholders; });

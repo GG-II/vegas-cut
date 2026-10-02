@@ -1326,7 +1326,9 @@ public static class PapelEpisodio
                        "escena que muestra c\u00f3mo es, tiene una escena de \u00abmentor\u00bb que explica las reglas, revela el poder hacia la mitad y " +
                        "cierra presentando la amenaza o el rival. Aqu\u00ed: presenta la premisa y a cada jugador (qui\u00e9n es, un rasgo) sin prisa " +
                        "(la intro puede durar 2\u20134 min), explica de qu\u00e9 va la serie y termina prometiendo lo que viene. Ritmo pausado al " +
-                       "inicio; el opening puede ir despu\u00e9s de la intro o no ir.";
+                       "inicio; el opening puede ir despu\u00e9s de la intro o no ir. Es el cap\u00edtulo m\u00e1s importante: el INICIO es CINEMATOGR\u00c1FICO " +
+                       "(planos del mundo sin di\u00e1logo, m\u00fasica, el t\u00edtulo de la serie, narraci\u00f3n que sit\u00faa) y nunca se lanza al " +
+                       "espectador a una escena sin explicar antes de d\u00f3nde viene.";
             case "Inicio de arco":
                 return "Empieza un ARCO nuevo (otra etapa, otro rival, otro objetivo). Como en Golden Wind 20\u201321: arranque tranquilo " +
                        "con el grupo, un giro o traici\u00f3n hacia el 40 %, el re-gancho o eyecatch, un flashback o explicaci\u00f3n de por qu\u00e9 " +
@@ -1556,6 +1558,9 @@ public static class Serie
             {
                 if (c.Relacion != 0) continue;
                 sb.Append("Este cap\u00edtulo (" + c.Posicion + " de " + caps.Count + "): " + c.Papel + ". " + PapelEpisodio.Instrucciones(c.Papel) + "\n");
+                if (c.Posicion >= 2 && c.Posicion <= 3)
+                    sb.Append("Es de los primeros cap\u00edtulos: el inicio todav\u00eda es especial y cuidado (m\u00e1s cinematogr\u00e1fico), recuerda " +
+                              "qui\u00e9n es qui\u00e9n y sigue presentando el mundo.\n");
                 string nota = serie.NotaEpisodio(c.Veg);
                 if (nota.Length > 0) sb.Append("Nota del editor para este cap\u00edtulo: " + nota + "\n");
                 sb.Append(Anterior(serie, caps, c));
@@ -1690,6 +1695,15 @@ public static class TiposCapitulo
     public const string Detectar = "Que lo detecte la IA";
 
     public static readonly TipoCapitulo[] Todos = {
+        new TipoCapitulo("estreno", "Estreno (primer cap\u00edtulo)",
+            "inicio CINEMATOGR\u00c1FICO y sin opening al principio: el mundo con calma (planos del lugar sin di\u00e1logo, m\u00fasica, el t\u00edtulo " +
+            "de la serie, la voz del narrador o la radio del pueblo) \u2192 el protagonista en una escena que muestra c\u00f3mo es, sin " +
+            "explicarlo con palabras \u2192 cada personaje con su momento y su tarjeta de presentaci\u00f3n \u2192 el \u00abmentor\u00bb explica las reglas " +
+            "del mundo \u2192 la primera prueba o el poder (~50 %) \u2192 la amenaza o el reto grande se asoma al final. El opening va " +
+            "despu\u00e9s de la intro o al final. Nunca lanza al espectador a una escena sin contexto.",
+            "es el cap\u00edtulo 1 o el material presenta el mundo, a los personajes y las reglas.",
+            "la llegada al mundo, cada jugador presentado, las reglas del modpack o de la carrera, la primera prueba y el peligro que viene.",
+            "PB 1 Dio the Invader, BT 10 JoJo of New York, SC 1, DU 1 (\u00abMorioh-cho RADIO\u00bb), GW 1 (la ciudad), SO 1, SBR 1 (doble duraci\u00f3n, 47 min)."),
         new TipoCapitulo("rival", "Rival de la semana",
             "llegada o viaje con humor (0\u201315 %) \u2192 algo raro, sin explicarlo (~13 %) \u2192 se revela qu\u00e9 es (~35 %) \u2192 crisis (~45 %) \u2192 " +
             "giro: el truco o la ayuda (~58 %) \u2192 derrota (~77 %) \u2192 remate c\u00f3mico \u2192 gancho al siguiente.",
@@ -2735,8 +2749,12 @@ public class TemaAsignado
 public class MusicaSerie
 {
     public string Carpeta = "", Reparto = "";
+    public double VolumenDb = -21;   // nivel de la pista de musica al producir (el balance fino va en el paso final)
     public TemaAsignado Principal;
     public Dictionary<string, TemaAsignado> Personajes = new Dictionary<string, TemaAsignado>();
+
+    // Ganancia lineal de la pista (1 = 0 dB).
+    public static float Lineal(double db) { return (float)Math.Pow(10, db / 20.0); }
 
     // Nombres del reparto: "Nombre: como es" o "Nombre - como es", uno por linea.
     public List<string> Nombres()
@@ -2756,7 +2774,7 @@ public class MusicaSerie
     public Dictionary<string, object> Escribir()
     {
         Dictionary<string, object> d = new Dictionary<string, object>();
-        d["carpeta"] = Carpeta; d["reparto"] = Reparto;
+        d["carpeta"] = Carpeta; d["reparto"] = Reparto; d["volumen_db"] = VolumenDb;
         if (Principal != null) d["principal"] = Principal.Escribir();
         Dictionary<string, object> p = new Dictionary<string, object>();
         foreach (KeyValuePair<string, TemaAsignado> kv in Personajes) p[kv.Key] = kv.Value.Escribir();
@@ -2769,6 +2787,7 @@ public class MusicaSerie
         MusicaSerie m = new MusicaSerie();
         if (o == null) return m;
         m.Carpeta = Json.Texto(o, "carpeta"); m.Reparto = Json.Texto(o, "reparto");
+        m.VolumenDb = Math.Max(-60, Math.Min(0, Json.Numero(o, "volumen_db", -21)));
         m.Principal = TemaAsignado.Leer(Json.Valor(o, "principal"));
         Dictionary<string, object> p = Json.Obj(o, "personajes");
         if (p != null)

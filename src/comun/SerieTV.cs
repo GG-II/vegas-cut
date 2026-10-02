@@ -158,8 +158,12 @@ public class TemaAsignado
 public class MusicaSerie
 {
     public string Carpeta = "", Reparto = "";
+    public double VolumenDb = -21;   // nivel de la pista de musica al producir (el balance fino va en el paso final)
     public TemaAsignado Principal;
     public Dictionary<string, TemaAsignado> Personajes = new Dictionary<string, TemaAsignado>();
+
+    // Ganancia lineal de la pista (1 = 0 dB).
+    public static float Lineal(double db) { return (float)Math.Pow(10, db / 20.0); }
 
     // Nombres del reparto: "Nombre: como es" o "Nombre - como es", uno por linea.
     public List<string> Nombres()
@@ -179,7 +183,7 @@ public class MusicaSerie
     public Dictionary<string, object> Escribir()
     {
         Dictionary<string, object> d = new Dictionary<string, object>();
-        d["carpeta"] = Carpeta; d["reparto"] = Reparto;
+        d["carpeta"] = Carpeta; d["reparto"] = Reparto; d["volumen_db"] = VolumenDb;
         if (Principal != null) d["principal"] = Principal.Escribir();
         Dictionary<string, object> p = new Dictionary<string, object>();
         foreach (KeyValuePair<string, TemaAsignado> kv in Personajes) p[kv.Key] = kv.Value.Escribir();
@@ -192,6 +196,7 @@ public class MusicaSerie
         MusicaSerie m = new MusicaSerie();
         if (o == null) return m;
         m.Carpeta = Json.Texto(o, "carpeta"); m.Reparto = Json.Texto(o, "reparto");
+        m.VolumenDb = Math.Max(-60, Math.Min(0, Json.Numero(o, "volumen_db", -21)));
         m.Principal = TemaAsignado.Leer(Json.Valor(o, "principal"));
         Dictionary<string, object> p = Json.Obj(o, "personajes");
         if (p != null)

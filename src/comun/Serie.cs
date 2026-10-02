@@ -606,7 +606,9 @@ public static class PapelEpisodio
                        "escena que muestra cómo es, tiene una escena de «mentor» que explica las reglas, revela el poder hacia la mitad y " +
                        "cierra presentando la amenaza o el rival. Aquí: presenta la premisa y a cada jugador (quién es, un rasgo) sin prisa " +
                        "(la intro puede durar 2–4 min), explica de qué va la serie y termina prometiendo lo que viene. Ritmo pausado al " +
-                       "inicio; el opening puede ir después de la intro o no ir.";
+                       "inicio; el opening puede ir después de la intro o no ir. Es el capítulo más importante: el INICIO es CINEMATOGRÁFICO " +
+                       "(planos del mundo sin diálogo, música, el título de la serie, narración que sitúa) y nunca se lanza al " +
+                       "espectador a una escena sin explicar antes de dónde viene.";
             case "Inicio de arco":
                 return "Empieza un ARCO nuevo (otra etapa, otro rival, otro objetivo). Como en Golden Wind 20–21: arranque tranquilo " +
                        "con el grupo, un giro o traición hacia el 40 %, el re-gancho o eyecatch, un flashback o explicación de por qué " +
@@ -836,6 +838,9 @@ public static class Serie
             {
                 if (c.Relacion != 0) continue;
                 sb.Append("Este capítulo (" + c.Posicion + " de " + caps.Count + "): " + c.Papel + ". " + PapelEpisodio.Instrucciones(c.Papel) + "\n");
+                if (c.Posicion >= 2 && c.Posicion <= 3)
+                    sb.Append("Es de los primeros capítulos: el inicio todavía es especial y cuidado (más cinematográfico), recuerda " +
+                              "quién es quién y sigue presentando el mundo.\n");
                 string nota = serie.NotaEpisodio(c.Veg);
                 if (nota.Length > 0) sb.Append("Nota del editor para este capítulo: " + nota + "\n");
                 sb.Append(Anterior(serie, caps, c));

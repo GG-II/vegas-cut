@@ -224,7 +224,7 @@ public static class ArmarCapitulo
                 if (i.Tipo != "texto" || !i.Elegido || i.Clase == "titulo" || i.Clase == "stats" || i.Clase == "continuara") continue;
                 double en = Ubicar(tramos, k, i.Inicio);
                 if (double.IsNaN(en)) { r.SinLugar++; continue; }
-                try { Texto(vegas, estiloTexto, PistaTextos, en, 3, i.Texto); r.Textos++; }
+                try { Texto(vegas, estiloTexto, PistaTextos, en, i.Clase == "presentacion" ? 4 : 3, i.Texto); r.Textos++; }
                 catch (Exception ex) { r.Avisos.Add("Texto: " + ex.Message); }
             }
 
@@ -278,7 +278,9 @@ public static class ArmarCapitulo
                     Media m = new Media(temas[j].Value);
                     MediaStream s = m.Streams.GetItemByMediaType(MediaType.Audio, 0);
                     double largo = Math.Min(b - a, S(m.Length) > 1 ? S(m.Length) : b - a);
-                    AudioEvent e = Audio(p, PistaMusica).AddAudioEvent(TC(a), TC(largo));
+                    AudioTrack pm = Audio(p, PistaMusica);
+                    pm.Volume = MusicaSerie.Lineal(musicaSerie != null ? musicaSerie.VolumenDb : -21);
+                    AudioEvent e = pm.AddAudioEvent(TC(a), TC(largo));
                     e.AddTake(s);
                     e.FadeIn.Length = TC(Math.Min(0.8, largo / 4));
                     e.FadeOut.Length = TC(Math.Min(1.5, largo / 4));

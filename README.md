@@ -357,7 +357,7 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
 
    **Tipo de capítulo.** JoJo no arma todos los episodios igual: hay juegos y apuestas, misterios,
    persecuciones, capítulos de un personaje, del lado del villano, con el grupo separado,
-   enfrentamientos en varias partes, despedidas y más (22 tipos, en `docs/tipos-de-capitulo.md`).
+   enfrentamientos en varias partes, despedidas, el estreno y más (23 tipos, en `docs/tipos-de-capitulo.md`).
    Gemini detecta de qué tipo es este capítulo. Para eso mira tus indicaciones y la nota del
    capítulo, el material, **qué número de capítulo es**, **cómo cerró el anterior** y qué tipos
    se usaron hace poco, para no repetir. Las propuestas pueden ser de tipos distintos.
@@ -366,6 +366,18 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    - Si el material no encaja con el papel del capítulo (por ejemplo, alguien muere y estaba como
      «Normal»), la ventana sugiere cambiarlo.
    - Al producir, la serie guarda el tipo, el título y el cierre del capítulo para el siguiente.
+
+   **Opciones.** Cada casilla tiene tres estados (clic para cambiar): ◌ que decida la IA, ✔ sí, ✖ no.
+   Lo que marcas con ✔ o ✖ es obligatorio para Gemini.
+   - Casillas: inicio cinematográfico, presentar a cada personaje (con su tarjeta), contexto antes de
+     cada escena, solo charla del juego, cold open, recap del anterior, opening, eyecatch,
+     «continuará», ending, avance, narración, carteles, stats y doble duración.
+   - Al lado van la **duración del video terminado** y el **volumen de la música**. Las propuestas
+     se ajustan a esa duración, nunca al largo del material, y avisan con ⚠ si se pasan.
+   - En el primer capítulo ya vienen marcados el inicio cinematográfico, las presentaciones y el
+     contexto antes de cada escena, y el tipo «Estreno». En el 2 y el 3, el inicio cinematográfico.
+
+   Siempre hay **tres propuestas**: si Gemini devuelve menos, se piden las que faltan.
 
    Cada tarjeta tiene su cuadro de **notas** («sin opening», «con el cold open de la A»).
    **Refinar propuestas** corrige las tres con tus notas sin volver a analizar todo, las veces
@@ -377,7 +389,8 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
 
    ![Producir capítulo: propuesta final](docs/img/producir-final.png)
 
-   - **clips** del material en el orden en que se verán;
+   - **clips** del material en el orden en que se verán. Ningún tramo se repite: lo que ya salió
+     en el cold open se recorta de los actos (solo el avance y el recap pueden repetir);
    - **textos**: título «Etapa N · nombre», carteles de lugar y tiempo, ranking, tarjeta de
      stats del rival para el re-gancho y «continuará»;
    - **música** de tu biblioteca por escena (sin repetir dentro del capítulo), con el tema del
@@ -399,7 +412,8 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
      había quitado;
    - el **kit** de la serie, o placeholders con la duración de cada bloque;
    - el título y los carteles con el estilo de texto del proyecto;
-   - la **música colocada sin balancear** (eso va en *PasoFinal*);
+   - la **música colocada sin balancear** (eso va en *PasoFinal*), con la pista a −21 dB (o lo que
+     elijas en la ventana);
    - la narración provisional con la voz de Windows, en el hueco libre más cercano a su momento;
      si no cabe sin pisar a los jugadores, queda solo en el guion y avisa;
    - los placeholders de recursos (si al abrir tenías seleccionada una imagen editada, la

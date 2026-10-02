@@ -5,6 +5,21 @@ y el inicio de SBR) en las listas de música de jojowiki, que describen cada esc
 **papel** del capítulo en la temporada (primero, clave, penúltimo, final…; ver
 `estructura-episodio-sc.md`), cada episodio está armado con una **fórmula** distinta. Son estas:
 
+## Estreno: primer capítulo (`estreno`)
+
+- **Cómo lo arma JoJo:** inicio CINEMATOGRÁFICO y sin opening al principio:
+  1. el mundo con calma: planos del lugar sin diálogo, música, el título de la serie, la voz del narrador o la radio del pueblo;
+  2. el protagonista en una escena que muestra cómo es, sin explicarlo con palabras;
+  3. cada personaje con su momento y su tarjeta de presentación;
+  4. el «mentor» explica las reglas del mundo;
+  5. la primera prueba o el poder (~50 %);
+  6. al final se asoma la amenaza o el reto grande.
+
+  El opening va después de la intro o al final. Nunca lanza al espectador a una escena sin contexto.
+- **Se nota en el material:** es el capítulo 1, o el material presenta el mundo, a los personajes y las reglas.
+- **En una serie de Minecraft:** la llegada al mundo, cada jugador presentado, las reglas del modpack o de la carrera, la primera prueba y el peligro que viene.
+- **Ejemplos:** PB 1 Dio the Invader, BT 10 JoJo of New York, SC 1, DU 1 («Morioh-cho RADIO»), GW 1 (la ciudad), SO 1, SBR 1 (doble duración, 47 min).
+
 ## Rival de la semana (`rival`)
 
 - **Cómo lo arma JoJo:** llegada o viaje con humor (0–15 %) → algo raro, sin explicarlo (~13 %) → se revela qué es (~35 %) → crisis (~45 %) → giro: el truco o la ayuda (~58 %) → derrota (~77 %) → remate cómico → gancho al siguiente.

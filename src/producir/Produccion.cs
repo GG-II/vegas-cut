@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -23,6 +24,45 @@ public class EntryPoint
             return;
         }
         using (VentanaProduccion v = new VentanaProduccion(vegas)) v.ShowDialog();
+    }
+}
+
+// Una casilla de tres estados: que decida la IA (◌), sí (✔) o no (✖). Clic para cambiar.
+class OpcionTriple : ControlBase
+{
+    public string Clave;
+    int estado = -1;
+    public event EventHandler Cambio;
+
+    public OpcionTriple(string clave, string texto) { Clave = clave; Text = texto; Cursor = Cursors.Hand; Font = Tema.Pequena; }
+
+    public int Estado
+    {
+        get { return estado; }
+        set { if (value == estado) return; estado = value; Invalidate(); if (Cambio != null) Cambio(this, EventArgs.Empty); }
+    }
+
+    public int Ancho() { return TextRenderer.MeasureText(Text, Font).Width + 40; }
+
+    protected override void OnClick(EventArgs e) { Estado = estado == -1 ? 1 : estado == 1 ? 0 : -1; base.OnClick(e); }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        Color fondo = estado == 1 ? Color.FromArgb(60, Tema.Acento) : encima ? Tema.CampoHover : Tema.Campo;
+        Color borde = estado == 1 ? Tema.Acento : estado == 0 ? Color.FromArgb(150, Tema.Silencio) : Tema.Borde;
+        using (GraphicsPath p = Tema.Redondeado(new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f), Height / 2f))
+        {
+            using (SolidBrush b = new SolidBrush(fondo)) g.FillPath(b, p);
+            using (Pen pen = new Pen(borde)) g.DrawPath(pen, p);
+        }
+        string marca = estado == 1 ? "✔" : estado == 0 ? "✖" : "◌";
+        TextRenderer.DrawText(g, marca, Font, new Rectangle(9, 0, 18, Height), estado == 1 ? Tema.Acento : estado == 0 ? Tema.Silencio : Tema.TextoSuave,
+                              TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+        using (Font f = new Font(Font, estado == 0 ? FontStyle.Strikeout : FontStyle.Regular))
+            TextRenderer.DrawText(g, Text, f, new Rectangle(27, 0, Width - 30, Height), estado == 0 ? Tema.TextoSuave : Tema.Texto,
+                                  TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
     }
 }
 
@@ -65,13 +105,17 @@ class TarjetaPropuesta : Panel
         using (Pen p = new Pen(elegida ? Tema.Acento : Tema.Borde, elegida ? 2 : 1)) e.Graphics.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
     }
 
-    public void Mostrar(Propuesta p)
+    public void Mostrar(Propuesta p) { Mostrar(p, 0); }
+
+    // maximo: minutos que puede durar el video (0 = sin aviso).
+    public void Mostrar(Propuesta p, int maximo)
     {
         P = p;
         Titulo.Text = p.Id + " · " + p.Nombre;
         StringBuilder sb = new StringBuilder();
         sb.Append((p.TipoCap.Length > 0 ? TiposCapitulo.Nombre(p.TipoCap).ToUpperInvariant() + " · " : "") +
-                  (p.Tipo != "normal" || p.TipoCap.Length == 0 ? p.NombreTipo() + " · " : "") + "~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
+                  (p.Tipo != "normal" || p.TipoCap.Length == 0 ? p.NombreTipo() + " · " : "") + "~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") +
+                  (maximo > 0 && p.Minutos > maximo * 1.15 ? "  ⚠ más largo que el objetivo (" + maximo + " min)" : "") + "\n");
         if (p.Titulos.Count > 0) sb.Append("«" + String.Join("» / «", p.Titulos.ToArray()) + "»\n");
         if (p.Estructura.Count > 0) sb.Append("\n" + String.Join(" → ", p.Estructura.ToArray()) + "\n");
         sb.Append("\nCold open: " + p.ColdOpen + "\nCierre: " + p.Cierre + "\n\n");
@@ -104,6 +148,9 @@ class VentanaProduccion : VentanaBase
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
     Combo cmbTipo = new Combo();
+    List<OpcionTriple> chips = new List<OpcionTriple>();
+    CampoNumero numMin = new CampoNumero(), numMax = new CampoNumero(), numMusica = new CampoNumero();
+    OpcionesCapitulo opc = new OpcionesCapitulo();
     Boton btnAnalizar = new Boton("Analizar y proponer", EstiloBoton.Primario);
     Boton btnRefinar = new Boton("Refinar propuestas", EstiloBoton.Secundario);
     TarjetaPropuesta[] tarjetas = { new TarjetaPropuesta(), new TarjetaPropuesta(), new TarjetaPropuesta() };
@@ -140,6 +187,34 @@ class VentanaProduccion : VentanaBase
         vista1.Add(Pos(cmbTipo, m + w - 440, y1 + 22, 228, 30));
         vista1.Add(Pos(btnAnalizar, m + w - 200, y1 + 20, 200, 48));
         y1 += 76;
+
+        // ---- opciones (casillas de tres estados), duracion y musica
+        vista1.Add(Texto("OPCIONES · clic para cambiar: ◌ que decida la IA · ✔ sí · ✖ no", Tema.Pequena, Tema.TextoSuave, m, y1 + 6, 460, 18));
+        vista1.Add(Texto("DURACIÓN DEL VIDEO", Tema.Pequena, Tema.TextoSuave, m + w - 470, y1 + 6, 130, 18));
+        numMin.Sufijo = "min"; numMax.Sufijo = "min"; numMusica.Sufijo = "dB";
+        numMin.Minimo = 1; numMax.Minimo = 1; numMin.Maximo = 120; numMax.Maximo = 120; numMin.Paso = 1; numMax.Paso = 1;
+        numMusica.Minimo = 0; numMusica.Maximo = 60; numMusica.Paso = 1;
+        vista1.Add(Pos(numMin, m + w - 336, y1, 78, 30));
+        vista1.Add(Texto("a", Tema.Pequena, Tema.TextoSuave, m + w - 252, y1 + 6, 14, 18));
+        vista1.Add(Pos(numMax, m + w - 232, y1, 78, 30));
+        vista1.Add(Texto("MÚSICA A −", Tema.Pequena, Tema.TextoSuave, m + w - 140, y1 + 6, 70, 18));
+        vista1.Add(Pos(numMusica, m + w - 70, y1, 70, 30));
+        int cx = m, cy = y1 + 38;
+        foreach (string[] c in OpcionesCapitulo.Casillas)
+        {
+            OpcionTriple o = new OpcionTriple(c[0], c[1]);
+            int ow = o.Ancho();
+            if (cx + ow > m + w) { cx = m; cy += 32; }
+            vista1.Add(Pos(o, cx, cy, ow, 26));
+            cx += ow + 6;
+            chips.Add(o);
+            o.Cambio += delegate { CambioOpcion(o); };
+        }
+        y1 = cy + 36;
+        numMin.Cambio += delegate { if (!cargando) opc.MinutosMin = numMin.Valor; };
+        numMax.Cambio += delegate { if (!cargando) opc.MinutosMax = numMax.Valor; };
+        numMusica.Cambio += delegate { if (!cargando && serie != null) serie.Musica.VolumenDb = -numMusica.Valor; };
+
         lblAnalisis = Texto("", Tema.Pequena, Tema.Texto, m, y1, w, 70);
         vista1.Add(lblAnalisis);
         y1 += 76;
@@ -147,11 +222,11 @@ class VentanaProduccion : VentanaBase
         for (int i = 0; i < 3; i++)
         {
             TarjetaPropuesta t = tarjetas[i];
-            vista1.Add(Pos(t, m + i * (tw + 16), y1, tw, 400));
+            vista1.Add(Pos(t, m + i * (tw + 16), y1, tw, 350));
             int k = i;
             t.Elegir.Click += delegate { Elegir(k); };
         }
-        y1 += 410;
+        y1 += 360;
         vista1.Add(Texto("OTRAS NOTAS", Tema.Pequena, Tema.TextoSuave, m, y1, 200, 18));
         vista1.Add(Pos(txtNotas, m, y1 + 18, w - 446, 34));
         vista1.Add(Pos(btnRefinar, m + w - 430, y1 + 14, 200, 40));
@@ -279,6 +354,39 @@ class VentanaProduccion : VentanaBase
         try { serie.Guardar(); } catch { }
     }
 
+    void CambioOpcion(OpcionTriple o)
+    {
+        if (cargando) return;
+        int antes = opc.Valor(o.Clave);
+        opc.Estado[o.Clave] = o.Estado;
+        // Doble duracion: la duracion del video se duplica (o vuelve a la normal).
+        if (o.Clave == "doble" && (antes == 1) != (o.Estado == 1))
+        {
+            double f = o.Estado == 1 ? 2 : 0.5;
+            opc.MinutosMin = Math.Max(1, (int)Math.Round(opc.MinutosMin * f)); opc.MinutosMax = Math.Max(1, (int)Math.Round(opc.MinutosMax * f));
+            MostrarOpciones();
+        }
+    }
+
+    void MostrarOpciones()
+    {
+        bool c = cargando;
+        cargando = true;
+        foreach (OpcionTriple o in chips) o.Estado = opc.Valor(o.Clave);
+        numMin.Valor = opc.MinutosMin; numMax.Valor = opc.MinutosMax;
+        numMusica.Valor = (int)Math.Round(-(serie != null ? serie.Musica.VolumenDb : -21));
+        cargando = c;
+    }
+
+    // Lo que se le manda a Gemini como indicaciones: las casillas y la duracion, y lo escrito.
+    string Indicaciones()
+    {
+        opc.MinutosMin = Math.Min(numMin.Valor, numMax.Valor); opc.MinutosMax = Math.Max(numMin.Valor, numMax.Valor);
+        return opc.Texto(duracion) + (txtIndicaciones.Text.Trim().Length > 0 ? txtIndicaciones.Text.Trim() + "\n" : "");
+    }
+
+    static string Corto(string t, int n) { t = (t ?? "").Replace("\n", " "); return t.Length > n ? t.Substring(0, n - 1) + "…" : t; }
+
     string TipoPedido()
     {
         return cmbTipo.SelectedIndex > 0 ? TiposCapitulo.Normalizar((string)cmbTipo.SelectedItem) : "";
@@ -311,6 +419,9 @@ class VentanaProduccion : VentanaBase
             try { biblioteca = BibliotecaMusica.Cargar(serie.Musica.Carpeta); } catch { biblioteca = null; }
         musica = LogicaProduccion.MusicaCandidata(biblioteca, serie != null ? serie.Musica : null);
         MostrarContexto();
+        CapSerie este = caps.Find(delegate (CapSerie c) { return c.Relacion == 0; });
+        opc = LogicaProduccion.Opciones(veg) ?? OpcionesCapitulo.PorDefecto(papel, este != null ? este.Posicion : 0, PapelEpisodio.Reglas(formato.Reglas, papel));
+        MostrarOpciones();
         if (!formato.EsTV) Estado("La serie no tiene el formato «Serie de TV / anime»: se usa su plantilla por defecto.", false);
 
         string elegida, ind, notas;
@@ -326,7 +437,11 @@ class VentanaProduccion : VentanaBase
             MostrarFinal();
             Estado("Se cargó lo que tenías de este capítulo.", false);
         }
-        else MostrarAnalisis();
+        else
+        {
+            if (papel == "Primer capítulo") cmbTipo.SelectedItem = TiposCapitulo.Nombre("estreno");
+            MostrarAnalisis();
+        }
         Vista(final != null ? 1 : 0);
         segPaso.Habilitar(1, final != null);
     }
@@ -346,7 +461,8 @@ class VentanaProduccion : VentanaBase
         if (analisis == null) return;
         LeerNotas();
         Propuesta p = Elegida();
-        try { LogicaProduccion.Guardar(veg, analisis, p != null ? p.Id : "", txtIndicaciones.Text, txtNotas.Text, final, TipoPedido()); } catch { }
+        try { LogicaProduccion.Guardar(veg, analisis, p != null ? p.Id : "", txtIndicaciones.Text, txtNotas.Text, final, TipoPedido(), opc); } catch { }
+        if (serie != null) try { serie.Guardar(); } catch { }
     }
 
     void LeerNotas()
@@ -373,16 +489,16 @@ class VentanaProduccion : VentanaBase
         {
             bool con = hay && i < analisis.Propuestas.Count;   // (Visible da false mientras la ventana no se muestra)
             tarjetas[i].Visible = con;
-            if (con) tarjetas[i].Mostrar(analisis.Propuestas[i]);
+            if (con) tarjetas[i].Mostrar(analisis.Propuestas[i], opc.MinutosMax);
         }
         lblAnalisis.Text = !hay ? "Pulsa «Analizar y proponer»: Gemini lee todo el material con el contexto de la serie y propone tres formas de hacer el capítulo." :
-            analisis.Resumen + "\n" + analisis.Momentos.Count + " momentos · ~" + Math.Round(analisis.MinutosUtiles) + " min útiles" +
+            Corto(analisis.Resumen, 260) + "\n" + analisis.Momentos.Count + " momentos · ~" + Math.Round(analisis.MinutosUtiles) + " min útiles" +
             (analisis.TipoSugerido.Length > 0 ? "\nTipo: " + TiposCapitulo.Nombre(analisis.TipoSugerido).ToUpperInvariant() +
-                (analisis.TipoMotivo.Length > 0 ? " — " + analisis.TipoMotivo : "") +
+                (analisis.TipoMotivo.Length > 0 ? " — " + Corto(analisis.TipoMotivo, 140) : "") +
                 (analisis.TiposAlternativos.Count > 0 ? " (también podría ser: " + String.Join(", ", analisis.TiposAlternativos.ConvertAll<string>(TiposCapitulo.Nombre).ToArray()) + ")" : "") : "") +
             (analisis.PapelSugerido.Length > 0 && analisis.PapelSugerido != papel ? " · sugiere el papel «" + analisis.PapelSugerido + "»" : "") +
-            (analisis.DobleRecomendado ? " · recomienda EPISODIO DOBLE: " + analisis.DobleMotivo : "") +
-            (analisis.Hilos.Count > 0 ? " · hilos: " + String.Join("; ", analisis.Hilos.ToArray()) : "");
+            (analisis.DobleRecomendado ? " · recomienda más de un video: " + Corto(analisis.DobleMotivo, 100) : "") +
+            (analisis.Hilos.Count > 0 ? " · hilos: " + Corto(String.Join("; ", analisis.Hilos.ToArray()), 120) : "");
         btnFinal.Enabled = Elegida() != null;
         if (hay && Elegida() == null) Estado("Elige una propuesta (puedes escribir notas en cualquiera) y pulsa «Armar propuesta final».", false);
     }
@@ -427,12 +543,28 @@ class VentanaProduccion : VentanaBase
         string tipo = serie != null ? serie.Tipo : "Gameplay";
         string ctx = serie != null ? Serie.Contexto(serie, caps) : "";
         string instr = LogicaProduccion.InstruccionesAnalisis(formato, tipo, papel, TipoPedido());
-        string msg = LogicaProduccion.MensajeAnalisis(trans, duracion, ctx, LogicaProduccion.Reparto(serie != null ? serie.Musica : null), txtIndicaciones.Text);
+        string msg = LogicaProduccion.MensajeAnalisis(trans, duracion, ctx, LogicaProduccion.Reparto(serie != null ? serie.Musica : null), Indicaciones());
         Pedir(instr, msg, "Gemini está viendo todo el material (puede tardar un par de minutos)…", delegate (string r)
         {
             analisis = LogicaProduccion.LeerAnalisis(r, duracion);
             MostrarAnalisis();
             Vista(0);
+            if (analisis.Propuestas.Count < 3) { Completar(); return; }
+            Estado("✔ " + analisis.Propuestas.Count + " propuestas. Elige una, escribe notas si quieres y arma la propuesta final.", false);
+            CambiarPapel();
+        });
+    }
+
+    // Gemini dio menos de tres propuestas: se piden las que faltan (sin volver a analizar).
+    void Completar()
+    {
+        int n = analisis.Propuestas.Count;
+        string instr = LogicaProduccion.InstruccionesCompletar(formato, papel);
+        string msg = LogicaProduccion.MensajeRefinar(analisis, txtNotas.Text, Indicaciones(), trans);
+        Pedir(instr, msg, "Gemini dio " + n + (n == 1 ? " propuesta" : " propuestas") + ": pidiendo las que faltan…", delegate (string r)
+        {
+            LogicaProduccion.Refinar(analisis, r);
+            MostrarAnalisis();
             Estado("✔ " + analisis.Propuestas.Count + " propuestas. Elige una, escribe notas si quieres y arma la propuesta final.", false);
             CambiarPapel();
         });
@@ -462,7 +594,7 @@ class VentanaProduccion : VentanaBase
         if (!hayNotas) { Estado("Escribe notas en las propuestas (o en «Otras notas») para refinarlas.", true); return; }
         string elegida = Elegida() != null ? Elegida().Id : "";
         string instr = LogicaProduccion.InstruccionesRefinar(formato, papel);
-        string msg = LogicaProduccion.MensajeRefinar(analisis, txtNotas.Text, txtIndicaciones.Text, trans);
+        string msg = LogicaProduccion.MensajeRefinar(analisis, txtNotas.Text, Indicaciones(), trans);
         Pedir(instr, msg, "Gemini está corrigiendo las propuestas con tus notas…", delegate (string r)
         {
             LogicaProduccion.Refinar(analisis, r);
@@ -480,7 +612,7 @@ class VentanaProduccion : VentanaBase
         Propuesta p = Elegida();
         if (analisis == null || p == null) { Estado("Elige una propuesta.", true); return; }
         string instr = LogicaProduccion.InstruccionesFinal(formato, papel, p);
-        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, txtIndicaciones.Text, musica, serie != null ? serie.Musica : null,
+        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, Indicaciones(), musica, serie != null ? serie.Musica : null,
                                                    LogicaProduccion.Reparto(serie != null ? serie.Musica : null), trans, duracion,
                                                    cambios != null ? final : null, cambios);
         Pedir(instr, msg, cambios == null ? "Gemini está armando la escaleta final…" : "Gemini está ajustando la escaleta…", delegate (string r)
@@ -562,13 +694,14 @@ class VentanaProduccion : VentanaBase
         ReglasRitmo r = PapelEpisodio.Reglas(formato.Reglas, papel);
         List<string> l = new List<string>();
         Propuesta p = Elegida();
-        double x = p != null && p.DobleDuracion ? 2 : 1;
+        double x = 1;
         foreach (CapituloFinal c in final.Partes)
         {
             double d = LogicaProduccion.Duracion(c, formato.Tv);
-            bool ok = d >= r.DuracionMin * 60 * x - 30 && d <= r.DuracionMax * 60 * x + 30;
-            l.Add("«" + c.Titulo + "» " + Formato.Tiempo(d) + (ok ? " ✔" : " (referencia " + r.DuracionMin * x + "–" + r.DuracionMax * x + " min)"));
+            bool ok = d >= opc.MinutosMin * 60 * x - 30 && d <= opc.MinutosMax * 60 * x + 30;
+            l.Add("«" + c.Titulo + "» " + Formato.Tiempo(d) + (ok ? " ✔" : " (objetivo " + opc.MinutosMin + "–" + opc.MinutosMax + " min)"));
         }
-        lblFinal.Text = final.Resumen + "\n" + String.Join("   ·   ", l.ToArray());
+        lblFinal.Text = Corto(final.Resumen, 300) + "\n" + String.Join("   ·   ", l.ToArray()) +
+                        (final.Repetido > 1 ? "   ·   quité " + Formato.Tiempo(final.Repetido) + " de material repetido" : "");
     }
 }

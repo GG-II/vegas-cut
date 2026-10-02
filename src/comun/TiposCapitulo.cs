@@ -62,6 +62,15 @@ public static class TiposCapitulo
     public const string Detectar = "Que lo detecte la IA";
 
     public static readonly TipoCapitulo[] Todos = {
+        new TipoCapitulo("estreno", "Estreno (primer capítulo)",
+            "inicio CINEMATOGRÁFICO y sin opening al principio: el mundo con calma (planos del lugar sin diálogo, música, el título " +
+            "de la serie, la voz del narrador o la radio del pueblo) → el protagonista en una escena que muestra cómo es, sin " +
+            "explicarlo con palabras → cada personaje con su momento y su tarjeta de presentación → el «mentor» explica las reglas " +
+            "del mundo → la primera prueba o el poder (~50 %) → la amenaza o el reto grande se asoma al final. El opening va " +
+            "después de la intro o al final. Nunca lanza al espectador a una escena sin contexto.",
+            "es el capítulo 1 o el material presenta el mundo, a los personajes y las reglas.",
+            "la llegada al mundo, cada jugador presentado, las reglas del modpack o de la carrera, la primera prueba y el peligro que viene.",
+            "PB 1 Dio the Invader, BT 10 JoJo of New York, SC 1, DU 1 («Morioh-cho RADIO»), GW 1 (la ciudad), SO 1, SBR 1 (doble duración, 47 min)."),
         new TipoCapitulo("rival", "Rival de la semana",
             "llegada o viaje con humor (0–15 %) → algo raro, sin explicarlo (~13 %) → se revela qué es (~35 %) → crisis (~45 %) → " +
             "giro: el truco o la ayuda (~58 %) → derrota (~77 %) → remate cómico → gancho al siguiente.",
