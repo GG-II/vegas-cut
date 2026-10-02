@@ -99,12 +99,12 @@ proponer el título de cada capítulo.
 | Nombre del rival o del peligro | «Tower of Gray», «Yellow Temperance» | «El Creeper de la cueva» |
 | Apodo + nombre | «The Lovers», «The Emperor and the Hanged Man» | «El cazador, Steel» |
 | «¡X contra Y!» / «X conoce a Y» | «Jotaro Kujo! Meets Josuke Higashikata» | «¡Steel contra el Wither!» |
-| Invitación o rumbo | «Let's Go to the Manga Artist's House», «Head to Pompeii!» | «¡Vamos al Nether!» |
-| Algo raro de un personaje | «Shigechi's Harvest», «Rohan Kishibe's Adventure» | «Steel no quiere bañarse» |
+| Invitación o rumbo | «Let's Go to the Manga Artist's House», «Let's Go Hunting!» | «¡Vamos al Nether!» |
+| Algo raro de un personaje | «Yukako Yamagishi Falls in Love» | «Steel no quiere bañarse» |
 | Guiño a una canción o grupo | stands con nombre de bandas | — |
-| Fecha o tiempo | «The Day of the Duel» | «Día 7» |
+| Fecha o tiempo | (en los carteles más que en el título) | «Día 7» |
 | «, parte N» (hasta 4) | «Dark Blue Moon, Part 1» | en los capítulos de dos partes |
-| Primer capítulo | el nombre de la serie o del protagonista («Dio the Invader», «Golden Wind») | el nombre de la serie |
+| Primer capítulo | el nombre de la serie o del protagonista («Dio the Invader», «Gold Experience») | el nombre de la serie |
 | Final | una despedida («Goodbye, Morioh», «Farewell, My Friends») | «La vida sigue», despedida |
 
 En SBR: «The Sheriff's Request to Mountain Tim», un título que dice quién pide qué a quién.
