@@ -1143,7 +1143,7 @@ public class FormatoSerie
 {
     public static readonly string[] Formatos = { "100 d\u00edas", "Aventura por episodios", "Retos / minijuegos", "Video ensayo",
                                                  "Top / lista", "Podcast", "Otro" };
-    public static readonly string[] Avances = { "D\u00eda N", "Parte N", "Ronda N", "Acto N", "N\u00famero N", "Ninguno" };
+    public static readonly string[] Avances = { "D\u00eda N", "Parte N", "Etapa N", "Ronda N", "Acto N", "N\u00famero N", "Ninguno" };
 
     public string Nombre = "100 d\u00edas";
     public string Premisa = "";            // de que va y que se busca (el objetivo de la serie)
@@ -1680,7 +1680,7 @@ class VentanaSeries : VentanaBase
         lstCaps.SelectedIndexChanged += delegate
         {
             int i = Elegido();
-            cmbPapel.Enabled = btnNota.Enabled = i >= 0 && Serie_ != null;
+            btnNota.Enabled = i >= 0 && Serie_ != null;
             if (i < 0) return;
             cargando = true;
             cmbPapel.SelectedIndex = Math.Max(0, Array.IndexOf(PapelEpisodio.Papeles, Caps[i].Papel));
@@ -1791,7 +1791,8 @@ class VentanaSeries : VentanaBase
         foreach (Control c in new Control[] { txtNombre, segTipo, btnCarpeta, btnBuscar, lstCaps, btnAgregar, btnEste, btnSubir,
                                               btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato })
             c.Enabled = hay;
-        cmbPapel.Enabled = btnNota.Enabled = false;
+        btnNota.Enabled = false;
+        cmbPapel.Enabled = hay;   // deshabilitado se ve blanco en Windows
         btnListo.Enabled = hay || !elegir;
         cargando = true;
         txtNombre.Text = hay ? Serie_.Nombre : "";

@@ -410,7 +410,7 @@ public class FormatoSerie
 {
     public static readonly string[] Formatos = { "100 días", "Aventura por episodios", "Retos / minijuegos", "Video ensayo",
                                                  "Top / lista", "Podcast", "Otro" };
-    public static readonly string[] Avances = { "Día N", "Parte N", "Ronda N", "Acto N", "Número N", "Ninguno" };
+    public static readonly string[] Avances = { "Día N", "Parte N", "Etapa N", "Ronda N", "Acto N", "Número N", "Ninguno" };
 
     public string Nombre = "100 días";
     public string Premisa = "";            // de que va y que se busca (el objetivo de la serie)
