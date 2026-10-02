@@ -24,8 +24,10 @@ mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/censura.exe" PruebaCens
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/anteriormente.exe" PruebaAnteriormente.cs ../scripts/Anteriormente.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ritmo.exe" PruebaRitmo.cs ../scripts/PulirEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/pulir.exe" PruebaPulir.cs ../scripts/PulirEpisodio.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/serietv.exe" PruebaSerieTV.cs ../scripts/Series.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/preparar.exe" PruebaPreparar.cs ../scripts/PrepararEpisodio.cs
 EJEMPLOS="$(cd .. && pwd)/ejemplos/jojmania"
+MUSICA="$(cd .. && pwd)/ejemplos/musica/musica.csv"
 cd "$T"
 echo "== Quitar silencios"; mono silencios.exe
 echo "== Transcripcion, Whisper, Gemini y Momentos"; XDG_CONFIG_HOME="$T/config" mono ia.exe
@@ -36,3 +38,4 @@ echo "== Anteriormente"; XDG_CONFIG_HOME="$T/config" mono anteriormente.exe
 echo "== Preparar episodio"; XDG_CONFIG_HOME="$T/config" mono preparar.exe
 echo "== Ritmo y formato de series"; XDG_CONFIG_HOME="$T/config" mono ritmo.exe "$EJEMPLOS"
 echo "== Pulir: estructura y narracion"; XDG_CONFIG_HOME="$T/config" mono pulir.exe "$EJEMPLOS"
+echo "== Serie de TV y musica"; XDG_CONFIG_HOME="$T/config" mono serietv.exe "$MUSICA"

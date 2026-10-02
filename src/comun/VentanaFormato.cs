@@ -17,6 +17,7 @@ class VentanaFormato : VentanaBase
 
     Combo cmbFormato = new Combo();
     Boton btnPreset = new Boton("Usar valores del formato", EstiloBoton.Secundario);
+    Boton btnPlantilla = new Boton("Plantilla y kit…", EstiloBoton.Secundario);
     CampoTexto txtPremisa = new CampoTexto();
     Combo cmbAvance = new Combo();
     Segmentado segNarrador = new Segmentado(new string[] { "Con narrador", "Sin narrador" });
@@ -50,6 +51,7 @@ class VentanaFormato : VentanaBase
         foreach (string x in FormatoSerie.Formatos) cmbFormato.Items.Add(x);
         Pos(cmbFormato, m, y + 20, 260, 30);
         Pos(btnPreset, m + 272, y + 18, 210, 32);
+        Pos(btnPlantilla, m + 490, y + 18, 170, 32);
         y += 60;
         Texto("PREMISA Y OBJETIVO (de qué va la serie, a dónde quieres llevarla)", Tema.Pequena, Tema.TextoSuave, m, y, w, 18);
         txtPremisa.Multilinea = true;
@@ -94,12 +96,25 @@ class VentanaFormato : VentanaBase
         if (medidor == null) Estado("Para aprender de un episodio, abre su proyecto en Vegas y ejecuta Series desde ahí.", false);
 
         Mostrar(Resultado);
+        cmbFormato.SelectedIndexChanged += delegate { btnPlantilla.Enabled = (string)cmbFormato.SelectedItem == FormatoSerie.TV; };
+        btnPlantilla.Click += delegate
+        {
+            FormatoSerie actual = Leer();
+            using (VentanaPlantillaTV d = new VentanaPlantillaTV(actual.Tv, actual.Reglas))
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Resultado.Tv = d.Resultado;
+            }
+            Estado("Plantilla y kit listos (se guardan con «Guardar»).", false);
+        };
         cmbFormato.SelectedIndexChanged += delegate { if (!cargando) Estado("Pulsa “Usar valores del formato” para cargar sus reglas de partida.", false); };
         btnPreset.Click += delegate
         {
             FormatoSerie p = FormatoSerie.Preset((string)cmbFormato.SelectedItem);
             p.Premisa = txtPremisa.Text.Trim();
             p.NarradorNombre = txtNarrador.Text.Trim().Length > 0 ? txtNarrador.Text.Trim() : p.NarradorNombre;
+            foreach (KeyValuePair<string, string> kv in Resultado.Tv.Kit) p.Tv.Kit[kv.Key] = kv.Value;   // el kit no se pierde
+            Resultado.Tv = p.Tv;
             Mostrar(p);
             Estado("Valores de partida de “" + p.Nombre + "”.", false);
         };
@@ -114,6 +129,7 @@ class VentanaFormato : VentanaBase
     {
         cargando = true;
         cmbFormato.SelectedIndex = Math.Max(0, Array.IndexOf(FormatoSerie.Formatos, f.Nombre));
+        btnPlantilla.Enabled = f.EsTV;
         txtPremisa.Text = (f.Premisa ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
         cmbAvance.SelectedIndex = Math.Max(0, Array.IndexOf(FormatoSerie.Avances, f.Avance));
         segNarrador.Seleccion = f.Narrador ? 0 : 1;

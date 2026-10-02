@@ -16,6 +16,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Text;
@@ -221,6 +222,7 @@ public class SerieProyecto
 
     public string Ruta = "", Nombre = "", Tipo = "Gameplay", Notas = "", Carpeta = "";
     public FormatoSerie Formato = FormatoSerie.Preset("100 d\u00edas");
+    public MusicaSerie Musica = new MusicaSerie();
     public List<string> Episodios = new List<string>();   // rutas de los .veg, en orden
     // Papel de cada capitulo (primero, especial, final...) y su nota, por
     // ruta del .veg. Lo que no esta aqui es "Normal" (o "Primer cap\u00edtulo").
@@ -249,6 +251,7 @@ public class SerieProyecto
         s.Carpeta = Json.Texto(o, "carpeta");
         object f = Json.Valor(o, "estructura");
         s.Formato = f != null ? FormatoSerie.Leer(f) : FormatoSerie.Preset(FormatoSerie.SegunTipo(s.Tipo));
+        s.Musica = MusicaSerie.Leer(Json.Valor(o, "musica"));
         string dir = Path.GetDirectoryName(ruta);
         foreach (object x in Json.Lista(o, "episodios"))
         {
@@ -271,6 +274,7 @@ public class SerieProyecto
         d["formato"] = "vegas-cut-serie";
         d["nombre"] = Nombre; d["tipo"] = Tipo; d["notas"] = Notas; d["carpeta"] = Carpeta;
         d["estructura"] = Formato.Escribir();
+        d["musica"] = Musica.Escribir();
         List<object> l = new List<object>();
         foreach (string veg in Episodios)
         {
@@ -447,8 +451,9 @@ public class SerieProyecto
 // MomentosIA (contexto) y PulirEpisodio (medidor, estructura y narracion).
 public class FormatoSerie
 {
-    public static readonly string[] Formatos = { "100 d\u00edas", "Aventura por episodios", "Retos / minijuegos", "Video ensayo",
-                                                 "Top / lista", "Podcast", "Otro" };
+    public static readonly string[] Formatos = { "100 d\u00edas", "Aventura por episodios", "Serie de TV / anime", "Retos / minijuegos",
+                                                 "Video ensayo", "Top / lista", "Podcast", "Otro" };
+    public const string TV = "Serie de TV / anime";
     public static readonly string[] Avances = { "D\u00eda N", "Parte N", "Etapa N", "Ronda N", "Acto N", "N\u00famero N", "Ninguno" };
 
     public string Nombre = "100 d\u00edas";
@@ -459,6 +464,8 @@ public class FormatoSerie
     public string EstiloNarrador = "";
     public string Aprendido = "";          // de que proyecto salieron las reglas
     public ReglasRitmo Reglas = new ReglasRitmo();
+    public PlantillaTV Tv = PlantillaTV.PorDefecto();   // bloques y kit (formato Serie de TV)
+    public bool EsTV { get { return Nombre == TV; } }
 
     public static string SegunTipo(string tipo)
     {
@@ -490,6 +497,13 @@ public class FormatoSerie
                 f.EstiloNarrador = "En pasado, como un cuento: presenta el objetivo de la parte, los obst\u00e1culos y deja el gancho " +
                                    "para la siguiente.";
                 r.NarradorCadaSeg = 90; r.DuracionMin = 12; r.DuracionMax = 16;
+                break;
+            case TV:
+                f.Avance = "Etapa N";
+                f.EstiloNarrador = "Como Johnny en Steel Ball Run: primera persona, en pasado; enmarca el inicio y el final del " +
+                                   "cap\u00edtulo y une escenas con frases cortas. Deja que los personajes cuenten la historia.";
+                r.NarradorCadaSeg = 120; r.RecursosPorMin = 3; r.CortesMin = 14; r.CortesMax = 20; r.MusicaCadaSeg = 45;
+                r.ZonaCriticaSeg = 120; r.DuracionMin = 15; r.DuracionMax = 18;
                 break;
             case "Retos / minijuegos":
                 f.Avance = "Ronda N";
@@ -530,6 +544,8 @@ public class FormatoSerie
             case "100 d\u00edas": return "sobrevivir y progresar d\u00eda a d\u00eda; cada d\u00eda debe aportar un avance, un problema o una risa, y el video " +
                                     "termina con algo pendiente para el siguiente";
             case "Aventura por episodios": return "avanzar en una historia por partes; cada parte tiene un objetivo, obst\u00e1culos y un final con gancho";
+            case TV: return "un cap\u00edtulo de serie de TV al estilo del anime de JoJo: cold open con gancho, opening, actos con " +
+                            "carteles de lugar y tiempo, crisis a la mitad, resoluci\u00f3n con ranking y cliffhanger con \u00abcontinuar\u00e1\u00bb";
             case "Retos / minijuegos": return "competir en rondas; se entiende qui\u00e9n va ganando y la tensi\u00f3n sube hasta la \u00faltima ronda";
             case "Video ensayo": return "responder una pregunta o defender una idea con argumentos y ejemplos, en actos claros";
             case "Top / lista": return "recorrer una lista de menor a mayor; cada puesto se justifica y el mejor queda para el final";
@@ -542,6 +558,7 @@ public class FormatoSerie
     {
         FormatoSerie f = (FormatoSerie)MemberwiseClone();
         f.Reglas = Reglas.Copia();
+        f.Tv = Tv.Copia();
         return f;
     }
 
@@ -553,6 +570,7 @@ public class FormatoSerie
         Dictionary<string, object> r = new Dictionary<string, object>();
         Reglas.Escribir(r);
         d["ritmo"] = r;
+        if (EsTV) d["tv"] = Tv.Escribir();
         return d;
     }
 
@@ -570,6 +588,8 @@ public class FormatoSerie
         if (Json.Valor(o, "estiloNarrador") != null) f.EstiloNarrador = Json.Texto(o, "estiloNarrador");
         f.Aprendido = Json.Texto(o, "aprendido");
         f.Reglas = ReglasRitmo.Leer(Json.Valor(o, "ritmo"), f.Reglas);
+        object tv = Json.Valor(o, "tv");
+        if (tv != null) f.Tv = PlantillaTV.Leer(tv);
         return f;
     }
 
@@ -876,6 +896,7 @@ class VentanaSeries : VentanaBase
     Combo cmbPapel = new Combo();
     Boton btnNota = new Boton("Nota\u2026", EstiloBoton.Secundario);
     Boton btnFormato = new Boton("Formato y ritmo\u2026", EstiloBoton.Secundario);
+    Boton btnMusica = new Boton("M\u00fasica\u2026", EstiloBoton.Secundario);
     Etiqueta lblFormato;
     // Mide el proyecto abierto (para "Aprender de este proyecto"); null si no se puede.
     public Func<string, Medicion> Medidor;
@@ -935,8 +956,9 @@ class VentanaSeries : VentanaBase
         Pos(btnRehacer, dx + 238, y, 170, 32);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 418, y - 2, dw - 418, 38);
         y += 44;
-        Texto("Notas de la serie (personajes, apodos, lugares)", Tema.Negrita, Tema.Texto, dx, y, 340, 20);
-        lblFormato = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 350, y + 4, dw - 520, 20);
+        Texto("Notas de la serie", Tema.Negrita, Tema.Texto, dx, y, 150, 20);
+        lblFormato = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 150, y + 4, dw - 430, 20);
+        Pos(btnMusica, dx + dw - 270, y - 6, 102, 30);
         lblFormato.TextAlign = ContentAlignment.MiddleRight;
         Pos(btnFormato, dx + dw - 160, y - 6, 160, 30);
         txtNotas.Multilinea = true;
@@ -1025,6 +1047,18 @@ class VentanaSeries : VentanaBase
             Cambio();
             Estado("\u2714 Formato guardado.", false);
         };
+        btnMusica.Click += delegate
+        {
+            if (Serie_ == null) return;
+            GuardarActual();
+            using (VentanaMusicaSerie d = new VentanaMusicaSerie(Serie_.Musica, Serie_.Formato.Premisa, clave, modelo))
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Serie_.Musica = d.Resultado;
+            }
+            Cambio();
+            Estado("\u2714 M\u00fasica de la serie guardada.", false);
+        };
         btnFichas.Click += delegate { Fichas(false); };
         btnRehacer.Click += delegate { Fichas(true); };
         lstCaps.ItemCheck += delegate (object s, ItemCheckEventArgs e)
@@ -1095,7 +1129,7 @@ class VentanaSeries : VentanaBase
     {
         bool hay = Serie_ != null;
         foreach (Control c in new Control[] { txtNombre, segTipo, btnCarpeta, btnBuscar, lstCaps, btnAgregar, btnEste, btnSubir,
-                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato })
+                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato, btnMusica })
             c.Enabled = hay;
         btnNota.Enabled = false;
         cmbPapel.Enabled = hay;   // deshabilitado se ve blanco en Windows
@@ -1353,6 +1387,7 @@ class VentanaFormato : VentanaBase
 
     Combo cmbFormato = new Combo();
     Boton btnPreset = new Boton("Usar valores del formato", EstiloBoton.Secundario);
+    Boton btnPlantilla = new Boton("Plantilla y kit\u2026", EstiloBoton.Secundario);
     CampoTexto txtPremisa = new CampoTexto();
     Combo cmbAvance = new Combo();
     Segmentado segNarrador = new Segmentado(new string[] { "Con narrador", "Sin narrador" });
@@ -1386,6 +1421,7 @@ class VentanaFormato : VentanaBase
         foreach (string x in FormatoSerie.Formatos) cmbFormato.Items.Add(x);
         Pos(cmbFormato, m, y + 20, 260, 30);
         Pos(btnPreset, m + 272, y + 18, 210, 32);
+        Pos(btnPlantilla, m + 490, y + 18, 170, 32);
         y += 60;
         Texto("PREMISA Y OBJETIVO (de qu\u00e9 va la serie, a d\u00f3nde quieres llevarla)", Tema.Pequena, Tema.TextoSuave, m, y, w, 18);
         txtPremisa.Multilinea = true;
@@ -1430,12 +1466,25 @@ class VentanaFormato : VentanaBase
         if (medidor == null) Estado("Para aprender de un episodio, abre su proyecto en Vegas y ejecuta Series desde ah\u00ed.", false);
 
         Mostrar(Resultado);
+        cmbFormato.SelectedIndexChanged += delegate { btnPlantilla.Enabled = (string)cmbFormato.SelectedItem == FormatoSerie.TV; };
+        btnPlantilla.Click += delegate
+        {
+            FormatoSerie actual = Leer();
+            using (VentanaPlantillaTV d = new VentanaPlantillaTV(actual.Tv, actual.Reglas))
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Resultado.Tv = d.Resultado;
+            }
+            Estado("Plantilla y kit listos (se guardan con \u00abGuardar\u00bb).", false);
+        };
         cmbFormato.SelectedIndexChanged += delegate { if (!cargando) Estado("Pulsa \u201cUsar valores del formato\u201d para cargar sus reglas de partida.", false); };
         btnPreset.Click += delegate
         {
             FormatoSerie p = FormatoSerie.Preset((string)cmbFormato.SelectedItem);
             p.Premisa = txtPremisa.Text.Trim();
             p.NarradorNombre = txtNarrador.Text.Trim().Length > 0 ? txtNarrador.Text.Trim() : p.NarradorNombre;
+            foreach (KeyValuePair<string, string> kv in Resultado.Tv.Kit) p.Tv.Kit[kv.Key] = kv.Value;   // el kit no se pierde
+            Resultado.Tv = p.Tv;
             Mostrar(p);
             Estado("Valores de partida de \u201c" + p.Nombre + "\u201d.", false);
         };
@@ -1450,6 +1499,7 @@ class VentanaFormato : VentanaBase
     {
         cargando = true;
         cmbFormato.SelectedIndex = Math.Max(0, Array.IndexOf(FormatoSerie.Formatos, f.Nombre));
+        btnPlantilla.Enabled = f.EsTV;
         txtPremisa.Text = (f.Premisa ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
         cmbAvance.SelectedIndex = Math.Max(0, Array.IndexOf(FormatoSerie.Avances, f.Avance));
         segNarrador.Seleccion = f.Narrador ? 0 : 1;
@@ -1502,6 +1552,1136 @@ class VentanaFormato : VentanaBase
         Mostrar(f);
         Estado("\u2714 " + Ritmo.Resumen(med) + (med.HayNarrador ? "" : " \u00b7 no encontr\u00e9 la voz \u201c" + narrador + "\u201d en la transcripci\u00f3n, as\u00ed " +
                "que no se aprendi\u00f3 nada del narrador.") + " Revisa los valores y guarda.", false);
+    }
+}
+
+// ---- src/comun/SerieTV.cs ----
+
+// =====================================================================
+// Serie de TV / anime: la plantilla de bloques de cada capitulo (cold open,
+// opening, titulo, actos, re-gancho, continuara, ending, avance) y el kit de
+// archivos fijos de la serie. Si falta un archivo del kit se pone un
+// placeholder con la duracion del bloque.
+// Salio de analizar Stardust Crusaders y Steel Ball Run
+// (docs/estructura-episodio-sc.md).
+// =====================================================================
+
+public class BloqueTV
+{
+    public string Clave = "", Nombre = "";
+    public string Tipo = "contenido";   // contenido (del capitulo), kit (archivo fijo), texto
+    public double Segundos;             // duracion fija (cold open, kit, texto, avance)
+    public double Porcentaje;           // de lo que queda (actos)
+    public string Descripcion = "";
+
+    public BloqueTV() { }
+    public BloqueTV(string clave, string nombre, string tipo, double segundos, double porcentaje, string descripcion)
+    {
+        Clave = clave; Nombre = nombre; Tipo = tipo; Segundos = segundos; Porcentaje = porcentaje; Descripcion = descripcion;
+    }
+
+    public BloqueTV Copia() { return (BloqueTV)MemberwiseClone(); }
+}
+
+public class PlantillaTV
+{
+    public List<BloqueTV> Bloques = new List<BloqueTV>();
+    public Dictionary<string, string> Kit = new Dictionary<string, string>();   // clave del bloque -> archivo
+
+    public static PlantillaTV PorDefecto()
+    {
+        PlantillaTV p = new PlantillaTV();
+        p.Bloques.Add(new BloqueTV("cold_open", "Cold open", "contenido", 45, 0,
+            "Recap del cliffhanger anterior, llegada con humor o el rival tramando algo; termina en un gancho."));
+        p.Bloques.Add(new BloqueTV("op", "Opening", "kit", 20, 0, "Opening propio (montaje de la serie)."));
+        p.Bloques.Add(new BloqueTV("titulo", "T\u00edtulo y lugar", "texto", 3, 0, "\u00abEtapa N \u00b7 nombre del cap\u00edtulo\u00bb y cartel del lugar o del tiempo."));
+        p.Bloques.Add(new BloqueTV("acto_a", "Acto A", "contenido", 0, 55,
+            "Viaje y llegada (0 %), aparece el problema (~13 %), se revela (~35 %) y la crisis (~45 %)."));
+        p.Bloques.Add(new BloqueTV("regancho", "Re-gancho", "kit", 6, 0, "Tarjeta de stats del rival o ranking de la etapa (el eyecatch)."));
+        p.Bloques.Add(new BloqueTV("acto_b", "Acto B", "contenido", 0, 45,
+            "Giro (~58 %), resoluci\u00f3n con ranking (~77 %), remate y gancho final (95\u201399 %)."));
+        p.Bloques.Add(new BloqueTV("continuara", "Continuar\u00e1", "kit", 3, 0, "Flecha \u00abTo Be Continued\u00bb sobre el cliffhanger."));
+        p.Bloques.Add(new BloqueTV("ed", "Ending", "kit", 15, 0, "Ending corto."));
+        p.Bloques.Add(new BloqueTV("avance", "Avance / post-cr\u00e9ditos", "contenido", 12, 0,
+            "Escena del pr\u00f3ximo cap\u00edtulo (ya grabado) o un hilo nuevo."));
+        return p;
+    }
+
+    public PlantillaTV Copia()
+    {
+        PlantillaTV p = new PlantillaTV();
+        foreach (BloqueTV b in Bloques) p.Bloques.Add(b.Copia());
+        foreach (KeyValuePair<string, string> kv in Kit) p.Kit[kv.Key] = kv.Value;
+        return p;
+    }
+
+    public BloqueTV Bloque(string clave)
+    {
+        foreach (BloqueTV b in Bloques) if (b.Clave == clave) return b;
+        return null;
+    }
+
+    public string Archivo(string clave)
+    {
+        string a;
+        return Kit.TryGetValue(clave, out a) ? a : "";
+    }
+
+    // Segundos de lo fijo (todo menos los actos).
+    public double Fijo()
+    {
+        double s = 0;
+        foreach (BloqueTV b in Bloques) s += b.Segundos;
+        return s;
+    }
+
+    // Cuanto dura cada acto para que el capitulo dure "total" segundos.
+    public double Acto(string clave, double total)
+    {
+        BloqueTV b = Bloque(clave);
+        double pct = 0;
+        foreach (BloqueTV x in Bloques) pct += x.Porcentaje;
+        return b == null || pct <= 0 ? 0 : Math.Max(0, total - Fijo()) * b.Porcentaje / pct;
+    }
+
+    public Dictionary<string, object> Escribir()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        List<object> l = new List<object>();
+        foreach (BloqueTV b in Bloques)
+        {
+            Dictionary<string, object> x = new Dictionary<string, object>();
+            x["clave"] = b.Clave; x["nombre"] = b.Nombre; x["tipo"] = b.Tipo; x["segundos"] = b.Segundos;
+            x["porcentaje"] = b.Porcentaje; x["descripcion"] = b.Descripcion;
+            string a = Archivo(b.Clave);
+            if (a.Length > 0) x["archivo"] = a;
+            l.Add(x);
+        }
+        d["bloques"] = l;
+        return d;
+    }
+
+    public static PlantillaTV Leer(object o)
+    {
+        List<object> l = Json.Lista(o, "bloques");
+        if (l.Count == 0) return PorDefecto();
+        PlantillaTV p = new PlantillaTV();
+        foreach (object x in l)
+        {
+            BloqueTV b = new BloqueTV(Json.Texto(x, "clave"), Json.Texto(x, "nombre"), Json.Texto(x, "tipo"),
+                                      Json.Numero(x, "segundos", 0), Json.Numero(x, "porcentaje", 0), Json.Texto(x, "descripcion"));
+            if (b.Clave.Length == 0) continue;
+            p.Bloques.Add(b);
+            string a = Json.Texto(x, "archivo");
+            if (a.Length > 0) p.Kit[b.Clave] = a;
+        }
+        return p;
+    }
+}
+
+// Tema asignado (principal o de un personaje), con sus variantes.
+public class TemaAsignado
+{
+    public string Archivo = "", Motivo = "";
+    public List<string> Variantes = new List<string>();
+
+    public Dictionary<string, object> Escribir()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["archivo"] = Archivo; d["motivo"] = Motivo; d["variantes"] = new List<object>(Variantes.ToArray());
+        return d;
+    }
+
+    public static TemaAsignado Leer(object o)
+    {
+        if (o == null) return null;
+        TemaAsignado t = new TemaAsignado();
+        t.Archivo = Json.Texto(o, "archivo"); t.Motivo = Json.Texto(o, "motivo");
+        foreach (object x in Json.Lista(o, "variantes")) if (x is string) t.Variantes.Add((string)x);
+        return t.Archivo.Length > 0 ? t : null;
+    }
+}
+
+// Musica de la serie: la carpeta (con su indice), el reparto y sus temas.
+// Una vez elegidos se mantienen en todos los capitulos.
+public class MusicaSerie
+{
+    public string Carpeta = "", Reparto = "";
+    public TemaAsignado Principal;
+    public Dictionary<string, TemaAsignado> Personajes = new Dictionary<string, TemaAsignado>();
+
+    // Nombres del reparto: "Nombre: como es" o "Nombre - como es", uno por linea.
+    public List<string> Nombres()
+    {
+        List<string> r = new List<string>();
+        foreach (string l in (Reparto ?? "").Replace("\r", "").Split('\n'))
+        {
+            string n = l.Split(new char[] { ':', '\u2014', '\u2013' }, 2)[0];
+            int g = n.IndexOf(" - ");
+            if (g > 0) n = n.Substring(0, g);
+            n = n.Trim().TrimStart('-', '*', '\u2022').Trim();
+            if (n.Length > 0 && !r.Contains(n)) r.Add(n);
+        }
+        return r;
+    }
+
+    public Dictionary<string, object> Escribir()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["carpeta"] = Carpeta; d["reparto"] = Reparto;
+        if (Principal != null) d["principal"] = Principal.Escribir();
+        Dictionary<string, object> p = new Dictionary<string, object>();
+        foreach (KeyValuePair<string, TemaAsignado> kv in Personajes) p[kv.Key] = kv.Value.Escribir();
+        d["personajes"] = p;
+        return d;
+    }
+
+    public static MusicaSerie Leer(object o)
+    {
+        MusicaSerie m = new MusicaSerie();
+        if (o == null) return m;
+        m.Carpeta = Json.Texto(o, "carpeta"); m.Reparto = Json.Texto(o, "reparto");
+        m.Principal = TemaAsignado.Leer(Json.Valor(o, "principal"));
+        Dictionary<string, object> p = Json.Obj(o, "personajes");
+        if (p != null)
+            foreach (KeyValuePair<string, object> kv in p)
+            {
+                TemaAsignado t = TemaAsignado.Leer(kv.Value);
+                if (t != null) m.Personajes[kv.Key] = t;
+            }
+        return m;
+    }
+
+    // ------------------------------------------- elegir los temas con Gemini
+
+    // Un tema por grupo de variantes (para no ofrecer el mismo tema dos veces).
+    public static List<ArchivoMusica> Candidatos(BibliotecaMusica b)
+    {
+        List<ArchivoMusica> r = new List<ArchivoMusica>();
+        Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        foreach (ArchivoMusica a in b.Archivos)
+        {
+            bool sirve = a.ConUso || a.Fuente == "SBR fan";
+            if (!sirve || vistos.ContainsKey(a.Ruta)) continue;
+            vistos[a.Ruta] = true;
+            foreach (string v in a.Variantes) vistos[v] = true;
+            r.Add(a);
+        }
+        return r;
+    }
+
+    public static string Instrucciones()
+    {
+        return "Eres supervisor musical de una serie de YouTube de Minecraft con amigos, editada como un anime de JoJo's " +
+               "Bizarre Adventure. Elige de la biblioteca el TEMA PRINCIPAL de la serie (suena en los momentos clave y en las " +
+               "victorias) y UN TEMA PARA CADA PERSONAJE del reparto (suena cuando ese personaje se luce o entra en escena).\n\n" +
+               "Reglas:\n- Usa la personalidad de cada personaje y la premisa de la serie. Prefiere temas que en el anime ya son " +
+               "de un personaje parecido (\"tema de\") o que suenan en escenas que le quedan.\n" +
+               "- Un tema distinto para cada personaje y distinto del principal.\n" +
+               "- Respeta las preferencias del editor si las hay.\n" +
+               "- Solo ids de la lista.\n\n" +
+               "Responde SOLO con JSON:\n{\"principal\": {\"id\": n, \"motivo\": \"...\"}, " +
+               "\"personajes\": [{\"nombre\": \"...\", \"id\": n, \"motivo\": \"...\"}]}";
+    }
+
+    public static string Mensaje(List<ArchivoMusica> candidatos, string premisa, string reparto, string preferencias)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (!String.IsNullOrEmpty(premisa)) sb.Append("PREMISA DE LA SERIE:\n" + premisa.Trim() + "\n\n");
+        sb.Append("REPARTO (nombre: c\u00f3mo es):\n" + (reparto ?? "").Trim() + "\n\n");
+        if (!String.IsNullOrEmpty(preferencias)) sb.Append("PREFERENCIAS DEL EDITOR:\n" + preferencias.Trim() + "\n\n");
+        sb.Append("BIBLIOTECA [id] t\u00edtulo (de d\u00f3nde) | \u00e1nimo | tema de | d\u00f3nde suena en el anime\n");
+        for (int i = 0; i < candidatos.Count; i++)
+        {
+            ArchivoMusica a = candidatos[i];
+            sb.Append("[" + i + "] " + a.Titulo + " (" + (a.Parte.Length > 0 ? a.Parte : a.Fuente) + ")");
+            if (a.Animos.Count > 0) sb.Append(" | " + String.Join(", ", a.Animos.ToArray()));
+            if (a.TemaDe.Count > 0) sb.Append(" | tema de " + String.Join(", ", a.TemaDe.ToArray()));
+            if (a.Escenas.Count > 0) sb.Append(" | " + String.Join("; ", a.Escenas.GetRange(0, Math.Min(2, a.Escenas.Count)).ToArray()));
+            sb.Append("\n");
+        }
+        return sb.ToString();
+    }
+
+    static TemaAsignado Asignar(List<ArchivoMusica> c, object x)
+    {
+        int id = (int)Json.Numero(x, "id", -1);
+        if (id < 0 || id >= c.Count) return null;
+        TemaAsignado t = new TemaAsignado();
+        t.Archivo = c[id].Ruta; t.Motivo = Json.Texto(x, "motivo");
+        t.Variantes.AddRange(c[id].Variantes);
+        return t;
+    }
+
+    // Aplica la respuesta: solo los personajes del reparto y sin repetir temas.
+    public int Aplicar(string json, List<ArchivoMusica> candidatos)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        int n = 0;
+        TemaAsignado p = Asignar(candidatos, Json.Valor(o, "principal"));
+        if (p != null) { Principal = p; n++; }
+        List<string> nombres = Nombres();
+        Dictionary<string, bool> usados = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        if (Principal != null) usados[Principal.Archivo] = true;
+        foreach (object x in Json.Lista(o, "personajes"))
+        {
+            string nombre = Json.Texto(x, "nombre").Trim();
+            string real = nombres.Find(delegate (string q) { return String.Equals(q, nombre, StringComparison.OrdinalIgnoreCase); });
+            if (real == null) continue;
+            TemaAsignado t = Asignar(candidatos, x);
+            if (t == null || usados.ContainsKey(t.Archivo)) continue;
+            usados[t.Archivo] = true;
+            Personajes[real] = t;
+            n++;
+        }
+        return n;
+    }
+}
+
+// ---- src/comun/BibliotecaMusica.cs ----
+
+// =====================================================================
+// Biblioteca de musica: recorre la carpeta de musica, empareja cada archivo
+// con su tema del anime (CatalogoAnime: escenas donde suena) y le pone
+// estados de animo, la parte del episodio donde suele ir y de que personaje
+// es tema. Se guarda en "<carpeta>\musica-indice.json".
+// =====================================================================
+
+public class ArchivoMusica
+{
+    public string Ruta = "", Titulo = "", Album = "", Fuente = "", TemaAnime = "", Parte = "";
+    public double Duracion;
+    public int Usos, LargoTipico;
+    public List<string> Animos = new List<string>(), TemaDe = new List<string>(), Escenas = new List<string>(), Variantes = new List<string>();
+    public string Momento = "";     // donde suena mas: inicio, medio, final, avance, eyecatch...
+    public bool ConUso { get { return Usos > 0; } }
+}
+
+// Lo que se sabe de un archivo antes de emparejarlo (de sus etiquetas o del CSV).
+public class FilaMusica
+{
+    public string Ruta = "", Titulo = "", Album = "";
+    public double Duracion;
+}
+
+public class BibliotecaMusica
+{
+    public string Carpeta = "";
+    public List<ArchivoMusica> Archivos = new List<ArchivoMusica>();
+    public const string NombreIndice = "musica-indice.json";
+    public static readonly string[] Extensiones = { ".mp3", ".flac", ".wav", ".m4a", ".ogg", ".opus", ".aac", ".wma" };
+
+    // ----------------------------------------------------------- normalizar
+
+    public static string Norm(string t)
+    {
+        string s = (t ?? "").Normalize(NormalizationForm.FormD);
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in s)
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark && c < 128) sb.Append(c);
+        s = sb.ToString().ToLowerInvariant();
+        s = Regex.Replace(s, @"^\s*\d{1,3}[\s.\-_]+", "");
+        s = Regex.Replace(s, @"\(.*?\)|\[.*?\]|~.*?~", " ");
+        s = Regex.Replace(s, @"[^a-z0-9 ]", " ");
+        return Regex.Replace(s, @"\s+", " ").Trim();
+    }
+
+    // Titulo sin la version: "Rest ~Piano Ver.~", "Fighting Gold (Instrumental)" -> mismo nucleo.
+    public static string Nucleo(string t)
+    {
+        string s = Regex.Replace(t ?? "", @"(?i)\s*[-\u2013(\[~]?\s*(piano|instrumental|english|tv size|tv|full|short|extended|remix|giorno|diavolo|units|acoustic|orchestra)\s*(ver(sion)?\.?)?\s*[)\]~]?", " ");
+        return Norm(s);
+    }
+
+    static readonly string[][] Fuentes = {
+        new[] { "vento aureo soundtrack", "videojuego" },
+        new[] { "stardust crusaders", "SC" }, new[] { "golden wind|vento aureo|giogio", "GW" }, new[] { "diamond is unbreakable|morioh", "DU" },
+        new[] { "stone ocean", "SO" }, new[] { @"phantom blood.*o\.?s\.?t|battle tendency", "PB/BT" }, new[] { "steel ball run|gwinn", "SBR fan" },
+        new[] { @"all star battle|eyes of heaven|ora ora overdrive|heritage for the future|\brpg\b|stardust shooters|video game|diamond records|ps3", "videojuego" },
+        new[] { @"\bova\b|2000", "OVA" }, new[] { @"anthology|op\d? single|theme song|opening|ending", "canci\u00f3n" },
+    };
+
+    public static string Fuente(string album, string ruta)
+    {
+        string t = (album + " " + ruta).ToLowerInvariant();
+        foreach (string[] f in Fuentes) if (Regex.IsMatch(t, f[0])) return f[1];
+        return "otro";
+    }
+
+    static readonly string[] ClavesOst = { "departure", "journey", "world", "destination", "overture", "intermezzo", "finale",
+                                           "good morning", "good night", "future", "destiny", "musik", "leicht", "stone ocean" };
+
+    static readonly Dictionary<string, string> Animo = new Dictionary<string, string> {
+        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat" },
+        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase" },
+        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister" },
+        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso" },
+        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer" },
+        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run" },
+        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night" },
+        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness" },
+        { "victoria", "victory|triumph|glory|hero|pride|proud|win" },
+        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny" },
+    };
+
+    // ------------------------------------------------------------- catalogo
+
+    class Tema
+    {
+        public string T, N, P, O;
+        public int U, L;
+        public List<string> A = new List<string>(), D = new List<string>(), E = new List<string>();
+        public string M = "";
+        public Dictionary<string, bool> Pares;
+    }
+
+    static List<Tema> catalogo;
+    static Dictionary<string, string> alias;
+
+    static void CargarCatalogo()
+    {
+        if (catalogo != null) return;
+        catalogo = new List<Tema>();
+        alias = new Dictionary<string, string>();
+        object o = Json.Leer(CatalogoAnime.Json);
+        foreach (object x in Json.Lista(o, "temas"))
+        {
+            Tema t = new Tema();
+            t.T = Json.Texto(x, "t"); t.N = Json.Texto(x, "n"); t.P = Json.Texto(x, "p"); t.O = Json.Texto(x, "o");
+            t.U = (int)Json.Numero(x, "u", 0); t.L = (int)Json.Numero(x, "l", 0);
+            foreach (object a in Json.Lista(x, "a")) t.A.Add((string)a);
+            foreach (object a in Json.Lista(x, "d")) t.D.Add((string)a);
+            foreach (object a in Json.Lista(x, "e")) t.E.Add((string)a);
+            int mejor = -1;
+            Dictionary<string, object> m = Json.Obj(x, "m");
+            if (m != null) foreach (KeyValuePair<string, object> kv in m) if (Convert.ToInt32(kv.Value) > mejor) { mejor = Convert.ToInt32(kv.Value); t.M = kv.Key; }
+            t.Pares = Pares(t.N);
+            catalogo.Add(t);
+        }
+        Dictionary<string, object> al = Json.Obj(o, "alias");
+        if (al != null) foreach (KeyValuePair<string, object> kv in al) alias[kv.Key] = Norm((string)kv.Value);
+    }
+
+    // Pares de letras (para descartar rapido los que no se parecen nada).
+    static Dictionary<string, bool> Pares(string s)
+    {
+        Dictionary<string, bool> d = new Dictionary<string, bool>();
+        for (int i = 0; i + 1 < s.Length; i++) d[s.Substring(i, 2)] = true;
+        return d;
+    }
+
+    static double Dice(Dictionary<string, bool> a, Dictionary<string, bool> b)
+    {
+        if (a.Count == 0 || b.Count == 0) return 0;
+        int c = 0;
+        foreach (string k in a.Keys) if (b.ContainsKey(k)) c++;
+        return 2.0 * c / (a.Count + b.Count);
+    }
+
+    // Parecido entre dos textos (0..1), como difflib: 2*coincidencias/(largo total).
+    public static double Parecido(string a, string b)
+    {
+        if (a.Length == 0 || b.Length == 0) return 0;
+        return 2.0 * Coincidencias(a, 0, a.Length, b, 0, b.Length) / (a.Length + b.Length);
+    }
+
+    static int Coincidencias(string a, int a0, int a1, string b, int b0, int b1)
+    {
+        int mejor = 0, ia = 0, ib = 0;
+        for (int i = a0; i < a1; i++)
+            for (int j = b0; j < b1; j++)
+            {
+                int k = 0;
+                while (i + k < a1 && j + k < b1 && a[i + k] == b[j + k]) k++;
+                if (k > mejor) { mejor = k; ia = i; ib = j; }
+            }
+        if (mejor == 0) return 0;
+        return mejor + Coincidencias(a, a0, ia, b, b0, ib) + Coincidencias(a, ia + mejor, a1, b, ib + mejor, b1);
+    }
+
+    static Tema Emparejar(string titulo, string album, string fuente)
+    {
+        string n = Norm(titulo);
+        if (n.Length == 0) return null;
+        string parte = fuente == "SC" || fuente == "GW" || fuente == "DU" || fuente == "SO" || fuente == "PB/BT" ? fuente : null;
+        string objetivo = null;
+        if ((fuente == "SC" || fuente == "GW") && alias.ContainsKey(n)) objetivo = alias[n];
+        Tema mejor = null;
+        double puntaje = 0;
+        if (objetivo == null && fuente != "SC" && fuente != "GW" && fuente != "DU" && fuente != "SO" && fuente != "PB/BT" &&
+            fuente != "canci\u00f3n" && fuente != "otro") return null;
+        string alb = (album ?? "").ToLowerInvariant();
+        Dictionary<string, bool> pn = Pares(n);
+        foreach (Tema t in catalogo)
+        {
+            double s;
+            if (objetivo != null) s = t.N == objetivo ? 1.5 : 0;
+            else
+            {
+                if (Math.Abs(t.N.Length - n.Length) > Math.Max(t.N.Length, n.Length) / 2 + 3) continue;
+                if (n != t.N && Dice(pn, t.Pares) < 0.5) continue;
+                s = Parecido(n, t.N);
+                if (t.O.Length > 0 && alb.Contains(t.O)) s += 0.15;
+            }
+            if (parte != null && t.P == parte) s += 0.001;     // desempata: el mismo nombre en su propia parte
+            if (s > puntaje) { mejor = t; puntaje = s; }
+        }
+        return puntaje >= 0.86 ? mejor : null;
+    }
+
+    // ------------------------------------------------------------- indexar
+
+    public static BibliotecaMusica Indexar(string carpeta, List<FilaMusica> filas, Action<string, double> avance)
+    {
+        CargarCatalogo();
+        BibliotecaMusica b = new BibliotecaMusica();
+        b.Carpeta = carpeta;
+        for (int i = 0; i < filas.Count; i++)
+        {
+            FilaMusica f = filas[i];
+            if (avance != null && i % 25 == 0) avance("Emparejando " + (i + 1) + " de " + filas.Count + "\u2026", (double)i / filas.Count);
+            ArchivoMusica a = new ArchivoMusica();
+            a.Ruta = f.Ruta; a.Titulo = f.Titulo.Length > 0 ? f.Titulo : Path.GetFileNameWithoutExtension(f.Ruta);
+            a.Album = f.Album; a.Duracion = f.Duracion;
+            a.Fuente = Fuente(a.Album, a.Ruta);
+            Tema t = Emparejar(a.Titulo, a.Album, a.Fuente);
+            if (t != null)
+            {
+                a.TemaAnime = t.T; a.Parte = t.P; a.Usos = t.U; a.LargoTipico = t.L; a.Momento = t.M;
+                a.Animos.AddRange(t.A); a.TemaDe.AddRange(t.D); a.Escenas.AddRange(t.E);
+            }
+            if (a.Animos.Count == 0)
+                foreach (KeyValuePair<string, string> kv in Animo)
+                    if (Regex.IsMatch(a.Titulo, kv.Value, RegexOptions.IgnoreCase) && a.Animos.Count < 2) a.Animos.Add(kv.Key);
+            b.Archivos.Add(a);
+        }
+        b.MarcarVariantes();
+        return b;
+    }
+
+    // Variantes: el mismo tema en otra version o en otro album.
+    public void MarcarVariantes()
+    {
+        Dictionary<string, List<ArchivoMusica>> grupos = new Dictionary<string, List<ArchivoMusica>>();
+        foreach (ArchivoMusica a in Archivos)
+        {
+            string k = a.TemaAnime.Length > 0 ? "t:" + Norm(a.TemaAnime) + "|" + a.Parte : "n:" + Nucleo(a.Titulo);
+            if (k.Length <= 2) continue;
+            List<ArchivoMusica> l;
+            if (!grupos.TryGetValue(k, out l)) { l = new List<ArchivoMusica>(); grupos[k] = l; }
+            l.Add(a);
+        }
+        foreach (List<ArchivoMusica> l in grupos.Values)
+            foreach (ArchivoMusica a in l)
+            {
+                a.Variantes.Clear();
+                foreach (ArchivoMusica b in l) if (b != a) a.Variantes.Add(b.Ruta);
+            }
+    }
+
+    // Archivos de la carpeta con sus etiquetas (titulo, album, duracion) leidas
+    // por el Explorador de Windows; si no se puede, solo el nombre del archivo.
+    public static List<FilaMusica> Escanear(string carpeta, Action<string, double> avance)
+    {
+        List<string> rutas = new List<string>();
+        foreach (string f in Directory.GetFiles(carpeta, "*", SearchOption.AllDirectories))
+            if (Array.IndexOf(Extensiones, Path.GetExtension(f).ToLowerInvariant()) >= 0) rutas.Add(f);
+        rutas.Sort(StringComparer.OrdinalIgnoreCase);
+        object shell = null;
+        Type tipo = null;
+        try { tipo = Type.GetTypeFromProgID("Shell.Application"); if (tipo != null) shell = Activator.CreateInstance(tipo); } catch { shell = null; }
+        Dictionary<string, object> carpetas = new Dictionary<string, object>();
+        List<FilaMusica> filas = new List<FilaMusica>();
+        string raiz = carpeta.TrimEnd('\\', '/');
+        for (int i = 0; i < rutas.Count; i++)
+        {
+            if (avance != null && i % 20 == 0) avance("Leyendo " + (i + 1) + " de " + rutas.Count + "\u2026", (double)i / Math.Max(1, rutas.Count));
+            string r = rutas[i];
+            FilaMusica f = new FilaMusica();
+            f.Ruta = r.Substring(raiz.Length + 1);
+            if (shell != null)
+                try
+                {
+                    string dir = Path.GetDirectoryName(r);
+                    object ns;
+                    if (!carpetas.TryGetValue(dir, out ns))
+                    {
+                        ns = tipo.InvokeMember("NameSpace", BindingFlags.InvokeMethod, null, shell, new object[] { dir });
+                        carpetas[dir] = ns;
+                    }
+                    object item = ns.GetType().InvokeMember("ParseName", BindingFlags.InvokeMethod, null, ns, new object[] { Path.GetFileName(r) });
+                    f.Titulo = Detalle(ns, item, 21);
+                    f.Album = Detalle(ns, item, 14);
+                    f.Duracion = Segundos(Detalle(ns, item, 27));
+                }
+                catch { }
+            filas.Add(f);
+        }
+        return filas;
+    }
+
+    static string Detalle(object ns, object item, int i)
+    {
+        object v = ns.GetType().InvokeMember("GetDetailsOf", BindingFlags.InvokeMethod, null, ns, new object[] { item, i });
+        return (v as string ?? "").Replace("\u200e", "").Replace("\u200f", "").Trim();
+    }
+
+    public static double Segundos(string d)
+    {
+        double s = 0;
+        foreach (string p in (d ?? "").Split(':'))
+        {
+            int x;
+            if (!int.TryParse(p.Trim(), out x)) return 0;
+            s = s * 60 + x;
+        }
+        return s;
+    }
+
+    // El listado de PowerShell (musica.csv), por si se prefiere.
+    public static List<FilaMusica> DesdeCsv(string ruta)
+    {
+        List<FilaMusica> filas = new List<FilaMusica>();
+        string[] lineas = File.ReadAllLines(ruta, Encoding.UTF8);
+        if (lineas.Length == 0) return filas;
+        List<string> cab = Csv(lineas[0]);
+        int iR = cab.IndexOf("Ruta"), iT = cab.IndexOf("Titulo"), iA = cab.IndexOf("Album"), iD = cab.IndexOf("Duracion"), iN = cab.IndexOf("Archivo");
+        for (int k = 1; k < lineas.Length; k++)
+        {
+            List<string> c = Csv(lineas[k]);
+            if (iR < 0 || c.Count <= iR) continue;
+            FilaMusica f = new FilaMusica();
+            f.Ruta = c[iR];
+            f.Titulo = iT >= 0 && iT < c.Count && c[iT].Length > 0 ? c[iT] : (iN >= 0 && iN < c.Count ? c[iN] : "");
+            f.Album = iA >= 0 && iA < c.Count ? c[iA] : "";
+            f.Duracion = iD >= 0 && iD < c.Count ? Segundos(c[iD]) : 0;
+            filas.Add(f);
+        }
+        return filas;
+    }
+
+    static List<string> Csv(string l)
+    {
+        List<string> r = new List<string>();
+        StringBuilder sb = new StringBuilder();
+        bool comillas = false;
+        for (int i = 0; i < l.Length; i++)
+        {
+            char c = l[i];
+            if (comillas)
+            {
+                if (c == '"' && i + 1 < l.Length && l[i + 1] == '"') { sb.Append('"'); i++; }
+                else if (c == '"') comillas = false;
+                else sb.Append(c);
+            }
+            else if (c == '"') comillas = true;
+            else if (c == ',') { r.Add(sb.ToString()); sb.Length = 0; }
+            else sb.Append(c);
+        }
+        r.Add(sb.ToString());
+        if (r.Count > 0) r[0] = r[0].TrimStart('\ufeff');
+        return r;
+    }
+
+    // ------------------------------------------------------ guardar y cargar
+
+    public void Guardar(string ruta)
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["formato"] = "vegas-cut-musica";
+        d["carpeta"] = Carpeta;
+        d["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        List<object> l = new List<object>();
+        foreach (ArchivoMusica a in Archivos)
+        {
+            Dictionary<string, object> x = new Dictionary<string, object>();
+            x["ruta"] = a.Ruta; x["titulo"] = a.Titulo; x["album"] = a.Album; x["duracion"] = Math.Round(a.Duracion);
+            x["fuente"] = a.Fuente; x["animos"] = new List<object>(a.Animos.ToArray());
+            if (a.ConUso)
+            {
+                x["tema_anime"] = a.TemaAnime; x["parte"] = a.Parte; x["usos"] = a.Usos; x["largo_tipico"] = a.LargoTipico;
+                x["momento"] = a.Momento; x["escenas"] = new List<object>(a.Escenas.ToArray());
+                if (a.TemaDe.Count > 0) x["tema_de"] = new List<object>(a.TemaDe.ToArray());
+            }
+            if (a.Variantes.Count > 0) x["variantes"] = new List<object>(a.Variantes.ToArray());
+            l.Add(x);
+        }
+        d["archivos"] = l;
+        File.WriteAllText(ruta, Json.Escribir(d), new UTF8Encoding(false));
+    }
+
+    public static BibliotecaMusica Cargar(string carpeta)
+    {
+        string ruta = Path.Combine(carpeta, NombreIndice);
+        if (!File.Exists(ruta)) return null;
+        object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+        BibliotecaMusica b = new BibliotecaMusica();
+        b.Carpeta = carpeta;
+        foreach (object x in Json.Lista(o, "archivos"))
+        {
+            ArchivoMusica a = new ArchivoMusica();
+            a.Ruta = Json.Texto(x, "ruta"); a.Titulo = Json.Texto(x, "titulo"); a.Album = Json.Texto(x, "album");
+            a.Duracion = Json.Numero(x, "duracion", 0); a.Fuente = Json.Texto(x, "fuente");
+            a.TemaAnime = Json.Texto(x, "tema_anime"); a.Parte = Json.Texto(x, "parte");
+            a.Usos = (int)Json.Numero(x, "usos", 0); a.LargoTipico = (int)Json.Numero(x, "largo_tipico", 0);
+            a.Momento = Json.Texto(x, "momento");
+            foreach (object y in Json.Lista(x, "animos")) a.Animos.Add((string)y);
+            foreach (object y in Json.Lista(x, "tema_de")) a.TemaDe.Add((string)y);
+            foreach (object y in Json.Lista(x, "escenas")) a.Escenas.Add((string)y);
+            foreach (object y in Json.Lista(x, "variantes")) a.Variantes.Add((string)y);
+            b.Archivos.Add(a);
+        }
+        return b;
+    }
+
+    public ArchivoMusica Buscar(string ruta)
+    {
+        foreach (ArchivoMusica a in Archivos) if (String.Equals(a.Ruta, ruta, StringComparison.OrdinalIgnoreCase)) return a;
+        return null;
+    }
+
+    public string Completa(string ruta) { return Path.Combine(Carpeta, ruta); }
+}
+
+// ---- src/comun/CatalogoAnime.cs ----
+
+// GENERADO con herramientas/catalogo_musica.py desde las listas de musica de jojowiki
+// (ejemplos/subs): 489 temas del anime con como se usan. No editar a mano.
+public static class CatalogoAnime
+{
+    public static readonly string Json = String.Concat(new string[] {
+        "{\"temas\":[{\"t\":\"A Bizarre Hunch\",\"n\":\"a bizarre hunch\",\"p\":\"DU\",\"o\":\"\",\"u\":8,\"l\":48,\"a\":[\"misterio\"],\"m\":{\"medio\":7,\"final\":1},\"d\":[],\"e\":[\"Learning English with Yukako\",\"The intricacies of baby gear\",\"Koichi doesn't remember what's wrong\",\"Treating Shigechi carefully\"]},{\"t\":\"A Bizarre Hunch\",\"n\":\"a bizarre hunch\",\"p\":\"SO\",\"o\":\"\",\"u\":1,\"l\":23,\"a\":[\"tension\",\"misterio\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Kenzou is trapped in a trash can beyond recovery\"]},{\"t\":\"A Duet of Courage\",\"n\":\"a duet of courage\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":5,\"l\":87,\"a\":[\"pelea\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"Jonathan defeats Speedwagon with a single kick.\",\"The Joestar Mansion set on fire.\",\"Dio is stronger than both JoJo and Zeppeli.\",\"JoJo and Bruford continue to fight.\"]},{\"t\":\"A Fine Fellow Appears\",\"n\":\"a fine fellow appears\",\"p\":\"SC\",\"o\":\"journey\",\"u\":9,\"l\":36,\"a\":[\"viaje\"],\"m\":{\"final\":3,\"medio\":3,\"inicio\":2,\"recap\":1},\"d\":[],\"e\":[\"Arrival in Singapore\",\"Nena's demise\",\"The pathetic ZZ\",\"Arrival in Karachi\"]},{\"t\":\"A Fine Fellow Arrives\",\"n\":\"a fine fellow arrives\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":1,\"l\":59,\"a\":[\"villano\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Speedwagon sees through Dio's facade.\"]},{\"t\":\"a Little Bird\",\"n\":\"a little bird\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":121,\"a\":[\"pelea\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Gwess and Pi-chan/A corpse in the bird\",\"Jolyne becomes Gwess's pet\",\"Goo Goo Dolls attacks\"]},{\"t\":\"A Lurking Evil\",\"n\":\"a lurking evil\",\"p\":\"DU\",\"o\":\"good night\",\"u\":20,\"l\":68,\"a\":[\"villano\"],\"m\":{\"medio\":12,\"inicio\":7,\"final\":1},\"d\":[],\"e\":[\"A curiously empty street\",\"Koichi warns Josuke & Okuyasu\",\"Receiving the paycheck/The banker is suspicious\",\"Okuyasu's stratagem\"]},{\"t\":\"A Lurking Evil\",\"n\":\"a lurking evil\",\"p\":\"GW\",\"o\":\"good night\",\"u\":2,\"l\":108,\"a\":[\"explicacion\",\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The team thinks of a plan to stop Sale from getting the money\",\"Unknown ally explains the origins of the Arrow\"]},{\"t\":\"A Lurking Evil\",\"n\":\"a lurking evil\",\"p\":",
+        "\"SO\",\"o\":\"good night\",\"u\":2,\"l\":94,\"a\":[\"villano\",\"explicacion\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Anasui explains assassination feng shui\",\"Kenzou vows to reign as founder once again\"]},{\"t\":\"A Message to My Friends\",\"n\":\"a message to my friends\",\"p\":\"SC\",\"o\":\"destination\",\"u\":2,\"l\":76,\"a\":[\"tristeza\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Kakyoin remembers how DIO swayed him\",\"Kakyoin's last message\"]},{\"t\":\"A Moment's Happiness\",\"n\":\"a moment s happiness\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":3,\"l\":45,\"a\":[\"tension\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Erina returns Jonathan's handkerchief.\",\"Jonathan and Erina are married.\",\"An old photo.\"]},{\"t\":\"A Party of Stardust\",\"n\":\"a party of stardust\",\"p\":\"DU\",\"o\":\"destination\",\"u\":1,\"l\":8,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Star Platinum attacks SHA again\"]},{\"t\":\"A Party of Stardust\",\"n\":\"a party of stardust\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":54,\"a\":[\"epico\"],\"m\":{\"recap\":2,\"final\":2,\"medio\":1},\"d\":[],\"e\":[\"Recap\",\"Jotaro swiftly defeats the enemy\",\"Recap: Joseph & Avdol have been magnetized\",\"Star Platinum pummels D'Arby\"]},{\"t\":\"A Piece of Stardust\",\"n\":\"a piece of stardust\",\"p\":\"SO\",\"o\":\"world\",\"u\":1,\"l\":11,\"a\":[\"epico\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Jolyne thinking about her father\"]},{\"t\":\"A Superhuman Reborn\",\"n\":\"a superhuman reborn\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":5,\"l\":80,\"a\":[\"villano\",\"pelea\",\"viaje\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Dio is bulletproof now.\",\"Jack the Ripper attacks.\",\"Bruford & Tarkus are Dio's servants now.\",\"Doobie appears.\"]},{\"t\":\"A Well-Laid Trap\",\"n\":\"a well laid trap\",\"p\":\"DU\",\"o\":\"\",\"u\":8,\"l\":26,\"a\":[\"pelea\"],\"m\":{\"medio\":4,\"inicio\":4},\"d\":[],\"e\":[\"Rohan's trap complete\",\"Yoshihiro plans to create as many Stand users as he can\",\"Yoshihiro is observing the battle\",\"Yoshihiro strikes another person with the Arrow\"]},{\"t\":\"A Well-Laid Trap\",\"n\":\"a well laid trap\",\"p\":\"SO\",\"o\":\"\",\"u\":1,\"l\":92,\"a\":[\"pelea\"],\"m\":{\"recap\":1},\"d\":[],\"e\":[\"Recap: Anasui obliges/F.F. vs Kenzou\"]},{\"t\":\"abyss",
+        "\",\"n\":\"abyss\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":10,\"l\":69,\"a\":[],\"m\":{\"medio\":8,\"final\":1,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Santana invades a Nazi soldier's body.\",\"Santana's Rib Blades./Santana discovers the Ripple.\",\"Santana invades Stroheim's body.\",\"Joseph's slipping.\"]},{\"t\":\"aereo da caccia\",\"n\":\"aereo da caccia\",\"p\":\"GW\",\"o\":\"overture\",\"u\":7,\"l\":47,\"a\":[\"pelea\"],\"m\":{\"medio\":4,\"final\":2,\"recap\":1},\"d\":[\"narancia\"],\"e\":[\"Narancia summons Aerosmith\",\"Recap of Narancia confronting Formaggio\",\"Narancia tries to call Bruno\",\"Aerosmith explodes some cars\"]},{\"t\":\"affection\",\"n\":\"affection\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":3,\"l\":100,\"a\":[\"calma\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"A bit of Joseph and Erina's story.\",\"Joseph knows that Speedwagon is alive.\",\"Lisa Lisa takes a bath.\"]},{\"t\":\"alba\",\"n\":\"alba\",\"p\":\"GW\",\"o\":\"overture\",\"u\":5,\"l\":28,\"a\":[\"tristeza\"],\"m\":{\"medio\":3,\"opening\":1,\"inicio\":1},\"d\":[],\"e\":[\"Opening shots of the city\",\"Girls ask Giorno for directions\",\"The team is sailing on a yacht\",\"Bucciarati's past\"]},{\"t\":\"Ally\",\"n\":\"ally\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":2,\"l\":40,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"F.F. wants to protect Jolyne\",\"Jolyne on Anasui's shoulder/Anasui gives Jolyne a ring\"]},{\"t\":\"An Alien??\",\"n\":\"an alien\",\"p\":\"DU\",\"o\":\"\",\"u\":7,\"l\":31,\"a\":[],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[],\"e\":[\"They deflect the Arrow?\",\"Are tissues an earthen treat?\",\"Nu Mikitakazo Nshi, the self-proclaimed alien\",\"Mikitaka turns into super sneakers\"]},{\"t\":\"An Enveloping Peace\",\"n\":\"an enveloping peace\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":87,\"a\":[\"calma\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The history of Bruford and Tarkus.\",\"Tarkus is still alive.\"]},{\"t\":\"ancientry\",\"n\":\"ancientry\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":12,\"l\":90,\"a\":[\"pelea\"],\"m\":{\"medio\":6,\"inicio\":4,\"final\":2},\"d\":[],\"e\":[\"The Pillar Men seek the Super Aja.\",\"The Pillar Men are familiar with the Ripple.\",\"Wamuu and Esidisi's Wedding Rings of Death.\",\"Kars and the Stone of Aja.\"]},{\"t\":\"Anger\",\"n\":\"anger\",\"p\":\"S",
+        "O\",\"o\":\"stone ocean\",\"u\":1,\"l\":97,\"a\":[\"viaje\",\"explicacion\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jolyne understands Planet Waves's ability/Jolyne defends herself against Westwood\"]},{\"t\":\"Another Face, Same Mind\",\"n\":\"another face same mind\",\"p\":\"DU\",\"o\":\"good night\",\"u\":9,\"l\":47,\"a\":[\"villano\"],\"m\":{\"medio\":7,\"inicio\":2},\"d\":[\"kira\"],\"e\":[\"Kosaku Kawajiri is not himself today\",\"Kira working to perfect his disguise\",\"Kira relieved for Shinobu\",\"Yet another flaw in Kira's disguise\"]},{\"t\":\"Another Face, Same Mind\",\"n\":\"another face same mind\",\"p\":\"SO\",\"o\":\"good night\",\"u\":1,\"l\":18,\"a\":[],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Jolyne forgetting while watching a movie\"]},{\"t\":\"appearance\",\"n\":\"appearance\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":4,\"l\":39,\"a\":[\"pelea\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Battle Tendency title card\",\"Joseph steps in./Joseph's Ripple Clackers.\",\"Trial completed!\",\"Joseph says goodbye to Suzi Q.\"]},{\"t\":\"Approach\",\"n\":\"approach\",\"p\":\"DU\",\"o\":\"departure\",\"u\":1,\"l\":18,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jotaro guesses SHA detects heat\"]},{\"t\":\"Approach\",\"n\":\"approach\",\"p\":\"SC\",\"o\":\"departure\",\"u\":21,\"l\":71,\"a\":[\"tension\"],\"m\":{\"medio\":13,\"final\":6,\"recap\":1,\"inicio\":1},\"d\":[],\"e\":[\"Jotaro shows his evil spirit\",\"Star Platinum reveals Hierophant Green\",\"The heroes learn DIO is in Egypt\",\"Joseph plans the sea route\"]},{\"t\":\"Approach\",\"n\":\"approach\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":28,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jotaro asks Jolyne to summon Stone Free\"]},{\"t\":\"ascensione\",\"n\":\"ascensione\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":46,\"a\":[\"tristeza\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Giorno says goodbye to Narancia\",\"Giorno gets the Arrow\"]},{\"t\":\"assassinio\",\"n\":\"assassinio\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":10,\"l\":78,\"a\":[\"villano\",\"tension\"],\"m\":{\"medio\":7,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Zucchero demands Bruno to tell where the money is\",\"Formaggio shrinks a car\",\"Formaggio meets his team\",\"Sorbet and Gelato are missing\"]},{\"t\":\"assassinio\",\"n\":\"assassinio",
+        "\",\"p\":\"SO\",\"o\":\"intermezzo\",\"u\":1,\"l\":85,\"a\":[\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Cape Canaveral's gravity/Pucci's face morphing\"]},{\"t\":\"attacco\",\"n\":\"attacco\",\"p\":\"GW\",\"o\":\"overture\",\"u\":3,\"l\":46,\"a\":[\"pelea\"],\"m\":{\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Black Sabbath switches to Giorno and attacks him\",\"Formaggio attacks Narancia\",\"Formaggio hides inside Narancia's pocket\"]},{\"t\":\"attacco\",\"n\":\"attacco\",\"p\":\"SO\",\"o\":\"overture\",\"u\":2,\"l\":78,\"a\":[\"pelea\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Kenzou makes F.F.'s arm enter his Stand\",\"Ermes touches a rainbow while attacking Versus, snails emerge from her arm\"]},{\"t\":\"Avalon\",\"n\":\"avalon\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":3,\"l\":156,\"a\":[],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Kars has the Stone Mask and Super Aja!!!!/Apotheosis.\",\"Kars has tamed the sun!!!/Run away!!\",\"Kars can use the Ripple!/Joseph uses the Super Aja on Kars's Ripple.\"]},{\"t\":\"awake\",\"n\":\"awake\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":7,\"l\":94,\"a\":[],\"m\":{\"medio\":5,\"inicio\":2},\"d\":[],\"e\":[\"The Pillar Men awaken!\",\"Esidisi corners Joseph.\",\"Light blade Mode!/Kars takes the Super Aja.\",\"The real Kars backstabs Lisa Lisa!\"]},{\"t\":\"Awakening of the Evil Spirit\",\"n\":\"awakening of the evil spirit\",\"p\":\"SC\",\"o\":\"journey\",\"u\":6,\"l\":109,\"a\":[\"villano\",\"epico\"],\"m\":{\"medio\":4,\"inicio\":2},\"d\":[],\"e\":[\"Star Platinum appears\",\"Silver Chariot sheds its armor\",\"Kakyoin victimizes a pickpocket\",\"Jotaro unmasks Enya\"]},{\"t\":\"backfoot\",\"n\":\"backfoot\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":6,\"l\":110,\"a\":[\"tristeza\",\"pelea\"],\"m\":{\"medio\":4,\"inicio\":2},\"d\":[\"joseph\"],\"e\":[\"Straizo survives Joseph's tommy gun.\",\"Stroheim's sacrifice.\",\"Joseph gets serious.\",\"Joseph is a Ripple novice.\"]},{\"t\":\"Barbarism\",\"n\":\"barbarism\",\"p\":\"SC\",\"o\":\"journey\",\"u\":7,\"l\":76,\"a\":[\"tension\",\"pelea\"],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[],\"e\":[\"The tower card: Tower of Gray\",\"Jotaro confronts the ape\",\"Cobra attack\",\"J. Geil appears/Beggar mob\"]},{\"t\":\"bargain\",\"n\":\"bargain\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":4,\"l\":118,\"a\":[],\"m\":{\"medio",
+        "\":4},\"d\":[\"joseph\"],\"e\":[\"Joseph's mentalism skill.\",\"Joseph's bargain with Wamuu.\",\"Joseph cuts off Esidisi's arm.\",\"Lisa Lisa's bluff.\"]},{\"t\":\"Batting, Pitching, Turning the Tables\",\"n\":\"batting pitching turning the tables\",\"p\":\"DU\",\"o\":\"world\",\"u\":1,\"l\":60,\"a\":[\"tristeza\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Josuke plays video games/Angelo remembers Ryohei\"]},{\"t\":\"Batting, Pitching, Turning the Tables\",\"n\":\"batting pitching turning the tables\",\"p\":\"SC\",\"o\":\"world\",\"u\":1,\"l\":152,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"The match begins/Jotaro is a complete noob?!\"]},{\"t\":\"Battle Between Equals\",\"n\":\"battle between equals\",\"p\":\"SC\",\"o\":\"world\",\"u\":11,\"l\":56,\"a\":[\"pelea\"],\"m\":{\"medio\":11},\"d\":[],\"e\":[\"The heroes must hide under a rock\",\"The plane is crashing\",\"Kakyoin appears\",\"Avdol vs. Judgement\"]},{\"t\":\"Battle Between Equals\",\"n\":\"battle between equals\",\"p\":\"SO\",\"o\":\"world\",\"u\":3,\"l\":41,\"a\":[\"pelea\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Anasui starts turning inside out to save Jolyne\",\"Signal of an attack of Made in Heaven/Jotaro's final time stop\",\"Pucci inserts Weather Report's DISC into Emporio\"]},{\"t\":\"Bet on a Bluff\",\"n\":\"bet on a bluff\",\"p\":\"SC\",\"o\":\"world\",\"u\":5,\"l\":96,\"a\":[\"victoria\",\"villano\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[\"jotaro\"],\"e\":[\"Star Platinum's formidable eyes\",\"Jotaro breaks D'Arby's fingers\",\"Jotaro bets Holy's soul/Too much pressure\",\"Jotaro: Global Elite at video games\"]},{\"t\":\"Between the Silence...\",\"n\":\"between the silence\",\"p\":\"DU\",\"o\":\"good night\",\"u\":19,\"l\":104,\"a\":[\"villano\"],\"m\":{\"medio\":13,\"inicio\":4,\"final\":2},\"d\":[],\"e\":[\"Do not turn around when exiting the alley\",\"The \\\"invincible trio\\\" interrogated about the ticket\",\"Aya Tsuji's last chance\",\"Kira hidden but surrounded/Trying to recover the bag\"]},{\"t\":\"Between the Silence...\",\"n\":\"between the silence\",\"p\":\"SO\",\"o\":\"good night\",\"u\":2,\"l\":44,\"a\":[\"pelea\",\"viaje\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Weather meets Van Gogh/The Mother Goat attacks\",\"Anasui escaped via police car/The goats are inescapabl",
+        "e\"]},{\"t\":\"BLOODY STREAM\",\"n\":\"bloody stream\",\"p\":\"PB/BT\",\"o\":\"\",\"u\":15,\"l\":89,\"a\":[],\"m\":{\"opening\":14,\"ending\":1},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"bolt\",\"n\":\"bolt\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":4,\"l\":26,\"a\":[\"tristeza\"],\"m\":{\"inicio\":2,\"medio\":1,\"final\":1},\"d\":[\"joseph\"],\"e\":[\"Joseph befriends Smokey.\",\"Joseph greets Santana to no avail.\",\"Spaghetti Nero.\",\"Joseph seeks revenge on Lisa Lisa for the deadly trial.\"]},{\"t\":\"British Blue\",\"n\":\"british blue\",\"p\":\"DU\",\"o\":\"good night\",\"u\":2,\"l\":50,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The cat reborn as a plant\",\"Stray Cat is distracted\"]},{\"t\":\"British Blue\",\"n\":\"british blue\",\"p\":\"SO\",\"o\":\"good night\",\"u\":3,\"l\":33,\"a\":[\"comedia\"],\"m\":{\"medio\":2,\"ending\":1},\"d\":[],\"e\":[\"Dwarf antics\",\"The shop owner's happy ending\",\"...Only for her to slip in anyways, cutting him open and freeing her children\"]},{\"t\":\"Brothers' Rhapsody\",\"n\":\"brothers rhapsody\",\"p\":\"SBR\",\"o\":\"destination\",\"u\":1,\"l\":27,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Andre showing off\"]},{\"t\":\"Brothers' Rhapsody\",\"n\":\"brothers rhapsody\",\"p\":\"SC\",\"o\":\"destination\",\"u\":11,\"l\":55,\"a\":[\"pelea\"],\"m\":{\"medio\":8,\"final\":2,\"recap\":1},\"d\":[\"hol horse\"],\"e\":[\"Stuck with the bomb\",\"Oingo must swallow five cigarettes, then drink juice\",\"Has Oingo been outed?\",\"Oingo tries to escape\"]},{\"t\":\"bugia\",\"n\":\"bugia\",\"p\":\"GW\",\"o\":\"overture\",\"u\":5,\"l\":131,\"a\":[\"misterio\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Formaggio puts Narancia inside a bottle with a spider\",\"Fugo tries to escape from the mirror world\",\"Prosciutto and Pesci start searching for Bucciarati's team\",\"Prosciutto and Pesci are searching for Bruno's team\"]},{\"t\":\"Burning Colosseum\",\"n\":\"burning colosseum\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":7,\"l\":44,\"a\":[],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[],\"e\":[\"Divine Sandstorm!\",\"Esidisi has the advantage.\",\"Esidisi gets out of Suzi Q.\",\"Divine Sandstorm!\"]},{\"t\":\"C-Moon\",\"n\":\"c moon\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":4,\"l\":62,\"a\":[\"villano\"],\"m\":{\"medio\":3,\"final\":1},\"d\":[\"pucci\"],\"",
+        "e\":[\"C-MOON appears\",\"Pucci spotted/Jotaro stops time\",\"Pucci must defeat Emporio or he will lose to him at Cape Canaveral\",\"Pucci tries to kill Emporio as he enters the ghost room\"]},{\"t\":\"Calm Sightseeing\",\"n\":\"calm sightseeing\",\"p\":\"SBR\",\"o\":\"departure\",\"u\":1,\"l\":8,\"a\":[\"viaje\",\"calma\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"The cork was inside what?!\"]},{\"t\":\"Calm Sightseeing\",\"n\":\"calm sightseeing\",\"p\":\"SC\",\"o\":\"departure\",\"u\":15,\"l\":45,\"a\":[\"viaje\",\"calma\"],\"m\":{\"inicio\":9,\"medio\":3,\"final\":3},\"d\":[],\"e\":[\"Jotaro goes to school\",\"The heroes in Hong Kong\",\"Polnareff is freed from DIO's flesh bud\",\"Girls asking for a photo\"]},{\"t\":\"canzoni preferite\",\"n\":\"canzoni preferite\",\"p\":\"GW\",\"o\":\"overture\",\"u\":4,\"l\":28,\"a\":[\"comedia\"],\"m\":{\"medio\":4},\"d\":[\"narancia\"],\"e\":[\"Narancia listens to his boombox\",\"Moody Blues (as Narancia) is listening to a boombox\",\"Narancia, Mista and Fugo dance to torture Zucchero\",\"Narancia drives Bruno's car\"]},{\"t\":\"capo\",\"n\":\"capo\",\"p\":\"SO\",\"o\":\"intermezzo\",\"u\":1,\"l\":75,\"a\":[\"villano\",\"viaje\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Pucci arrives at the Space Center/A nice tourist bothers Pucci\"]},{\"t\":\"Capture the Target\",\"n\":\"capture the target\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":106,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Zeppeli vs. Jack the Ripper.\",\"Zeppeli attacks Dio.\"]},{\"t\":\"carne\",\"n\":\"carne\",\"p\":\"GW\",\"o\":\"finale\",\"u\":5,\"l\":119,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"Carne appears\",\"Notorious B.I.G attacks Giorno\",\"Notorious B.I.G eats Giorno's arm and Sex Pistols\",\"Trish gets closer to the brooch\"]},{\"t\":\"carne\",\"n\":\"carne\",\"p\":\"SO\",\"o\":\"finale\",\"u\":1,\"l\":126,\"a\":[\"tristeza\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Versus sends Weather's memory DISC\"]},{\"t\":\"carro\",\"n\":\"carro\",\"p\":\"GW\",\"o\":\"finale\",\"u\":7,\"l\":60,\"a\":[\"explicacion\"],\"m\":{\"medio\":5,\"inicio\":2},\"d\":[\"polnareff\"],\"e\":[\"Someone hacks Bruno's computer\",\"Unknown ally tells them about Diavolo's ability\",\"Unknown ally is watching Bucciarati and Secco\",\"Polnareff t",
+        "alks about the Arrow\"]},{\"t\":\"Carve Out That Ripple\",\"n\":\"carve out that ripple\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":91,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Dire vs. Dio.\"]},{\"t\":\"cavaliere\",\"n\":\"cavaliere\",\"p\":\"GW\",\"o\":\"finale\",\"u\":5,\"l\":78,\"a\":[\"villano\",\"epico\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[],\"e\":[\"Bucciarati and his team sail to Roma\",\"Giorno reaches the helicopter\",\"Silver Chariot is pierced by the Arrow, but Diavolo kills Polnareff\",\"Polnareff picks up the Arrow\"]},{\"t\":\"Chained Power\",\"n\":\"chained power\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":81,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jonathan vs. Dio.\"]},{\"t\":\"chaos\",\"n\":\"chaos\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":7,\"l\":53,\"a\":[],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Joseph arrives at the Nazi base.\",\"Santana prevents Joseph from reaching the exit.\",\"Joseph is \\\"defeated\\\".\",\"Lisa Lisa looks at Suzi Q's memories.\"]},{\"t\":\"chase\",\"n\":\"chase\",\"p\":\"DU\",\"o\":\"\",\"u\":9,\"l\":72,\"a\":[\"tension\"],\"m\":{\"opening\":9},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Cheerful Journey\",\"n\":\"cheerful journey\",\"p\":\"SC\",\"o\":\"world\",\"u\":15,\"l\":29,\"a\":[\"viaje\",\"comedia\"],\"m\":{\"final\":6,\"medio\":6,\"inicio\":3},\"d\":[],\"e\":[\"The Sun card, just another dumbass\",\"Joseph makes the baby eat\",\"Everybody knew about Avdol\",\"\\\"I can see your panties\\\"\"]},{\"t\":\"Clash\",\"n\":\"clash\",\"p\":\"SC\",\"o\":\"departure\",\"u\":8,\"l\":93,\"a\":[\"pelea\"],\"m\":{\"medio\":8},\"d\":[],\"e\":[\"Dark Blue Moon's true power\",\"Jotaro takes an ice cream/Pocky's death\",\"Polnareff vs Hol Horse/Avdol to the rescue\",\"Wheel of Fortune, the car Stand\"]},{\"t\":\"Clock Works\",\"n\":\"clock works\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":7,\"l\":112,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":4,\"final\":2,\"eyecatch\":1},\"d\":[\"pucci\"],\"e\":[\"The nice tourist gets impaled\",\"Pucci's new Stand emerging\",\"Pucci monologuing/Pucci shoots at Jolyne\",\"Pucci finds the correct position\"]},{\"t\":\"Close Match\",\"n\":\"close match\",\"p\":\"DU\",\"o\":\"world\",\"u\":2,\"l\":26,\"a\":[],\"m\":{\"final\":1,\"medio\":1}",
+        ",\"d\":[],\"e\":[\"Josuke & Okuyasu just won the jackpot!!!\",\"Dreaming of the prize money\"]},{\"t\":\"Close Match\",\"n\":\"close match\",\"p\":\"SC\",\"o\":\"world\",\"u\":5,\"l\":62,\"a\":[\"pelea\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Tower of Gray attacks Jotaro\",\"Empress beats up Joseph/Joseph running in the streets\",\"...and beats him up. Alessi and Sethan\",\"Sethan touches Polnareff/Pursuing Alessi\"]},{\"t\":\"coercizione\",\"n\":\"coercizione\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":20,\"l\":70,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":16,\"inicio\":2,\"final\":2},\"d\":[],\"e\":[\"Luca gets violent\",\"Polpo begins the interview\",\"Bruno informs his team about Polpo's fortune\",\"Mista starts torturing Zucchero\"]},{\"t\":\"Collector\",\"n\":\"collector\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":1,\"l\":66,\"a\":[\"victoria\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Miraschon wins the bet\"]},{\"t\":\"Confrontation\",\"n\":\"confrontation\",\"p\":\"DU\",\"o\":\"future\",\"u\":11,\"l\":77,\"a\":[\"tension\"],\"m\":{\"medio\":11},\"d\":[],\"e\":[\"Tamami makes it look like Koichi stabbed Tamami\",\"Hazamada approaches the train tracks\",\"Yukako's stubborness\",\"RHCP out of battery/Psyching Okuyasu up\"]},{\"t\":\"Confrontation\",\"n\":\"confrontation\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":68,\"a\":[\"villano\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Zeppeli advances.\",\"Jonathan finally meets Dio again.\"]},{\"t\":\"constrain\",\"n\":\"constrain\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":2,\"l\":145,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The Nazis experimenting on the Pillar Man.\",\"The Pillar Man Santana wakes up.\"]},{\"t\":\"contrattacco\",\"n\":\"contrattacco\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":35,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Doppio throws a pair of scissors at Risotto\",\"Doppio decides to attack Risotto one last time\"]},{\"t\":\"Conviction\",\"n\":\"conviction\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":73,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Ripple masters vs. Dio's Zombies.\"]},{\"t\":\"Cornered\",\"n\":\"cornered\",\"p\":\"DU\",\"o\":\"good night\",\"u\":20,\"l\":56,\"a\":[\"villano\",\"tension\"],\"m\":{\"medio\":15,\"final\":3,\"inicio\":2},\"d\":[\"josuke\"],\"e\":[\"",
+        "Josuke cornered\",\"Tamami is unhurt, but there are sounds on him\",\"A copy of Josuke appears\",\"How to contact Josuke\"]},{\"t\":\"Cornered\",\"n\":\"cornered\",\"p\":\"SO\",\"o\":\"good night\",\"u\":2,\"l\":26,\"a\":[\"tension\"],\"m\":{\"inicio\":2},\"d\":[],\"e\":[\"Anasui pursues his body\",\"The pursuit continues\"]},{\"t\":\"Courage\",\"n\":\"courage\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":8,\"l\":67,\"a\":[],\"m\":{\"medio\":5,\"final\":3},\"d\":[],\"e\":[\"Echoes ACT1 appears\",\"Koichi convinces his mother & Tamami yields\",\"Echoes has tricked Hazamada\",\"A new Stand: Echoes ACT2\"]},{\"t\":\"Crazy in Love\",\"n\":\"crazy in love\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":11,\"l\":17,\"a\":[\"tension\"],\"m\":{\"medio\":10,\"final\":1},\"d\":[\"koichi\"],\"e\":[\"A girl looking by the window\",\"Yukako gets mad\",\"Hair in Koichi's drink\",\"Yukako stalking Koichi\"]},{\"t\":\"Crazy in Love\",\"n\":\"crazy in love\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":1,\"l\":35,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Ungalo loses the will to live\"]},{\"t\":\"Crazy Noisy Bizarre Town\",\"n\":\"crazy noisy bizarre town\",\"p\":\"DU\",\"o\":\"\",\"u\":11,\"l\":74,\"a\":[\"misterio\"],\"m\":{\"opening\":11},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Creep on\",\"n\":\"creep on\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":17,\"l\":86,\"a\":[],\"m\":{\"medio\":13,\"final\":2,\"inicio\":1,\"recap\":1},\"d\":[],\"e\":[\"Jolyne wakes up/What was real and what was fake\",\"Ermes runs back to find McQueen about to electrocute himself again\",\"Something suspect in the bucket\",\"Marilyn Manson's power explained/Jolyne makes a third bet\"]},{\"t\":\"Creeping Enemy\",\"n\":\"creeping enemy\",\"p\":\"SC\",\"o\":\"departure\",\"u\":13,\"l\":77,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":13},\"d\":[],\"e\":[\"Kakyoin explains he's controlling the nurse\",\"The plane is crashing\",\"Avdol declares his Crossfire Hurricane Special\",\"An aquatic Stand appears\"]},{\"t\":\"crepuscolo\",\"n\":\"crepuscolo\",\"p\":\"GW\",\"o\":\"overture\",\"u\":14,\"l\":140,\"a\":[\"misterio\",\"tristeza\"],\"m\":{\"inicio\":8,\"medio\":5,\"final\":1},\"d\":[],\"e\":[\"Showcasing of crime\",\"Beginning of Giorno's backstory\",\"Giorno visits the prison where the capo is to",
+        " enter Passione\",\"Passione members discuss Polpo's death\"]},{\"t\":\"crepuscolo\",\"n\":\"crepuscolo\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":159,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Donatello Versus backstory\"]},{\"t\":\"Crime Scene Express\",\"n\":\"crime scene express\",\"p\":\"DU\",\"o\":\"\",\"u\":10,\"l\":54,\"a\":[],\"m\":{\"medio\":8,\"final\":1,\"inicio\":1},\"d\":[\"josuke\"],\"e\":[\"Crazy Diamond vs. Bad Company\",\"Josuke & Koichi must find Jotaro\",\"Okuyasu eating the spaghetti like crazy/Okuyasu's teeth are replaced\",\"Akira Otoishi has infiltrated the boat/Okuyasu's dilemma\"]},{\"t\":\"Crime Scene Express\",\"n\":\"crime scene express\",\"p\":\"SO\",\"o\":\"\",\"u\":1,\"l\":57,\"a\":[\"pelea\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Kenzou runs towards Jolyne/Anasui's intervention in the fight\"]},{\"t\":\"crisi\",\"n\":\"crisi\",\"p\":\"GW\",\"o\":\"overture\",\"u\":12,\"l\":73,\"a\":[\"pelea\"],\"m\":{\"medio\":8,\"inicio\":2,\"final\":2},\"d\":[],\"e\":[\"Bucciarati escapes\",\"Abbacchio solves Zucchero's second mystery\",\"Giorno and Mista seek for Sale\",\"Sale uses rocks as a ladder to climb back to Mista\"]},{\"t\":\"Cunning Rats\",\"n\":\"cunning rats\",\"p\":\"DU\",\"o\":\"\",\"u\":1,\"l\":131,\"a\":[\"pelea\",\"calma\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Bug-Eaten's sniper duel with Josuke and Jotaro\"]},{\"t\":\"Curse of Nightmares\",\"n\":\"curse of nightmares\",\"p\":\"SC\",\"o\":\"world\",\"u\":2,\"l\":47,\"a\":[\"tristeza\",\"calma\"],\"m\":{\"inicio\":1,\"medio\":1},\"d\":[],\"e\":[\"The Death card\",\"Death Thirteen revealed\"]},{\"t\":\"Daily Conversation\",\"n\":\"daily conversation\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":9,\"l\":28,\"a\":[\"calma\"],\"m\":{\"medio\":5,\"inicio\":4},\"d\":[\"jolyne\"],\"e\":[\"Jolyne's confession\",\"Loccobarocco presents the rules of G.D. Street\",\"Ermes offers McQueen her panties\",\"F.F. is obsessed with water\"]},{\"t\":\"Dance with STEEL BALL RUN\",\"n\":\"dance with steel ball run\",\"p\":\"SBR\",\"o\":\"\",\"u\":15,\"l\":41,\"a\":[\"viaje\"],\"m\":{\"medio\":7,\"eyecatch\":5,\"final\":2,\"ending\":1},\"d\":[\"gyro\"],\"e\":[\"Gyro wins the duel\",\"Eyecatch 1\",\"Eyecatch 2\",\"Gyro runs first\"]},{\"t\":\"Dark Rebirth\",\"n\":\"dark rebirth\",\"p\":\"DU\",\"o\":\"departure\",\"u\":1,\"l\":13,\"a\":[\"v",
+        "illano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"DIO's legacy\"]},{\"t\":\"Dark Rebirth\",\"n\":\"dark rebirth\",\"p\":\"GW\",\"o\":\"departure\",\"u\":1,\"l\":44,\"a\":[\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jotaro mentions DIO\"]},{\"t\":\"Dark Rebirth\",\"n\":\"dark rebirth\",\"p\":\"SC\",\"o\":\"departure\",\"u\":23,\"l\":67,\"a\":[\"villano\"],\"m\":{\"medio\":12,\"final\":5,\"inicio\":5,\"recap\":1},\"d\":[\"dio\"],\"e\":[\"DIO realizes the Joestar are after him\",\"DIO in his lair\",\"DIO confronts Avdol\",\"DIO watches the Joestars\"]},{\"t\":\"Dark Rebirth\",\"n\":\"dark rebirth\",\"p\":\"SO\",\"o\":\"departure\",\"u\":8,\"l\":84,\"a\":[\"villano\"],\"m\":{\"medio\":6,\"inicio\":2},\"d\":[\"dio\",\"pucci\"],\"e\":[\"Memory of Pucci with DIO\",\"DIO explains his heaven plan to Pucci\",\"The bone is in the Ultra Security House Unit\",\"DIO explains Survivor\"]},{\"t\":\"Darkness of The World's Awakening\",\"n\":\"darkness of the world s awakening\",\"p\":\"SC\",\"o\":\"destination\",\"u\":9,\"l\":50,\"a\":[\"villano\"],\"m\":{\"final\":3,\"medio\":3,\"inicio\":2,\"avance\":1},\"d\":[\"dio\"],\"e\":[\"DIO deflects the Emerald Splash\",\"DIO can stop time!\",\"Jotaro vs. DIO\",\"Next Episode Preview\"]},{\"t\":\"Darkness of The World's Awakening\",\"n\":\"darkness of the world s awakening\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":42,\"a\":[\"villano\",\"epico\"],\"m\":{\"recap\":1},\"d\":[],\"e\":[\"Recap: Pucci and Sports Maxx/Jolyne going after DIO's bone\"]},{\"t\":\"Dawn\",\"n\":\"dawn\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":63,\"a\":[],\"m\":{\"final\":1},\"d\":[],\"e\":[\"The story of Jonathan Joestar.\"]},{\"t\":\"Day job\",\"n\":\"day job\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":5,\"l\":42,\"a\":[\"pelea\",\"comedia\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"Joseph's \\\"clever\\\" disguise.\",\"Spaghetti battle./Caesar Anthonio Zeppeli appears.\",\"Joseph flirts with Suzi Q.\",\"Messing with a cat.\"]},{\"t\":\"Dead or Alive\",\"n\":\"dead or alive\",\"p\":\"SBR\",\"o\":\"\",\"u\":2,\"l\":88,\"a\":[],\"m\":{\"ending\":2},\"d\":[],\"e\":[\"Ending\",\"Ending\"]},{\"t\":\"Decisive Battle ~Overlapping Destinies~\",\"n\":\"decisive battle\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":8,\"l\":90,\"a\":[\"pelea\"],\"m\":{\"medio\":7,\"final\":1},\"d\":[],\"e\":[\"Jonathan's surrounded by Og",
+        "re Street thugs.\",\"Dio's attacked by a vampire, which resulted from the mask.\",\"Jonathan must pursue Jack the Ripper.\",\"Dio's ice power counters the Ripple.\"]},{\"t\":\"Deep curse song\",\"n\":\"deep curse song\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":2,\"l\":58,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"A man slumbering in a pillar.\",\"There are three other Pillar Men?!\"]},{\"t\":\"demon\",\"n\":\"demon\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":10,\"l\":67,\"a\":[],\"m\":{\"medio\":9,\"inicio\":1},\"d\":[],\"e\":[\"Straizo on Brooklyn Bridge.\",\"Santana escapes his cage.\",\"Joseph meets Santana.\",\"Something's suspicious with the Pillar Men...\"]},{\"t\":\"Depths of the Pale Darkness\",\"n\":\"depths of the pale darkness\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":66,\"a\":[\"villano\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Bruford's powerful Danse Macab-hair technique.\"]},{\"t\":\"Desperate Situation\",\"n\":\"desperate situation\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":23,\"l\":67,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":12,\"final\":7,\"recap\":2,\"inicio\":2},\"d\":[],\"e\":[\"...but he tries to electrocute himself anyways\",\"A creature in the water\",\"Foo Fighters withdrawing/Who is the enemy?\",\"Jolyne has lost her gravity!\"]},{\"t\":\"Desperate Struggle\",\"n\":\"desperate struggle\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":85,\"a\":[\"tristeza\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Jotaro throws a harpoon in stopped time\",\"Jolyne's sacrifice/Time accelerates to the end of the universe\",\"Emporio's memories of Jolyne strenghten his resolve\"]},{\"t\":\"Destinies Pulled Together\",\"n\":\"destinies pulled together\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":1,\"l\":261,\"a\":[\"villano\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Showcase of the lives of Jonathan Joestar and Dio Brando\"]},{\"t\":\"Determination\",\"n\":\"determination\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":3,\"l\":127,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":3},\"d\":[\"dio\"],\"e\":[\"Jonathan beats up Dio.\",\"Jonathan is determined to stop Dio.\",\"Dio shoots JoJo in the throat.\"]},{\"t\":\"Determination\",\"n\":\"determination\",\"p\":\"SC\",\"o\":\"destiny\",\"u\":5,\"l\":96,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":3,\"final\":1,\"inici",
+        "o\":1},\"d\":[],\"e\":[\"Jotaro doesn't look at his cards\",\"Despair! Option #3, reality is cruel!\",\"Vanilla Ice is a vampire\",\"The sun is setting/The group splits up\"]},{\"t\":\"Determination\",\"n\":\"determination\",\"p\":\"SO\",\"o\":\"destiny\",\"u\":12,\"l\":56,\"a\":[\"pelea\"],\"m\":{\"medio\":10,\"inicio\":1,\"recap\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne tricks Foo Fighters and starts up the tractor/Foo Fighters running on dry soil/Foo Fighters defeated\",\"Jolyne & F.F. pursuing Miraschon/Miraschon turns off the lights\",\"F.F defeats the alligator\",\"Jolyne restrains Westwood\"]},{\"t\":\"determinazione\",\"n\":\"determinazione\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":6,\"l\":76,\"a\":[\"epico\",\"pelea\"],\"m\":{\"medio\":4,\"final\":1,\"eyecatch\":1},\"d\":[],\"e\":[\"Bruno develops hatred towards the boss\",\"Bruno grabs Prosciutto and jumps from the train\",\"Pesci stops the train\",\"Bucciarati explains the situation\"]},{\"t\":\"develop\",\"n\":\"develop\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":3,\"l\":88,\"a\":[\"pelea\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Training with Ripple instructors Loggins and Messina.\",\"Psychological warfare with Esidisi.\",\"Two one-on-one battles.\"]},{\"t\":\"di molto\",\"n\":\"di molto\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":4,\"l\":39,\"a\":[\"villano\",\"tension\"],\"m\":{\"final\":2,\"inicio\":1,\"medio\":1},\"d\":[],\"e\":[\"Melone appears\",\"Melone uses Baby Face on a woman\",\"Baby Face steals Melone's bike\",\"Baby Face chops off Gold Experience's hand\"]},{\"t\":\"Diamond is Unbreakable ~Stand Activated~\",\"n\":\"diamond is unbreakable\",\"p\":\"DU\",\"o\":\"good night\",\"u\":74,\"l\":6,\"a\":[],\"m\":{\"avance\":38,\"medio\":29,\"final\":6,\"inicio\":1},\"d\":[],\"e\":[\"Jotaro arrives in Morioh\",\"\\\"Hey senior, what did you say about my hair?!\\\"\",\"Jotaro angers Josuke\",\"Josuke's Stand appears\"]},{\"t\":\"diavolo\",\"n\":\"diavolo\",\"p\":\"GW\",\"o\":\"finale\",\"u\":8,\"l\":66,\"a\":[\"villano\"],\"m\":{\"medio\":5,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Squalo gets an order from The Boss\",\"The teenager arrives to Costa Smeralda\",\"Giorno is searching the criminal database\",\"Doppio and Bucciarati get to the Colosseum\"]},{\"t\":\"Disc\",\"n\":",
+        "\"disc\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":6,\"l\":90,\"a\":[\"villano\"],\"m\":{\"medio\":5,\"inicio\":1},\"d\":[],\"e\":[\"McQueen's DISCs are revealed/Ermes investigates McQueen and his memory DISC\",\"Guard Westwood is a Stand user!\",\"DIO gives Pucci his bone\",\"Emporio checks on Jolyne in solitary confinement\"]},{\"t\":\"Disciplinary Wing\",\"n\":\"disciplinary wing\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":5,\"l\":70,\"a\":[\"victoria\",\"pelea\"],\"m\":{\"medio\":5},\"d\":[\"jolyne\"],\"e\":[\"Miu Miu appears with Jail House Lock\",\"Miu Miu taunts Jolyne without her knowing\",\"Miu Miu wipes some of the writing off Jolyne's arm\",\"Miu Miu followed Jolyne to the ghost room\"]},{\"t\":\"Discomfort\",\"n\":\"discomfort\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":9,\"l\":73,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":8,\"inicio\":1},\"d\":[],\"e\":[\"Jolyne seeking Emporio\",\"Miraschon makes a second bet\",\"The dangers of vacuum\",\"Sports Maxx realizes he's dead\"]},{\"t\":\"Distant Dreamer\",\"n\":\"distant dreamer\",\"p\":\"SO\",\"o\":\"\",\"u\":34,\"l\":90,\"a\":[],\"m\":{\"ending\":33,\"final\":1},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Dive\",\"n\":\"dive\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":4,\"l\":72,\"a\":[\"explicacion\",\"tristeza\",\"pelea\"],\"m\":{\"medio\":3,\"final\":1},\"d\":[],\"e\":[\"Emporio explains Anasui's past\",\"Anasui suddenly obliges to help\",\"Diver Down's attack is revealed\",\"Anasui grafts Yo-Yo Ma's brain to a frog's\"]},{\"t\":\"Dizziness\",\"n\":\"dizziness\",\"p\":\"SC\",\"o\":\"journey\",\"u\":19,\"l\":41,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":15,\"inicio\":3,\"final\":1},\"d\":[],\"e\":[\"Joseph confronts Jotaro\",\"Nurse gets possessed\",\"Captain Tennille\",\"The heroes board the empty freighter\"]},{\"t\":\"dominazione\",\"n\":\"dominazione\",\"p\":\"GW\",\"o\":\"finale\",\"u\":6,\"l\":24,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":4,\"final\":1,\"recap\":1},\"d\":[\"narancia\"],\"e\":[\"Narancia starts lying\",\"Narancia lies again\",\"Tizzano reveals his Stand\",\"Giorno wants to heal Narancia\"]},{\"t\":\"dominazione\",\"n\":\"dominazione\",\"p\":\"SO\",\"o\":\"finale\",\"u\":1,\"l\":45,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Anasui catches Pinocchio\"]},{\"t\":\"doppio\",",
+        "\"n\":\"doppio\",\"p\":\"GW\",\"o\":\"finale\",\"u\":15,\"l\":74,\"a\":[\"villano\",\"misterio\"],\"m\":{\"medio\":11,\"final\":2,\"recap\":1,\"inicio\":1},\"d\":[\"doppio\"],\"e\":[\"Bucciarati witnesses King Crimson's ultimate ability\",\"Bucciarati and his team escape from the church\",\"Doppio gets a call from The Boss\",\"Doppio and The Boss talk\"]},{\"t\":\"Echoes ACT1\",\"n\":\"echoes act1\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":3,\"l\":73,\"a\":[],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Echoes ACT1's sound power\",\"Koichi sends out Echoes\",\"Koichi has neutralized SHA\"]},{\"t\":\"Egypt Landing\",\"n\":\"egypt landing\",\"p\":\"SC\",\"o\":\"destination\",\"u\":4,\"l\":47,\"a\":[\"comedia\",\"misterio\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[],\"e\":[\"Cameo the genie appears\",\"Cameo asks for the 2nd wish\",\"Cameo grants Polnareff's wish\",\"Judgement the fake genie\"]},{\"t\":\"Electric Guitarist\",\"n\":\"electric guitarist\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":9,\"l\":20,\"a\":[\"villano\"],\"m\":{\"medio\":7,\"final\":1,\"inicio\":1},\"d\":[],\"e\":[\"Red Hot Chili Pepper appears\",\"Red Hot Chili Pepper lurks\",\"Red Hot Chili Pepper reappears\",\"RHCP has head everything\"]},{\"t\":\"Electric Potential\",\"n\":\"electric potential\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":1,\"l\":148,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Survivor's effects on the prison guards\"]},{\"t\":\"Elephant Talk 1\",\"n\":\"elephant talk 1\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":7,\"l\":98,\"a\":[],\"m\":{\"medio\":5,\"inicio\":2},\"d\":[\"joseph\"],\"e\":[\"Straizo piecing himself together.\",\"Santana absorbs a Vampire.\",\"Santana's superior intelligence and resilience.\",\"Esidisi sees through Joseph.\"]},{\"t\":\"Elephant Talk 2\",\"n\":\"elephant talk 2\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":1,\"l\":58,\"a\":[\"epico\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Final Mode: Atmospheric Rift!\"]},{\"t\":\"epitaffio\",\"n\":\"epitaffio\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":44,\"a\":[\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The Boss takes control of the teen's body\",\"Mista destroys Rolling Stones\"]},{\"t\":\"eremita\",\"n\":\"eremita\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":7,\"l\":34,\"a\":[\"villano\"],\"m\":{\"medio\":4,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Giorno ret",
+        "urns Polpo's lighter\",\"Prosciutto shoots Mista\",\"The Boss loses trace of Risotto\",\"The Boss gets away\"]},{\"t\":\"esperienza d'oro\",\"n\":\"esperienza d oro\",\"p\":\"GW\",\"o\":\"overture\",\"u\":3,\"l\":50,\"a\":[\"epico\",\"tristeza\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Giorno extends his range and lands a blow\",\"Giorno sacrifices himself\",\"King Crimson destroys Gold Experience\"]},{\"t\":\"Evolution\",\"n\":\"evolution\",\"p\":\"DU\",\"o\":\"good night\",\"u\":5,\"l\":63,\"a\":[\"explicacion\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[],\"e\":[\"Echoes blows Yukako away\",\"Echoes ACT3 appears\",\"but is immobilized by Echoes's \\\"freeze\\\" effect\",\"Echoes ACT3's powers explained\"]},{\"t\":\"Evolution\",\"n\":\"evolution\",\"p\":\"GW\",\"o\":\"good night\",\"u\":2,\"l\":32,\"a\":[\"viaje\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Koichi uses ACT3 on Giorno's car\",\"Koichi confronts Giorno\"]},{\"t\":\"Execution\",\"n\":\"execution\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":5,\"l\":49,\"a\":[\"tristeza\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Jolyne decides to protect Emporio\",\"Jolyne sees that Jotaro is practically dead/Jolyne surrenders\",\"Anasui dying/F.F.'s death\",\"Ermes pays respect to F.F.\"]},{\"t\":\"Eye Catching (Voice Ver.)\",\"n\":\"eye catching\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":19,\"l\":3,\"a\":[],\"m\":{\"eyecatch\":19},\"d\":[],\"e\":[\"Eyecatch\",\"Eyecatch\",\"Eyecatch\",\"Eyecatch\"]},{\"t\":\"Eyelids\",\"n\":\"eyelids\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":1,\"l\":97,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"\\\"I am *Apollo 11*!\\\"\"]},{\"t\":\"Fairy Godmother\",\"n\":\"fairy godmother\",\"p\":\"DU\",\"o\":\"good night\",\"u\":4,\"l\":86,\"a\":[],\"m\":{\"inicio\":2,\"medio\":2},\"d\":[],\"e\":[\"Yukako decides to try the salon\",\"Aya Tsuji the beautician\",\"Yukako wants the \\\"capture love\\\" treatment/Aya's way of life\",\"Yuya regains his beautiful face\"]},{\"t\":\"Fairy Tale\",\"n\":\"fairy tale\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":2,\"l\":78,\"a\":[\"viaje\",\"explicacion\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Ungalo escapes via plane\",\"Ungalo celebrates his ability/Weather is seemingly finished\"]},{\"t\":\"FAITH\",\"n\":\"faith\",\"p\":\"DU\",\"o\":\"good night\",\"u\":2,\"l\":37,\"a\":[\"villano\",\"calma\"],\"m\":{\"inicio\":2},",
+        "\"d\":[],\"e\":[\"Kira's breakfast with his girlfriend\",\"Jotaro receives the file on Kira\"]},{\"t\":\"fango\",\"n\":\"fango\",\"p\":\"GW\",\"o\":\"finale\",\"u\":5,\"l\":43,\"a\":[\"pelea\"],\"m\":{\"medio\":3,\"inicio\":1,\"recap\":1},\"d\":[\"bruno\"],\"e\":[\"The duo's position in Passione\",\"Secco attacks Bruno\",\"Recap of Secco punching Bruno\",\"Secco attacks Bruno\"]},{\"t\":\"Fascination\",\"n\":\"fascination\",\"p\":\"SC\",\"o\":\"journey\",\"u\":3,\"l\":51,\"a\":[\"misterio\",\"tension\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Shark-infested waters\",\"Hol Horse's philosophy\",\"Empress has grown big enough to kill Joseph\"]},{\"t\":\"Fascination\",\"n\":\"fascination\",\"p\":\"SO\",\"o\":\"journey\",\"u\":1,\"l\":82,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"The entire world begins to experience accelerated time\"]},{\"t\":\"Fate\",\"n\":\"fate\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":11,\"l\":70,\"a\":[\"epico\"],\"m\":{\"medio\":5,\"final\":4,\"inicio\":2},\"d\":[],\"e\":[\"Jolyne wants to save her father/Emporio's backstory\",\"Jolyne is informed about Ermes\",\"Aftermath of Operation Savage Garden\",\"Ermes's backstory on her desire for revenge\"]},{\"t\":\"Father-Son\",\"n\":\"father son\",\"p\":\"DU\",\"o\":\"good night\",\"u\":2,\"l\":21,\"a\":[],\"m\":{\"inicio\":2},\"d\":[],\"e\":[\"Yoshihiro looking for Yoshikage\",\"Yoshihiro finds Yoshikage\"]},{\"t\":\"Fear\",\"n\":\"fear\",\"p\":\"SC\",\"o\":\"journey\",\"u\":1,\"l\":47,\"a\":[\"villano\",\"misterio\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Ch\u00e9rie coming back to life\"]},{\"t\":\"fend off\",\"n\":\"fend off\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":4,\"l\":76,\"a\":[\"pelea\",\"tension\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"The Super Aja is going to Switzerland!\",\"The Aja is slipping towards a cliff./The race to the cliff.\",\"Joseph's great trick: shooting Wamuu from behind!\",\"Kars pursues Joseph.\"]},{\"t\":\"FENG SHUI\",\"n\":\"feng shui\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":7,\"l\":72,\"a\":[],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[],\"e\":[\"Kenzou introduces himself\",\"Kenzou reveals he drowned the prisoners\",\"Kenzou brings out Dragon's Dream/F.F. is drowned by Kenzou but survives\",\"Kenzou begins his approach of F.F.\"]},{\"t\":\"Fields of fright\",\"n\":\"fields of fright\",\"p\":\"PB/B",
+        "T\",\"o\":\"musik\",\"u\":8,\"l\":95,\"a\":[],\"m\":{\"medio\":4,\"inicio\":3,\"final\":1},\"d\":[],\"e\":[\"49 years later, Speedwagon & Straizo visit a Mexican temple.\",\"The Speedwagon Foundation has sealed the still alive Santana.\",\"Lisa Lisa has the Super Aja!\",\"The chariot race between Joseph and Wamuu!\"]},{\"t\":\"Fight the Fight!\",\"n\":\"fight the fight\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":7,\"l\":49,\"a\":[\"pelea\"],\"m\":{\"medio\":7},\"d\":[],\"e\":[\"The class rep trapped by Yukako's hair\",\"RHCP's tremendous speed\",\"Rohan & Koichi cannot escape from the ghost alley\",\"The evil spirits grab Koichi\"]},{\"t\":\"Fighting Gold\",\"n\":\"fighting gold\",\"p\":\"GW\",\"o\":\"\",\"u\":20,\"l\":89,\"a\":[\"pelea\"],\"m\":{\"opening\":20},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"figlia\",\"n\":\"figlia\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":82,\"a\":[\"pelea\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Spice Girl kills Notorious B.I.G\",\"Spice Girls destroys the airplane\"]},{\"t\":\"Final Battle\",\"n\":\"final battle\",\"p\":\"DU\",\"o\":\"destination\",\"u\":3,\"l\":44,\"a\":[\"villano\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[\"kira\"],\"e\":[\"Yoshikage Kira is cornered\",\"How Koichi stopped Kira from using Bites the Dust\",\"Yoshikage Kira taken away by the hands\"]},{\"t\":\"Final Battle\",\"n\":\"final battle\",\"p\":\"SC\",\"o\":\"destination\",\"u\":11,\"l\":72,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":5,\"final\":4,\"inicio\":2},\"d\":[\"dio\",\"jotaro\"],\"e\":[\"Jotaro challenges D'Arby to poker\",\"Jotaro declares his pitch\",\"Polnareff & Iggy try to trick Ice\",\"Polnareff meets DIO\"]},{\"t\":\"Final Battle\",\"n\":\"final battle\",\"p\":\"SO\",\"o\":\"destination\",\"u\":3,\"l\":74,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Ermes avenges her sister\",\"Weather's about to deliver the fatal blow\",\"\\\"You were two steps behind\\\"\"]},{\"t\":\"fine della vento aureo\",\"n\":\"fine della vento aureo\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":82,\"a\":[\"epico\"],\"m\":{\"medio\":1,\"final\":1},\"d\":[],\"e\":[\"Polnareff's soul is inside the turtle\",\"Giorno refuses to destroy the Arrow\"]},{\"t\":\"Fists of Platinum\",\"n\":\"fists of platinum\",\"p\":\"DU\",\"o\":\"destinatio",
+        "n\",\"u\":2,\"l\":32,\"a\":[\"explicacion\",\"pelea\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Jotaro explains Stands to Josuke\",\"Jotaro must stop time\"]},{\"t\":\"Fists of Platinum\",\"n\":\"fists of platinum\",\"p\":\"GW\",\"o\":\"destination\",\"u\":1,\"l\":12,\"a\":[\"epico\",\"pelea\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"The Arrow's powers\"]},{\"t\":\"Fists of Platinum\",\"n\":\"fists of platinum\",\"p\":\"SC\",\"o\":\"destination\",\"u\":63,\"l\":14,\"a\":[\"epico\",\"pelea\"],\"m\":{\"avance\":42,\"medio\":9,\"final\":7,\"inicio\":3,\"recap\":2},\"d\":[],\"e\":[\"Next episode preview\",\"Recap 1: Stands\",\"Next episode preview\",\"Jotaro extracts the flesh bud\"]},{\"t\":\"Foreboding\",\"n\":\"foreboding\",\"p\":\"SC\",\"o\":\"world\",\"u\":24,\"l\":76,\"a\":[\"tension\"],\"m\":{\"medio\":17,\"final\":4,\"inicio\":3},\"d\":[],\"e\":[\"Avdol steps out of the fight\",\"DIO has stolen Jonathan's body\",\"Kakyoin explains Hierophant Green\",\"Joseph shows Kakyoin's flesh bud\"]},{\"t\":\"Foreboding\",\"n\":\"foreboding\",\"p\":\"SO\",\"o\":\"world\",\"u\":3,\"l\":74,\"a\":[\"tension\",\"pelea\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Jotaro's plan/Something following Jolyne?/Jolyne trips\",\"F.F. survived Kenzou's attack!\",\"The gang study the situation\"]},{\"t\":\"Freek'n You\",\"n\":\"freek n you\",\"p\":\"GW\",\"o\":\"\",\"u\":16,\"l\":87,\"a\":[],\"m\":{\"ending\":16},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Friends! Friends?\",\"n\":\"friends friends\",\"p\":\"DU\",\"o\":\"good night\",\"u\":5,\"l\":94,\"a\":[\"villano\",\"calma\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"A Stand that collects coins\",\"...is just a kid, Shigekiyo \\\"Shigechi\\\" Yangu!\",\"Shigechi's greed surfaces\",\"Josuke & Okuyasu ask Shigechi for money/Shigechi picks Kira's bag\"]},{\"t\":\"Friendship\",\"n\":\"friendship\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":70,\"a\":[],\"m\":{\"final\":2},\"d\":[],\"e\":[\"Straizo and Tonpetty appear.\",\"The heroes have won!\"]},{\"t\":\"From Darkness\",\"n\":\"from darkness\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":13,\"l\":71,\"a\":[\"villano\"],\"m\":{\"medio\":10,\"inicio\":2,\"final\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne growing back\",\"Jolyne realizes something is really wrong/The dream is collapsing\",\"Jolyne a",
+        "nd Ermes find the tractor\",\"Ermes tricks the lesser Foo Fighters\"]},{\"t\":\"From the Dark Abyss\",\"n\":\"from the dark abyss\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":108,\"a\":[\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Dio steals Jonathan's first kiss with Erina.\",\"How Elizabeth took revenge and had to flee the country.\"]},{\"t\":\"Full-Body Courage\",\"n\":\"full body courage\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":6,\"l\":86,\"a\":[\"pelea\"],\"m\":{\"final\":4,\"medio\":2},\"d\":[],\"e\":[\"George stops Jonathan and Dio.\",\"Jonathan defeats Jack the Ripper.\",\"Jonathan fighting with Bruford underwater.\",\"Poco opens the door to the chamber.\"]},{\"t\":\"Fun Friends\",\"n\":\"fun friends\",\"p\":\"SC\",\"o\":\"journey\",\"u\":8,\"l\":42,\"a\":[\"comedia\",\"viaje\"],\"m\":{\"medio\":6,\"inicio\":2},\"d\":[],\"e\":[\"Polnareff argues with a policeman\",\"Culture shock in Calcutta\",\"Joseph being ripped off\",\"How to ride camel with Joseph Joestar\"]},{\"t\":\"gambit\",\"n\":\"gambit\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":6,\"l\":72,\"a\":[\"pelea\"],\"m\":{\"medio\":6},\"d\":[\"joseph\"],\"e\":[\"Speedwagon has been murdered!?\",\"Santana is truly intelligent!\",\"Wamuu accepts to fight Joseph.\",\"The merciless Pillar./Joseph understands the trick.\"]},{\"t\":\"Gambler\",\"n\":\"gambler\",\"p\":\"SC\",\"o\":\"world\",\"u\":6,\"l\":114,\"a\":[\"villano\"],\"m\":{\"medio\":4,\"inicio\":2},\"d\":[],\"e\":[\"Someone recognizes DIO's lair\",\"Joseph plays against D'Arby\",\"Daniel J. D'Arby formidable sense of touch/Open the game\",\"D'Arby's stratagems over stratagems\"]},{\"t\":\"Gentle Sunlight\",\"n\":\"gentle sunlight\",\"p\":\"DU\",\"o\":\"journey\",\"u\":6,\"l\":24,\"a\":[\"calma\"],\"m\":{\"medio\":4,\"final\":1,\"inicio\":1},\"d\":[],\"e\":[\"Tamami falls on the pavement\",\"Delicious water\",\"Dreaming of how to spend the money\",\"Clients are satisfied with Cinderella\"]},{\"t\":\"Gentle Sunlight\",\"n\":\"gentle sunlight\",\"p\":\"SC\",\"o\":\"journey\",\"u\":9,\"l\":39,\"a\":[\"calma\"],\"m\":{\"medio\":6,\"final\":2,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Joseph meets Holy\",\"Joseph and Holy argue about Japan\",\"Joseph taking care of Holy\",\"Joseph calls Suzi Q\"]},{\"t\":\"Gentle Sunlight\",\"n\":\"gentle sunlight\",",
+        "\"p\":\"SO\",\"o\":\"journey\",\"u\":1,\"l\":22,\"a\":[\"calma\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Ermes momentarily cheers McQueen up...\"]},{\"t\":\"Get Excited\",\"n\":\"get excited\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":1,\"l\":11,\"a\":[],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Emporio wants to take the bus\"]},{\"t\":\"ghiaccio\",\"n\":\"ghiaccio\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":4,\"l\":48,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Black Sabbath traps Giorno\",\"Ghiaccio continues to freeze Giorno and Mista\",\"Ghiaccio chases Mista\",\"Ghiaccio deflects the bullets\"]},{\"t\":\"Ghost Room\",\"n\":\"ghost room\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":78,\"a\":[\"misterio\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Emporio narrates Jolyne's punishment/Ermes wakes up in the infirmary ward\",\"Jolyne discovers the ghost room\",\"Overview of Kennedy Space Center\"]},{\"t\":\"9 Glory Gods\",\"n\":\"glory gods\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":89,\"a\":[\"victoria\"],\"m\":{\"final\":2,\"inicio\":2,\"medio\":1},\"d\":[],\"e\":[\"The great N'Doul attacks the car\",\"Geb harrasses Jotaro and Iggy\",\"D'Arby own stratagem\",\"D'Arby takes Kakyoin's soul\"]},{\"t\":\"9 Glory Gods\",\"n\":\"glory gods\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":25,\"a\":[\"pelea\",\"victoria\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Prisoner fight club!\"]},{\"t\":\"Great Days\",\"n\":\"great days\",\"p\":\"DU\",\"o\":\"\",\"u\":12,\"l\":81,\"a\":[],\"m\":{\"opening\":11,\"final\":1},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Green Dolphin Street Prison\",\"n\":\"green dolphin street prison\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":7,\"l\":47,\"a\":[],\"m\":{\"medio\":4,\"inicio\":2,\"final\":1},\"d\":[\"jolyne\"],\"e\":[\"Green Dolphin Street presentation\",\"Strip search\",\"Jolyne meets Gwess/Gwess getting angry\",\"The rules of the phone booths\"]},{\"t\":\"guardia\",\"n\":\"guardia\",\"p\":\"GW\",\"o\":\"finale\",\"u\":10,\"l\":44,\"a\":[\"villano\",\"misterio\"],\"m\":{\"medio\":8,\"inicio\":1,\"final\":1},\"d\":[],\"e\":[\"Squalo and Tizzano's reveal\",\"Squalo and Tizzano talk\",\"Bruno's team gets wounded by the explosion\",\"Risotto is searching for The Boss\"]},{\"t\":\"Hatred\",\"n\":\"hatred\",\"p\":\"SO\",\"o\":\"st",
+        "one ocean\",\"u\":3,\"l\":47,\"a\":[\"explicacion\",\"revelacion\"],\"m\":{\"inicio\":1,\"recap\":1,\"medio\":1},\"d\":[],\"e\":[\"Explanation of Stone Free\",\"Recap: Jolyne surrenders/Ermes's awakening\",\"Jolyne and Romeo reunite\"]},{\"t\":\"Heart of Darkness\",\"n\":\"heart of darkness\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":4,\"l\":50,\"a\":[\"villano\"],\"m\":{\"medio\":4},\"d\":[\"dio\"],\"e\":[\"Dio plots to steal Jonathan's happiness.\",\"Drunken Dio decides to test the mask.\",\"Dio's superhuman strength.\",\"Dio regaining his strength.\"]},{\"t\":\"Heartbeat\",\"n\":\"heartbeat\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":35,\"a\":[\"pelea\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jonathan vs. Adams.\"]},{\"t\":\"Heaven's falling down\",\"n\":\"heaven s falling down\",\"p\":\"SO\",\"o\":\"\",\"u\":13,\"l\":89,\"a\":[],\"m\":{\"opening\":13},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"hellcrimb\",\"n\":\"hellcrimb\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":2,\"l\":64,\"a\":[\"viaje\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The Hell Climb Pillar!\",\"Arrival in Switzerland.\"]},{\"t\":\"Hesitation\",\"n\":\"hesitation\",\"p\":\"SC\",\"o\":\"stone ocean\",\"u\":12,\"l\":56,\"a\":[\"tristeza\",\"calma\"],\"m\":{\"medio\":10,\"final\":1,\"recap\":1},\"d\":[],\"e\":[\"Avdol explains Stand sickness\",\"Anne approaches the ape, the heroes find nothing\",\"Joseph and Jotaro find Avdol\",\"Leaving Benares\"]},{\"t\":\"Hesitation\",\"n\":\"hesitation\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":11,\"l\":80,\"a\":[\"tristeza\"],\"m\":{\"medio\":9,\"final\":2},\"d\":[\"jolyne\"],\"e\":[\"Jolyne with her lawyer/The Stone Pendant\",\"Jolyne's mind racing in bed/Gwess jump scare\",\"Emporio warns Jolyne\",\"Jolyne believes Jotaro wants to help her/Jolyne's resentment\"]},{\"t\":\"Hidden Thoughts\",\"n\":\"hidden thoughts\",\"p\":\"SC\",\"o\":\"departure\",\"u\":8,\"l\":36,\"a\":[\"tristeza\",\"calma\"],\"m\":{\"medio\":7,\"final\":1},\"d\":[],\"e\":[\"The heroes lament their plane crashed\",\"Polnareff refuses to use a dagger\",\"Polnareff gets his revenge\",\"Polnareff accepts his fate\"]},{\"t\":\"Hidden Thoughts\",\"n\":\"hidden thoughts\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":91,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jotaro falls into a coma\"]},{\"t\":\"High ",
+        "Tension\",\"n\":\"high tension\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":16,\"l\":86,\"a\":[\"tension\",\"pelea\"],\"m\":{\"medio\":14,\"recap\":1,\"inicio\":1},\"d\":[\"jolyne\"],\"e\":[\"Propellers appear on Ermes's neck\",\"McQueen tries to drown himself in a sink\",\"Lang Rangler cracks Jolyne's suit\",\"Westwood gets the upper hand\"]},{\"t\":\"hike\",\"n\":\"hike\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":3,\"l\":36,\"a\":[\"victoria\"],\"m\":{\"medio\":1,\"inicio\":1,\"final\":1},\"d\":[],\"e\":[\"The Nazis in Mexico.\",\"Stroheim is alive!\",\"Stroheim prepares to finish off Kars.\"]},{\"t\":\"Hopelessness\",\"n\":\"hopelessness\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":7,\"l\":62,\"a\":[\"tristeza\"],\"m\":{\"medio\":4,\"inicio\":2,\"final\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne narrating\",\"Jolyne flashback/Jolyne hitting the guard\",\"Jotaro's last words to Jolyne\",\"It's raining poisonous frogs!\"]},{\"t\":\"Hurry Up!\",\"n\":\"hurry up\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":17,\"l\":50,\"a\":[\"pelea\"],\"m\":{\"medio\":13,\"inicio\":4},\"d\":[\"jolyne\"],\"e\":[\"The girls have to run after the guard\",\"They are all the enemy!\",\"Almost failing to catch the ball/Marilyn Manson appears\",\"Objects sticking to Jolyne?\"]},{\"t\":\"I'm in control\",\"n\":\"i m in control\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":7,\"l\":36,\"a\":[\"victoria\"],\"m\":{\"final\":3,\"inicio\":2,\"medio\":2},\"d\":[\"joseph\"],\"e\":[\"Joseph beats the policemen with Ripple-infused cola.\",\"Joseph defeats Santana.\",\"Caesar attacks Wamuu.\",\"Joseph & Wamuu in the minecart.\"]},{\"t\":\"I Want You\",\"n\":\"i want you\",\"p\":\"DU\",\"o\":\"\",\"u\":30,\"l\":68,\"a\":[],\"m\":{\"ending\":30},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Il mare eterno nella mia anima\",\"n\":\"il mare eterno nella mia anima\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":2,\"l\":147,\"a\":[\"victoria\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Joseph's and Lisa Lisa's grief over Caesar.\",\"Joseph defeats Wamuu.\"]},{\"t\":\"Il mare eterno nella mia anima\u301cLunetta\u301c\",\"n\":\"il mare eterno nella mia animalunetta\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":4,\"l\":22,\"a\":[\"tristeza\"],\"m\":{\"inicio\":3,\"medio\":1},\"d\":[],\"e\":[\"What a womanizer!\",\"Joseph in Venice.\",\"Air Supplena Island.\",\"C",
+        "aesar's flashback: happy childhood.\"]},{\"t\":\"il primo assassino\",\"n\":\"il primo assassino\",\"p\":\"GW\",\"o\":\"overture\",\"u\":6,\"l\":38,\"a\":[\"villano\"],\"m\":{\"inicio\":4,\"medio\":1,\"final\":1},\"d\":[],\"e\":[\"Luca appears\",\"Sale and Zucchero talk about Polpo's fortune\",\"Notorious B.I.G is defeated\",\"Cioccolata pets Secco\"]},{\"t\":\"il primo assassino\",\"n\":\"il primo assassino\",\"p\":\"SBR\",\"o\":\"overture\",\"u\":2,\"l\":73,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Benjamin orders LA to flank the heroes\",\"The Boombooms planning their next move\"]},{\"t\":\"il sole\",\"n\":\"il sole\",\"p\":\"GW\",\"o\":\"overture\",\"u\":1,\"l\":36,\"a\":[\"comedia\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Mista and Trish laugh together\"]},{\"t\":\"il vento d'oro\",\"n\":\"il vento d oro\",\"p\":\"GW\",\"o\":\"overture\",\"u\":95,\"l\":5,\"a\":[\"epico\"],\"m\":{\"eyecatch\":38,\"avance\":38,\"medio\":10,\"final\":5,\"inicio\":3,\"recap\":1},\"d\":[],\"e\":[\"Eyecatch\",\"Next Episode Title\",\"Eyecatch\",\"Next Episode Title\"]},{\"t\":\"Impending Crisis\",\"n\":\"impending crisis\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":16,\"l\":100,\"a\":[\"tension\"],\"m\":{\"medio\":13,\"final\":1,\"recap\":1,\"inicio\":1},\"d\":[],\"e\":[\"Ermes runs away from McQueen\",\"The handcuffs are beeping\",\"Jolyne and Ermes split up\",\"Pursuing Lang Rangler\"]},{\"t\":\"incontrollabile\",\"n\":\"incontrollabile\",\"p\":\"GW\",\"o\":\"finale\",\"u\":4,\"l\":28,\"a\":[\"epico\"],\"m\":{\"final\":2,\"inicio\":2},\"d\":[],\"e\":[\"Chariot Requiem awakens\",\"Chariot Requiem walks away from Diavolo\",\"Bucciarati stumbles Chariot Requiem\",\"Chariot Requiem dashes towards Polnareff\"]},{\"t\":\"Increasing Power\",\"n\":\"increasing power\",\"p\":\"SC\",\"o\":\"journey\",\"u\":6,\"l\":53,\"a\":[\"villano\"],\"m\":{\"medio\":4,\"recap\":1,\"final\":1},\"d\":[\"dio\"],\"e\":[\"Recap 2: DIO has returned\",\"Enya decides to personally go and kill the heroes\",\"Waking up in Death Thirteen's dream world\",\"Polnareff realizes the baby is the enemy\"]},{\"t\":\"Increasing Power\",\"n\":\"increasing power\",\"p\":\"SO\",\"o\":\"journey\",\"u\":1,\"l\":38,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"recap\":1},\"d\":[],\"e\":[\"Recap: Weather and Pucci's past\"]},{\"t\":\"incursione\",\"n\":\"incursione\"",
+        ",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":16,\"l\":56,\"a\":[\"pelea\"],\"m\":{\"medio\":11,\"final\":3,\"inicio\":2},\"d\":[\"mista\"],\"e\":[\"Sale escapes from Mista\",\"Sale gets away from Mista\",\"Mista shoots inside Sale's mout\",\"Formaggio continues to escape from Aerosmith\"]},{\"t\":\"Interception\",\"n\":\"interception\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":23,\"l\":64,\"a\":[\"pelea\"],\"m\":{\"medio\":16,\"final\":6,\"inicio\":1},\"d\":[],\"e\":[\"Aqua Necklace enters Josuke's mouth\",\"Koichi is dragged inside/Keicho appears\",\"Koichi tries to intervene\",\"Josuke hits the chest\"]},{\"t\":\"Interception\",\"n\":\"interception\",\"p\":\"GW\",\"o\":\"good morning\",\"u\":2,\"l\":92,\"a\":[],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"Sale aims at Mista\",\"Giorno, Mista and Ghiaccio in the canal\"]},{\"t\":\"Intertwined Destinies\",\"n\":\"intertwined destinies\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":11,\"l\":16,\"a\":[\"victoria\"],\"m\":{\"avance\":8,\"medio\":3},\"d\":[],\"e\":[\"Jonathan loses to Dio in a boxing match.\",\"Next Episode Title\",\"Next episode preview\",\"Next episode preview\"]},{\"t\":\"invecchiare\",\"n\":\"invecchiare\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":3,\"l\":49,\"a\":[\"tristeza\",\"pelea\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"The Grateful Dead activated\",\"Bruno's team under the effect of The Grateful Dead\",\"Prosciutto attacks Mista\"]},{\"t\":\"invecchiare\",\"n\":\"invecchiare\",\"p\":\"SO\",\"o\":\"intermezzo\",\"u\":1,\"l\":58,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Versus can't find the DISC on Emporio/Jolyne and Ermes approach\"]},{\"t\":\"Invisible Corpse\",\"n\":\"invisible corpse\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":4,\"l\":88,\"a\":[],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Sports Maxx meets with Pucci\",\"Ermes attacked by an invisible alligator/Jolyne and F.F. arrive/F.F.'s leg gets bitten off\",\"Sports Maxx surrounds and taunts Ermes\",\"A memory of Sports Maxx appears/Ermes falls into the hole\"]},{\"t\":\"Irreversible Sorrow\",\"n\":\"irreversible sorrow\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":12,\"l\":78,\"a\":[\"tristeza\"],\"m\":{\"medio\":11,\"final\":1},\"d\":[],\"e\":[\"Ryohei's death/Josuke swears to protect Morioh\",\"The family photo is repaired\",\"There ",
+        "is still hope for the Nijimuras' father\",\"The death of Keicho Nijimura\"]},{\"t\":\"Italian Restaurant\",\"n\":\"italian restaurant\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":3,\"l\":149,\"a\":[\"calma\",\"tristeza\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Tonio Trussardi the Italian chef\",\"The antipasto: mozarella and tomato slices\",\"Primo piatto: Spaghetti alla puttanesca\"]},{\"t\":\"Joestar Family\",\"n\":\"joestar family\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":44,\"a\":[\"villano\",\"calma\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Dio moves into the Joestar Mansion.\",\"Restaurant music.\"]},{\"t\":\"JoJo ~The Fate of That Blood~\",\"n\":\"jojo\",\"p\":\"PB/BT\",\"o\":\"\",\"u\":9,\"l\":89,\"a\":[\"epico\"],\"m\":{\"opening\":8,\"medio\":1},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"JoJo: The Memories of That Blood ~end of THE WORLD~\",\"n\":\"jojo the memories of that blood\",\"p\":\"SC\",\"o\":\"world\",\"u\":22,\"l\":89,\"a\":[\"tristeza\"],\"m\":{\"opening\":22},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Killer\",\"n\":\"killer\",\"p\":\"DU\",\"o\":\"good night\",\"u\":16,\"l\":56,\"a\":[\"villano\"],\"m\":{\"medio\":9,\"inicio\":5,\"final\":2},\"d\":[\"kira\"],\"e\":[\"Introduction of Yoshikage Kira, serial-killer\",\"Yoshikage Kira sees the salon\",\"Yoshikage Kira's picnic\",\"Kira is protected by lady luck\"]},{\"t\":\"Knights of Terror\",\"n\":\"knights of terror\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":80,\"a\":[\"pelea\",\"calma\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Tarkus has the advantage.\",\"Zeppeli vs. Tarkus.\"]},{\"t\":\"l'oscurita\",\"n\":\"l oscurita\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":10,\"l\":46,\"a\":[\"villano\"],\"m\":{\"medio\":8,\"inicio\":1,\"final\":1},\"d\":[],\"e\":[\"Giorno saves Koichi\",\"Formaggio gets into the car\",\"Narancia gets a new tongue\",\"Squalo and Tizzano escape from Narancia\"]},{\"t\":\"la battaglia finale\",\"n\":\"la battaglia finale\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":76,\"a\":[\"pelea\",\"epico\",\"villano\"],\"m\":{\"final\":1,\"medio\":1},\"d\":[],\"e\":[\"King Crimson punches Trish in the stomach\",\"Diavolo erases time and attacks Giorno\"]},{\"t\":\"la strada giusta\",\"n\":\"la strada giusta\",\"p\":\"GW\",\"o\":\"finale\",\"u\":4,",
+        "\"l\":162,\"a\":[\"tristeza\"],\"m\":{\"medio\":4},\"d\":[\"bucciarati\"],\"e\":[\"Bucciarati's team reacts to Abbacchio's death\",\"Bucciarati reveals to Giorno he is dead\",\"Narancia is killed by King Crimson\",\"Giorno sees Bucciarati, Narancia and Abbacchio in the clouds\"]},{\"t\":\"Lady With Beautiful Legs\",\"n\":\"lady with beautiful legs\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":53,\"a\":[\"tension\"],\"m\":{\"medio\":3,\"final\":2},\"d\":[],\"e\":[\"A beautiful lady appears\",\"Joseph and Avdol pursue Mariah\",\"Pursuing Mariah in the streets/Avdol & Joseph stuck together\",\"Mariah gloats a little too soon\"]},{\"t\":\"Last Train Home\",\"n\":\"last train home\",\"p\":\"SC\",\"o\":\"\",\"u\":18,\"l\":89,\"a\":[],\"m\":{\"ending\":18},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"legame\",\"n\":\"legame\",\"p\":\"GW\",\"o\":\"overture\",\"u\":13,\"l\":70,\"a\":[\"epico\",\"victoria\"],\"m\":{\"medio\":7,\"final\":6},\"d\":[],\"e\":[\"Giorno reflects Luca's attack\",\"Giorno plans to become a gang-star\",\"Giorno indirectly kills Polpo\",\"Abbacchio awakens\"]},{\"t\":\"Life-and-Death Matter\",\"n\":\"life and death matter\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":148,\"a\":[\"tension\",\"epico\"],\"m\":{\"medio\":3,\"final\":1,\"inicio\":1},\"d\":[\"jotaro\"],\"e\":[\"Jotaro's determination & Star Platinum's speed\",\"Racing in the tunnel\",\"Jotaro's determination/\\\"I've pretty much mastered how to swing\\\"\",\"Vanilla Ice violently kicks Iggy\"]},{\"t\":\"Life-and-Death Matter\",\"n\":\"life and death matter\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":18,\"a\":[\"explicacion\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jolyne explains the situation to Emporio\"]},{\"t\":\"Lightning Speed\",\"n\":\"lightning speed\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":113,\"a\":[\"villano\"],\"m\":{\"inicio\":1,\"medio\":1},\"d\":[],\"e\":[\"Jonathan and Dio play rugby.\",\"A glider made of leaves.\"]},{\"t\":\"Looking Toward Tomorrow\",\"n\":\"looking toward tomorrow\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":140,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Poco's Courage.\"]},{\"t\":\"Looming Crisis\",\"n\":\"looming crisis\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":19,\"l\":65,\"a\":[\"tension\"],\"m\":{\"medio\":15,\"inicio\"",
+        ":2,\"final\":2},\"d\":[],\"e\":[\"Aqua Necklace kills Ryohei\",\"Koichi summons his Stand\",\"Something in the attic\",\"Surface has already lured Jotaro out\"]},{\"t\":\"Looming Crisis\",\"n\":\"looming crisis\",\"p\":\"GW\",\"o\":\"good morning\",\"u\":1,\"l\":58,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Mista tells Sale how many bullets he has\"]},{\"t\":\"Looming Crisis\",\"n\":\"looming crisis\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":1,\"l\":38,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Wes interrogates the thug/kills him with Heavy Weather\"]},{\"t\":\"lotta feroce\",\"n\":\"lotta feroce\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":12,\"l\":153,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":8,\"final\":2,\"recap\":1,\"inicio\":1},\"d\":[],\"e\":[\"Bruno tastes a liar\",\"Giorno begins his battle with Bucciarati\",\"Bruno sinks the yacht and defeats Zucchero\",\"Sale reveals his Stand's ability\"]},{\"t\":\"Love\",\"n\":\"love\",\"p\":\"DU\",\"o\":\"good night\",\"u\":6,\"l\":20,\"a\":[\"villano\"],\"m\":{\"medio\":4,\"inicio\":2},\"d\":[\"kira\"],\"e\":[\"Shinobu is feeling in love\",\"Shinobu thinks Kira was being romantic\",\"Shinobu happy to cling to Kira's chest\",\"A British blue cat\"]},{\"t\":\"Love for the Father\",\"n\":\"love for the father\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":98,\"a\":[\"tristeza\"],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"George Joestar's death.\",\"Erina Pendleton tending to JoJo's wounds.\"]},{\"t\":\"Love, Lively\",\"n\":\"love lively\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":35,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Jonathan's dates with Erina.\",\"Leaving on a honeymoon.\"]},{\"t\":\"Loyal Follower\",\"n\":\"loyal follower\",\"p\":\"SC\",\"o\":\"departure\",\"u\":2,\"l\":136,\"a\":[\"villano\",\"viaje\"],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"Enya welcomes the heroes in her hotel\",\"Polnareff enraging Enya\"]},{\"t\":\"Mad Dash\",\"n\":\"mad dash\",\"p\":\"SC\",\"o\":\"destination\",\"u\":1,\"l\":90,\"a\":[\"pelea\",\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Running in the streets and gathering metal\"]},{\"t\":\"magnetica\",\"n\":\"magnetica\",\"p\":\"GW\",\"o\":\"finale\",\"u\":3,\"l\":92,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Risotto attacks Dopp",
+        "io\",\"Risotto almost kills Doppio\",\"Risotto grabs The Boss\"]},{\"t\":\"male\",\"n\":\"male\",\"p\":\"GW\",\"o\":\"overture\",\"u\":14,\"l\":92,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":9,\"inicio\":5},\"d\":[],\"e\":[\"Bruno appears\",\"Giorno discovers injured gangster\",\"Giorno witnesses gangster hit\",\"Abbacchio's backstory\"]},{\"t\":\"male\",\"n\":\"male\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":74,\"a\":[\"villano\",\"explicacion\",\"tristeza\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Rikiel explains his past to Pucci\"]},{\"t\":\"Malice\",\"n\":\"malice\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":28,\"l\":76,\"a\":[\"villano\"],\"m\":{\"medio\":20,\"final\":5,\"inicio\":3},\"d\":[],\"e\":[\"A peculiar first-year appears\",\"A looming crisis\",\"New enemies!\",\"Josuke interrogates Okuyasu\"]},{\"t\":\"master\u301cacostic\u301c\",\"n\":\"masteracostic\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":2,\"l\":78,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Lisa Lisa appears.\",\"Saint-Moritz.\"]},{\"t\":\"maze\",\"n\":\"maze\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":5,\"l\":46,\"a\":[\"explicacion\",\"misterio\",\"viaje\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Caesar explains why he looks down on Joseph.\",\"The remains of the still alive Esidisi, his brain, stuck to Joseph's back.\",\"Joseph is worried about his ring./A suspicious hotel.\",\"Kars proposes that Lisa Lisa drinks a suicide poison.\"]},{\"t\":\"Memories\",\"n\":\"memories\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":10,\"l\":110,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"medio\":6,\"inicio\":2,\"final\":2},\"d\":[\"pucci\"],\"e\":[\"Miraschon's meeting with Pucci\",\"Pucci realizes the Green Baby has been born\",\"Another son of DIO is revealed\",\"Rikiel believes Jolyne and Weather Report's powerful fates will help Pucci\"]},{\"t\":\"meraviglia\",\"n\":\"meraviglia\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":9,\"l\":58,\"a\":[\"misterio\",\"calma\"],\"m\":{\"medio\":7,\"inicio\":2},\"d\":[],\"e\":[\"Giorno sits in a tree\",\"Giorno and Koichi think of how to defeat Black Sabbath\",\"Giorno amazes the team\",\"Fugo and Narancia talk\"]},{\"t\":\"Messiah\",\"n\":\"messiah\",\"p\":\"SO\",\"o\":\"\",\"u\":1,\"l\":30,\"a\":[\"villano\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Pucci plays \\\"Messiah\\\" on Guccio\"]},{\"t\":",
+        "\"Microorganism\",\"n\":\"microorganism\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":9,\"l\":35,\"a\":[\"pelea\",\"tension\",\"villano\"],\"m\":{\"medio\":6,\"final\":2,\"recap\":1},\"d\":[],\"e\":[\"Foo Fighters pursuing Jolyne and Ermes\",\"F.F. takes over a new body\",\"F.F. wants her water back\",\"Throwing in the dark/Cornering Miraschon\"]},{\"t\":\"misterioso\",\"n\":\"misterioso\",\"p\":\"GW\",\"o\":\"overture\",\"u\":31,\"l\":56,\"a\":[\"misterio\"],\"m\":{\"medio\":20,\"inicio\":6,\"final\":4,\"recap\":1},\"d\":[],\"e\":[\"Luca learns Giorno's name\",\"Giorno meets Luca\",\"Giorno's attack fails\",\"Black Sabbath tries to pierce Giorno with the arrow\"]},{\"t\":\"misterioso\",\"n\":\"misterioso\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":85,\"a\":[\"pelea\",\"misterio\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"The Big Bad Wolf attacks\"]},{\"t\":\"Modern Crusaders\",\"n\":\"modern crusaders\",\"p\":\"GW\",\"o\":\"\",\"u\":17,\"l\":99,\"a\":[\"tristeza\",\"epico\"],\"m\":{\"ending\":17},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Morioh in the Early Afternoon\",\"n\":\"morioh in the early afternoon\",\"p\":\"DU\",\"o\":\"\",\"u\":12,\"l\":23,\"a\":[],\"m\":{\"medio\":7,\"final\":4,\"inicio\":1},\"d\":[],\"e\":[\"Anjuro becomes a landmark\",\"Aftermath of the battle\",\"How to definitely get unpopular with girls\",\"Okuyasu's stiff shoulder is cured\"]},{\"t\":\"Morioh Town Radio\",\"n\":\"morioh town radio\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":10,\"l\":22,\"a\":[\"villano\"],\"m\":{\"inicio\":7,\"medio\":3},\"d\":[],\"e\":[\"Morioh-cho RADIO\",\"Morioh-cho RADIO\",\"Morioh-cho RADIO\",\"Morioh-cho RADIO\"]},{\"t\":\"Morning etude for Charlie\",\"n\":\"morning etude for charlie\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":4,\"l\":86,\"a\":[\"calma\",\"misterio\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[],\"e\":[\"Stroheim's first appearance.\",\"The Nazi testing facility.\",\"A mysterious Nazi officer...\",\"Stroheim is now a cyborg/Kars swears revenge.\"]},{\"t\":\"morte\",\"n\":\"morte\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":7,\"l\":86,\"a\":[\"tristeza\"],\"m\":{\"medio\":7},\"d\":[\"trish\"],\"e\":[\"Narancia gets an eye infection and gives up on life\",\"Bruno tells Trish to keep the ice\",\"Sex Pistols are alive\",\"Trish worries about meeting her father\"",
+        "]},{\"t\":\"muffa\",\"n\":\"muffa\",\"p\":\"GW\",\"o\":\"finale\",\"u\":5,\"l\":56,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"Cioccolata and Secco's introduction\",\"Bruno's team is attacked by mold\",\"Secco records Narancia\",\"Cioccolata catches up to Bruno and his team\"]},{\"t\":\"Mysterious Visitor\",\"n\":\"mysterious visitor\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":88,\"a\":[\"misterio\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Will Anthonio Zeppeli appears.\"]},{\"t\":\"mystic\",\"n\":\"mystic\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":6,\"l\":48,\"a\":[],\"m\":{\"medio\":4,\"final\":2},\"d\":[\"joseph\"],\"e\":[\"Caesar's respect for Joseph.\",\"Caesar's respect for Joseph.\",\"Joseph and Lisa Lisa decide to go after Caesar.\",\"Joseph's compassion.\"]},{\"t\":\"nella cerniera\",\"n\":\"nella cerniera\",\"p\":\"GW\",\"o\":\"overture\",\"u\":5,\"l\":14,\"a\":[\"villano\",\"pelea\",\"epico\"],\"m\":{\"medio\":3,\"final\":1,\"inicio\":1},\"d\":[\"bucciarati\"],\"e\":[\"Bucciarati breaks Pesci's neck\",\"Bucciarati pummels Secco\",\"Bruno's soul is inside Diavolo's body\",\"Bruno attacks Chariot Requiem\"]},{\"t\":\"nervoso\",\"n\":\"nervoso\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":22,\"l\":58,\"a\":[\"tension\"],\"m\":{\"medio\":12,\"final\":8,\"inicio\":2},\"d\":[],\"e\":[\"Bruno questions Giorno\",\"Giorno's intent to kill Bucciarati\",\"Giorno takes the lighter and begins his entrance exam\",\"The bullet goes deeper inside Sale's brain\"]},{\"t\":\"Never Be Mine\",\"n\":\"never be mine\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":8,\"l\":64,\"a\":[\"tristeza\"],\"m\":{\"medio\":7,\"final\":1},\"d\":[\"joseph\"],\"e\":[\"Erina's despair.\",\"Joseph pays respect to his instructor.\",\"Joseph pays his respect to the deceased Esidisi.\",\"The Zeppeli Family spirit!/Caesar Anthonio Zeppeli's death./The Crimson Bubble.\"]},{\"t\":\"New Moon Gravity\",\"n\":\"new moon gravity\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":121,\"a\":[\"villano\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Westwood's ability/Meteors crash through the glass ceiling\",\"Jolyne touches Pucci/Pucci starts a fire\",\"Emporio discovers Jolyne and Jotaro's doppelg\u00e4ngers/in this universe, all of Pucci's enemies are dead...\"]},{\"t\":",
+        "\"Newfound Courage\",\"n\":\"newfound courage\",\"p\":\"DU\",\"o\":\"good night\",\"u\":18,\"l\":42,\"a\":[\"misterio\",\"villano\"],\"m\":{\"medio\":9,\"final\":5,\"inicio\":4},\"d\":[],\"e\":[\"Kosaku has changed/The owner demands the rent\",\"The Kawajiri son, Hayato, is suspicious\",\"Shinobu sees a cat\",\"Hayato leaves the house/Something has happened in the basement\"]},{\"t\":\"Nightmare World\",\"n\":\"nightmare world\",\"p\":\"DU\",\"o\":\"destination\",\"u\":1,\"l\":86,\"a\":[\"calma\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Shinobu and the cat\"]},{\"t\":\"Nightmare World\",\"n\":\"nightmare world\",\"p\":\"SC\",\"o\":\"destination\",\"u\":6,\"l\":60,\"a\":[\"misterio\"],\"m\":{\"medio\":5,\"inicio\":1},\"d\":[],\"e\":[\"Kakyoin in a strange theme park\",\"Kakyoin and Polnareff in the dream\",\"Joseph thinking it's a mere dream\",\"Fake Star Platinum\"]},{\"t\":\"Nightmare World\",\"n\":\"nightmare world\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":18,\"a\":[\"tension\",\"calma\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"McQueen catches Ermes stalking him/Ermes confronts McQueen about the DISCs\"]},{\"t\":\"Noble Hierophant\",\"n\":\"noble hierophant\",\"p\":\"SC\",\"o\":\"departure\",\"u\":10,\"l\":75,\"a\":[\"victoria\",\"pelea\"],\"m\":{\"medio\":8,\"inicio\":1,\"final\":1},\"d\":[\"kakyoin\"],\"e\":[\"Kakyoin fights Tower of Gray\",\"Polnareff defeats the doll\",\"Kakyoin to the rescue\",\"Polnareff wounds and traps Hanged Man\"]},{\"t\":\"Not Alone\",\"n\":\"not alone\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":3,\"l\":67,\"a\":[],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Joseph takes the antidote.\",\"Joseph pays his respect to the fallen Wamuu.\",\"The story of Elizabeth and George Joestar.\"]},{\"t\":\"Oddity\",\"n\":\"oddity\",\"p\":\"DU\",\"o\":\"\",\"u\":21,\"l\":70,\"a\":[\"misterio\"],\"m\":{\"medio\":13,\"inicio\":5,\"final\":3},\"d\":[],\"e\":[\"Hand foreshadowing\",\"Something is lurking in this town\",\"Anjuro Katagiri threatens the Higashikata\",\"Katagiri Anjuro's crimes\"]},{\"t\":\"Oddity\",\"n\":\"oddity\",\"p\":\"GW\",\"o\":\"\",\"u\":1,\"l\":109,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Mista thinks on how to kill Sale\"]},{\"t\":\"Oh My God!\",\"n\":\"oh my god\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":6,\"l\":42,\"a\":[\"tristeza\"],\"m\":{\"medio\":5,\"in",
+        "icio\":1},\"d\":[],\"e\":[\"How to smuggle cash inside of prison\",\"Playing catch\",\"Jolyne asks for the phone\",\"Kenzou's legs have turned into springs?\"]},{\"t\":\"Oh please..\",\"n\":\"oh please\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":20,\"l\":15,\"a\":[],\"m\":{\"avance\":17,\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Next episode preview\",\"Next episode preview\",\"Joseph defeats Straizo.\",\"Next episode preview\"]},{\"t\":\"old town\",\"n\":\"old town\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":5,\"l\":45,\"a\":[\"pelea\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Smokey Brown steals Joseph Joestar's wallet.\",\"The hostage punches Joseph.\",\"Joseph and Caesar playing poker.\",\"Joseph peeps on Lisa Lisa.\"]},{\"t\":\"Omen\",\"n\":\"omen\",\"p\":\"GW\",\"o\":\"departure\",\"u\":1,\"l\":45,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Polnareff's reveal\"]},{\"t\":\"Omen\",\"n\":\"omen\",\"p\":\"SC\",\"o\":\"departure\",\"u\":22,\"l\":44,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":11,\"final\":5,\"inicio\":4,\"recap\":2},\"d\":[],\"e\":[\"Abandoned boat found\",\"Jotaro's reaction to the nurse\",\"Jotaro decides to bring Kakyoin to his house\",\"Avdol alone by night\"]},{\"t\":\"Omen\",\"n\":\"omen\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":51,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Operation Savage Garden begins\"]},{\"t\":\"Orchestrated Battle\",\"n\":\"orchestrated battle\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":5,\"l\":82,\"a\":[\"pelea\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"A mysterious man shoots Angelo with an Arrow\",\"Koichi is shot/Okuyasu engages Josuke\",\"Keichi Nijimura appears\",\"Keicho's Bad Company\"]},{\"t\":\"Oui Monsieur\",\"n\":\"oui monsieur\",\"p\":\"PB/BT\",\"o\":\"\",\"u\":1,\"l\":10,\"a\":[],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"A bird's-eye view of Rome and the [Colosseum](https://jojowiki.com/Colosseum).\"]},{\"t\":\"Over-Drive\",\"n\":\"over drive\",\"p\":\"SC\",\"o\":\"world\",\"u\":1,\"l\":200,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Playing at F-MEGA\"]},{\"t\":\"Overdrive\",\"n\":\"overdrive\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":12,\"l\":40,\"a\":[\"pelea\"],\"m\":{\"medio\":11,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Tarkus attacks.\",\"Hostage situation.\",\"Joseph places grena",
+        "des on Straizo.\",\"Joseph blasts Santana apart.\"]},{\"t\":\"pace\",\"n\":\"pace\",\"p\":\"GW\",\"o\":\"overture\",\"u\":6,\"l\":78,\"a\":[\"calma\",\"epico\"],\"m\":{\"medio\":5,\"final\":1},\"d\":[\"giorno\"],\"e\":[\"Giorno tells Koichi his dream\",\"Bruno introduces Giorno to his team\",\"Giorno retrieves the disc\",\"Giorno gives Bucciarati his brooch\"]},{\"t\":\"Pain Just Like Strange Rain\",\"n\":\"pain just like strange rain\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":4,\"l\":82,\"a\":[\"misterio\",\"tristeza\",\"viaje\"],\"m\":{\"final\":2,\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"The Pillar Man was absorbing blood of Straizo's victims on the temple./Straizo's suicide.\",\"Mark's death.\",\"Caesar is headed to the hotel.\",\"Caesar and Mario Zeppeli's backhistory\"]},{\"t\":\"Pale Snake\",\"n\":\"pale snake\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":15,\"l\":68,\"a\":[\"villano\"],\"m\":{\"medio\":5,\"final\":5,\"recap\":3,\"inicio\":2},\"d\":[\"pucci\"],\"e\":[\"Whitesnake steals Jotaro's Stand and memory\",\"Whitesnake eliminates Johngalli A.\",\"McQueen is the worst kind of evil/Ermes breaks free of McQueen's propellers\",\"Whitesnake investigates the barn\"]},{\"t\":\"Parting Regrets\",\"n\":\"parting regrets\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":4,\"l\":94,\"a\":[\"tristeza\"],\"m\":{\"final\":2,\"medio\":2},\"d\":[],\"e\":[\"Jonathan at Danny's grave.\",\"Bruford regains his humanity.\",\"Will Anthonio Zeppeli's death.\",\"Jonathan Joestar's death.\"]},{\"t\":\"Pass Away\",\"n\":\"pass away\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":2,\"l\":98,\"a\":[\"tristeza\"],\"m\":{\"final\":1,\"medio\":1},\"d\":[],\"e\":[\"F.F.'s goodbye\",\"Jolyne is dead?\"]},{\"t\":\"passato\",\"n\":\"passato\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":9,\"l\":82,\"a\":[\"tristeza\"],\"m\":{\"medio\":8,\"inicio\":1},\"d\":[\"trish\"],\"e\":[\"Trish finishes changing her clothes\",\"Narancia's past\",\"Fugo's past\",\"Continuation of Mista's backstory\"]},{\"t\":\"Passing Anxiety\",\"n\":\"passing anxiety\",\"p\":\"DU\",\"o\":\"\",\"u\":8,\"l\":62,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":6,\"final\":2},\"d\":[],\"e\":[\"Too many tears\",\"An invisible baby Stand user\",\"Rohan Kishibe is suspicious\",\"Rohan has done something to Koichi\"]},{\"t\":\"passione\",\"n\":\"passione\",",
+        "\"p\":\"GW\",\"o\":\"overture\",\"u\":10,\"l\":32,\"a\":[\"villano\",\"tension\"],\"m\":{\"medio\":8,\"final\":1,\"inicio\":1},\"d\":[],\"e\":[\"Giorno meets Polpo\",\"Black Sabbath (Polpo's Stand) appears\",\"Black Sabbath attacks the old janitor\",\"Polpo accepts Giorno into Passione\"]},{\"t\":\"passione\",\"n\":\"passione\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":36,\"a\":[],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Versus grows impatient\"]},{\"t\":\"pazzo\",\"n\":\"pazzo\",\"p\":\"GW\",\"o\":\"finale\",\"u\":3,\"l\":57,\"a\":[\"villano\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Cioccolata's backstory\",\"People start to turn into monsters\",\"Bruno's team is shocked\"]},{\"t\":\"Peace\",\"n\":\"peace\",\"p\":\"DU\",\"o\":\"\",\"u\":19,\"l\":35,\"a\":[\"calma\"],\"m\":{\"medio\":9,\"inicio\":5,\"final\":5},\"d\":[],\"e\":[\"Ryohei pranks Josuke\",\"\\\"Yo, Angelo\\\"\",\"Josuke and Koichi's teamwork tricked Hazamada\",\"Koichi asks what Yukako wants\"]},{\"t\":\"Peaceful Street Corner\",\"n\":\"peaceful street corner\",\"p\":\"DU\",\"o\":\"\",\"u\":20,\"l\":27,\"a\":[\"calma\"],\"m\":{\"final\":10,\"medio\":8,\"inicio\":2},\"d\":[\"josuke\"],\"e\":[\"Josuke's groupies\",\"Josuke & Koichi are late\",\"Josuke & Okuyasu are pals now/\\\"Your mom's a total babe\\\"\",\"Tamami becomes Koichi's lackey\"]},{\"t\":\"pensare\",\"n\":\"pensare\",\"p\":\"GW\",\"o\":\"finale\",\"u\":15,\"l\":64,\"a\":[\"tristeza\",\"calma\"],\"m\":{\"medio\":12,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"The team waits for Narancia\",\"Bruno gets another message from The Boss\",\"Abbacchio reads the message on the key\",\"Giorno figures out The Grateful Dead's weakness\"]},{\"t\":\"permanenza\",\"n\":\"permanenza\",\"p\":\"GW\",\"o\":\"finale\",\"u\":2,\"l\":166,\"a\":[\"misterio\",\"tristeza\"],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"Polnareff explains Diavolo's split personality\",\"Diavolo dies from a drug addict\"]},{\"t\":\"Persistence ~Innocent Scream~\",\"n\":\"persistence\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":5,\"l\":197,\"a\":[\"villano\"],\"m\":{\"medio\":5},\"d\":[\"dio\"],\"e\":[\"JoJo and Dio plunge into the fire/Jonathan emerges victorious.\",\"Zeppeli reveals that Dio is still alive.\",\"Jonathan will fight Bruford.\",\"Jonathan defeats Dio.\"]},{\"t\":\"pesce\",\"n\":\"pesce\",\"p\":\"GW\",\"o\":\"in",
+        "termezzo\",\"u\":4,\"l\":64,\"a\":[\"pelea\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[],\"e\":[\"Pesci uses Beach Boy\",\"Mista is on Beach Boy's hook\",\"Beach Boy chases Bucciarati\",\"Beach Boy reaches Bruno's heart\"]},{\"t\":\"piccolo\",\"n\":\"piccolo\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":3,\"l\":66,\"a\":[\"comedia\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Narancia notices he became smaller\",\"Formaggio picks up Narancia's map and laughs\",\"Formaggio extinguishes himself and hides\"]},{\"t\":\"piccolo\",\"n\":\"piccolo\",\"p\":\"SBR\",\"o\":\"intermezzo\",\"u\":1,\"l\":11,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Gyro sees Tomb of the Boom\"]},{\"t\":\"Pierrot Headroom\",\"n\":\"pierrot headroom\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":4,\"l\":28,\"a\":[\"pelea\"],\"m\":{\"medio\":3,\"final\":1},\"d\":[\"joseph\"],\"e\":[\"Joseph in Mexico.\",\"Joseph beats up Wamuu with the clackers.\",\"Double Ripple!\",\"Joseph's trick with the rope.\"]},{\"t\":\"Possession\",\"n\":\"possession\",\"p\":\"SC\",\"o\":\"journey\",\"u\":2,\"l\":72,\"a\":[\"pelea\"],\"m\":{\"inicio\":1,\"medio\":1},\"d\":[],\"e\":[\"Kakyoin attacks Jotaro though a painting\",\"Jotaro meets Kakyoin\"]},{\"t\":\"Powerful Enemy\",\"n\":\"powerful enemy\",\"p\":\"SC\",\"o\":\"destination\",\"u\":20,\"l\":81,\"a\":[\"villano\",\"tension\"],\"m\":{\"medio\":17,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Kakyoin left alone with Death 13\",\"Is Kakyoin mad?/Polnareff knocks out Kakyoin\",\"Death 13 scything itself\",\"Waiting in the desert\"]},{\"t\":\"Powerful Enemy\",\"n\":\"powerful enemy\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":64,\"a\":[\"explicacion\",\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"How Survivor's ability works\"]},{\"t\":\"Pressure\",\"n\":\"pressure\",\"p\":\"SC\",\"o\":\"destination\",\"u\":17,\"l\":42,\"a\":[\"pelea\"],\"m\":{\"medio\":11,\"final\":4,\"inicio\":2},\"d\":[],\"e\":[\"A scorching heat and no enemy in sight\",\"Death Thirteen attacks Jotaro/Star Platinum\",\"Death 13 is almighty in the nightmare\",\"The heroes must evacuate the sub\"]},{\"t\":\"Pressure\",\"n\":\"pressure\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":64,\"a\":[\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Anasui's body double trick/Pucci's face turns inside out\"]},{\"t\":\"Priest\",\"n\":\"pri",
+        "est\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":29,\"l\":45,\"a\":[\"villano\"],\"m\":{\"medio\":13,\"final\":7,\"inicio\":5,\"recap\":4},\"d\":[\"pucci\"],\"e\":[\"Enrico Pucci appears\",\"Pucci monologuing\",\"Pucci inquires about the phone call log\",\"Jolyne encounters Pucci\"]},{\"t\":\"proiettile\",\"n\":\"proiettile\",\"p\":\"GW\",\"o\":\"overture\",\"u\":4,\"l\":12,\"a\":[\"pelea\"],\"m\":{\"medio\":4},\"d\":[\"mista\"],\"e\":[\"Sex Pistols destroy Pesci's ice\",\"Mista shoots Ghiaccio\",\"Mista shoots in the airhole\",\"Mista shoots Carne\"]},{\"t\":\"Propaganda\",\"n\":\"propaganda\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":6,\"l\":45,\"a\":[],\"m\":{\"medio\":5,\"final\":1},\"d\":[],\"e\":[\"Stroheim steps in.\",\"The strength of a German cyborg!\",\"Eye UV laser!\",\"The Nazis and the Speedwagon Foundation to the rescue!\"]},{\"t\":\"pulse\",\"n\":\"pulse\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":12,\"l\":44,\"a\":[\"pelea\"],\"m\":{\"medio\":9,\"final\":2,\"inicio\":1},\"d\":[\"joseph\"],\"e\":[\"Corrupt policemen catch Smokey.\",\"Joseph survives Straizo's Space Ripper Stingy Eyes.\",\"Santana survives the explosion.\",\"Joseph vs. Caesar.\"]},{\"t\":\"Puppet\",\"n\":\"puppet\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":19,\"l\":75,\"a\":[\"villano\"],\"m\":{\"medio\":11,\"final\":4,\"inicio\":4},\"d\":[],\"e\":[\"Surface, the puppet master\",\"Hazamada the incel\",\"Josuke is controlled by Surface\",\"Hazamada claiming that Stand users are drawn to each other\"]},{\"t\":\"Puppet\",\"n\":\"puppet\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":3,\"l\":82,\"a\":[\"tristeza\",\"pelea\",\"villano\"],\"m\":{\"medio\":1,\"final\":1,\"inicio\":1},\"d\":[],\"e\":[\"The enemy's nature is revealed/Weather shoots himself\",\"Weather regains his memories\",\"Weather's memory has returned\"]},{\"t\":\"puro\",\"n\":\"puro\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":4,\"l\":52,\"a\":[\"calma\"],\"m\":{\"inicio\":3,\"medio\":1},\"d\":[],\"e\":[\"Giorno steals money\",\"Mista is having a lunch break\",\"Continuation of Mista's backstory\",\"Bruno and his team eat\"]},{\"t\":\"Purple Thorns\",\"n\":\"purple thorns\",\"p\":\"DU\",\"o\":\"departure\",\"u\":1,\"l\":24,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Tomoko mistakes Jotaro for Joseph\"]},{\"t\":\"Purple Thorns\",\"n\":\"purple thorns\",\"p\":\"SC\",\"o\":\"depa",
+        "rture\",\"u\":8,\"l\":49,\"a\":[\"viaje\",\"explicacion\"],\"m\":{\"medio\":4,\"final\":2,\"inicio\":2},\"d\":[],\"e\":[\"Joseph shows Hermit Purple\",\"Arrival in India\",\"In the busy streets of Benares\",\"Description of Pakistan\"]},{\"t\":\"Pursuit\",\"n\":\"pursuit\",\"p\":\"DU\",\"o\":\"\",\"u\":3,\"l\":24,\"a\":[\"tension\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Highway Star appears\",\"Josuke cannot make a proper phone call\",\"Highway Star manages to reach Josuke\"]},{\"t\":\"Quietness\",\"n\":\"quietness\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":12,\"l\":66,\"a\":[\"calma\"],\"m\":{\"medio\":9,\"final\":2,\"inicio\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne seeking revenge on her lawyer\",\"Breakfast is sold out\",\"Ermes remembers how she cut her hand\",\"Searching the farmlands/Dispute with the guard\"]},{\"t\":\"quirk\",\"n\":\"quirk\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":2,\"l\":46,\"a\":[],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"Straizo's betrayal.\",\"Straizo enjoying his Vampiric powers.\"]},{\"t\":\"Rebellion Against Despair\",\"n\":\"rebellion against despair\",\"p\":\"SC\",\"o\":\"destination\",\"u\":7,\"l\":72,\"a\":[\"villano\"],\"m\":{\"medio\":4,\"final\":1,\"recap\":1,\"inicio\":1},\"d\":[],\"e\":[\"D'Arby wins the first round, next game\",\"Pet Shop draws its full power\",\"Recap: Horus at full power\",\"Polnareff & Iggy vs. Vanilla Ice\"]},{\"t\":\"Rebellion Against Despair\",\"n\":\"rebellion against despair\",\"p\":\"SO\",\"o\":\"destination\",\"u\":2,\"l\":74,\"a\":[\"pelea\",\"victoria\",\"tension\"],\"m\":{\"medio\":1,\"final\":1},\"d\":[],\"e\":[\"C-MOON tries to stand/Jolyne's string inverting\",\"Jotaro manages to stop time before Jolyne is hit/Anasui saves Jotaro/Jotaro struggles to approach Pucci\"]},{\"t\":\"Repose of a Soul\",\"n\":\"repose of a soul\",\"p\":\"SC\",\"o\":\"departure\",\"u\":4,\"l\":136,\"a\":[\"calma\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[],\"e\":[\"Polnareff runs after Ch\u00e9rie\",\"N'Doul's devotion to DIO\",\"Polnareff mourns Avdol\",\"Kakyoin, mortally wounded, realizes the truth\"]},{\"t\":\"Requiem\",\"n\":\"requiem\",\"p\":\"SC\",\"o\":\"destination\",\"u\":4,\"l\":106,\"a\":[\"tristeza\"],\"m\":{\"medio\":3,\"final\":1},\"d\":[\"iggy\"],\"e\":[\"Iggy is drowning\",\"\\\"Adieu, Iggy.\\\"\",\"Iggy's re",
+        "solve saved Polnareff\",\"Avdol & Iggy's souls salute Polnareff\"]},{\"t\":\"Requiem\",\"n\":\"requiem\",\"p\":\"SO\",\"o\":\"destination\",\"u\":2,\"l\":169,\"a\":[\"tristeza\"],\"m\":{\"final\":1,\"recap\":1},\"d\":[],\"e\":[\"Weather is found dead\",\"Recap of Weather's death/Two more days until the new moon\"]},{\"t\":\"Requiem for a Traitor\",\"n\":\"requiem for a traitor\",\"p\":\"GW\",\"o\":\"\",\"u\":18,\"l\":91,\"a\":[\"tristeza\"],\"m\":{\"opening\":18},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"resa dei conti\",\"n\":\"resa dei conti\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":5,\"l\":57,\"a\":[\"pelea\",\"viaje\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Zucchero jumps out of the car\",\"Moody Blues replays Abbacchio's actions and gets the key to Giorno\",\"Pesci takes out Coco Jumbo\",\"Mista shoots the screw into White Album's helmet\"]},{\"t\":\"Rest ~Piano Ver.~\",\"n\":\"rest\",\"p\":\"DU\",\"o\":\"journey\",\"u\":3,\"l\":117,\"a\":[\"calma\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[\"koichi\"],\"e\":[\"Koichi is with a girl\",\"Yukako Yamagishi has confessed her love to Koichi\",\"Yukako is literally crazy for Koichi\"]},{\"t\":\"Results of the Plot\",\"n\":\"results of the plot\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":4,\"l\":115,\"a\":[\"villano\",\"tension\",\"misterio\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Jonathan confronts Dio about poisoning George.\",\"The Dark Knights, Bruford and Tarkus appear.\",\"Jonathan trapped with Tarkus in the Chamber of the Two-Headed Dragon.\",\"Dio traps Jonathan.\"]},{\"t\":\"Return from the Verge of Death\",\"n\":\"return from the verge of death\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":1,\"l\":29,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"The knights' training grounds.\"]},{\"t\":\"riproduzione\",\"n\":\"riproduzione\",\"p\":\"GW\",\"o\":\"overture\",\"u\":5,\"l\":48,\"a\":[\"misterio\"],\"m\":{\"medio\":5},\"d\":[\"abbacchio\"],\"e\":[\"Abbacchio uses Moody Blues to replay Narancia's actions\",\"Moody Blues continues to replay Narancia's actions\",\"Abbacchio is searching for Zucchero's location\",\"Moody Blues replays Zucchero talking to Sale\"]},{\"t\":\"ristorante bar\",\"n\":\"ristorante bar\",\"p\":\"GW\",\"o\":\"overture\",\"u\":7,\"l\":33,\"a\":[\"comedia\",\"calma\"],\"m\"",
+        ":{\"medio\":4,\"inicio\":2,\"final\":1},\"d\":[\"mista\"],\"e\":[\"Giorno performs his ear trick\",\"Mista doesn't want to eat a cake with 4 slices\",\"Mista continues to torture Zucchero\",\"Bruno congratulates his team\"]},{\"t\":\"Roundabout\",\"n\":\"roundabout\",\"p\":\"PB/BT\",\"o\":\"\",\"u\":25,\"l\":92,\"a\":[],\"m\":{\"ending\":25},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Roundabout\",\"n\":\"roundabout\",\"p\":\"SO\",\"o\":\"\",\"u\":1,\"l\":124,\"a\":[],\"m\":{\"ending\":1},\"d\":[],\"e\":[\"Ending\"]},{\"t\":\"Rubicon\",\"n\":\"rubicon\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":4,\"l\":64,\"a\":[\"misterio\"],\"m\":{\"medio\":2,\"final\":1,\"recap\":1},\"d\":[],\"e\":[\"Santana kills the remaining soldiers and researchers.\",\"Two crossbows given out for the racers.\",\"Something's wrong with Kars...\",\"Recap./JoJo can't use his hands.\"]},{\"t\":\"Sadness\",\"n\":\"sadness\",\"p\":\"DU\",\"o\":\"departure\",\"u\":1,\"l\":140,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Kira has switched face with someone else!\"]},{\"t\":\"Sadness\",\"n\":\"sadness\",\"p\":\"SC\",\"o\":\"departure\",\"u\":5,\"l\":126,\"a\":[\"tristeza\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[],\"e\":[\"Joseph narrates Jonathan's fate\",\"Polnareff explains how Ch\u00e9rie was killed\",\"Avdol's death\",\"Polnareff & Ch\u00e9rie reunited\"]},{\"t\":\"Sadness\",\"n\":\"sadness\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":78,\"a\":[\"tristeza\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Jotaro's body in the care of the Speedwagon Foundation\"]},{\"t\":\"Scorching Flames\",\"n\":\"scorching flames\",\"p\":\"SBR\",\"o\":\"destination\",\"u\":1,\"l\":20,\"a\":[\"tension\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Urmd Avdul approaches\"]},{\"t\":\"Scorching Flames\",\"n\":\"scorching flames\",\"p\":\"SC\",\"o\":\"destination\",\"u\":3,\"l\":43,\"a\":[\"victoria\"],\"m\":{\"medio\":3},\"d\":[\"avdol\"],\"e\":[\"Magician's Red destroys the fake Avdol\",\"Avdol defeats Judgement\",\"Joseph and Avdol confront Mariah\"]},{\"t\":\"Season\",\"n\":\"season\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":1,\"l\":90,\"a\":[],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Epilogue for the cast.\"]},{\"t\":\"Second Bomb\",\"n\":\"second bomb\",\"p\":\"DU\",\"o\":\"good night\",\"u\":15,\"l\":56,\"a\":[\"villano\"],\"m\":{\"medio\":8,\"final\":5,\"inicio",
+        "\":2},\"d\":[\"kira\"],\"e\":[\"Kira must retrieve the damning evidence\",\"Kira follows Shigechi to school\",\"Kira retrieves the bag\",\"Killer Queen reveal\"]},{\"t\":\"Secret Plans\",\"n\":\"secret plans\",\"p\":\"DU\",\"o\":\"good night\",\"u\":19,\"l\":48,\"a\":[\"misterio\",\"villano\"],\"m\":{\"medio\":15,\"inicio\":2,\"final\":2},\"d\":[],\"e\":[\"Angelo waits for the right moment\",\"Okuyasu helps Josuke save Koichi\",\"Koichi determined to neutralize Hazamada\",\"Koichi is missing\"]},{\"t\":\"Secret Plans\",\"n\":\"secret plans\",\"p\":\"SO\",\"o\":\"good night\",\"u\":1,\"l\":115,\"a\":[\"misterio\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Anasui's interrogation\"]},{\"t\":\"Secret Thoughts\",\"n\":\"secret thoughts\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":7,\"l\":89,\"a\":[\"villano\",\"misterio\"],\"m\":{\"medio\":4,\"inicio\":2,\"final\":1},\"d\":[\"dio\"],\"e\":[\"Dio resolved to control his emotions.\",\"Dio plots internally.\",\"Description of Windknight's Lot.\",\"Dio's cruelty.\"]},{\"t\":\"Separation and Departure\",\"n\":\"separation and departure\",\"p\":\"DU\",\"o\":\"good night\",\"u\":5,\"l\":120,\"a\":[\"viaje\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[],\"e\":[\"Reimi is waiting by the Owson/Rohan's link to Reimi\",\"Reimi sees Shigechi's soul\",\"Rohan acknowledges Ken's guts\",\"Okuyasu has returned/Keicho's words to his little brother\"]},{\"t\":\"serenamente\",\"n\":\"serenamente\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":5,\"l\":36,\"a\":[\"tristeza\",\"pelea\"],\"m\":{\"medio\":3,\"inicio\":2},\"d\":[\"mista\",\"narancia\"],\"e\":[\"Bruno rents a yacht\",\"Mista's backstory\",\"Continuation of Narancia's past\",\"Mista and Narancia discuss food\"]},{\"t\":\"Setting Off\",\"n\":\"setting off\",\"p\":\"DU\",\"o\":\"departure\",\"u\":4,\"l\":30,\"a\":[\"viaje\"],\"m\":{\"medio\":2,\"final\":1,\"ending\":1},\"d\":[],\"e\":[\"Josuke is a reliable ally after all\",\"Yukako and Koichi kiss\",\"Koichi sees Yukako again and calls her\",\"A happy ending\"]},{\"t\":\"Setting Off\",\"n\":\"setting off\",\"p\":\"SC\",\"o\":\"departure\",\"u\":13,\"l\":39,\"a\":[\"viaje\",\"calma\"],\"m\":{\"medio\":8,\"final\":3,\"inicio\":2},\"d\":[],\"e\":[\"Holy knows that Jotaro is a good boy\",\"Kakyoin asks why he was saved\",\"Under the Red Sea\",\"Egypt is in sight\"]},{\"",
+        "t\":\"Setting Off\",\"n\":\"setting off\",\"p\":\"SO\",\"o\":\"departure\",\"u\":2,\"l\":89,\"a\":[\"tristeza\",\"viaje\"],\"m\":{\"inicio\":1,\"medio\":1},\"d\":[],\"e\":[\"Both Jotaro and Jolyne share the same scars/Jolyne understands her father\",\"Emporio and Jolyne walk past the guards using Jail House Lock\"]},{\"t\":\"Shoot for a Decisive Battle\",\"n\":\"shoot for a decisive battle\",\"p\":\"SC\",\"o\":\"destination\",\"u\":4,\"l\":108,\"a\":[\"pelea\",\"epico\"],\"m\":{\"final\":2,\"medio\":2},\"d\":[],\"e\":[\"Vanilla Ice kills Avdol/Vanilla Ice vs. Polnareff & Iggy\",\"Polnareff ambushes Ice/Ice is immortal\",\"Kakyoin learns a bit about The World\",\"Jotaro awaits DIO's final attack\"]},{\"t\":\"Shoot for a Decisive Battle\",\"n\":\"shoot for a decisive battle\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":32,\"a\":[\"villano\",\"pelea\",\"epico\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Pucci cuts off Weather's other leg/\\\"Domine quo vadis?\\\"\"]},{\"t\":\"Silent Horizon\",\"n\":\"silent horizon\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":76,\"a\":[\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Dio grabs Jonathan's hand.\",\"Erina happy to be with Jonathan.\"]},{\"t\":\"Silver Twist\",\"n\":\"silver twist\",\"p\":\"SC\",\"o\":\"departure\",\"u\":6,\"l\":37,\"a\":[\"comedia\"],\"m\":{\"medio\":4,\"final\":2},\"d\":[\"polnareff\"],\"e\":[\"Polnareff takes the photo\",\"A pig in the toilets\",\"Joseph crashes his camel\",\"\\\"I wanna be more famous than Disney\\\"\"]},{\"t\":\"situazione difficile\",\"n\":\"situazione difficile\",\"p\":\"GW\",\"o\":\"overture\",\"u\":21,\"l\":64,\"a\":[\"pelea\",\"tension\"],\"m\":{\"medio\":16,\"final\":3,\"inicio\":2},\"d\":[],\"e\":[\"Giorno summons Gold Experience\",\"Giorno's and Bruno's final clash\",\"Giorno must go for a second patting down while trying to hide the lighter\",\"The prison guard pats Giorno down for any items\"]},{\"t\":\"Skeepy Meeting\",\"n\":\"skeepy meeting\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":13,\"l\":30,\"a\":[],\"m\":{\"medio\":10,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Tomoko and Ryohei Higashikata\",\"Tamami Kobayashi appears and demands to be paid back for his cat\",\"Tamami gets away\",\"Tamami at Koichi's house\"]},{\"t\":\"skew\",\"n\":\"skew\",\"p\":\"PB/BT\",\"o\":",
+        "\"leicht\",\"u\":5,\"l\":69,\"a\":[],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Straizo's dream of immortality and eternal youth.\",\"Straizo's Ripple-conducting scarf.\",\"Straizo planning to take a woman hostage.\",\"Esidisi tries to make Suzi Q explode.\"]},{\"t\":\"Small Soldier\",\"n\":\"small soldier\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":2,\"l\":98,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Caesar's Bubble Cutters make Wamuu retreat.\",\"Lisa Lisa hits \\\"Kars\\\" in the head.\"]},{\"t\":\"Sniper\",\"n\":\"sniper\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":6,\"l\":62,\"a\":[\"misterio\",\"explicacion\",\"pelea\"],\"m\":{\"medio\":5,\"final\":1},\"d\":[\"jotaro\"],\"e\":[\"Johngalli A. learns about Jotaro's visit\",\"Jotaro explaining Johngalli A.'s plan\",\"Discussing how Johngalli A. could have a sniper rifle/Manhattan Transfer appears\",\"Johngalli A. decides to kill Emporio against\"]},{\"t\":\"Something is Wrong\",\"n\":\"something is wrong\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":16,\"l\":96,\"a\":[\"tension\"],\"m\":{\"medio\":15,\"inicio\":1},\"d\":[],\"e\":[\"Jolyne's been shrunk\",\"Johngalli A.'s speech about sniping\",\"Ermes takes McQueen's DISC and leaves\",\"Foo Fighters kills two prisoners\"]},{\"t\":\"Sorrow\",\"n\":\"sorrow\",\"p\":\"DU\",\"o\":\"journey\",\"u\":5,\"l\":28,\"a\":[\"tristeza\"],\"m\":{\"medio\":4,\"inicio\":1},\"d\":[],\"e\":[\"Yukako feeling depressed/The Cinderella beauty salon\",\"Yukako has become unrecognizable\",\"Ken is sad to have lost the first match\",\"Ken makes a scene\"]},{\"t\":\"Sorrow\",\"n\":\"sorrow\",\"p\":\"SC\",\"o\":\"journey\",\"u\":4,\"l\":48,\"a\":[\"tristeza\"],\"m\":{\"medio\":3,\"final\":1},\"d\":[],\"e\":[\"Joseph sorrowful about Holy\",\"Polnareff remembering Avdol's death\",\"Polnareff wishes for Ch\u00e9rie to disappear\",\"Suzi Q always knew that Holy is in peril/Mother & daughter\"]},{\"t\":\"Sorrow\",\"n\":\"sorrow\",\"p\":\"SO\",\"o\":\"journey\",\"u\":3,\"l\":16,\"a\":[\"tristeza\",\"tension\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"McQueen cries\",\"... but he proceeds to hang himself\",\"McQueen realizes Ermes is a nice person...\"]},{\"t\":\"Space of a Lone God\",\"n\":\"space of a lone god\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":63,\"a\":[\"villano\"],\"m\":{\"medio\"",
+        ":2,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"A new enemy appears\",\"D'Arby's collection/The heroes must play with D'Arby\",\"D'Arby is still ahead\",\"D'Arby's abilities are still unknown\"]},{\"t\":\"specchio\",\"n\":\"specchio\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":4,\"l\":42,\"a\":[\"pelea\",\"misterio\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Fugo's Stand can't protect him inside the mirror world\",\"Man in the Mirror deflects the flying rocks back at Fugo\",\"Illuso takes Abbacchio into the mirror world\",\"Illuso tricks Abbacchio and beats him\"]},{\"t\":\"spensierato-rabbia\",\"n\":\"spensierato rabbia\",\"p\":\"GW\",\"o\":\"overture\",\"u\":10,\"l\":33,\"a\":[\"pelea\"],\"m\":{\"medio\":6,\"inicio\":4},\"d\":[\"narancia\",\"fugo\"],\"e\":[\"Fugo teaches Narancia maths\",\"Fugo bashes Narancia's head against the table\",\"Narancia's boombox breaks\",\"Narancia, Fugo and Abbacchio beat up Zucchero's body\"]},{\"t\":\"SPIN (Opening)\",\"n\":\"spin\",\"p\":\"SBR\",\"o\":\"\",\"u\":2,\"l\":89,\"a\":[],\"m\":{\"opening\":2},\"d\":[],\"e\":[\"Opening\",\"Opening\"]},{\"t\":\"spiritoso\",\"n\":\"spiritoso\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":5,\"l\":46,\"a\":[\"comedia\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[\"mista\"],\"e\":[\"Mista feeds Sex Pistols\",\"Narancia gets the keys from Fugo\",\"Narancia sees Giorno healing Mista\",\"Abbacchio realizes the guy wasn't an enemy\"]},{\"t\":\"squadra\",\"n\":\"squadra\",\"p\":\"GW\",\"o\":\"overture\",\"u\":12,\"l\":46,\"a\":[\"pelea\",\"villano\"],\"m\":{\"medio\":6,\"final\":4,\"recap\":1,\"inicio\":1},\"d\":[],\"e\":[\"First introduction of Bruno's team\",\"Mista chases Sale\",\"Mista shoots a bullet in Sale's neck\",\"Sale defeated\"]},{\"t\":\"Squalo\",\"n\":\"squalo\",\"p\":\"GW\",\"o\":\"finale\",\"u\":9,\"l\":24,\"a\":[\"pelea\"],\"m\":{\"medio\":6,\"inicio\":2,\"final\":1},\"d\":[\"narancia\"],\"e\":[\"Clash attacks Narancia\",\"Clash comes out\",\"Clash teleports into Narancia's tears\",\"Clash attacks Giorno\"]},{\"t\":\"STAND PROUD\",\"n\":\"stand proud\",\"p\":\"SC\",\"o\":\"\",\"u\":23,\"l\":90,\"a\":[\"victoria\"],\"m\":{\"opening\":21,\"recap\":2},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Stardust Crusaders\",\"n\":\"stardust crusaders\",\"p\":\"DU\",\"o\":\"departure\",\"u\":4,\"l\":51,\"a\":[\"pe",
+        "lea\",\"tristeza\",\"epico\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Star Platinum pummels Sheer Heart Attack\",\"Star Platinum pummels Kira\",\"Jotaro neutralizes Yoshihiro\",\"ORAORAORAORA!!\"]},{\"t\":\"Stardust Crusaders\",\"n\":\"stardust crusaders\",\"p\":\"SC\",\"o\":\"departure\",\"u\":17,\"l\":67,\"a\":[\"victoria\",\"epico\"],\"m\":{\"medio\":12,\"final\":4,\"ending\":1},\"d\":[\"jotaro\"],\"e\":[\"Jotaro defeats Kakyoin\",\"Placeholder ending\",\"The heroes depart\",\"Jotaro punches a shark\"]},{\"t\":\"Stardust Crusaders\",\"n\":\"stardust crusaders\",\"p\":\"SO\",\"o\":\"departure\",\"u\":4,\"l\":56,\"a\":[\"victoria\",\"tristeza\",\"epico\"],\"m\":{\"medio\":3,\"recap\":1},\"d\":[\"jotaro\"],\"e\":[\"Jotaro defeats Johngalli A.\",\"Jotaro appears and saves Jolyne\",\"Recap of Jotaro's return\",\"Emporio defeats Pucci\"]},{\"t\":\"Steel Tower\",\"n\":\"steel tower\",\"p\":\"DU\",\"o\":\"\",\"u\":3,\"l\":124,\"a\":[\"tension\",\"pelea\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Someone is living on the tower\",\"Mikitaka trapped in the tower\",\"Toyohiro's bouncing attacks\"]},{\"t\":\"Sticker\",\"n\":\"sticker\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":5,\"l\":28,\"a\":[\"misterio\",\"comedia\",\"explicacion\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[],\"e\":[\"Ermes discovers her stickers and uses them to incapacitate McQueen with his mop\",\"Ermes's Stand Kiss is fully revealed\",\"The guard's prank\",\"Ermes explains her Stand briefly\"]},{\"t\":\"Stillness\",\"n\":\"stillness\",\"p\":\"DU\",\"o\":\"\",\"u\":9,\"l\":33,\"a\":[\"tristeza\",\"pelea\"],\"m\":{\"medio\":6,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Aftermath of Ryohei's death\",\"Josuke cannot heal himself\",\"Okuyasu steps out of the fight\",\"Keicho is defeated, Josuke & Koichi look for the Arrow\"]},{\"t\":\"Stillness\",\"n\":\"stillness\",\"p\":\"GW\",\"o\":\"\",\"u\":1,\"l\":74,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Koichi updates Jotaro on phone\"]},{\"t\":\"Stone Mask ~Prologue~\",\"n\":\"stone mask\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":6,\"l\":87,\"a\":[\"tristeza\",\"pelea\"],\"m\":{\"medio\":4,\"inicio\":2},\"d\":[],\"e\":[\"Dario Brando meets George Joestar.\",\"Jonathan experiments with the stone mask.\",\"Flashback of Dario and George.\",\"Jonathan's training/Zeppeli's story",
+        ".\"]},{\"t\":\"STONE OCEAN (Opening)\",\"n\":\"stone ocean\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":22,\"l\":89,\"a\":[],\"m\":{\"opening\":22},\"d\":[],\"e\":[\"Opening\",\"Opening\",\"Opening\",\"Opening\"]},{\"t\":\"Strange and Mysterious\",\"n\":\"strange and mysterious\",\"p\":\"SC\",\"o\":\"journey\",\"u\":5,\"l\":44,\"a\":[\"misterio\"],\"m\":{\"medio\":3,\"inicio\":2},\"d\":[],\"e\":[\"The enemy reveals himself\",\"Inside the brain\",\"Joseph and Avdol are stuck to each other\",\"Polnareff gambles his soul... and loses\"]},{\"t\":\"Strange Attack\",\"n\":\"strange attack\",\"p\":\"DU\",\"o\":\"\",\"u\":2,\"l\":130,\"a\":[\"pelea\",\"misterio\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"The main dish is a success\",\"Rohan reads Koichi's bio\"]},{\"t\":\"Stress\",\"n\":\"stress\",\"p\":\"DU\",\"o\":\"\",\"u\":10,\"l\":95,\"a\":[],\"m\":{\"medio\":7,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Hostage situation\",\"Aqua Necklace invades the house\",\"Okuyasu chastised by his big brother\",\"Keicho's mysterious ability\"]},{\"t\":\"Strings\",\"n\":\"strings\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":12,\"l\":101,\"a\":[\"misterio\",\"revelacion\"],\"m\":{\"medio\":10,\"final\":1,\"recap\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne discovering her string/Saving Ermes\",\"The pendant in possession of another person\",\"Stone Free appears/Gwess tricks Jolyne\",\"Recap: Jolyne's sentencing and Stand awakening\"]},{\"t\":\"Strutting the Ogre Street\",\"n\":\"strutting the ogre street\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":1,\"l\":103,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jonathan defends against Speedwagon, Tattoo and Kempo Master.\"]},{\"t\":\"Submission\",\"n\":\"submission\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":122,\"a\":[\"pelea\",\"comedia\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Yo-Yo Ma acts submissive/Jolyne and Anasui take Yo-Yo Ma to the wetlands\",\"Yo-Yo Ma's mosquito attack/\\\"Be All Eyes\\\"\",\"Yo-Yo Ma's frog antics\"]},{\"t\":\"Sudden Battle\",\"n\":\"sudden battle\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":8,\"l\":61,\"a\":[\"pelea\"],\"m\":{\"medio\":7,\"final\":1},\"d\":[],\"e\":[\"Koichi fights Yukako\",\"RHCP at full power\",\"Josuke & Okuyasu pursuing the tiny bee-like Stands\",\"Josuke is saved by Rohan\"]},{\"t\":\"Sudden Battle\",\"n\":\"su",
+        "dden battle\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":1,\"l\":15,\"a\":[\"pelea\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Perla's bag is stolen\"]},{\"t\":\"Sudden Turn\",\"n\":\"sudden turn\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":3,\"l\":29,\"a\":[\"villano\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Jack the Ripper murders his victim.\",\"Dio is reborn as a Vampire!\",\"Jack the Ripper is recruited by Dio.\"]},{\"t\":\"Surrounded\",\"n\":\"surrounded\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":18,\"l\":98,\"a\":[],\"m\":{\"medio\":12,\"inicio\":4,\"final\":2},\"d\":[],\"e\":[\"Jolyne sentenced to 15 years in prison/It was Romeo\",\"Gwess has the Stone Pendant/Something wrong with the parakeet\",\"Gwess tells Jolyne to assert herself\",\"Manhattan Transfer appears/Jotaro is shot\"]},{\"t\":\"Surviver\",\"n\":\"surviver\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":2,\"l\":68,\"a\":[\"tension\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Guccio appears\",\"D an G falls victim to Anasui's trap/Guccio is Survivor's user\"]},{\"t\":\"suspense\",\"n\":\"suspense\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":22,\"l\":60,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":16,\"inicio\":5,\"final\":1},\"d\":[],\"e\":[\"Giorno exits the prison and walks on his way to his dorm\",\"The lighter goes out\",\"Black Sabbath sees Koichi and attacks him\",\"Koichi tells Giorno that Polpo is still alive\"]},{\"t\":\"Suspenseful\",\"n\":\"suspenseful\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":17,\"l\":72,\"a\":[],\"m\":{\"medio\":12,\"inicio\":2,\"final\":2,\"recap\":1},\"d\":[\"jolyne\"],\"e\":[\"Romeo and Jolyne hiding the body\",\"Something is wrong?/Jolyne is shot\",\"Manhattan Transfer is reading the air currents\",\"Jolyne triggers the fire alarm/A secret passage under the pillar\"]},{\"t\":\"Suspicion\",\"n\":\"suspicion\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":3,\"l\":31,\"a\":[\"villano\"],\"m\":{\"inicio\":2,\"medio\":1},\"d\":[],\"e\":[\"Jonathan doubts Dio's friendliness.\",\"Entrance to Windknight's Lot.\",\"Where is Poco's sister?\"]},{\"t\":\"sventura\",\"n\":\"sventura\",\"p\":\"GW\",\"o\":\"finale\",\"u\":12,\"l\":74,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"medio\":6,\"inicio\":4,\"final\":1,\"recap\":1},\"d\":[\"doppio\"],\"e\":[\"A fortune teller harasses the teenager\",\"Doppio u",
+        "ses Epitaph to find Risotto\",\"Risotto guesses Doppio's secret\",\"Doppio gets near Bucciarati\"]},{\"t\":\"sventura\",\"n\":\"sventura\",\"p\":\"SO\",\"o\":\"finale\",\"u\":2,\"l\":76,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Pinocchio lies\",\"Bohemian Rhapsody, a capriccio of the free\"]},{\"t\":\"Sword Attack\",\"n\":\"sword attack\",\"p\":\"SC\",\"o\":\"world\",\"u\":2,\"l\":105,\"a\":[\"pelea\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Polnareff's trick/Alessi flees\",\"Polnareff finds Hol Horse\"]},{\"t\":\"Take Cover\",\"n\":\"take cover\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":8,\"l\":54,\"a\":[\"pelea\"],\"m\":{\"medio\":5,\"inicio\":2,\"final\":1},\"d\":[\"joseph\"],\"e\":[\"The Special Force soldier Donovan attacks Joseph.\",\"Joseph vs. Donovan.\",\"Santana tied up./Joseph drags Santana outside.\",\"Caesar vs. Messina.\"]},{\"t\":\"tense\",\"n\":\"tense\",\"p\":\"PB/BT\",\"o\":\"leicht\",\"u\":11,\"l\":65,\"a\":[],\"m\":{\"medio\":8,\"inicio\":2,\"final\":1},\"d\":[\"joseph\"],\"e\":[\"Straizo appears to Joseph.\",\"Straizo tears off the hostage's tooth.\",\"Santana partially absorbing Joseph\",\"The three slumbering Pillar Men.\"]},{\"t\":\"Tense Air\",\"n\":\"tense air\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":25,\"l\":72,\"a\":[],\"m\":{\"medio\":15,\"inicio\":6,\"final\":3,\"recap\":1},\"d\":[\"jolyne\"],\"e\":[\"Jolyne bonding with Ermes\",\"Jolyne going to the visiting room/Emporio's second warning\",\"Recap: Emporio's warning and Jotaro's visit\",\"Emporio explains the DISCs to Ermes/Ermes gets electrocuted\"]},{\"t\":\"Tension\",\"n\":\"tension\",\"p\":\"SC\",\"o\":\"departure\",\"u\":21,\"l\":74,\"a\":[\"tension\"],\"m\":{\"medio\":20,\"final\":1},\"d\":[],\"e\":[\"Star Platinum breaks bars\",\"Star Platinum analyzes a photo\",\"Silver Chariot attacks at super speed\",\"Jotaro dragged underwater\"]},{\"t\":\"Tension\",\"n\":\"tension\",\"p\":\"SO\",\"o\":\"departure\",\"u\":5,\"l\":65,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":4,\"eyecatch\":1},\"d\":[],\"e\":[\"Jolyne is seriously injured\",\"The birth of a new hero, Put Back\",\"Diver Down submerged into Weather's body!\",\"Weather has Pucci trapped\"]},{\"t\":\"tensione\",\"n\":\"tensione\",\"p\":\"GW\",\"o\":\"overture\",\"u\":20,\"l\":51,\"a\":[\"tension\"],\"m\":{\"medio\":15,\"inicio\":5},\"d\":[],\"e\"",
+        ":[\"Koichi finds a frog\",\"Gold Experience and Sticky Fingers clash fists\",\"Giorno finds a way to keep the lighter safe\",\"Giorno examines Black Sabbath's behavior\"]},{\"t\":\"tensione\",\"n\":\"tensione\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":6,\"a\":[\"villano\",\"tension\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"The prisoner with DIO's bone is nearby\"]},{\"t\":\"teso\",\"n\":\"teso\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":13,\"l\":72,\"a\":[\"tension\"],\"m\":{\"medio\":9,\"final\":2,\"inicio\":2},\"d\":[],\"e\":[\"Echoes activates \\\"Three Freeze\\\" on Black Sabbath\",\"Abbacchio doesn't trust Giorno\",\"Giorno notices Sale\",\"Mista shoots Sale\"]},{\"t\":\"The Advance of Darkness\",\"n\":\"the advance of darkness\",\"p\":\"SC\",\"o\":\"departure\",\"u\":13,\"l\":83,\"a\":[\"villano\"],\"m\":{\"medio\":9,\"inicio\":4},\"d\":[],\"e\":[\"Yellow Temperance's invincibility\",\"Rubber Soul ambushes Jotaro\",\"Hanged Man appears\",\"Enya learns her son is dead\"]},{\"t\":\"The Advance of Darkness\",\"n\":\"the advance of darkness\",\"p\":\"SO\",\"o\":\"departure\",\"u\":2,\"l\":110,\"a\":[\"villano\",\"explicacion\",\"tension\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Pucci explains Heavy Weather's subliminal messaging\",\"The gang realizes everything around them's going faster\"]},{\"t\":\"The Alley\",\"n\":\"the alley\",\"p\":\"DU\",\"o\":\"good night\",\"u\":4,\"l\":114,\"a\":[\"villano\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[],\"e\":[\"Reimi is a ghost\",\"Reimi's killer is still lurking\",\"Shinobu Kawajiri's miserable married life\",\"Reimi finds the link between Hayato & Kosaku\"]},{\"t\":\"The Artist's Bizarre Passion\",\"n\":\"the artist s bizarre passion\",\"p\":\"DU\",\"o\":\"good night\",\"u\":7,\"l\":82,\"a\":[\"misterio\"],\"m\":{\"medio\":4,\"inicio\":3},\"d\":[\"rohan\"],\"e\":[\"Koichi meets Rohan in the streets/An unmapped street\",\"Rohan won't hold back\",\"Rohan wins the match, and the rematch\",\"Rohan determined to find how is Josuke cheating\"]},{\"t\":\"The Battle Begins\",\"n\":\"the battle begins\",\"p\":\"SC\",\"o\":\"destination\",\"u\":7,\"l\":41,\"a\":[\"pelea\",\"tension\"],\"m\":{\"medio\":6,\"inicio\":1},\"d\":[],\"e\":[\"Geb claws Kakyoin eyes\",\"Polnareff is pursued by Geb\",\"Joseph and Avdol are cornered by",
+        " the magnetism\",\"Alessi is drowning Polnareff\"]},{\"t\":\"The Bow and Arrow\",\"n\":\"the bow and arrow\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":7,\"l\":27,\"a\":[],\"m\":{\"medio\":7},\"d\":[],\"e\":[\"Angelo survives and acquires a Stand\",\"Yukako was struck with the Arrow\",\"Ken Oyanagi is becoming a Stand user\",\"Was the cat a Stand user\"]},{\"t\":\"The Bow and Arrow\",\"n\":\"the bow and arrow\",\"p\":\"GW\",\"o\":\"good morning\",\"u\":1,\"l\":12,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Koichi wants to call Jotaro, but Giorno stops him\"]},{\"t\":\"The Curtain Rises\",\"n\":\"the curtain rises\",\"p\":\"SC\",\"o\":\"destination\",\"u\":9,\"l\":70,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":8,\"final\":1},\"d\":[],\"e\":[\"Kakyoin gets excited\",\"The heroes trapped, Death 13 comes\",\"Ch\u00e9rie is a zombie!\",\"Polnareff being devoured\"]},{\"t\":\"The Curtain Rises\",\"n\":\"the curtain rises\",\"p\":\"SO\",\"o\":\"destination\",\"u\":2,\"l\":48,\"a\":[\"tension\",\"villano\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Jolyne and Ermes escape the hospital\",\"Pucci is cornered\"]},{\"t\":\"The End Of The Universe\",\"n\":\"the end of the universe\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":8,\"l\":46,\"a\":[\"villano\",\"explicacion\",\"epico\"],\"m\":{\"medio\":5,\"inicio\":2,\"eyecatch\":1},\"d\":[],\"e\":[\"Pucci and DIO in bed\",\"Weather's kindness is repaid\",\"Jolyne forgot to check Versus's room\",\"Explanation of the ozone layer\"]},{\"t\":\"The Fate That Still Remains\",\"n\":\"the fate that still remains\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":19,\"l\":56,\"a\":[\"epico\"],\"m\":{\"medio\":10,\"inicio\":8,\"final\":1},\"d\":[\"jotaro\"],\"e\":[\"The strange power of Josuke's Stand\",\"Josuke and Jotaro discuss\",\"Aqua Necklace captured\",\"Flashback: Josuke puts Angelo in a rock\"]},{\"t\":\"The Fate That Still Remains\",\"n\":\"the fate that still remains\",\"p\":\"GW\",\"o\":\"good morning\",\"u\":2,\"l\":42,\"a\":[\"tristeza\",\"misterio\",\"epico\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Flashback of Koichi and Jotaro\",\"Polnareff and Jotaro are searching for the Arrows\"]},{\"t\":\"The Fate That Still Remains\",\"n\":\"the fate that still remains\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":8,\"l\":72,\"a\":[\"epico\"],\"m\":{\"medio\":6,",
+        "\"final\":2},\"d\":[\"jotaro\",\"jolyne\"],\"e\":[\"Jotaro Kujo appears\",\"Johngalli A.'s grudge/Jotaro plan on breaking Jolyne out\",\"Jolyne finds the Star Platinum DISC\",\"Jolyne discusses with the SPW Foundation\"]},{\"t\":\"The Fool of Sand\",\"n\":\"the fool of sand\",\"p\":\"SC\",\"o\":\"destination\",\"u\":5,\"l\":20,\"a\":[\"comedia\"],\"m\":{\"medio\":4,\"final\":1},\"d\":[\"iggy\"],\"e\":[\"*Battle in Egypt* teaser\",\"Iggy the dog Stand user\",\"Iggy steps in to protect the boy\",\"Iggy lands a hit\"]},{\"t\":\"The Fool's Rampage\",\"n\":\"the fool s rampage\",\"p\":\"SC\",\"o\":\"world\",\"u\":4,\"l\":29,\"a\":[\"comedia\"],\"m\":{\"medio\":4},\"d\":[],\"e\":[\"Scorpion in the crib\",\"The Stand of sand, The Fool\",\"Iggy plays the fool\",\"Senator Wilson Philips\"]},{\"t\":\"The Green Baby\",\"n\":\"the green baby\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":36,\"a\":[],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"The Green Baby is alive!\",\"The bottle almost crushes Jolyne and Anasui/Back to normal size?\",\"Jolyne and Anasui observe the Green Baby\"]},{\"t\":\"The Hand\",\"n\":\"the hand\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":12,\"l\":26,\"a\":[\"pelea\"],\"m\":{\"medio\":11,\"final\":1},\"d\":[\"okuyasu\"],\"e\":[\"The Hand appears\",\"Crazy Diamond vs. The Hand\",\"The Hand save the class rep\",\"Okuyasu vs. RHCP\"]},{\"t\":\"The Lady's Invasion\",\"n\":\"the lady s invasion\",\"p\":\"SC\",\"o\":\"world\",\"u\":5,\"l\":57,\"a\":[\"viaje\",\"pelea\"],\"m\":{\"medio\":5},\"d\":[\"joseph\"],\"e\":[\"Joseph's hands are almost crushed\",\"Stuck on train tracks\",\"Joseph devises his strategy\",\"Joseph begs Mariah\"]},{\"t\":\"The Love Protecting This Town\",\"n\":\"the love protecting this town\",\"p\":\"DU\",\"o\":\"good night\",\"u\":8,\"l\":42,\"a\":[],\"m\":{\"final\":4,\"medio\":3,\"inicio\":1},\"d\":[\"josuke\"],\"e\":[\"Koichi wins and saves Yukako\",\"Okuyasu is brought to tears\",\"Josuke meets his father\",\"Josuke & Joseph go together\"]},{\"t\":\"The Magician of Fire\",\"n\":\"the magician of fire\",\"p\":\"SC\",\"o\":\"departure\",\"u\":9,\"l\":31,\"a\":[\"viaje\",\"epico\"],\"m\":{\"inicio\":5,\"medio\":3,\"final\":1},\"d\":[],\"e\":[\"Avdol appears\",\"The heroes have arrived in Araby\",\"The real Muhammad Avdol is alive\",\"Geb ",
+        "avoids the trap\"]},{\"t\":\"The Moment of Decisive Battle\",\"n\":\"the moment of decisive battle\",\"p\":\"SC\",\"o\":\"departure\",\"u\":13,\"l\":84,\"a\":[\"pelea\",\"epico\"],\"m\":{\"medio\":10,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Silver Chariot attacks\",\"Silver Chariot vs Magician's Red, first round\",\"Dark Blue Moon reveal\",\"Trying to electrocute Polnareff\"]},{\"t\":\"The Moment of Decisive Battle\",\"n\":\"the moment of decisive battle\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":131,\"a\":[\"pelea\",\"tension\",\"epico\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jolyne turning her body into M\u00f6bius strips\"]},{\"t\":\"The Plot Lurking in the Mist\",\"n\":\"the plot lurking in the mist\",\"p\":\"SC\",\"o\":\"world\",\"u\":37,\"l\":56,\"a\":[\"misterio\"],\"m\":{\"medio\":29,\"inicio\":7,\"final\":1},\"d\":[],\"e\":[\"The heroes discover Holy is sick\",\"Is the stowaway girl an enemy?\",\"Investigating the ship\",\"Polnareff discovers his room\"]},{\"t\":\"The Plot Lurking in the Mist\",\"n\":\"the plot lurking in the mist\",\"p\":\"SO\",\"o\":\"world\",\"u\":2,\"l\":66,\"a\":[\"misterio\",\"villano\"],\"m\":{\"final\":1,\"medio\":1},\"d\":[],\"e\":[\"The useless DISCs\",\"The gang wonder of Pucci's whereabouts\"]},{\"t\":\"The Possessor\",\"n\":\"the possessor\",\"p\":\"DU\",\"o\":\"\",\"u\":9,\"l\":34,\"a\":[\"misterio\"],\"m\":{\"medio\":4,\"inicio\":4,\"final\":1},\"d\":[\"rohan\"],\"e\":[\"A mysterious posted near Rohan's house\",\"The strange man at Rohan's doorstep\",\"Masozo Kinoto the architect\",\"Kinoto really wants to hide his back\"]},{\"t\":\"The Possessor\",\"n\":\"the possessor\",\"p\":\"SO\",\"o\":\"\",\"u\":2,\"l\":100,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Pinocchio tells the truth\",\"Anasui is dragged into the wolf's story\"]},{\"t\":\"The Prophecy That's Never Wrong\",\"n\":\"the prophecy that s never wrong\",\"p\":\"SC\",\"o\":\"world\",\"u\":19,\"l\":79,\"a\":[\"comedia\",\"misterio\"],\"m\":{\"medio\":13,\"final\":4,\"inicio\":2},\"d\":[],\"e\":[\"A kid and his strange comic-book\",\"Boingo predicts that the heroes will drink poison\",\"Disguising themselves as cafe owners\",\"Oingo must believe in Tohth\"]},{\"t\":\"The Scheme\",\"n\":\"the scheme\",\"p\":\"GW\",\"o\":\"world\",\"u\":1,\"l\":116,\"a\":[\"tension\",\"misterio\"",
+        "],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Giorno and Mista tracking down Sale\"]},{\"t\":\"The Scheme\",\"n\":\"the scheme\",\"p\":\"SC\",\"o\":\"world\",\"u\":22,\"l\":86,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":17,\"inicio\":5},\"d\":[],\"e\":[\"Holy runs toward Jotaro's cell\",\"The heroes see Tower of Gray\",\"Polnareff tells Avdol to go outside\",\"The imposter can hold his breath underwater for 6 min.\"]},{\"t\":\"The Scheme\",\"n\":\"the scheme\",\"p\":\"SO\",\"o\":\"world\",\"u\":1,\"l\":92,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jolyne asks about the bone/Time to break out\"]},{\"t\":\"The Seeker\",\"n\":\"the seeker\",\"p\":\"DU\",\"o\":\"good night\",\"u\":16,\"l\":36,\"a\":[],\"m\":{\"medio\":12,\"inicio\":2,\"final\":2},\"d\":[\"rohan\"],\"e\":[\"Rohan foreshadowing\",\"Rohan Kishibe opens the door to Koichi & Hazamada\",\"Rohan licks a spider\",\"Heaven's Door turns Koichi & Hazamada into books\"]},{\"t\":\"The Shadow Lurking in Town\",\"n\":\"the shadow lurking in town\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":21,\"l\":68,\"a\":[\"villano\"],\"m\":{\"medio\":16,\"inicio\":4,\"final\":1},\"d\":[],\"e\":[\"A dangerous Stand user is in town\",\"Josuke & Jotaro wait for Angelo\",\"Okuyasu banters with Josuke\",\"A scary creature in the attic\"]},{\"t\":\"The Shadow Lurking in Town\",\"n\":\"the shadow lurking in town\",\"p\":\"SO\",\"o\":\"good morning\",\"u\":1,\"l\":95,\"a\":[\"villano\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Pucci blinding a guard\"]},{\"t\":\"The Sign of Fear\",\"n\":\"the sign of fear\",\"p\":\"DU\",\"o\":\"\",\"u\":6,\"l\":20,\"a\":[\"pelea\",\"calma\",\"tristeza\"],\"m\":{\"medio\":5,\"final\":1},\"d\":[],\"e\":[\"Koichi attacked by Miyamoto\",\"Tomoko startled by Miyamoto\",\"Koichi has disappeared\",\"Flashback to Tomoko's morning\"]},{\"t\":\"The Stardust Man Appeared\",\"n\":\"the stardust man appeared\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":10,\"l\":86,\"a\":[\"epico\"],\"m\":{\"medio\":6,\"inicio\":4},\"d\":[\"jotaro\"],\"e\":[\"Koichi Hirose meets Jotaro Kujo\",\"Jotaro Kujo meets Josuke Higashikata\",\"Jotaro describes said ally\",\"Practicing shooting with ball bearings\"]},{\"t\":\"The Travelers Rest\",\"n\":\"the travelers rest\",\"p\":\"DU\",\"o\":\"world\",\"u\":1,\"l\":32,\"a\":[\"viaje\",\"calma\"],\"m\":{\"medio\":1},",
+        "\"d\":[],\"e\":[\"Clearing the misunderstanding\"]},{\"t\":\"The Travelers Rest\",\"n\":\"the travelers rest\",\"p\":\"SC\",\"o\":\"world\",\"u\":6,\"l\":41,\"a\":[\"calma\",\"viaje\"],\"m\":{\"final\":3,\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Kakyoin intimidates the baby\",\"The heroes choose a cafe\",\"Arabic numbers explained\",\"Joseph and Avdol go for breakfest\"]},{\"t\":\"The Travelers Return\",\"n\":\"the travelers return\",\"p\":\"DU\",\"o\":\"destination\",\"u\":2,\"l\":106,\"a\":[\"tristeza\",\"viaje\"],\"m\":{\"final\":1,\"medio\":1},\"d\":[],\"e\":[\"Joseph cuts his wrists to find the baby\",\"The dead cannot return, but Morioh is safe now/Jotaro & Joseph leave Morioh\"]},{\"t\":\"The Travelers Return\",\"n\":\"the travelers return\",\"p\":\"SC\",\"o\":\"destination\",\"u\":1,\"l\":139,\"a\":[\"viaje\",\"tristeza\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"Holy is healed/The crusaders return home\"]},{\"t\":\"The Travelers Return\",\"n\":\"the travelers return\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":71,\"a\":[\"viaje\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Jolyne and Emporio reunite with Ermes and prepare to leave the prison\"]},{\"t\":\"Theme of Stone Ocean\",\"n\":\"theme of stone ocean\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":21,\"l\":30,\"a\":[\"epico\",\"victoria\"],\"m\":{\"medio\":10,\"final\":8,\"inicio\":2,\"recap\":1},\"d\":[\"jolyne\"],\"e\":[\"The lawyer strangled by a string\",\"Jolyne beats Gwess\",\"Jolyne defeats Johngalli A.\",\"Jolyne defeats Johngalli A. for real\"]},{\"t\":\"Third Bomb\",\"n\":\"third bomb\",\"p\":\"DU\",\"o\":\"good night\",\"u\":8,\"l\":50,\"a\":[\"villano\"],\"m\":{\"medio\":6,\"final\":2},\"d\":[],\"e\":[\"Pursuing Shigechi\",\"Killer Queen Bites the Dust can loop time!\",\"Killer Queen kills the heroes\",\"Kira protected by luck once more\"]},{\"t\":\"Three-Way Deadlock\",\"n\":\"three way deadlock\",\"p\":\"DU\",\"o\":\"\",\"u\":8,\"l\":46,\"a\":[\"victoria\"],\"m\":{\"medio\":8},\"d\":[],\"e\":[\"\\\"Hey, mister. Wanna play jan-ken-pon?\",\"The first jan-ken-pon round\",\"Ken is back\",\"The second round\"]},{\"t\":\"Throw\",\"n\":\"throw\",\"p\":\"SC\",\"o\":\"world\",\"u\":7,\"l\":15,\"a\":[\"pelea\",\"victoria\"],\"m\":{\"medio\":4,\"inicio\":2,\"final\":1},\"d\":[],\"e\":[\"Avdol the zombie appears\",\"Polnareff is attack",
+        "ed\",\"Jotaro defeats N'Doul\",\"Anubis flying into the Nile\"]},{\"t\":\"Tiny Stone\",\"n\":\"tiny stone\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":10,\"l\":74,\"a\":[\"pelea\"],\"m\":{\"medio\":9,\"inicio\":1},\"d\":[\"jolyne\"],\"e\":[\"Gwess ordering Jolyne to scout the guards's station\",\"D an G watches from the shadows/Jolyne has been affected by the bone\",\"D an G approaches Guccio\",\"Anasui thinks they will never reach the baby\"]},{\"t\":\"Tragedy\",\"n\":\"tragedy\",\"p\":\"DU\",\"o\":\"good night\",\"u\":5,\"l\":63,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"The Nijimura Family's story\",\"Okuyasu wants to avenge his big brother\",\"Josuke thinks about his father\",\"Reimi begs Rohan & Koichi to find the killer\"]},{\"t\":\"Tragedy\",\"n\":\"tragedy\",\"p\":\"SO\",\"o\":\"good night\",\"u\":2,\"l\":94,\"a\":[],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Wes and Perla are harassed by KKK members/Perla takes her life after Wes is hung\",\"Weather is an angry, bitter husk of his former self\"]},{\"t\":\"Transcendence\",\"n\":\"transcendence\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":4,\"l\":58,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":3,\"inicio\":1},\"d\":[\"dio\"],\"e\":[\"Jonathan throws Dio through the banister.\",\"Dio stabs George and becomes a Vampire.\",\"Dio attacks.\",\"Dio decapitates himself to survive.\"]},{\"t\":\"trasfigurazione\",\"n\":\"trasfigurazione\",\"p\":\"GW\",\"o\":\"finale\",\"u\":7,\"l\":66,\"a\":[\"epico\"],\"m\":{\"medio\":6,\"final\":1},\"d\":[],\"e\":[\"Beach Boy baits Mista\",\"Doppio pretends to be Trish\",\"Narancia wonders who is inside Bruno's body\",\"Polnareff tells Chariot Requiem's ability\"]},{\"t\":\"Two Boys\",\"n\":\"two boys\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":1,\"l\":37,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"George lectures Jonathan.\"]},{\"t\":\"Tyrannical Servant\",\"n\":\"tyrannical servant\",\"p\":\"SC\",\"o\":\"destination\",\"u\":1,\"l\":35,\"a\":[\"villano\"],\"m\":{\"final\":1},\"d\":[],\"e\":[\"DIO is closing in on Joseph\"]},{\"t\":\"un'altra persona\",\"n\":\"un altra persona\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":11,\"l\":98,\"a\":[\"villano\"],\"m\":{\"medio\":8,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Sorbet and Gelato's punishment\",\"Pesci's personality changes\"",
+        ",\"The Boss appears\",\"King Crimson severely injures Bucciarati\"]},{\"t\":\"un sogno\",\"n\":\"un sogno\",\"p\":\"GW\",\"o\":\"overture\",\"u\":13,\"l\":90,\"a\":[\"epico\",\"calma\"],\"m\":{\"medio\":7,\"final\":4,\"inicio\":2},\"d\":[\"giorno\"],\"e\":[\"Gangster watches over Giorno\",\"Giorno is inspired by Gangster\",\"Giorno reveals his golden dream to be a gang-star\",\"Koichi sees Giorno's golden spirit\"]},{\"t\":\"un sogno\",\"n\":\"un sogno\",\"p\":\"SO\",\"o\":\"overture\",\"u\":1,\"l\":132,\"a\":[],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Anasui asks Jotaro for his blessing/The gang are stuck on a roof\"]},{\"t\":\"Under the Ground\",\"n\":\"under the ground\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":4,\"l\":72,\"a\":[\"tristeza\"],\"m\":{\"medio\":3,\"recap\":1},\"d\":[],\"e\":[\"Recap: Versus sends Weather's memory DISC\",\"Versus finds out about Emporio\",\"Versus catches Emporio\",\"Versus digs up memories of the Super Bowl\"]},{\"t\":\"Undiscovered Power, the Ancient Product\",\"n\":\"undiscovered power the ancient product\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":2,\"l\":97,\"a\":[\"revelacion\",\"tristeza\"],\"m\":{\"medio\":1,\"inicio\":1},\"d\":[],\"e\":[\"Zeppeli demonstrates the power of the Ripple.\",\"Tonpetty's prediction of Zeppeli's gruesome death.\"]},{\"t\":\"Uneasiness\",\"n\":\"uneasiness\",\"p\":\"SC\",\"o\":\"world\",\"u\":17,\"l\":62,\"a\":[\"tension\",\"misterio\"],\"m\":{\"medio\":13,\"inicio\":2,\"final\":2},\"d\":[],\"e\":[\"The Sun is a Stand\",\"Mannish Boy plotting\",\"Kakyoin is knocked out\",\"Polnareff finds a treasure. Is Cameo for real?\"]},{\"t\":\"Uneasiness\",\"n\":\"uneasiness\",\"p\":\"SO\",\"o\":\"world\",\"u\":2,\"l\":92,\"a\":[\"villano\",\"tristeza\"],\"m\":{\"medio\":1,\"final\":1},\"d\":[],\"e\":[\"Whitesnake possesses Anasui\",\"Past visages of Pucci taunt the gang\"]},{\"t\":\"Unfolding Crisis\",\"n\":\"unfolding crisis\",\"p\":\"SC\",\"o\":\"destination\",\"u\":15,\"l\":53,\"a\":[\"tension\",\"pelea\"],\"m\":{\"medio\":10,\"final\":3,\"inicio\":2},\"d\":[],\"e\":[\"Death Thirteen attacks Polnareff & Kakyoin\",\"Kakyoin knifes himself\",\"Cameo is Judgement, an enemy Stand!\",\"Avdol and Ch\u00e9rie attack\"]},{\"t\":\"Unfolding Crisis\",\"n\":\"unfolding crisis\",\"p\":\"SO\",\"o\":\"destination\",\"u\":1,\"l\":107,\"a\":[\"ten",
+        "sion\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Versus escapes/everyone in the hospital is affected by snails?\"]},{\"t\":\"Urgency\",\"n\":\"urgency\",\"p\":\"SC\",\"o\":\"departure\",\"u\":12,\"l\":80,\"a\":[\"tension\"],\"m\":{\"medio\":11,\"inicio\":1},\"d\":[],\"e\":[\"Kakyoin reveals the Emerald Splash\",\"Avdol tricks Polnareff with a statue\",\"Polnareff is trapped under the bed by the doll\",\"Jotaro drags Rubber Soul into the water\"]},{\"t\":\"Urgency\",\"n\":\"urgency\",\"p\":\"SO\",\"o\":\"departure\",\"u\":1,\"l\":11,\"a\":[\"tension\"],\"m\":{\"inicio\":1},\"d\":[],\"e\":[\"Star Platinum instinctively defends Jotaro/Jotaro's arm is scarred with Jolyne's name\"]},{\"t\":\"Villain\u25c7Concerto\",\"n\":\"villainconcerto\",\"p\":\"SC\",\"o\":\"destination\",\"u\":3,\"l\":88,\"a\":[\"villano\"],\"m\":{\"ending\":3},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"virus\",\"n\":\"virus\",\"p\":\"GW\",\"o\":\"overture\",\"u\":1,\"l\":107,\"a\":[\"explicacion\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"Purple Haze's ability revealed\"]},{\"t\":\"vita\",\"n\":\"vita\",\"p\":\"GW\",\"o\":\"intermezzo\",\"u\":10,\"l\":66,\"a\":[\"epico\",\"victoria\"],\"m\":{\"medio\":7,\"final\":3},\"d\":[\"giorno\"],\"e\":[\"Giorno indicates, that Narancia is still alive\",\"Aerosmith ignites the car's spilled gasoline\",\"Giorno recreates his missing parts\",\"Giorno indirectly kills Melone\"]},{\"t\":\"Walk Like an Egyptian\",\"n\":\"walk like an egyptian\",\"p\":\"SC\",\"o\":\"\",\"u\":22,\"l\":87,\"a\":[],\"m\":{\"ending\":22},\"d\":[],\"e\":[\"Ending\",\"Ending\",\"Ending\",\"Ending\"]},{\"t\":\"Waves of the Sun, the Undiscovered Power\",\"n\":\"waves of the sun the undiscovered power\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":3,\"l\":53,\"a\":[\"explicacion\"],\"m\":{\"medio\":2,\"inicio\":1},\"d\":[],\"e\":[\"Explanation of the Ripple.\",\"Zeppeli and JoJo walk on water.\",\"Dire appears.\"]},{\"t\":\"Weaknesses of the Heart\",\"n\":\"weaknesses of the heart\",\"p\":\"PB/BT\",\"o\":\"destiny\",\"u\":2,\"l\":39,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":2},\"d\":[],\"e\":[\"Jonathan is angered by Dio kicking Danny.\",\"Dio plots internally.\"]},{\"t\":\"Weather\",\"n\":\"weather\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":3,\"l\":111,\"a\":[\"villano\",\"pelea\"],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Weathe",
+        "r Report presentation/An enemy is watching Jolyne\",\"Weather Report vs Lang Rangler/Alarm activated\",\"Weather gives Jolyne his suit/Lang cancels his power\"]},{\"t\":\"Weightlessness\",\"n\":\"weightlessness\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":5,\"l\":26,\"a\":[\"tension\",\"pelea\",\"tristeza\"],\"m\":{\"medio\":5},\"d\":[],\"e\":[\"Lang in pursuit\",\"Lang Rangler seeks the heroes\",\"Lang bombarding Jolyne and Weather, part 1\",\"Lang Rangler gloating\"]},{\"t\":\"WELCOME TO THE WORLD\",\"n\":\"welcome to the world\",\"p\":\"PB/BT\",\"o\":\"musik\",\"u\":3,\"l\":42,\"a\":[],\"m\":{\"medio\":2,\"final\":1},\"d\":[],\"e\":[\"Joseph appears.\",\"Focus the Ripple on the fingertips!\",\"Joseph jumps on the horse./Wamuu inside the horses!\"]},{\"t\":\"What a Wonderful World\",\"n\":\"what a wonderful world\",\"p\":\"SO\",\"o\":\"stone ocean\",\"u\":1,\"l\":140,\"a\":[\"pelea\"],\"m\":{\"medio\":1},\"d\":[],\"e\":[\"The universe resets again/Emporio encounters Eldis and Anakiss\"]},{\"t\":\"Wicked Thoughts\",\"n\":\"wicked thoughts\",\"p\":\"DU\",\"o\":\"\",\"u\":5,\"l\":35,\"a\":[],\"m\":{\"medio\":2,\"final\":2,\"inicio\":1},\"d\":[],\"e\":[\"Katagiri Anjuro presentation\",\"Aqua Necklace appears\",\"Angelo sends Aqua Necklace into the Higashikata's faucet\",\"Angelo takes a boy hostage\"]},{\"t\":\"Wind in the Wilderness\",\"n\":\"wind in the wilderness\",\"p\":\"SC\",\"o\":\"departure\",\"u\":8,\"l\":80,\"a\":[\"viaje\",\"epico\"],\"m\":{\"medio\":6,\"final\":2},\"d\":[\"hol horse\"],\"e\":[\"Hol Horse appears\",\"Polnareff banters with Hol Horse\",\"Hol Horse finds Polnareff and Kakyoin\",\"Hol Horse runs away\"]},{\"t\":\"With Humanity, Affection, and Nobility\",\"n\":\"with humanity affection and nobility\",\"p\":\"PB/BT\",\"o\":\"future\",\"u\":3,\"l\":60,\"a\":[\"victoria\",\"viaje\"],\"m\":{\"medio\":3},\"d\":[],\"e\":[\"Jonathan's friends ignore him.\",\"Erina wants to die with Jonathan/Erina saves a baby.\",\"Lisa Lisa was the baby on the ship!\"]},{\"t\":\"YOU ARE MY WOMAN/Alex Reid\",\"n\":\"you are my woman alex reid\",\"p\":\"DU\",\"o\":\"good morning\",\"u\":2,\"l\":33,\"a\":[\"calma\"],\"m\":{\"inicio\":2},\"d\":[],\"e\":[\"Breakfast is served\",\"Jotaro Kujo's taxi ride\"]}],\"alias\":{\"fire shaman\":\"The Magician of Fire\",",
+        "\"noble pope\":\"Noble Hierophant\",\"imminence\":\"Urgency\",\"increasing strength\":\"Increasing Power\",\"brutality\":\"Barbarism\",\"bizarre\":\"Strange and Mysterious\",\"conspiracy\":\"The Scheme\",\"nightmare spell\":\"Curse of Nightmares\",\"head to head\":\"Battle Between Equals\",\"fight to antagonize\":\"Close Match\",\"ken\":\"Sword Attack\",\"the off unexpected prophecy\":\"The Prophecy That's Never Wrong\",\"the kakero the bluff\":\"Bet on a Bluff\",\"blow throwing reverse play\":\"Batting, Pitching, Turning the Tables\",\"the battle starts\":\"The Battle Begins\",\"rampage\":\"Mad Dash\",\"apparent crisis\":\"Unfolding Crisis\",\"rhapsody of brothers\":\"Brothers' Rhapsody\",\"awakening darkness of the world\":\"Darkness of The World's Awakening\",\"the return of travelers\":\"The Travelers Return\",\"wonder\":\"meraviglia\",\"serenely\":\"serenamente\",\"witty\":\"spiritoso\",\"small\":\"piccolo\",\"mirror\":\"specchio\",\"showdown\":\"resa dei conti\",\"growing old\":\"invecchiare\",\"fish\":\"pesce\",\"extremely\":\"di molto\",\"ice\":\"ghiaccio\",\"the darkness\":\"l'oscurita\",\"life\":\"vita\",\"another person\":\"un'altra persona\",\"fierce fight\":\"lotta feroce\",\"death\":\"morte\",\"tense\":\"teso\"}}",
+    });
+}
+
+// ---- src/comun/VentanaMusica.cs ----
+
+// Plantilla de bloques y kit de una serie de TV: duracion de cada bloque y el
+// archivo fijo de los que lo tienen (opening, re-gancho, continuara, ending).
+// Sin archivo se usa un placeholder con esa duracion.
+class VentanaPlantillaTV : VentanaBase
+{
+    public PlantillaTV Resultado;
+    bool cargando;
+    Lista lst = new Lista();
+    CampoNumero numDur = new CampoNumero();
+    Etiqueta lblDur, lblDesc, lblTotal;
+    Boton btnArchivo = new Boton("Elegir archivo\u2026", EstiloBoton.Secundario);
+    Boton btnQuitar = new Boton("Usar placeholder", EstiloBoton.Secundario);
+    Boton btnDefecto = new Boton("Valores de partida", EstiloBoton.Secundario);
+    Boton btnGuardar = new Boton("Guardar", EstiloBoton.Primario);
+    Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+    readonly double minimo, maximo;
+
+    public VentanaPlantillaTV(PlantillaTV p, ReglasRitmo reglas) : base("Plantilla y kit", 860)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        Resultado = p.Copia();
+        minimo = reglas.DuracionMin * 60; maximo = reglas.DuracionMax * 60;
+        int m = Margen, w = Ancho;
+        Encabezado("Plantilla y kit", "Bloques de cada cap\u00edtulo. Los del kit usan tu archivo; sin archivo, un placeholder de esa duraci\u00f3n.");
+        int y = 92;
+        lst.CheckBoxes = false;
+        int sb = SystemInformation.VerticalScrollBarWidth + 4;
+        lst.Columns.Add("Bloque", 170);
+        lst.Columns.Add("Qu\u00e9 es", 90);
+        lst.Columns.Add("Duraci\u00f3n", 120);
+        lst.Columns.Add("Archivo", w - 170 - 90 - 120 - sb);
+        Pos(lst, m, y, w, 250);
+        y += 258;
+        lblDesc = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 34);
+        y += 40;
+        lblDur = Texto("DURACI\u00d3N", Tema.Pequena, Tema.TextoSuave, m, y, 160, 18);
+        Pos(numDur, m, y + 18, 150, 32);
+        numDur.Minimo = 0; numDur.Maximo = 600; numDur.Paso = 1;
+        Pos(btnArchivo, m + 166, y + 18, 150, 32);
+        Pos(btnQuitar, m + 324, y + 18, 150, 32);
+        Pos(btnDefecto, m + w - 160, y + 18, 160, 32);
+        y += 60;
+        lblTotal = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 290, 40);
+        Pos(btnCancelar, m + w - 280, y, 120, 40);
+        Pos(btnGuardar, m + w - 150, y, 150, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        lst.SelectedIndexChanged += delegate { Elegido(); };
+        numDur.Cambio += delegate
+        {
+            BloqueTV b = Actual();
+            if (b == null || cargando) return;
+            if (b.Tipo == "contenido" && b.Segundos == 0) b.Porcentaje = numDur.Valor; else b.Segundos = numDur.Valor;
+            Llenar();
+        };
+        btnArchivo.Click += delegate
+        {
+            BloqueTV b = Actual();
+            if (b == null) return;
+            using (OpenFileDialog d = new OpenFileDialog())
+            {
+                d.Title = "Archivo para \u00ab" + b.Nombre + "\u00bb";
+                d.Filter = "Video, imagen o audio|*.mp4;*.mov;*.mkv;*.webm;*.avi;*.png;*.jpg;*.jpeg;*.gif;*.mp3;*.wav|Todos|*.*";
+                string a = Resultado.Archivo(b.Clave);
+                if (a.Length > 0 && Directory.Exists(Path.GetDirectoryName(a))) d.InitialDirectory = Path.GetDirectoryName(a);
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Resultado.Kit[b.Clave] = d.FileName;
+                if (b.Tipo != "kit") b.Tipo = "kit";
+            }
+            Llenar();
+        };
+        btnQuitar.Click += delegate
+        {
+            BloqueTV b = Actual();
+            if (b == null) return;
+            Resultado.Kit.Remove(b.Clave);
+            Llenar();
+        };
+        btnDefecto.Click += delegate
+        {
+            Dictionary<string, string> kit = Resultado.Kit;
+            Resultado = PlantillaTV.PorDefecto();
+            foreach (KeyValuePair<string, string> kv in kit) Resultado.Kit[kv.Key] = kv.Value;
+            Llenar();
+        };
+        btnCancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        btnGuardar.Click += delegate { DialogResult = DialogResult.OK; Close(); };
+        Llenar();
+        if (lst.Items.Count > 0) lst.Items[0].Selected = true;
+    }
+
+    BloqueTV Actual() { return lst.SelectedIndices.Count == 0 ? null : Resultado.Bloques[lst.SelectedIndices[0]]; }
+
+    static string Duracion(BloqueTV b)
+    {
+        return b.Segundos > 0 ? b.Segundos + " s" : b.Porcentaje + " % del resto";
+    }
+
+    void Llenar()
+    {
+        int sel = lst.SelectedIndices.Count > 0 ? lst.SelectedIndices[0] : -1;
+        cargando = true;
+        lst.Items.Clear();
+        foreach (BloqueTV b in Resultado.Bloques)
+        {
+            ListViewItem it = new ListViewItem(b.Nombre);
+            it.SubItems.Add(b.Tipo == "kit" ? "kit" : b.Tipo == "texto" ? "texto" : "del cap\u00edtulo");
+            it.SubItems.Add(Duracion(b));
+            string a = Resultado.Archivo(b.Clave);
+            it.SubItems.Add(b.Tipo != "kit" ? "\u2014" : a.Length > 0 ? Path.GetFileName(a) + (File.Exists(a) ? "" : " (no se encuentra)") : "placeholder");
+            if (b.Tipo == "kit" && a.Length == 0) it.ForeColor = Tema.AcentoHover;
+            lst.Items.Add(it);
+        }
+        if (sel >= 0 && sel < lst.Items.Count) lst.Items[sel].Selected = true;
+        cargando = false;
+        double fijo = Resultado.Fijo();
+        lblTotal.Text = "Lo fijo suma " + Formato.Tiempo(fijo) + ": para " + Formato.Tiempo(minimo) + "\u2013" + Formato.Tiempo(maximo) +
+                        " quedan " + Formato.Tiempo(Math.Max(0, minimo - fijo)) + "\u2013" + Formato.Tiempo(Math.Max(0, maximo - fijo)) + " para los actos.";
+        Elegido();
+    }
+
+    void Elegido()
+    {
+        BloqueTV b = Actual();
+        btnArchivo.Enabled = btnQuitar.Enabled = numDur.Enabled = b != null;
+        if (b == null) { lblDesc.Text = ""; return; }
+        cargando = true;
+        bool pct = b.Tipo == "contenido" && b.Segundos == 0;
+        lblDur.Text = pct ? "PORCENTAJE DEL RESTO" : "DURACI\u00d3N (S)";
+        numDur.Sufijo = pct ? "%" : "s";
+        numDur.Valor = (int)Math.Round(pct ? b.Porcentaje : b.Segundos);
+        numDur.Invalidate();
+        cargando = false;
+        btnArchivo.Enabled = b.Tipo == "kit" || b.Tipo == "texto";
+        btnQuitar.Enabled = Resultado.Archivo(b.Clave).Length > 0;
+        lblDesc.Text = b.Descripcion;
+    }
+}
+
+// Musica de la serie: carpeta con su indice, reparto y el tema de cada uno.
+class VentanaMusicaSerie : VentanaBase
+{
+    public MusicaSerie Resultado;
+    readonly string clave, modelo, premisa;
+    BibliotecaMusica biblioteca;
+    bool trabajando;
+
+    Etiqueta lblCarpeta, lblIndice, lblEstado;
+    Boton btnCarpeta = new Boton("Elegir carpeta\u2026", EstiloBoton.Secundario);
+    Boton btnIndexar = new Boton("Indexar", EstiloBoton.Secundario);
+    CampoTexto txtReparto = new CampoTexto();
+    CampoTexto txtPreferencias = new CampoTexto();
+    Lista lst = new Lista();
+    Boton btnIA = new Boton("Elegir con IA", EstiloBoton.Primario);
+    Boton btnCambiar = new Boton("Cambiar\u2026", EstiloBoton.Secundario);
+    Boton btnQuitar = new Boton("Quitar", EstiloBoton.Secundario);
+    Boton btnGuardar = new Boton("Guardar", EstiloBoton.Primario);
+    Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+    BarraProgreso barra = new BarraProgreso();
+
+    public VentanaMusicaSerie(MusicaSerie m, string premisa, string clave, string modelo) : base("M\u00fasica de la serie", 1000)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        this.clave = clave; this.modelo = modelo; this.premisa = premisa ?? "";
+        Resultado = MusicaSerie.Leer(m.Escribir());
+        int x = Margen, w = Ancho;
+        Encabezado("M\u00fasica de la serie", "Tu biblioteca indexada por c\u00f3mo se usa cada tema en el anime, y el tema de cada personaje.");
+        int y = 92;
+        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, x, y + 6, w - 320, 20);
+        Pos(btnCarpeta, x + w - 310, y, 150, 32);
+        Pos(btnIndexar, x + w - 152, y, 152, 32);
+        y += 38;
+        lblIndice = Texto("", Tema.Pequena, Tema.TextoSuave, x, y, w, 18);
+        Pos(barra, x, y + 22, w, 6);
+        barra.Visible = false;
+        y += 34;
+        int mitad = (w - 16) / 2;
+        Texto("REPARTO (uno por l\u00ednea: \u00abNombre: c\u00f3mo es\u00bb)", Tema.Pequena, Tema.TextoSuave, x, y, mitad, 18);
+        Texto("PREFERENCIAS (opcional: \u00abpara Gerber algo de Golden Wind\u00bb\u2026)", Tema.Pequena, Tema.TextoSuave, x + mitad + 16, y, mitad, 18);
+        txtReparto.Multilinea = true; txtPreferencias.Multilinea = true;
+        Pos(txtReparto, x, y + 20, mitad, 96);
+        Pos(txtPreferencias, x + mitad + 16, y + 20, mitad, 96);
+        y += 126;
+        lst.CheckBoxes = false;
+        int sb = SystemInformation.VerticalScrollBarWidth + 4;
+        lst.Columns.Add("Para", 150);
+        lst.Columns.Add("Tema", 220);
+        lst.Columns.Add("Variantes", 74);
+        lst.Columns.Add("Por qu\u00e9", w - 150 - 220 - 74 - sb);
+        Pos(lst, x, y, w, 200);
+        y += 208;
+        Pos(btnIA, x, y, 160, 34);
+        Pos(btnCambiar, x + 168, y, 120, 34);
+        Pos(btnQuitar, x + 296, y, 100, 34);
+        y += 44;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, x, y, w - 290, 40);
+        Pos(btnCancelar, x + w - 280, y, 120, 40);
+        Pos(btnGuardar, x + w - 150, y, 150, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        txtReparto.Text = (Resultado.Reparto ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
+        btnCarpeta.Click += delegate { ElegirCarpeta(); };
+        btnIndexar.Click += delegate { Indexar(); };
+        btnIA.Click += delegate { ConIA(); };
+        btnCambiar.Click += delegate { Cambiar(); };
+        btnQuitar.Click += delegate
+        {
+            string k = Fila();
+            if (k == null) return;
+            if (k == "") Resultado.Principal = null; else Resultado.Personajes.Remove(k);
+            Llenar();
+        };
+        txtReparto.Caja.Leave += delegate { Resultado.Reparto = txtReparto.Text.Trim(); Llenar(); };
+        btnCancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+        btnGuardar.Click += delegate { Resultado.Reparto = txtReparto.Text.Trim(); DialogResult = DialogResult.OK; Close(); };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+
+        if (Resultado.Carpeta.Length > 0 && Directory.Exists(Resultado.Carpeta))
+            try { biblioteca = BibliotecaMusica.Cargar(Resultado.Carpeta); } catch { biblioteca = null; }
+        Mostrar();
+        Llenar();
+    }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void Mostrar()
+    {
+        lblCarpeta.Text = Resultado.Carpeta.Length > 0 ? "Carpeta: " + Resultado.Carpeta : "Elige la carpeta de tu m\u00fasica.";
+        btnIndexar.Enabled = Resultado.Carpeta.Length > 0;
+        btnIndexar.Text = biblioteca == null ? "Indexar" : "Volver a indexar";
+        if (biblioteca == null)
+            lblIndice.Text = Resultado.Carpeta.Length > 0 ? "Sin \u00edndice todav\u00eda: pulsa \u00abIndexar\u00bb (lee las etiquetas de cada archivo; tarda un poco la primera vez)." : "";
+        else
+        {
+            int con = 0;
+            foreach (ArchivoMusica a in biblioteca.Archivos) if (a.ConUso) con++;
+            lblIndice.Text = biblioteca.Archivos.Count + " archivos \u00b7 " + con + " con datos de c\u00f3mo se usan en el anime.";
+        }
+        btnIA.Enabled = biblioteca != null && !String.IsNullOrEmpty(clave);
+    }
+
+    string Nombre(string ruta)
+    {
+        ArchivoMusica a = biblioteca != null ? biblioteca.Buscar(ruta) : null;
+        return a != null ? a.Titulo + (a.Parte.Length > 0 ? " (" + a.Parte + ")" : "") : Path.GetFileNameWithoutExtension(ruta);
+    }
+
+    void Llenar()
+    {
+        lst.Items.Clear();
+        List<KeyValuePair<string, TemaAsignado>> filas = new List<KeyValuePair<string, TemaAsignado>>();
+        filas.Add(new KeyValuePair<string, TemaAsignado>("", Resultado.Principal));
+        List<string> nombres = Resultado.Nombres();
+        foreach (string n in nombres)
+        {
+            TemaAsignado t;
+            Resultado.Personajes.TryGetValue(n, out t);
+            filas.Add(new KeyValuePair<string, TemaAsignado>(n, t));
+        }
+        foreach (KeyValuePair<string, TemaAsignado> kv in Resultado.Personajes)
+            if (!nombres.Contains(kv.Key)) filas.Add(kv);
+        foreach (KeyValuePair<string, TemaAsignado> f in filas)
+        {
+            ListViewItem it = new ListViewItem(f.Key.Length == 0 ? "Tema principal" : f.Key);
+            it.SubItems.Add(f.Value != null ? Nombre(f.Value.Archivo) : "\u2014");
+            it.SubItems.Add(f.Value != null && f.Value.Variantes.Count > 0 ? f.Value.Variantes.Count.ToString() : "");
+            it.SubItems.Add(f.Value != null ? f.Value.Motivo : "");
+            it.Tag = f.Key;
+            if (f.Value == null) it.ForeColor = Tema.TextoSuave;
+            lst.Items.Add(it);
+        }
+    }
+
+    string Fila() { return lst.SelectedIndices.Count == 0 ? null : (string)lst.Items[lst.SelectedIndices[0]].Tag; }
+
+    void ElegirCarpeta()
+    {
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta de tu m\u00fasica (se busca tambi\u00e9n en subcarpetas)";
+            if (Resultado.Carpeta.Length > 0 && Directory.Exists(Resultado.Carpeta)) d.SelectedPath = Resultado.Carpeta;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            Resultado.Carpeta = d.SelectedPath;
+        }
+        try { biblioteca = BibliotecaMusica.Cargar(Resultado.Carpeta); } catch { biblioteca = null; }
+        Mostrar();
+        Llenar();
+    }
+
+    void Indexar()
+    {
+        trabajando = true;
+        barra.Visible = true;
+        foreach (Control c in new Control[] { btnIndexar, btnCarpeta, btnIA, btnGuardar }) c.Enabled = false;
+        try
+        {
+            Action<string, double> av = delegate (string t, double f) { Estado(t, false); barra.Valor = f; Application.DoEvents(); };
+            List<FilaMusica> filas = BibliotecaMusica.Escanear(Resultado.Carpeta, delegate (string t, double f) { av(t, f * 0.8); });
+            biblioteca = BibliotecaMusica.Indexar(Resultado.Carpeta, filas, delegate (string t, double f) { av(t, 0.8 + f * 0.2); });
+            biblioteca.Guardar(Path.Combine(Resultado.Carpeta, BibliotecaMusica.NombreIndice));
+            Estado("\u2714 \u00cdndice guardado en " + BibliotecaMusica.NombreIndice + " (en la carpeta de la m\u00fasica).", false);
+        }
+        catch (Exception ex) { Estado("No se pudo indexar: " + ex.Message, true); }
+        trabajando = false;
+        barra.Visible = false;
+        foreach (Control c in new Control[] { btnIndexar, btnCarpeta, btnGuardar }) c.Enabled = true;
+        Mostrar();
+        Llenar();
+    }
+
+    void ConIA()
+    {
+        Resultado.Reparto = txtReparto.Text.Trim();
+        if (Resultado.Nombres().Count == 0) { Estado("Escribe el reparto: un personaje por l\u00ednea.", true); return; }
+        List<ArchivoMusica> cand = MusicaSerie.Candidatos(biblioteca);
+        string instr = MusicaSerie.Instrucciones(), msg = MusicaSerie.Mensaje(cand, premisa, Resultado.Reparto, txtPreferencias.Text);
+        string c = clave, mo = modelo;
+        trabajando = true;
+        foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar }) x.Enabled = false;
+        Estado("Gemini est\u00e1 escuchando tu biblioteca\u2026", false);
+        Thread hilo = new Thread(delegate ()
+        {
+            string resp = null, error = null;
+            try { resp = Gemini.Generar(c, mo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar }) x.Enabled = true;
+                    if (error != null) { Estado("Gemini: " + error, true); return; }
+                    try
+                    {
+                        int n = Resultado.Aplicar(resp, cand);
+                        Llenar();
+                        Estado("\u2714 " + n + " temas elegidos. Cambia los que quieras y guarda: quedan fijos para toda la serie.", false);
+                    }
+                    catch (Exception ex) { Estado("La respuesta no se pudo leer: " + ex.Message, true); }
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+
+    void Cambiar()
+    {
+        string k = Fila();
+        if (k == null) { Estado("Elige una fila.", true); return; }
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Title = "Tema para " + (k.Length == 0 ? "la serie" : k);
+            d.Filter = "M\u00fasica|*.mp3;*.flac;*.wav;*.m4a;*.ogg;*.opus;*.aac;*.wma";
+            if (Resultado.Carpeta.Length > 0 && Directory.Exists(Resultado.Carpeta)) d.InitialDirectory = Resultado.Carpeta;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            TemaAsignado t = new TemaAsignado();
+            string raiz = Resultado.Carpeta.TrimEnd('\\', '/');
+            t.Archivo = raiz.Length > 0 && d.FileName.StartsWith(raiz + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                ? d.FileName.Substring(raiz.Length + 1) : d.FileName;
+            t.Motivo = "elegido a mano";
+            ArchivoMusica a = biblioteca != null ? biblioteca.Buscar(t.Archivo) : null;
+            if (a != null) t.Variantes.AddRange(a.Variantes);
+            if (k.Length == 0) Resultado.Principal = t; else Resultado.Personajes[k] = t;
+        }
+        Llenar();
     }
 }
 

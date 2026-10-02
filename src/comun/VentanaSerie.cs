@@ -38,6 +38,7 @@ class VentanaSeries : VentanaBase
     Combo cmbPapel = new Combo();
     Boton btnNota = new Boton("Nota…", EstiloBoton.Secundario);
     Boton btnFormato = new Boton("Formato y ritmo…", EstiloBoton.Secundario);
+    Boton btnMusica = new Boton("Música…", EstiloBoton.Secundario);
     Etiqueta lblFormato;
     // Mide el proyecto abierto (para "Aprender de este proyecto"); null si no se puede.
     public Func<string, Medicion> Medidor;
@@ -97,8 +98,9 @@ class VentanaSeries : VentanaBase
         Pos(btnRehacer, dx + 238, y, 170, 32);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 418, y - 2, dw - 418, 38);
         y += 44;
-        Texto("Notas de la serie (personajes, apodos, lugares)", Tema.Negrita, Tema.Texto, dx, y, 340, 20);
-        lblFormato = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 350, y + 4, dw - 520, 20);
+        Texto("Notas de la serie", Tema.Negrita, Tema.Texto, dx, y, 150, 20);
+        lblFormato = Texto("", Tema.Pequena, Tema.TextoSuave, dx + 150, y + 4, dw - 430, 20);
+        Pos(btnMusica, dx + dw - 270, y - 6, 102, 30);
         lblFormato.TextAlign = ContentAlignment.MiddleRight;
         Pos(btnFormato, dx + dw - 160, y - 6, 160, 30);
         txtNotas.Multilinea = true;
@@ -187,6 +189,18 @@ class VentanaSeries : VentanaBase
             Cambio();
             Estado("✔ Formato guardado.", false);
         };
+        btnMusica.Click += delegate
+        {
+            if (Serie_ == null) return;
+            GuardarActual();
+            using (VentanaMusicaSerie d = new VentanaMusicaSerie(Serie_.Musica, Serie_.Formato.Premisa, clave, modelo))
+            {
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                Serie_.Musica = d.Resultado;
+            }
+            Cambio();
+            Estado("✔ Música de la serie guardada.", false);
+        };
         btnFichas.Click += delegate { Fichas(false); };
         btnRehacer.Click += delegate { Fichas(true); };
         lstCaps.ItemCheck += delegate (object s, ItemCheckEventArgs e)
@@ -257,7 +271,7 @@ class VentanaSeries : VentanaBase
     {
         bool hay = Serie_ != null;
         foreach (Control c in new Control[] { txtNombre, segTipo, btnCarpeta, btnBuscar, lstCaps, btnAgregar, btnEste, btnSubir,
-                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato })
+                                              btnBajar, btnQuitar, btnFichas, btnRehacer, txtNotas, btnOlvidar, btnFormato, btnMusica })
             c.Enabled = hay;
         btnNota.Enabled = false;
         cmbPapel.Enabled = hay;   // deshabilitado se ve blanco en Windows

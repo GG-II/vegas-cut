@@ -238,6 +238,28 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
   que quedó en el video. Se guarda junto al proyecto de ese capítulo
   (`<proyecto>.vegascut-ficha.json`). «Rehacer la elegida» la vuelve a hacer.
 - **Notas de la serie**: personajes, apodos y lugares.
+- **Música…**: la música de la serie.
+
+  ![Música de la serie](docs/img/musica-serie.png)
+
+  - **Indexar** recorre la carpeta de tu música (y sus subcarpetas) y lee las etiquetas de cada
+    archivo. Empareja cada tema con su uso en el anime: 489 temas con las escenas donde suenan,
+    incluidos en el script, también con otras traducciones («Fire Shaman» es «The Magician of
+    Fire»). Le pone a cada uno:
+    - el **estado de ánimo**: viaje, calma, comedia, misterio, tensión, villano, pelea, épico,
+      victoria o tristeza;
+    - **dónde suele ir**: inicio, medio, final, avance o eyecatch;
+    - de qué **personaje** es tema;
+    - sus **variantes**: la misma canción en otra versión u otro álbum.
+
+    Los que no están en el anime se clasifican por su título. El índice se guarda en
+    `musica-indice.json`, dentro de la carpeta de la música; con tu biblioteca quedan 372 de
+    1305 archivos con datos del anime.
+  - **Reparto**: un personaje por línea («Gerber: impulsivo, siempre pelea»).
+  - **Elegir con IA**: Gemini elige el **tema principal** de la serie y **un tema para cada
+    personaje**, sin repetir y con sus variantes. Usa la personalidad de cada uno, la premisa y
+    tus **preferencias** («para Gerber algo de Golden Wind»). **Cambiar…** pone otro a mano.
+    Quedan guardados en la serie para todos los capítulos.
 - **Papel de cada capítulo**: elige un capítulo y su papel: *Primer capítulo*, *Normal*,
   *Especial*, *Final de temporada* o *Final de la serie*. El primero de la lista es «Primer
   capítulo» si no eliges otro. **Nota…** guarda qué tiene de distinto ese capítulo («carrera de
@@ -250,10 +272,11 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
 
   ![Formato y ritmo](docs/img/formato.png)
 
-  - **Formato**: *100 días*, *Aventura por episodios*, *Retos / minijuegos*, *Video ensayo*,
-    *Top / lista*, *Podcast* u *Otro*.
+  - **Formato**: *100 días*, *Aventura por episodios*, *Serie de TV / anime*, *Retos /
+    minijuegos*, *Video ensayo*, *Top / lista*, *Podcast* u *Otro*.
   - **Premisa y objetivo**: de qué va la serie y hacia dónde quieres llevarla.
-  - **Avance en pantalla**: *Día N*, *Parte N*, *Ronda N*, *Acto N*, *Número N* o ninguno.
+  - **Avance en pantalla**: *Día N*, *Parte N*, *Etapa N*, *Ronda N*, *Acto N*, *Número N* o
+    ninguno.
   - **Narrador**: si lo hay, cómo se llama su voz en la transcripción y su estilo.
   - **Reglas de ritmo**: velocidad del narrador (ppm), máximo sin narrador, recursos y cortes por
     minuto, cada cuánto cambiar la música, la zona crítica del inicio y la duración objetivo.
@@ -269,6 +292,29 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
   - la música: audio largo, cada cambio de tema.
 
   Con Cap1 de JoJoMania da 18 cortes/min, narrador al 32 % a 199 ppm y música cada ~30 s.
+
+  **Serie de TV / anime** arma cada capítulo como un episodio del anime de JoJo
+  ([análisis](docs/estilo-anime-jojo.md), [estructura de SC](docs/estructura-episodio-sc.md)).
+  Dura 15–18 min, usa «Etapa N» y un narrador al estilo de Johnny en SBR. **Plantilla y kit…**
+  define los bloques de cada capítulo:
+
+  ![Plantilla y kit](docs/img/plantilla.png)
+
+  | Bloque | Qué es | Duración |
+  |---|---|---|
+  | Cold open | del capítulo | 45 s |
+  | Opening | kit | 20 s |
+  | Título y lugar | texto | 3 s |
+  | Acto A | del capítulo | 55 % del resto |
+  | Re-gancho (tarjeta de stats o ranking) | kit | 6 s |
+  | Acto B | del capítulo | 45 % del resto |
+  | Continuará | kit | 3 s |
+  | Ending | kit | 15 s |
+  | Avance o post-créditos | del capítulo | 12 s |
+
+  En los bloques del **kit** eliges tu archivo una sola vez (opening, eyecatch, «To Be
+  Continued», ending) y se usa en todos los capítulos. Mientras no lo tengas, va un placeholder
+  con esa duración.
 
 **MomentosIA** y **Anteriormente** reconocen solos a qué serie pertenece el proyecto abierto
 (su botón **Serie…** abre esta misma ventana para elegir otra o agregar el proyecto).
@@ -396,7 +442,11 @@ Todo de una pasada sobre la grabación, para dejarlo corriendo:
    pista y el **perfil** elegido (Gameplay, Narración…, o uno tuyo) y las quita de todas las
    pistas.
 2. **Transcribir**: Whisper transcribe las voces y mide el ambiente, igual que *Transcribir*.
-3. Abre **MomentosIA** con todo listo. Con **Pedir a Gemini al abrir** también le pide la
+3. Guarda una **copia base**: `<proyecto> BASE.veg`, sin silencios y con su transcripción (y su
+   serie). Sigues trabajando en el proyecto original. Desde la copia base puedes volver a
+   empezar MomentosIA o la producción del capítulo sin repetir estos pasos. Las series la
+   reconocen como el mismo capítulo.
+4. Abre **MomentosIA** con todo listo. Con **Pedir a Gemini al abrir** también le pide la
    propuesta solo.
 
 Recuerda las pistas (por etiqueta: A2, A3…), el perfil y los pasos para el próximo episodio.

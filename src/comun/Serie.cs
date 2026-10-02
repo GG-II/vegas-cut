@@ -183,6 +183,7 @@ public class SerieProyecto
 
     public string Ruta = "", Nombre = "", Tipo = "Gameplay", Notas = "", Carpeta = "";
     public FormatoSerie Formato = FormatoSerie.Preset("100 días");
+    public MusicaSerie Musica = new MusicaSerie();
     public List<string> Episodios = new List<string>();   // rutas de los .veg, en orden
     // Papel de cada capitulo (primero, especial, final...) y su nota, por
     // ruta del .veg. Lo que no esta aqui es "Normal" (o "Primer capítulo").
@@ -211,6 +212,7 @@ public class SerieProyecto
         s.Carpeta = Json.Texto(o, "carpeta");
         object f = Json.Valor(o, "estructura");
         s.Formato = f != null ? FormatoSerie.Leer(f) : FormatoSerie.Preset(FormatoSerie.SegunTipo(s.Tipo));
+        s.Musica = MusicaSerie.Leer(Json.Valor(o, "musica"));
         string dir = Path.GetDirectoryName(ruta);
         foreach (object x in Json.Lista(o, "episodios"))
         {
@@ -233,6 +235,7 @@ public class SerieProyecto
         d["formato"] = "vegas-cut-serie";
         d["nombre"] = Nombre; d["tipo"] = Tipo; d["notas"] = Notas; d["carpeta"] = Carpeta;
         d["estructura"] = Formato.Escribir();
+        d["musica"] = Musica.Escribir();
         List<object> l = new List<object>();
         foreach (string veg in Episodios)
         {
@@ -409,8 +412,9 @@ public class SerieProyecto
 // MomentosIA (contexto) y PulirEpisodio (medidor, estructura y narracion).
 public class FormatoSerie
 {
-    public static readonly string[] Formatos = { "100 días", "Aventura por episodios", "Retos / minijuegos", "Video ensayo",
-                                                 "Top / lista", "Podcast", "Otro" };
+    public static readonly string[] Formatos = { "100 días", "Aventura por episodios", "Serie de TV / anime", "Retos / minijuegos",
+                                                 "Video ensayo", "Top / lista", "Podcast", "Otro" };
+    public const string TV = "Serie de TV / anime";
     public static readonly string[] Avances = { "Día N", "Parte N", "Etapa N", "Ronda N", "Acto N", "Número N", "Ninguno" };
 
     public string Nombre = "100 días";
@@ -421,6 +425,8 @@ public class FormatoSerie
     public string EstiloNarrador = "";
     public string Aprendido = "";          // de que proyecto salieron las reglas
     public ReglasRitmo Reglas = new ReglasRitmo();
+    public PlantillaTV Tv = PlantillaTV.PorDefecto();   // bloques y kit (formato Serie de TV)
+    public bool EsTV { get { return Nombre == TV; } }
 
     public static string SegunTipo(string tipo)
     {
@@ -452,6 +458,13 @@ public class FormatoSerie
                 f.EstiloNarrador = "En pasado, como un cuento: presenta el objetivo de la parte, los obstáculos y deja el gancho " +
                                    "para la siguiente.";
                 r.NarradorCadaSeg = 90; r.DuracionMin = 12; r.DuracionMax = 16;
+                break;
+            case TV:
+                f.Avance = "Etapa N";
+                f.EstiloNarrador = "Como Johnny en Steel Ball Run: primera persona, en pasado; enmarca el inicio y el final del " +
+                                   "capítulo y une escenas con frases cortas. Deja que los personajes cuenten la historia.";
+                r.NarradorCadaSeg = 120; r.RecursosPorMin = 3; r.CortesMin = 14; r.CortesMax = 20; r.MusicaCadaSeg = 45;
+                r.ZonaCriticaSeg = 120; r.DuracionMin = 15; r.DuracionMax = 18;
                 break;
             case "Retos / minijuegos":
                 f.Avance = "Ronda N";
@@ -492,6 +505,8 @@ public class FormatoSerie
             case "100 días": return "sobrevivir y progresar día a día; cada día debe aportar un avance, un problema o una risa, y el video " +
                                     "termina con algo pendiente para el siguiente";
             case "Aventura por episodios": return "avanzar en una historia por partes; cada parte tiene un objetivo, obstáculos y un final con gancho";
+            case TV: return "un capítulo de serie de TV al estilo del anime de JoJo: cold open con gancho, opening, actos con " +
+                            "carteles de lugar y tiempo, crisis a la mitad, resolución con ranking y cliffhanger con «continuará»";
             case "Retos / minijuegos": return "competir en rondas; se entiende quién va ganando y la tensión sube hasta la última ronda";
             case "Video ensayo": return "responder una pregunta o defender una idea con argumentos y ejemplos, en actos claros";
             case "Top / lista": return "recorrer una lista de menor a mayor; cada puesto se justifica y el mejor queda para el final";
@@ -504,6 +519,7 @@ public class FormatoSerie
     {
         FormatoSerie f = (FormatoSerie)MemberwiseClone();
         f.Reglas = Reglas.Copia();
+        f.Tv = Tv.Copia();
         return f;
     }
 
@@ -515,6 +531,7 @@ public class FormatoSerie
         Dictionary<string, object> r = new Dictionary<string, object>();
         Reglas.Escribir(r);
         d["ritmo"] = r;
+        if (EsTV) d["tv"] = Tv.Escribir();
         return d;
     }
 
@@ -532,6 +549,8 @@ public class FormatoSerie
         if (Json.Valor(o, "estiloNarrador") != null) f.EstiloNarrador = Json.Texto(o, "estiloNarrador");
         f.Aprendido = Json.Texto(o, "aprendido");
         f.Reglas = ReglasRitmo.Leer(Json.Valor(o, "ritmo"), f.Reglas);
+        object tv = Json.Valor(o, "tv");
+        if (tv != null) f.Tv = PlantillaTV.Leer(tv);
         return f;
     }
 
