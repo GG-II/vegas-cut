@@ -88,7 +88,48 @@ ventanas):
 6. **Faltan re-ganchos a mitad del video.** El narrador los hace al inicio («no fue de las mejores
    ideas»), pero no antes de los tramos largos de juego.
 
+## Rendimiento real (YouTube Studio, 4 sep – 2 oct 2026)
+
+| | Parte 1 (Cap1, 10:35) | Parte 2 (Cap2, 13:58) |
+|---|---|---|
+| Visualizaciones | **576** | 99 |
+| Impresiones de la miniatura | **4 883** | 314 |
+| Clics en la miniatura (CTR) | 5.2 % | **17.2 %** |
+| Tiempo de visualización | 15.8 h | 6.1 h |
+| Duración media vista | 1:38 | **3:42** |
+| Porcentaje medio visto | 15.5 % | **26.5 %** |
+| Suscriptores | 2 | 0 |
+
+- **La Parte 1 tuvo más vistas porque YouTube la mostró 15 veces más** (4 883 impresiones contra
+  314), no porque retuviera mejor. La Parte 1 es la puerta de entrada de la serie y se la ofreció a
+  gente nueva. La Parte 2 casi solo la ve quien ya viene de la 1.
+- **La Parte 2 retiene mejor**: la gente se queda en promedio 3:42 (26.5 %) contra 1:38 (15.5 %) en la
+  Parte 1. Es lo normal cuando el público ya conoce la serie. Con gente que llega en frío, como en la
+  Parte 1, **la mayoría se va antes de los 2 minutos**, justo después del inicio.
+- **El CTR alto de la Parte 2 (17 %)** también es de público que ya te conoce. El 5.2 % de la Parte 1 con
+  casi 5 000 impresiones es razonable para gente nueva.
+- **Casi nadie oye el «suscríbete»**: está al final y la persona media se va en el minuto 1:38 (Parte 1).
+  Por eso solo hay 2 suscriptores en 576 vistas.
+- **Solo ~17 de cada 100 que vieron la Parte 1 siguieron con la 2** (99 / 576, aproximado).
+
+Qué cambia en las reglas:
+
+- **Los minutos 0:15–2:00 importan más que la segunda mitad** para crecer. El título promete «de noobs a
+  usuarios de stand» y el primer stand aparece en 1:23. Conviene **adelantar un stand en acción en los
+  primeros 10–15 s** y cumplir la promesa antes.
+- **Pedir la suscripción temprano y corto**, después de la premisa (~0:30–1:00), además del final.
+- **Empujar a la siguiente parte**: un adelanto «En el próximo episodio» antes del cierre, pantalla final con
+  la Parte 2 y lista de reproducción.
+- **La segunda mitad sigue importando** para la gente que ya es fan (Parte 2: 3:42 de media). Lo de los
+  valles sigue valiendo, pero va después del inicio en prioridad.
+
+Para confirmarlo hace falta la **gráfica de retención de público** de cada video (Analytics →
+Interacción → Retención de público) y las **fuentes de tráfico**.
+
 ## Reglas para «Mejorar retención» en esta serie
+
+- **Prioridad 1, los primeros 2 minutos**: gancho con la promesa del título cumplida o adelantada en los
+  primeros 10–15 s, suscripción corta después de la premisa, y nada de tramos lentos antes del minuto 2.
 
 - **Inicio de 15 s o menos**: premisa (+ «después del episodio anterior…»), montaje con texto cinético,
   tarjeta «100 DÍAS EN», transición con explosión y «Día N».
