@@ -223,7 +223,7 @@ public static class AplicarPlan
     }
 
     // Baja la pista mientras suena la narracion (frases muy juntas, una sola bajada).
-    static void Bajar(Track pista, List<Rango> suena, int db)
+    public static void Bajar(Track pista, List<Rango> suena, int db)
     {
         foreach (Rango x in Rangos.Unir(suena, 1.2))
         {

@@ -21,7 +21,7 @@ using System;
 using ScriptPortal.Vegas;
 using Region = ScriptPortal.Vegas.Region;
 
-// ---- src/musica/Musica.cs ----
+// ---- src/musica/EntryPoint.cs ----
 
 public class EntryPoint
 {
@@ -36,6 +36,8 @@ public class EntryPoint
         using (VentanaMusica v = new VentanaMusica(vegas, pistas)) v.ShowDialog();
     }
 }
+
+// ---- src/musica/Musica.cs ----
 
 // Vista previa: la curva de volumen de la musica sobre los tramos con voz.
 class GraficaMusica : ControlBase

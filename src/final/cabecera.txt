@@ -1,0 +1,6 @@
+// PasoFinal.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Lo ultimo antes de exportar el capitulo: bajar el juego bajo la narracion,
+// balancear la musica (baja sola bajo las voces) y censurar palabrotas.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

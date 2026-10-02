@@ -22,7 +22,7 @@ using System;
 using ScriptPortal.Vegas;
 using Region = ScriptPortal.Vegas.Region;
 
-// ---- src/censura/Censura.cs ----
+// ---- src/censura/EntryPoint.cs ----
 
 public class EntryPoint
 {
@@ -40,6 +40,8 @@ public class EntryPoint
         using (VentanaCensura v = new VentanaCensura(vegas, t)) v.ShowDialog();
     }
 }
+
+// ---- src/censura/Censura.cs ----
 
 // Lo que toca la linea de tiempo de Vegas.
 public static class CensuraVegas

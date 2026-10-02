@@ -5,7 +5,10 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 
 | Script | Para qué |
 |---|---|
-| `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe y abre MomentosIA. |
+| `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe, guarda la copia BASE y abre MomentosIA. |
+| `ProducirCapitulo.cs` | Del material a un capítulo de serie: análisis, 3 propuestas, propuesta final y armado. |
+| `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
+| `PasoFinal.cs` | Lo último: bajar el juego bajo la narración, balancear la música y censurar. |
 | `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
 | `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
@@ -18,6 +21,9 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `DesenlazarClips.cs` | Arregla clips que quedaron unidos todos en un grupo tras cortar con versiones anteriores. |
 | `CensurarPalabrotas.cs` | Tapa las palabrotas con un pitido o el efecto que elijas y silencia la voz justo ahí. |
 | `ExportarProyecto.cs` | Exporta proyectos a JSON para estudiar patrones de edición. |
+
+**Flujo para una serie de TV (como SCR):** *PrepararEpisodio* → *ProducirCapitulo* (desde la copia
+BASE) → grabar la narración con el guion → *Reemplazar placeholders* (PulirEpisodio) → *PasoFinal*.
 
 **Flujo sugerido para un gameplay:** *PrepararEpisodio* (o *Quitar silencios* → *Transcribir*) →
 *Momentos con IA* → revisar → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores*
@@ -322,6 +328,68 @@ MomentosIA recibe el formato, la premisa, el papel y la nota del capítulo, las 
 historia) y de los **posteriores** (para no cortar lo que prepara algo que se retoma después);
 Anteriormente toma los capítulos anteriores con la ficha de los viejos (incluidas sus frases
 clave) y el texto completo de los 2 más recientes.
+
+### `ProducirCapitulo.cs`
+
+![Producir capítulo: propuestas](docs/img/producir.png)
+
+Arma un capítulo de serie a partir de todo el material grabado. Ábrelo en la **copia BASE** (la
+que guarda PrepararEpisodio: sin silencios y transcrita). Usa la serie del capítulo: formato y
+plantilla de bloques, premisa, papel y nota del capítulo, fichas de los capítulos anteriores y
+posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
+
+1. **Analizar y proponer.** Gemini lee todo el material con ese contexto y la estructura de
+   referencia de SC y SBR (`docs/estructura-episodio-sc.md`). Devuelve:
+   - los mejores momentos y los hilos con otros capítulos;
+   - cuánto material útil hay y si da para un **episodio doble**;
+   - **tres propuestas** distintas, cada una con títulos al estilo JoJo, duración, qué cold
+     open y qué cierre usa, una escaleta corta y por qué funciona.
+
+   Cada tarjeta tiene su cuadro de **notas** («me gusta, pero con el cold open de la A»). Elige
+   una.
+2. **Armar propuesta final.** La escaleta completa, bloque por bloque de la plantilla:
+
+   ![Producir capítulo: propuesta final](docs/img/producir-final.png)
+
+   - **clips** del material en el orden en que se verán;
+   - **textos**: título «Etapa N · nombre», carteles de lugar y tiempo, ranking, tarjeta de
+     stats del rival para el re-gancho y «continuará»;
+   - **música** de tu biblioteca por escena (sin repetir dentro del capítulo), con el tema del
+     personaje cuando se luce y el principal en el momento clave;
+   - **narración** a tu velocidad;
+   - **recursos** que faltan.
+
+   Arriba ves cuánto dura cada parte contra el objetivo. Desmarca lo que no quieras, escribe
+   **cambios** y pulsa **Ajustar** las veces que haga falta. Doble clic en una fila lleva a ese
+   momento del material.
+3. **Producir.** Guarda una copia `<capítulo> CAP.veg` y arma ahí el capítulo; la BASE no se
+   toca:
+   - cada clip con todas sus pistas (video, voces y juego), agrupados;
+   - el **kit** de la serie, o placeholders con la duración de cada bloque;
+   - el título y los carteles con el estilo de texto del proyecto;
+   - la **música colocada sin balancear** (eso va en *PasoFinal*);
+   - la narración provisional con la voz de Windows;
+   - los placeholders de recursos (si al abrir tenías seleccionada una imagen editada, la
+     copian con sus efectos);
+   - una región por bloque y otra por parte.
+
+   El material se quita y el capítulo queda al inicio. Un **episodio doble** queda en el mismo
+   proyecto: «PARTE 1» y «PARTE 2», cada una con su región para exportarla. Junto al proyecto
+   se guarda el **guion** de la narración y los recursos.
+
+Todo se guarda en `<proyecto>.vegascut-produccion.json`: al volver a abrir sigues donde lo
+dejaste.
+
+### `PasoFinal.cs`
+
+![Paso final](docs/img/paso-final.png)
+
+Lo último antes de exportar, con la narración ya grabada:
+
+1. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
+   que elijas mientras narras (la pista del narrador no se toca).
+2. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
+3. **Censurar palabrotas**: abre *Censurar palabrotas*.
 
 ### `PulirEpisodio.cs`
 

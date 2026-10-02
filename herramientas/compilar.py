@@ -28,7 +28,7 @@ HERRAMIENTAS = {
     'ReubicarMarcadores': ['marcadores/cabecera.txt', 'marcadores/Reubicar.cs', 'comun/Anclas.cs', 'comun/Json.cs'],
     'TextosDesdeMarcadores': ['textos/cabecera.txt', 'textos/Textos.cs', 'textos/Generador.cs', 'comun/Rtf.cs',
                               'comun/Anclas.cs', 'comun/Audio.cs', 'comun/Json.cs', 'comun/Ui.cs'],
-    'MusicaAutomatica': ['musica/cabecera.txt', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'comun/PistasVegas.cs'] +
+    'MusicaAutomatica': ['musica/cabecera.txt', 'musica/EntryPoint.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'comun/PistasVegas.cs'] +
                         COMUN_BASE + ['silencios/Deteccion.cs', 'comun/Ui.cs'],
     'Anteriormente': ['anteriormente/cabecera.txt', 'anteriormente/Anteriormente.cs', 'anteriormente/LogicaAnteriormente.cs',
                       'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
@@ -40,7 +40,7 @@ HERRAMIENTAS = {
                          'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/Ritmo.cs', 'comun/Anclas.cs'] + COMUN_BASE +
                         ['silencios/Deteccion.cs', 'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
     'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
-    'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
+    'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/EntryPoint.cs', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
                            'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE + ['comun/Ui.cs'],
     'PulirEpisodio': ['pulir/cabecera.txt', 'pulir/Pulir.cs', 'pulir/LogicaPulir.cs', 'pulir/VentanaPlan.cs', 'pulir/LogicaPlan.cs',
                       'pulir/AplicarPlan.cs', 'pulir/Voz.cs', 'textos/Generador.cs', 'comun/Rtf.cs', 'musica/LogicaMusica.cs',
@@ -48,6 +48,16 @@ HERRAMIENTAS = {
                       'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs',
                       'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'ProducirCapitulo': ['producir/cabecera.txt', 'producir/Produccion.cs', 'producir/LogicaProduccion.cs', 'producir/Armar.cs',
+                         'pulir/LogicaPlan.cs', 'pulir/AplicarPlan.cs', 'pulir/Voz.cs', 'pulir/LogicaPulir.cs', 'textos/Generador.cs',
+                         'comun/Rtf.cs', 'musica/LogicaMusica.cs', 'comun/Proceso.cs', 'comun/Ritmo.cs', 'comun/Serie.cs', 'comun/SerieTV.cs',
+                         'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs',
+                         'silencios/Deteccion.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
+    'PasoFinal': ['final/cabecera.txt', 'final/PasoFinal.cs', 'final/LogicaPasoFinal.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'censura/Censura.cs',
+                  'censura/LogicaCensura.cs', 'pulir/AplicarPlan.cs', 'pulir/LogicaPlan.cs', 'pulir/LogicaPulir.cs', 'pulir/Voz.cs',
+                  'textos/Generador.cs', 'comun/Rtf.cs', 'comun/Ritmo.cs', 'comun/Serie.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs',
+                  'comun/CatalogoAnime.cs', 'comun/Proceso.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs', 'silencios/Deteccion.cs'] +
+                 COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
 }
 
 def separar_usings(texto):

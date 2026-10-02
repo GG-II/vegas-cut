@@ -1,0 +1,10 @@
+// ProducirCapitulo.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Del material grabado (la copia BASE: sin silencios y transcrita) a un
+// capitulo de serie: Gemini analiza todo con el contexto de la serie, propone
+// tres formas de hacer el capitulo (incluido un episodio doble) y arma la
+// escaleta final con titulos, carteles, musica de tu biblioteca, narracion y
+// placeholders.
+//
+// Requiere la clave de Gemini en ConfigurarVegasCut.cs.
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.
