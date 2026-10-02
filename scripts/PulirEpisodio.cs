@@ -16,6 +16,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Text;
@@ -146,9 +147,12 @@ class VentanaPulir : VentanaBase
     GraficoRitmo grafico = new GraficoRitmo();
     Lista lstChequeos = new Lista();
     Lista lstValles = new Lista();
-    Boton btnRegiones = new Boton("Marcar valles como regiones", EstiloBoton.Secundario);
+    Boton btnRegiones = new Boton("Marcar valles", EstiloBoton.Secundario);
     Boton btnQuitarRegiones = new Boton("Quitar regiones", EstiloBoton.Secundario);
     Boton btnMedir = new Boton("Volver a medir", EstiloBoton.Secundario);
+    Boton btnPlan = new Boton("Estructura y narraci\u00f3n\u2026", EstiloBoton.Primario);
+    Boton btnReemplazar = new Boton("Reemplazar placeholders\u2026", EstiloBoton.Secundario);
+    VideoEvent plantilla;
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Primario);
 
     public VentanaPulir(Vegas vegas) : base("Pulir episodio", 1040)
@@ -184,10 +188,12 @@ class VentanaPulir : VentanaBase
         lstValles.Columns.Add("Qu\u00e9 pasa", w - ci - 16 - 110 - 26 - sb);
         Pos(lstValles, m + ci + 16, y, w - ci - 16, 200);
         y += 210;
-        Pos(btnRegiones, m, y, 230, 34);
-        Pos(btnQuitarRegiones, m + 238, y, 140, 34);
-        Pos(btnMedir, m + 386, y, 140, 34);
-        Pos(btnCerrar, m + w - 140, y, 140, 34);
+        Pos(btnRegiones, m, y, 130, 34);
+        Pos(btnQuitarRegiones, m + 138, y, 140, 34);
+        Pos(btnMedir, m + 286, y, 130, 34);
+        Pos(btnReemplazar, m + w - 562, y, 192, 34);
+        Pos(btnPlan, m + w - 362, y, 220, 34);
+        Pos(btnCerrar, m + w - 134, y, 134, 34);
         y += 42;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 34);
         ClientSize = new Size(ClientSize.Width, y + 34 + 16);
@@ -226,6 +232,25 @@ class VentanaPulir : VentanaBase
         };
         btnMedir.Click += delegate { CargarTranscripcion(); Medir(); };
         btnCerrar.Click += delegate { Close(); };
+        btnPlan.Click += delegate
+        {
+            if (inf == null) return;
+            using (VentanaPlan d = new VentanaPlan(vegas, inf, trans, serie, caps, formato, Papel(), plantilla))
+            {
+                d.ShowDialog(this);
+                if (d.Aplicado) { CargarTranscripcion(); Medir(); }
+            }
+        };
+        btnReemplazar.Click += delegate { Reemplazar(); };
+
+        // Plantilla de los placeholders: la imagen o video seleccionado (no un texto).
+        foreach (Track t in vegas.Project.Tracks)
+        {
+            if (t.IsAudio()) continue;
+            foreach (TrackEvent e in t.Events)
+                if (e.Selected && e is VideoEvent && !GeneradorTexto.EsTexto(e)) { plantilla = (VideoEvent)e; break; }
+            if (plantilla != null) break;
+        }
 
         CargarSerie();
         CargarTranscripcion();
@@ -326,6 +351,25 @@ class VentanaPulir : VentanaBase
         if (inf.FaltaNarracion) aviso += "La serie lleva narrador pero a\u00fan no hay narraci\u00f3n: los huecos de narrador no se cuentan como valles todav\u00eda. ";
         Estado(aviso + (inf.Valles.Count == 0 ? "Sin valles: el ritmo cumple las reglas." :
                         inf.Valles.Count + " valles. Clic en el gr\u00e1fico o doble clic en un valle para ir ah\u00ed."), false);
+    }
+
+    void Reemplazar()
+    {
+        string carpeta;
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta con tus recursos. Cada archivo empieza con el c\u00f3digo del placeholder (\"R03 cad\u00e1ver.png\"); se busca tambi\u00e9n en subcarpetas.";
+            string sugerida = Path.GetDirectoryName(vegas.Project.FilePath);
+            if (Directory.Exists(sugerida)) d.SelectedPath = sugerida;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            carpeta = d.SelectedPath;
+        }
+        List<string> faltan = new List<string>();
+        int n;
+        using (UndoBlock u = new UndoBlock("Reemplazar placeholders")) n = AplicarPlan.ReemplazarPlaceholders(vegas.Project, carpeta, faltan);
+        Estado(n == 0 && faltan.Count == 0 ? "No encontr\u00e9 placeholders (pista \u00ab" + AplicarPlan.PistaPlaceholders + "\u00bb)."
+               : "\u2714 " + n + " placeholders reemplazados (conservan efectos y movimiento)." +
+                 (faltan.Count > 0 ? " Faltan: " + String.Join(", ", faltan.ToArray()) + "." : ""), faltan.Count > 0 && n == 0);
     }
 
     // Lleva el cursor (y la seleccion, si hay fin) de Vegas a ese momento.
@@ -484,6 +528,2014 @@ public static class LogicaPulir
         }
         sb.Append("Minuto a minuto:\n" + Ritmo.Tabla(inf.M));
         return sb.ToString();
+    }
+}
+
+// ---- src/pulir/VentanaPlan.cs ----
+
+// Estructura y narracion: Gemini propone, tu eliges que entra y se aplica.
+class VentanaPlan : VentanaBase
+{
+    readonly Vegas vegas;
+    readonly Configuracion config = Configuracion.Cargar();
+    readonly Informe inf;
+    readonly Transcripcion trans;
+    readonly SerieProyecto serie;
+    readonly List<CapSerie> caps;
+    readonly FormatoSerie formato;
+    readonly string papel;
+    readonly VideoEvent plantilla;
+    Plan plan;
+    bool cargando, trabajando;
+    public bool Aplicado;
+
+    CampoTexto txtIndicaciones = new CampoTexto();
+    Boton btnPedir = new Boton("Pedir a Gemini", EstiloBoton.Primario);
+    Etiqueta lblResumen, lblPlantilla, lblEstado;
+    Lista lstItems = new Lista();
+    Boton chipGancho = Chip("Gancho al inicio"), chipNarracion = Chip("Narraci\u00f3n con voz"), chipBajar = Chip("Bajar el juego al narrar"),
+          chipAvances = Chip("Avances en pantalla"), chipPlaceholders = Chip("Placeholders"), chipRegiones = Chip("Regiones");
+    Boton btnGuion = new Boton("Exportar guion", EstiloBoton.Secundario);
+    Boton btnAplicar = new Boton("Aplicar al proyecto", EstiloBoton.Primario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+
+    static Boton Chip(string t)
+    {
+        Boton b = new Boton(t, EstiloBoton.Chip);
+        b.Activo = true;
+        b.Click += delegate { b.Activo = !b.Activo; };
+        return b;
+    }
+
+    public VentanaPlan(Vegas vegas, Informe inf, Transcripcion trans, SerieProyecto serie, List<CapSerie> caps,
+                       FormatoSerie formato, string papel, VideoEvent plantilla) : base("Estructura y narraci\u00f3n", 1040)
+    {
+        this.vegas = vegas; this.inf = inf; this.trans = trans; this.serie = serie; this.caps = caps;
+        this.formato = formato; this.papel = papel; this.plantilla = plantilla;
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Estructura y narraci\u00f3n", "Gemini propone gancho, secciones, narraci\u00f3n, avances y recursos seg\u00fan la serie y el papel del cap\u00edtulo.");
+        int y = 92;
+        Texto("INDICACIONES (opcional: qu\u00e9 destacar, qu\u00e9 no contar, chistes internos\u2026)", Tema.Pequena, Tema.TextoSuave, m, y, w - 200, 18);
+        txtIndicaciones.Multilinea = true;
+        Pos(txtIndicaciones, m, y + 20, w - 196, 52);
+        Pos(btnPedir, m + w - 180, y + 20, 180, 52);
+        y += 82;
+        lblResumen = Texto("", Tema.Normal, Tema.Texto, m, y, w, 40);
+        y += 44;
+        lstItems.Columns.Add("Tiempo", 96);
+        lstItems.Columns.Add("Qu\u00e9", 110);
+        lstItems.Columns.Add("Detalle", w - 96 - 110 - SystemInformation.VerticalScrollBarWidth - 4);
+        Pos(lstItems, m, y, w, 300);
+        y += 310;
+        int cx = m;
+        foreach (Boton c in new Boton[] { chipGancho, chipNarracion, chipBajar, chipAvances, chipPlaceholders, chipRegiones })
+        {
+            int cw = TextRenderer.MeasureText(c.Text, Tema.Normal).Width + 34;
+            Pos(c, cx, y, cw, 30);
+            cx += cw + 8;
+        }
+        y += 38;
+        lblPlantilla = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 34);
+        y += 38;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 520, 40);
+        Pos(btnGuion, m + w - 510, y, 150, 40);
+        Pos(btnAplicar, m + w - 350, y, 200, 40);
+        Pos(btnCerrar, m + w - 140, y, 140, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        chipNarracion.Enabled = chipBajar.Enabled = formato.Narrador;
+        if (!formato.Narrador) chipNarracion.Activo = chipBajar.Activo = false;
+        chipAvances.Enabled = formato.Avance != "Ninguno";
+        lblPlantilla.Text = plantilla != null
+            ? "Placeholders: copian el evento que ten\u00edas seleccionado (en " + Nombre(plantilla.Track) + ", " + Formato.Tiempo(plantilla.Start.ToMilliseconds() / 1000.0) +
+              "): sus efectos, movimiento y fundidos. Despu\u00e9s, \u00abReemplazar placeholders\u00bb pone tus im\u00e1genes."
+            : "Placeholders: texto simple. Para que copien tus efectos y movimiento, cierra, selecciona una imagen ya editada en la l\u00ednea de tiempo y vuelve a abrir.";
+
+        lstItems.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando && e.Item.Tag != null) ((ItemPlan)e.Item.Tag).Elegido = e.Item.Checked; };
+        lstItems.DoubleClick += delegate
+        {
+            if (lstItems.SelectedIndices.Count == 0) return;
+            ItemPlan i = (ItemPlan)lstItems.Items[lstItems.SelectedIndices[0]].Tag;
+            try
+            {
+                vegas.Transport.CursorPosition = Timecode.FromMilliseconds(i.Inicio * 1000);
+                vegas.Transport.SelectionStart = Timecode.FromMilliseconds(i.Inicio * 1000);
+                vegas.Transport.SelectionLength = Timecode.FromMilliseconds(Math.Max(0.1, i.Duracion) * 1000);
+            }
+            catch { }
+        };
+        btnPedir.Click += delegate { Pedir(); };
+        btnGuion.Click += delegate { ExportarGuion(true); };
+        btnAplicar.Click += delegate { Aplicar(); };
+        btnCerrar.Click += delegate { Close(); };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; else GuardarElecciones(); };
+
+        plan = LogicaPlan.Cargar(vegas.Project.FilePath, inf.M.Duracion, inf.Reglas.PPM);
+        Mostrar();
+        if (plan != null)
+            Estado("Plan guardado del " + (plan.Generado.Length > 0 ? plan.Generado : "proyecto") + ". \u00abPedir a Gemini\u00bb hace uno nuevo." +
+                   (LogicaPlan.Aplicado(vegas.Project.FilePath) != null ? " Ya se aplic\u00f3 una vez." : ""), false);
+        else if (String.IsNullOrEmpty(config.GeminiClave))
+            Estado("Falta la clave de Gemini: ejecuta \u00abConfigurarVegasCut\u00bb.", true);
+        else Estado("Pulsa \u00abPedir a Gemini\u00bb.", false);
+        if (trans == null)
+            Estado("Este proyecto no tiene transcripci\u00f3n: Gemini no sabr\u00eda qu\u00e9 se dice. Ejecuta Transcribir primero.", true);
+        else if (!trans.TieneFuentes)
+            Estado("La transcripci\u00f3n es de una versi\u00f3n vieja (sin fuentes): con el gancho al inicio dejar\u00eda de seguir al video. " +
+                   "Vuelve a transcribir este proyecto antes de aplicar.", true);
+    }
+
+    static string Nombre(Track t) { return String.IsNullOrEmpty(t.Name) ? "la pista " + (t.Index + 1) : t.Name; }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void Mostrar()
+    {
+        cargando = true;
+        lstItems.Items.Clear();
+        bool hay = plan != null;
+        btnAplicar.Enabled = btnGuion.Enabled = hay;
+        lblResumen.Text = hay ? plan.Resumen + (plan.Estructura.Length > 0 ? "\n" + plan.Estructura : "") : "";
+        if (hay)
+            foreach (ItemPlan i in plan.Items)
+            {
+                string tiempo = i.Tipo == "avance" ? Formato.Tiempo(i.Inicio) : Formato.Tiempo(i.Inicio) + "\u2013" + Formato.Tiempo(i.Fin);
+                ListViewItem it = new ListViewItem(tiempo);
+                string que = LogicaPlan.NombreTipo(i.Tipo) + (i.Id.Length > 0 ? " " + i.Id : "");
+                it.SubItems.Add(que);
+                string det = i.Texto;
+                if (i.Tipo == "narracion") det = (i.Clase.Length > 0 ? "(" + i.Clase + ") " : "") + "\u00ab" + i.Texto + "\u00bb";
+                else if (i.Tipo == "recurso") det = i.Clase + ": " + i.Texto;
+                else if (i.Tipo == "recorte") det = (i.Clase == "acelerar" ? "Acelerar: " : "Quitar: ") + i.Texto;
+                else if (i.Tipo == "seccion" && i.Detalle.Length > 0) det = i.Texto + " \u2014 " + i.Detalle;
+                else if (i.Tipo == "gancho") det = "Copiar al inicio: " + i.Texto;
+                it.SubItems.Add(det);
+                it.Checked = i.Elegido;
+                it.ForeColor = i.Tipo == "narracion" ? Tema.Voz : i.Tipo == "recorte" ? Tema.Silencio :
+                               i.Tipo == "gancho" || i.Tipo == "avance" ? Tema.Acento : Tema.Texto;
+                it.Tag = i;
+                lstItems.Items.Add(it);
+            }
+        cargando = false;
+        chipGancho.Enabled = hay && plan.Gancho != null;
+        if (hay && plan.Gancho == null) chipGancho.Activo = false;
+    }
+
+    void Habilitar(bool si)
+    {
+        foreach (Control c in new Control[] { btnPedir, btnAplicar, btnGuion, btnCerrar, lstItems, txtIndicaciones }) c.Enabled = si;
+    }
+
+    void Pedir()
+    {
+        if (String.IsNullOrEmpty(config.GeminiClave)) { Estado("Falta la clave de Gemini: ejecuta \u00abConfigurarVegasCut\u00bb.", true); return; }
+        string instr = LogicaPlan.Instrucciones(formato, serie != null ? serie.Tipo : "Gameplay", papel, inf.Reglas);
+        string msg = LogicaPlan.Mensaje(trans, inf.M.Duracion, inf, serie != null ? Serie.Contexto(serie, caps) : "",
+                                        LogicaPlan.Anteriores(caps), txtIndicaciones.Text, LogicaPlan.Pausas(trans, inf.M.Duracion, 2.5));
+        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        double dur = inf.M.Duracion;
+        int ppm = inf.Reglas.PPM;
+        trabajando = true;
+        Habilitar(false);
+        Estado("Gemini est\u00e1 armando la estructura (puede tardar un minuto)\u2026", false);
+        Thread hilo = new Thread(delegate ()
+        {
+            string respuesta = null, error = null;
+            try { respuesta = Gemini.Generar(clave, modelo, instr, msg, true); }
+            catch (Exception ex) { error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    Habilitar(true);
+                    if (error != null) { Estado("Gemini: " + error, true); return; }
+                    try
+                    {
+                        plan = LogicaPlan.Leer(respuesta, dur, ppm);
+                        plan.Generado = DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " \u00b7 " + modelo;
+                        GuardarElecciones();
+                        Mostrar();
+                        Estado("\u2714 " + Contar() + ". Desmarca lo que no quieras y pulsa \u00abAplicar al proyecto\u00bb.", false);
+                    }
+                    catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+
+    string Contar()
+    {
+        List<string> l = new List<string>();
+        foreach (string t in LogicaPlan.Tipos)
+        {
+            int n = plan.De(t).Count;
+            if (n > 0) l.Add(n + " " + LogicaPlan.NombreTipo(t).ToLowerInvariant() + (n == 1 ? "" : t == "seccion" ? "es" : t == "narracion" ? "es" : "s"));
+        }
+        return String.Join(", ", l.ToArray());
+    }
+
+    void GuardarElecciones()
+    {
+        if (plan == null) return;
+        try { LogicaPlan.Guardar(vegas.Project.FilePath, plan, null); } catch { }
+    }
+
+    string RutaGuion()
+    {
+        string veg = vegas.Project.FilePath;
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-guion.txt");
+    }
+
+    void ExportarGuion(bool abrir)
+    {
+        if (plan == null) return;
+        object ap = LogicaPlan.Aplicado(vegas.Project.FilePath);
+        double corr = ap != null ? Json.Numero(ap, "corrimiento", 0) : LogicaPlan.Corrimiento(plan, chipGancho.Activo);
+        try
+        {
+            File.WriteAllText(RutaGuion(), LogicaPlan.Guion(plan, Path.GetFileNameWithoutExtension(vegas.Project.FilePath), corr, inf.Reglas.PPM),
+                              new UTF8Encoding(true));
+            if (abrir) try { System.Diagnostics.Process.Start(RutaGuion()); } catch { }
+            Estado("Guion guardado: " + RutaGuion(), false);
+        }
+        catch (Exception ex) { Estado("No se pudo guardar el guion: " + ex.Message, true); }
+    }
+
+    void Aplicar()
+    {
+        if (plan == null || trabajando) return;
+        if (LogicaPlan.Aplicado(vegas.Project.FilePath) != null &&
+            MessageBox.Show(this, "Este plan ya se aplic\u00f3. Si lo aplicas otra vez se agregan de nuevo la narraci\u00f3n, los avances y los " +
+                            "placeholders (y se corre otra vez el video si hay gancho). Lo normal es deshacer antes con Ctrl+Z.\n\n\u00bfAplicar de todos modos?",
+                            "Estructura y narraci\u00f3n", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+        OpcionesPlan op = new OpcionesPlan();
+        op.Gancho = chipGancho.Activo && chipGancho.Enabled;
+        op.Narracion = chipNarracion.Activo && formato.Narrador;
+        op.Bajar = chipBajar.Activo && formato.Narrador;
+        op.Avances = chipAvances.Activo && chipAvances.Enabled;
+        op.Placeholders = chipPlaceholders.Activo;
+        op.Regiones = chipRegiones.Activo;
+
+        ISintetizador voz = null;
+        if (op.Narracion) try { voz = new SintetizadorWindows(); } catch { voz = null; }
+
+        trabajando = true;
+        Habilitar(false);
+        ResultadoPlan r;
+        try
+        {
+            using (UndoBlock u = new UndoBlock("Estructura y narraci\u00f3n"))
+                r = AplicarPlan.Aplicar(vegas, plan, op, voz, inf.Reglas.PPM, trans, plantilla, formato.NarradorNombre, delegate (string t, double f)
+                {
+                    Estado(t, false);
+                    Application.DoEvents();
+                });
+        }
+        catch (Exception ex)
+        {
+            trabajando = false;
+            Habilitar(true);
+            Estado("No se pudo aplicar: " + ex.Message, true);
+            return;
+        }
+        trabajando = false;
+        Habilitar(true);
+        Aplicado = true;
+        Dictionary<string, object> extra = new Dictionary<string, object>();
+        extra["aplicado"] = r.Aplicado;
+        try { LogicaPlan.Guardar(vegas.Project.FilePath, plan, extra); } catch { }
+        ExportarGuion(false);
+        Estado(r.Texto() + " Guion en " + Path.GetFileName(RutaGuion()) + "." +
+               (r.Avisos.Count > 0 ? " " + String.Join(" ", r.Avisos.ToArray()) : "") + " Ctrl+Z lo deshace todo.", r.Avisos.Count > 0);
+    }
+}
+
+// ---- src/pulir/LogicaPlan.cs ----
+
+// =====================================================================
+// PulirEpisodio, parte 2: plan de estructura y narracion con Gemini
+//
+// Gemini recibe lo que se dice en el video (con los tiempos actuales), las
+// pausas donde cabe narracion, el informe de ritmo y el contexto de la
+// serie (formato, premisa, papel del capitulo, capitulos anteriores y como
+// abrieron) y propone: un gancho al inicio, las secciones, la narracion
+// (frases medidas a la velocidad del narrador), los avances en pantalla
+// ("Dia 3"), los recursos que faltan (placeholders) y que recortar.
+// =====================================================================
+
+public class ItemPlan
+{
+    public string Tipo = "";        // gancho, seccion, narracion, avance, recurso, recorte
+    public double Inicio, Fin;      // en la linea de tiempo de antes de aplicar
+    public string Texto = "", Detalle = "", Clase = "";
+    public string Id = "";          // N01 (narracion), R01 (recurso)
+    public bool Elegido = true;
+    public double Duracion { get { return Fin - Inicio; } }
+}
+
+public class Plan
+{
+    public string Resumen = "", Estructura = "", Respuesta = "", Generado = "";
+    public List<ItemPlan> Items = new List<ItemPlan>();
+
+    public List<ItemPlan> De(string tipo)
+    {
+        List<ItemPlan> r = new List<ItemPlan>();
+        foreach (ItemPlan i in Items) if (i.Tipo == tipo) r.Add(i);
+        return r;
+    }
+
+    public ItemPlan Gancho { get { List<ItemPlan> g = De("gancho"); return g.Count > 0 ? g[0] : null; } }
+}
+
+public static class LogicaPlan
+{
+    static string S(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
+
+    public static readonly string[] Tipos = { "gancho", "seccion", "narracion", "avance", "recurso", "recorte" };
+
+    public static string NombreTipo(string t)
+    {
+        switch (t)
+        {
+            case "gancho": return "Gancho";
+            case "seccion": return "Secci\u00f3n";
+            case "narracion": return "Narraci\u00f3n";
+            case "avance": return "Avance";
+            case "recurso": return "Recurso";
+            case "recorte": return "Recorte";
+            default: return t;
+        }
+    }
+
+    // Segundos que tarda en decirse un texto a "ppm" palabras por minuto.
+    public static int Palabras(string texto)
+    {
+        int n = 0;
+        foreach (string p in (texto ?? "").Split(new char[] { ' ', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries))
+            if (p.Trim(',', '.', ';', ':', '\u00a1', '!', '\u00bf', '?', '"', '\u2026', '-').Length > 0) n++;
+        return n;
+    }
+
+    public static double Segundos(string texto, int ppm) { return Palabras(texto) * 60.0 / Math.Max(60, ppm) + 0.35; }
+
+    // Pausas sin nadie hablando (en la linea de tiempo actual) de al menos "minimo" segundos.
+    public static List<Rango> Pausas(Transcripcion t, double duracion, double minimo)
+    {
+        List<Rango> voz = new List<Rango>();
+        if (t != null)
+            foreach (Segmento s in t.SegmentosActuales())
+                if (s.Fin > s.Inicio) voz.Add(new Rango(s.Inicio, s.Fin));
+        voz = Rangos.Unir(voz, 0.25);
+        List<Rango> r = new List<Rango>();
+        double cursor = 0;
+        foreach (Rango v in voz)
+        {
+            if (v.Inicio - cursor >= minimo) r.Add(new Rango(cursor, v.Inicio));
+            cursor = Math.Max(cursor, v.Fin);
+        }
+        if (duracion - cursor >= minimo) r.Add(new Rango(cursor, duracion));
+        return r;
+    }
+
+    // ------------------------------------------------------------ prompt
+
+    public static string Instrucciones(FormatoSerie f, string tipo, string papel, ReglasRitmo r)
+    {
+        string narrador = f.Narrador
+            ? "- NARRACI\u00d3N: frases del narrador (" + f.NarradorNombre + ") que van encima del video. Estilo: " +
+              (f.EstiloNarrador.Trim().Length > 0 ? f.EstiloNarrador.Trim() : "cercano, en pasado, con humor") + ".\n" +
+              "  \u00b7 Habla a " + r.PPM + " palabras por minuto: una frase de N palabras dura N\u00d760/" + r.PPM + " s. Cada frase de 4 a 30 " +
+              "palabras; pon \"inicio\" y calcula \"fin\" con esa velocidad.\n" +
+              "  \u00b7 Que nunca pasen m\u00e1s de " + r.NarradorCadaSeg + " s sin narrador (salvo un momento que se cuente solo).\n" +
+              "  \u00b7 Ponlas en las PAUSAS (donde nadie habla). Si no hay pausa, encima de charla sin importancia (el juego se baja " +
+              "mientras narras). Nunca encima de un chiste o una frase clave.\n" +
+              "  \u00b7 Obligatorias: la primera frase entre 0 y 7 s (gancho: promete lo mejor del episodio sin contarlo); contexto " +
+              "antes de los 30 s (de qu\u00e9 va la serie o d\u00f3nde qued\u00f3); un \"re-gancho\" antes de " + Formato.Tiempo(r.ZonaCriticaSeg) +
+              " (anticipa algo que viene); una invitaci\u00f3n corta a suscribirse en el minuto 1 a 3 (tipo \"cta\"); y una frase " +
+              "final que deje un pendiente para el siguiente cap\u00edtulo (tipo \"adelanto\"), salvo que sea el final de la serie.\n" +
+              "  \u00b7 Usa ganchos de anticipaci\u00f3n (\"lo cual no fue la mejor idea\", \"esto nos iba a costar caro\").\n"
+            : "- NARRACI\u00d3N: esta serie no lleva narrador; deja \"narracion\" vac\u00edo y usa textos en pantalla (recursos tipo texto).\n";
+        string avance = f.Avance == "Ninguno" ? "" :
+            "- AVANCES: d\u00f3nde poner en pantalla \"" + f.Avance + "\" (cuando cambia el d\u00eda, la parte o la etapa seg\u00fan lo que " +
+            "dicen). Texto exacto, por ejemplo \"" + f.Marca(1) + "\".\n";
+        return "Eres editor de " + Serie.QueEs(tipo) +
+               ". Recibes un episodio YA CORTADO y propones c\u00f3mo estructurarlo para que la gente se quede hasta el final.\n\n" +
+               "FORMATO: " + f.Nombre + (FormatoSerie.Objetivo(f.Nombre).Length > 0 ? " (" + FormatoSerie.Objetivo(f.Nombre) + ")" : "") + "\n" +
+               "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
+               "DURACI\u00d3N OBJETIVO: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min.\n\n" +
+               "Prop\u00f3n:\n" +
+               "- GANCHO: un momento fuerte del video (3 a 8 s, con inicio y fin de la transcripci\u00f3n) para mostrar al inicio, antes " +
+               "de todo, como avance. Que no cuente el final. Puede ser null.\n" +
+               "- SECCIONES: los bloques del episodio en orden (inicio, fin, nombre corto, para qu\u00e9 sirve).\n" +
+               narrador + avance +
+               "- RECURSOS: im\u00e1genes, memes, efectos o textos que faltan, sobre todo en los valles del informe y en la zona cr\u00edtica " +
+               "(unos " + r.RecursosPorMin + " por minuto donde haya pocos). Cada uno con \"clase\" (imagen, meme, efecto, texto, zoom), " +
+               "duraci\u00f3n de 1 a 5 s, una descripci\u00f3n concreta de qu\u00e9 mostrar y un nombre de archivo corto sugerido.\n" +
+               "- RECORTES: si dura m\u00e1s que el objetivo o hay tramos largos sin inter\u00e9s (exploraci\u00f3n sola, peleas largas), qu\u00e9 quitar " +
+               "o acelerar (accion \"quitar\" o \"acelerar\") y por qu\u00e9.\n\n" +
+               "No repitas la forma de abrir de los cap\u00edtulos anteriores (se indica en el contexto). Usa solo tiempos dentro del video.\n\n" +
+               "Responde SOLO con JSON:\n" +
+               "{\"resumen\": \"el episodio en 2 frases\", \"estructura\": \"c\u00f3mo abre, avanza y cierra, en una frase\",\n" +
+               " \"gancho\": {\"inicio\": s, \"fin\": s, \"motivo\": \"...\"} o null,\n" +
+               " \"secciones\": [{\"inicio\": s, \"fin\": s, \"nombre\": \"...\", \"proposito\": \"...\"}],\n" +
+               " \"narracion\": [{\"inicio\": s, \"fin\": s, \"texto\": \"...\", \"tipo\": \"gancho|contexto|avance|re-gancho|cta|transicion|cierre|adelanto\"}],\n" +
+               " \"avances\": [{\"inicio\": s, \"texto\": \"" + (f.Avance == "Ninguno" ? "..." : f.Marca(2)) + "\"}],\n" +
+               " \"recursos\": [{\"inicio\": s, \"duracion\": s, \"clase\": \"imagen|meme|efecto|texto|zoom\", \"descripcion\": \"...\", \"archivo\": \"...\"}],\n" +
+               " \"recortes\": [{\"inicio\": s, \"fin\": s, \"accion\": \"quitar|acelerar\", \"motivo\": \"...\"}]}";
+    }
+
+    public static string Mensaje(Transcripcion t, double duracion, Informe inf, string contextoSerie, string anteriores,
+                                 string indicaciones, List<Rango> pausas)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Duraci\u00f3n del video: " + S(duracion) + " s (" + Formato.Tiempo(duracion) + ")\n");
+        if (!String.IsNullOrEmpty(contextoSerie)) sb.Append("\nCONTEXTO DE LA SERIE:\n" + contextoSerie.Trim() + "\n");
+        if (!String.IsNullOrEmpty(anteriores)) sb.Append("\nC\u00d3MO ABRIERON Y CERRARON LOS CAP\u00cdTULOS ANTERIORES (no repetir):\n" + anteriores.Trim() + "\n");
+        if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR:\n" + indicaciones.Trim() + "\n");
+        if (inf != null) sb.Append("\nINFORME DE RITMO:\n" + LogicaPulir.Texto(inf));
+        sb.Append("\nPAUSAS (nadie habla) [inicio-fin]:\n");
+        foreach (Rango p in pausas) sb.Append("[" + S(p.Inicio) + "-" + S(p.Fin) + "] ");
+        sb.Append("\n\nTRANSCRIPCI\u00d3N (tiempos del video actual) [inicio-fin] persona: texto\n");
+        if (t != null)
+            foreach (Segmento s in t.SegmentosActuales())
+            {
+                if (String.IsNullOrEmpty(s.Texto)) continue;
+                string quien = s.Hablante >= 0 && s.Hablante < t.Hablantes.Count ? t.Hablantes[s.Hablante].Nombre : "?";
+                sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + quien + ": " + s.Texto + "\n");
+            }
+        return sb.ToString();
+    }
+
+    // "S01E01: abre con ... \u00b7 cierra con ..." de las fichas de los capitulos anteriores.
+    public static string Anteriores(List<CapSerie> caps)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (CapSerie c in caps)
+        {
+            if (c.Relacion >= 0) continue;
+            Ficha f = Ficha.Cargar(c.Veg);
+            if (f != null && f.Estructura.Trim().Length > 0) sb.Append("- " + c.Nombre + ": " + f.Estructura.Trim() + "\n");
+        }
+        return sb.ToString();
+    }
+
+    // ----------------------------------------------------------- respuesta
+
+    static double Num(object x, string k, double siNo) { return Json.Numero(x, k, siNo); }
+
+    public static Plan Leer(string json, double duracion, int ppm)
+    {
+        Plan p = new Plan();
+        p.Respuesta = json;
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        p.Resumen = Json.Texto(o, "resumen");
+        p.Estructura = Json.Texto(o, "estructura");
+
+        object g = Json.Valor(o, "gancho");
+        if (g is Dictionary<string, object>)
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "gancho";
+            i.Inicio = Num(g, "inicio", -1); i.Fin = Num(g, "fin", -1);
+            i.Texto = Json.Texto(g, "motivo");
+            if (i.Inicio >= 0 && i.Fin > i.Inicio + 0.5 && i.Fin <= duracion + 0.5)
+            {
+                if (i.Duracion > 10) i.Fin = i.Inicio + 10;
+                p.Items.Add(i);
+            }
+        }
+        foreach (object x in Json.Lista(o, "secciones"))
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "seccion";
+            i.Inicio = Num(x, "inicio", -1); i.Fin = Num(x, "fin", -1);
+            i.Texto = Json.Texto(x, "nombre"); i.Detalle = Json.Texto(x, "proposito");
+            if (i.Inicio >= 0 && i.Fin > i.Inicio && i.Texto.Length > 0) { i.Fin = Math.Min(i.Fin, duracion); p.Items.Add(i); }
+        }
+        List<ItemPlan> narr = new List<ItemPlan>();
+        foreach (object x in Json.Lista(o, "narracion"))
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "narracion";
+            i.Inicio = Num(x, "inicio", -1);
+            i.Texto = Json.Texto(x, "texto").Trim();
+            i.Clase = Json.Texto(x, "tipo");
+            if (i.Inicio < 0 || i.Inicio > duracion || Palabras(i.Texto) == 0) continue;
+            i.Fin = i.Inicio + Segundos(i.Texto, ppm);
+            narr.Add(i);
+        }
+        Acomodar(narr, duracion);
+        for (int k = 0; k < narr.Count; k++) narr[k].Id = "N" + (k + 1).ToString("00");
+        p.Items.AddRange(narr);
+        foreach (object x in Json.Lista(o, "avances"))
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "avance";
+            i.Inicio = Num(x, "inicio", -1); i.Texto = Json.Texto(x, "texto").Trim();
+            i.Fin = i.Inicio + 3;
+            if (i.Inicio >= 0 && i.Inicio < duracion && i.Texto.Length > 0) p.Items.Add(i);
+        }
+        int nr = 0;
+        foreach (object x in Json.Lista(o, "recursos"))
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "recurso";
+            i.Inicio = Num(x, "inicio", -1);
+            i.Fin = i.Inicio + Math.Max(1, Math.Min(6, Num(x, "duracion", 3)));
+            i.Clase = Json.Texto(x, "clase");
+            i.Texto = Json.Texto(x, "descripcion").Trim();
+            i.Detalle = Limpio(Json.Texto(x, "archivo"));
+            if (i.Inicio < 0 || i.Inicio >= duracion || i.Texto.Length == 0) continue;
+            i.Fin = Math.Min(i.Fin, duracion);
+            i.Id = "R" + (++nr).ToString("00");
+            p.Items.Add(i);
+        }
+        foreach (object x in Json.Lista(o, "recortes"))
+        {
+            ItemPlan i = new ItemPlan();
+            i.Tipo = "recorte";
+            i.Inicio = Num(x, "inicio", -1); i.Fin = Num(x, "fin", -1);
+            i.Clase = Json.Texto(x, "accion") == "acelerar" ? "acelerar" : "quitar";
+            i.Texto = Json.Texto(x, "motivo");
+            if (i.Inicio >= 0 && i.Fin > i.Inicio + 1) { i.Fin = Math.Min(i.Fin, duracion); p.Items.Add(i); }
+        }
+        p.Items.Sort(delegate (ItemPlan a, ItemPlan b)
+        {
+            int c = a.Inicio.CompareTo(b.Inicio);
+            return c != 0 ? c : Array.IndexOf(Tipos, a.Tipo).CompareTo(Array.IndexOf(Tipos, b.Tipo));
+        });
+        // El gancho va primero siempre.
+        ItemPlan gancho = p.Gancho;
+        if (gancho != null) { p.Items.Remove(gancho); p.Items.Insert(0, gancho); }
+        return p;
+    }
+
+    static string Limpio(string archivo)
+    {
+        string r = archivo ?? "";
+        foreach (char c in Path.GetInvalidFileNameChars()) r = r.Replace(c, '_');
+        r = r.Replace('\\', '_').Replace('/', '_').Trim();
+        if (r.Contains(".")) r = r.Substring(0, r.LastIndexOf('.'));
+        return r.Length > 40 ? r.Substring(0, 40) : r;
+    }
+
+    // Que las frases no se encimen: si una empieza antes de que termine la
+    // anterior, se corre; si ya no cabe en el video, se quita.
+    public static void Acomodar(List<ItemPlan> narr, double duracion)
+    {
+        narr.Sort(delegate (ItemPlan a, ItemPlan b) { return a.Inicio.CompareTo(b.Inicio); });
+        double fin = 0;
+        for (int k = 0; k < narr.Count; k++)
+        {
+            ItemPlan i = narr[k];
+            double largo = i.Duracion;
+            if (i.Inicio < fin + 0.2) i.Inicio = fin + 0.2;
+            i.Fin = i.Inicio + largo;
+            if (i.Fin > duracion + 0.5) { narr.RemoveAt(k); k--; continue; }
+            fin = i.Fin;
+        }
+    }
+
+    // Lo que hay que correr cada tiempo si se pone el gancho al inicio.
+    public static double Corrimiento(Plan p, bool conGancho)
+    {
+        ItemPlan g = p.Gancho;
+        return conGancho && g != null && g.Elegido ? Math.Round(g.Duracion + 0.5, 3) : 0;
+    }
+
+    // ---------------------------------------------------------- guion
+
+    public static string Guion(Plan p, string proyecto, double corrimiento, int ppm)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("GUION DE NARRACI\u00d3N \u00b7 " + proyecto + "\n");
+        sb.Append("Lee de corrido, con una pausa corta entre frases. Si una sale mal, rep\u00edtela entera: se usa la \u00faltima toma.\n");
+        sb.Append("Velocidad objetivo: " + ppm + " palabras por minuto.\n\n");
+        foreach (ItemPlan i in p.Items)
+        {
+            if (i.Tipo != "narracion" || !i.Elegido) continue;
+            sb.Append(i.Id + "  [" + Formato.TiempoPreciso(i.Inicio + corrimiento) + "]" + (i.Clase.Length > 0 ? " (" + i.Clase + ")" : "") + "\n");
+            sb.Append("    " + i.Texto + "\n\n");
+        }
+        List<ItemPlan> rec = p.De("recurso");
+        if (rec.Count > 0)
+        {
+            sb.Append("\nRECURSOS (nombra el archivo empezando con su c\u00f3digo, por ejemplo \"R01 algo.png\")\n");
+            foreach (ItemPlan i in rec)
+                if (i.Elegido)
+                    sb.Append(i.Id + "  [" + Formato.Tiempo(i.Inicio + corrimiento) + "] " + i.Clase + ": " + i.Texto +
+                              (i.Detalle.Length > 0 ? "  \u2192 " + i.Id + " " + i.Detalle : "") + "\n");
+        }
+        return sb.ToString();
+    }
+
+    // ------------------------------------------------- guardar y cargar
+
+    public static string RutaPara(string veg)
+    {
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-plan.json");
+    }
+
+    public static void Guardar(string veg, Plan p, Dictionary<string, object> extra)
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["generado"] = p.Generado;
+        d["respuesta"] = p.Respuesta;
+        List<object> fuera = new List<object>();
+        foreach (ItemPlan i in p.Items) if (!i.Elegido) fuera.Add(i.Tipo + "|" + S(i.Inicio) + "|" + i.Texto);
+        d["descartados"] = fuera;
+        // Lo aplicado antes se conserva (sirve para reemplazar la narracion y los placeholders).
+        object previo = Aplicado(veg);
+        if (previo != null) d["aplicado"] = previo;
+        if (extra != null) foreach (KeyValuePair<string, object> kv in extra) d[kv.Key] = kv.Value;
+        File.WriteAllText(RutaPara(veg), Json.Escribir(d), new UTF8Encoding(false));
+    }
+
+    public static Plan Cargar(string veg, double duracion, int ppm)
+    {
+        try
+        {
+            string r = RutaPara(veg);
+            if (!File.Exists(r)) return null;
+            object o = Json.Leer(File.ReadAllText(r, Encoding.UTF8));
+            Plan p = Leer(Json.Texto(o, "respuesta"), duracion, ppm);
+            p.Generado = Json.Texto(o, "generado");
+            List<string> fuera = new List<string>();
+            foreach (object x in Json.Lista(o, "descartados")) if (x is string) fuera.Add((string)x);
+            foreach (ItemPlan i in p.Items) if (fuera.Contains(i.Tipo + "|" + S(i.Inicio) + "|" + i.Texto)) i.Elegido = false;
+            return p;
+        }
+        catch { return null; }
+    }
+
+    // Lo que ya se aplico (narracion y placeholders), para "Reemplazar".
+    public static object Aplicado(string veg)
+    {
+        try
+        {
+            string r = RutaPara(veg);
+            return File.Exists(r) ? Json.Obj(Json.Leer(File.ReadAllText(r, Encoding.UTF8)), "aplicado") : null;
+        }
+        catch { return null; }
+    }
+}
+
+// ---- src/pulir/AplicarPlan.cs ----
+
+// =====================================================================
+// Pone el plan en la linea de tiempo: gancho al inicio, regiones de
+// secciones y recortes, avances ("Dia 3"), placeholders de recursos y la
+// narracion provisional con el juego bajado mientras suena.
+// =====================================================================
+
+public class OpcionesPlan
+{
+    public bool Gancho = true, Regiones = true, Avances = true, Placeholders = true, Narracion = true, Bajar = true;
+    public int BajaDb = -10;
+}
+
+public class ResultadoPlan
+{
+    public int Narraciones, Avances, Placeholders, Regiones, Copiados;
+    public double Corrimiento, SegundosNarracion;
+    public List<string> Avisos = new List<string>();
+    public Dictionary<string, object> Aplicado = new Dictionary<string, object>();
+
+    public string Texto()
+    {
+        List<string> l = new List<string>();
+        if (Corrimiento > 0) l.Add("gancho de " + Formato.Tiempo(Corrimiento) + " al inicio");
+        if (Narraciones > 0) l.Add(Narraciones + " frases de narraci\u00f3n (" + Formato.Tiempo(SegundosNarracion) + ")");
+        if (Avances > 0) l.Add(Avances + " avances");
+        if (Placeholders > 0) l.Add(Placeholders + " placeholders");
+        if (Regiones > 0) l.Add(Regiones + " regiones");
+        return l.Count == 0 ? "No se aplic\u00f3 nada." : "\u2714 " + String.Join(", ", l.ToArray()) + ".";
+    }
+}
+
+public static class AplicarPlan
+{
+    public const string PistaNarracion = RitmoVegas.PistaNarracion;
+    public const string PistaAvances = "vegas-cut \u00b7 Avances";
+    public const string PistaPlaceholders = "vegas-cut \u00b7 Placeholders";
+    static readonly string[] Prefijos = { "GANCHO", "SECCI\u00d3N \u00b7 ", "RECORTAR \u00b7 ", "ACELERAR \u00b7 " };
+
+    static Timecode TC(double s) { return Timecode.FromMilliseconds(s * 1000); }
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+
+    public static ResultadoPlan Aplicar(Vegas vegas, Plan plan, OpcionesPlan op, ISintetizador voz, int ppm,
+                                        Transcripcion t, VideoEvent plantilla, Action<string, double> estado)
+    {
+        return Aplicar(vegas, plan, op, voz, ppm, t, plantilla, "Narrador", estado);
+    }
+
+    public static ResultadoPlan Aplicar(Vegas vegas, Plan plan, OpcionesPlan op, ISintetizador voz, int ppm,
+                                        Transcripcion t, VideoEvent plantilla, string narrador, Action<string, double> estado)
+    {
+        Project p = vegas.Project;
+        ResultadoPlan r = new ResultadoPlan();
+        double corr = LogicaPlan.Corrimiento(plan, op.Gancho);
+
+        // 1. Gancho: se corre todo y se copia ese momento al inicio.
+        if (corr > 0)
+        {
+            estado("Poniendo el gancho al inicio\u2026", 0.02);
+            ItemPlan g = plan.Gancho;
+            Editor.Desplazar(p, corr);
+            r.Copiados = CopiarTramo(p, g.Inicio + corr, g.Fin + corr, 0);
+            r.Corrimiento = corr;
+        }
+
+        // 2. Regiones (se quitan las de un plan anterior).
+        if (op.Regiones)
+        {
+            QuitarRegiones(p);
+            if (corr > 0) { p.Regions.Add(new Region(TC(0), TC(corr - 0.5), "GANCHO")); r.Regiones++; }
+            foreach (ItemPlan i in plan.Items)
+            {
+                if (!i.Elegido) continue;
+                string etiqueta = i.Tipo == "seccion" ? "SECCI\u00d3N \u00b7 " + i.Texto
+                                : i.Tipo == "recorte" ? (i.Clase == "acelerar" ? "ACELERAR \u00b7 " : "RECORTAR \u00b7 ") + i.Texto : null;
+                if (etiqueta == null) continue;
+                p.Regions.Add(new Region(TC(i.Inicio + corr), TC(i.Duracion), etiqueta));
+                r.Regiones++;
+            }
+        }
+
+        // 3. Avances en pantalla con el estilo del texto que ya uses.
+        if (op.Avances)
+        {
+            List<ItemPlan> avs = Elegidos(plan, "avance");
+            if (avs.Count > 0)
+            {
+                Plantilla pt = GeneradorTexto.Buscar(vegas);
+                VideoTrack pista = PistaVideo(p, PistaAvances);
+                foreach (ItemPlan i in avs)
+                {
+                    try { GeneradorTexto.Crear(pista, pt, i.Inicio + corr, 3, i.Texto); r.Avances++; }
+                    catch (Exception ex) { r.Avisos.Add("Avance \u00ab" + i.Texto + "\u00bb: " + ex.Message); break; }
+                }
+            }
+        }
+
+        // 4. Placeholders: copia del evento plantilla (efectos, movimiento y
+        // fundidos) con un texto que dice que va ahi.
+        List<object> phs = new List<object>();
+        if (op.Placeholders)
+        {
+            List<ItemPlan> recs = Elegidos(plan, "recurso");
+            if (recs.Count > 0)
+            {
+                Plantilla etiqueta = GeneradorTexto.PorDefecto(vegas);
+                VideoTrack pista = PistaVideo(p, PistaPlaceholders);
+                foreach (ItemPlan i in recs)
+                {
+                    string texto = "[" + i.Id + "] " + (i.Clase.Length > 0 ? i.Clase.ToUpperInvariant() + ": " : "") + i.Texto;
+                    try
+                    {
+                        if (plantilla != null)
+                        {
+                            TrackEvent copia = plantilla.Copy(pista, TC(i.Inicio + corr));
+                            copia.Length = TC(i.Duracion);
+                            Media m = GeneradorTexto.Medio(etiqueta, texto);
+                            copia.AddTake(m.Streams.GetItemByMediaType(MediaType.Video, 0), true);
+                        }
+                        else
+                            GeneradorTexto.Crear(pista, etiqueta, i.Inicio + corr, i.Duracion, texto);
+                        r.Placeholders++;
+                        Dictionary<string, object> d = new Dictionary<string, object>();
+                        d["id"] = i.Id; d["inicio"] = Math.Round(i.Inicio + corr, 3); d["clase"] = i.Clase;
+                        d["descripcion"] = i.Texto; d["archivo"] = i.Detalle;
+                        phs.Add(d);
+                    }
+                    catch (Exception ex) { r.Avisos.Add("Placeholder " + i.Id + ": " + ex.Message); break; }
+                }
+            }
+        }
+        r.Aplicado["placeholders"] = phs;
+
+        // 5. Narracion provisional y el juego mas bajo mientras suena.
+        List<object> lineas = new List<object>();
+        if (op.Narracion)
+        {
+            List<ItemPlan> narr = Elegidos(plan, "narracion");
+            if (narr.Count > 0 && voz == null)
+                r.Avisos.Add("No encontr\u00e9 la voz de Windows (System.Speech): la narraci\u00f3n qued\u00f3 solo en el guion.");
+            else if (narr.Count > 0)
+            {
+                string carpeta = CarpetaNarracion(p.FilePath);
+                Directory.CreateDirectory(carpeta);
+                AudioTrack pista = PistaAudio(p, PistaNarracion);
+                List<Rango> suena = new List<Rango>();
+                int velocidad = 2;
+                for (int k = 0; k < narr.Count; k++)
+                {
+                    ItemPlan i = narr[k];
+                    estado("Narraci\u00f3n " + (k + 1) + " de " + narr.Count + " (" + voz.Nombre + ")\u2026", 0.1 + 0.8 * k / narr.Count);
+                    string wav = Path.Combine(carpeta, i.Id + ".wav");
+                    double d;
+                    try { d = VozProvisional.Generar(voz, i.Texto, LogicaPlan.Segundos(i.Texto, ppm), wav, ref velocidad); }
+                    catch (Exception ex) { r.Avisos.Add(i.Id + ": " + ex.Message); continue; }
+                    double a = i.Inicio + corr;
+                    Media m = new Media(wav);
+                    AudioEvent ev = pista.AddAudioEvent(TC(a), TC(d));
+                    ev.AddTake(m.Streams.GetItemByMediaType(MediaType.Audio, 0));
+                    suena.Add(new Rango(a, a + d));
+                    r.Narraciones++;
+                    r.SegundosNarracion += d;
+                    Dictionary<string, object> x = new Dictionary<string, object>();
+                    x["id"] = i.Id; x["texto"] = i.Texto; x["inicio"] = Math.Round(a, 3); x["fin"] = Math.Round(a + d, 3);
+                    lineas.Add(x);
+                }
+                if (op.Bajar && suena.Count > 0)
+                {
+                    estado("Bajando el juego bajo la narraci\u00f3n\u2026", 0.95);
+                    foreach (Track g in RitmoVegas.PistasGrabacion(p, t, narrador))
+                        if (g != pista) Bajar(g, suena, op.BajaDb);
+                }
+            }
+        }
+        r.Aplicado["narracion"] = lineas;
+        r.Aplicado["corrimiento"] = Math.Round(corr, 3);
+        r.Aplicado["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        return r;
+    }
+
+    static List<ItemPlan> Elegidos(Plan plan, string tipo)
+    {
+        List<ItemPlan> l = new List<ItemPlan>();
+        foreach (ItemPlan i in plan.Items) if (i.Tipo == tipo && i.Elegido) l.Add(i);
+        return l;
+    }
+
+    public static string CarpetaNarracion(string veg)
+    {
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-narracion");
+    }
+
+    static VideoTrack PistaVideo(Project p, string nombre)
+    {
+        foreach (Track t in p.Tracks) if (!t.IsAudio() && t.Name == nombre) return (VideoTrack)t;
+        VideoTrack v = new VideoTrack(0, nombre);   // arriba de todo, para que se vea encima
+        p.Tracks.Add(v);
+        return v;
+    }
+
+    static AudioTrack PistaAudio(Project p, string nombre)
+    {
+        foreach (Track t in p.Tracks) if (t.IsAudio() && t.Name == nombre) return (AudioTrack)t;
+        AudioTrack a = new AudioTrack(p.Tracks.Count, nombre);
+        p.Tracks.Add(a);
+        return a;
+    }
+
+    public static int QuitarRegiones(Project p)
+    {
+        List<Region> viejas = new List<Region>();
+        foreach (Region x in p.Regions)
+            foreach (string pre in Prefijos)
+                if ((x.Label ?? "").StartsWith(pre)) { viejas.Add(x); break; }
+        foreach (Region x in viejas) p.Regions.Remove(x);
+        return viejas.Count;
+    }
+
+    // Baja la pista mientras suena la narracion (frases muy juntas, una sola bajada).
+    static void Bajar(Track pista, List<Rango> suena, int db)
+    {
+        foreach (Rango x in Rangos.Unir(suena, 1.2))
+        {
+            double a = Math.Max(0, x.Inicio - 0.4), b = x.Fin + 0.8;
+            List<PuntoVolumen> pts = LogicaMusica.Puntos(new List<Rango> { x }, a, b, db, 0.25, 0.4);
+            LogicaMusica.Aplicar(pista, pts, a, b);
+        }
+    }
+
+    // Copia lo que hay entre a y b (todas las pistas) a "destino". Los
+    // pedazos que estaban agrupados quedan agrupados entre si.
+    public static int CopiarTramo(Project p, double a, double b, double destino)
+    {
+        List<TrackEvent> origen = new List<TrackEvent>();
+        foreach (Track t in p.Tracks)
+            foreach (TrackEvent e in t.Events)
+                if (S(e.Start) < b - 0.001 && S(e.End) > a + 0.001) origen.Add(e);
+        Dictionary<TrackEventGroup, TrackEventGroup> grupos = new Dictionary<TrackEventGroup, TrackEventGroup>();
+        int n = 0;
+        foreach (TrackEvent e in origen)
+        {
+            double ini = Math.Max(a, S(e.Start)), fin = Math.Min(b, S(e.End));
+            double recorte = ini - S(e.Start);
+            double offset = e.ActiveTake != null ? S(e.ActiveTake.Offset) : 0;
+            TrackEvent c = e.Copy(e.Track, TC(destino + ini - a));
+            c.Length = TC(fin - ini);
+            if (c.ActiveTake != null && recorte > 0) c.ActiveTake.Offset = TC(offset + recorte * e.PlaybackRate);
+            try { c.FadeIn.Length = TC(0); c.FadeOut.Length = TC(0); } catch { }
+            n++;
+            if (e.IsGrouped)
+            {
+                TrackEventGroup g;
+                if (!grupos.TryGetValue(e.Group, out g)) { g = Editor.NuevoGrupo(p); grupos[e.Group] = g; }
+                if (!c.IsGrouped) g.Add(c);
+            }
+        }
+        return n;
+    }
+
+    // ------------------------------------------------- reemplazar placeholders
+
+    // Archivo de la carpeta (o una subcarpeta) cuyo nombre empieza con el
+    // codigo: "R03 cadaver de steve.png", "r03.jpg"...
+    public static string Buscar(List<string> archivos, string id)
+    {
+        foreach (string f in archivos)
+        {
+            string n = Path.GetFileNameWithoutExtension(f);
+            if (n.Length < id.Length || !n.StartsWith(id, StringComparison.OrdinalIgnoreCase)) continue;
+            if (n.Length == id.Length || !char.IsDigit(n[id.Length])) return f;
+        }
+        return null;
+    }
+
+    static readonly string[] Extensiones = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".mp4", ".mov", ".mkv", ".webm", ".avi" };
+
+    public static List<string> Archivos(string carpeta)
+    {
+        List<string> l = new List<string>();
+        try
+        {
+            foreach (string f in Directory.GetFiles(carpeta, "*", SearchOption.AllDirectories))
+                if (Array.IndexOf(Extensiones, Path.GetExtension(f).ToLowerInvariant()) >= 0) l.Add(f);
+        }
+        catch { }
+        l.Sort(StringComparer.OrdinalIgnoreCase);
+        return l;
+    }
+
+    // Pone el archivo real como toma activa de cada placeholder que lo tenga
+    // (conserva efectos, movimiento y fundidos). Devuelve los que faltan.
+    public static int ReemplazarPlaceholders(Project p, string carpeta, List<string> faltan)
+    {
+        List<string> archivos = Archivos(carpeta);
+        int n = 0;
+        foreach (Track t in p.Tracks)
+        {
+            if (t.IsAudio() || t.Name != PistaPlaceholders) continue;
+            foreach (TrackEvent e in t.Events)
+            {
+                string texto = GeneradorTexto.TextoDe(e);
+                if (!texto.StartsWith("[R")) continue;
+                int cierra = texto.IndexOf(']');
+                if (cierra < 0) continue;
+                string id = texto.Substring(1, cierra - 1);
+                string f = Buscar(archivos, id);
+                if (f == null) { faltan.Add(id); continue; }
+                Media m = new Media(f);
+                MediaStream s = m.Streams.GetItemByMediaType(MediaType.Video, 0);
+                if (s == null) { faltan.Add(id + " (sin video)"); continue; }
+                e.AddTake(s, true);
+                n++;
+            }
+        }
+        return n;
+    }
+}
+
+// ---- src/pulir/Voz.cs ----
+
+// =====================================================================
+// Voz provisional del narrador con la sintesis de Windows (System.Speech).
+// Se carga por reflexion porque Vegas no la referencia al compilar. Suena
+// robotica a proposito: es solo para tener la duracion y el ritmo; despues
+// se reemplaza por la grabacion.
+// =====================================================================
+
+public interface ISintetizador
+{
+    string Nombre { get; }
+    // Escribe el WAV del texto a esa velocidad (-10 a 10).
+    void Decir(string texto, int velocidad, string wav);
+}
+
+public class SintetizadorWindows : ISintetizador
+{
+    readonly object sintesis;
+    readonly Type tipo;
+    string nombre = "voz de Windows";
+
+    public string Nombre { get { return nombre; } }
+
+    public SintetizadorWindows()
+    {
+        Assembly a = Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
+        tipo = a.GetType("System.Speech.Synthesis.SpeechSynthesizer", true);
+        sintesis = Activator.CreateInstance(tipo);
+        ElegirEspanol();
+    }
+
+    // La primera voz en espanol instalada (Helena, Sabina, Laura...).
+    void ElegirEspanol()
+    {
+        try
+        {
+            System.Collections.IEnumerable voces = (System.Collections.IEnumerable)tipo.GetMethod("GetInstalledVoices", Type.EmptyTypes).Invoke(sintesis, null);
+            foreach (object v in voces)
+            {
+                object info = v.GetType().GetProperty("VoiceInfo").GetValue(v, null);
+                System.Globalization.CultureInfo c = (System.Globalization.CultureInfo)info.GetType().GetProperty("Culture").GetValue(info, null);
+                string n = (string)info.GetType().GetProperty("Name").GetValue(info, null);
+                if (c != null && c.TwoLetterISOLanguageName == "es")
+                {
+                    tipo.GetMethod("SelectVoice", new Type[] { typeof(string) }).Invoke(sintesis, new object[] { n });
+                    nombre = n;
+                    return;
+                }
+            }
+        }
+        catch { }
+    }
+
+    public void Decir(string texto, int velocidad, string wav)
+    {
+        tipo.GetProperty("Rate").SetValue(sintesis, Math.Max(-10, Math.Min(10, velocidad)), null);
+        tipo.GetMethod("SetOutputToWaveFile", new Type[] { typeof(string) }).Invoke(sintesis, new object[] { wav });
+        try { tipo.GetMethod("Speak", new Type[] { typeof(string) }).Invoke(sintesis, new object[] { texto }); }
+        finally { tipo.GetMethod("SetOutputToNull", Type.EmptyTypes).Invoke(sintesis, null); }
+    }
+}
+
+public static class VozProvisional
+{
+    // Cada punto de "Rate" de Windows acelera o frena ~11.6 % (+10 = x3).
+    static readonly double Paso = Math.Pow(3, 0.1);
+
+    // Duracion de un WAV en segundos (lee la cabecera).
+    public static double Duracion(string wav)
+    {
+        using (FileStream fs = new FileStream(wav, FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (BinaryReader br = new BinaryReader(fs))
+        {
+            if (new string(br.ReadChars(4)) != "RIFF") throw new Exception("El archivo no es WAV.");
+            br.ReadUInt32();
+            if (new string(br.ReadChars(4)) != "WAVE") throw new Exception("El archivo no es WAV.");
+            int porSegundo = 0;
+            long datos = -1;
+            while (fs.Position + 8 <= fs.Length)
+            {
+                string id = new string(br.ReadChars(4));
+                long tam = br.ReadUInt32();
+                long siguiente = fs.Position + tam + (tam & 1);
+                if (id == "fmt ") { br.ReadUInt16(); br.ReadUInt16(); br.ReadInt32(); porSegundo = br.ReadInt32(); }
+                else if (id == "data") { datos = Math.Min(tam, fs.Length - fs.Position); break; }
+                fs.Position = siguiente;
+            }
+            if (porSegundo <= 0 || datos < 0) throw new Exception("WAV sin datos.");
+            return datos / (double)porSegundo;
+        }
+    }
+
+    // Velocidad para que el texto dure "objetivo" segundos, sabiendo cuanto
+    // duro a la velocidad "probada".
+    public static int Velocidad(double duro, int probada, double objetivo)
+    {
+        if (duro <= 0 || objetivo <= 0) return probada;
+        double v = probada + Math.Log(duro / objetivo) / Math.Log(Paso);
+        return (int)Math.Max(-10, Math.Min(10, Math.Round(v)));
+    }
+
+    // Dice la frase y, si dura mas de un 12 % de lo que tomaria a la
+    // velocidad del narrador, la repite con la velocidad corregida.
+    // "inicial" es la ultima velocidad que funciono (se ajusta sola).
+    public static double Generar(ISintetizador voz, string texto, double objetivo, string wav, ref int inicial)
+    {
+        voz.Decir(texto, inicial, wav);
+        double d = Duracion(wav);
+        if (Math.Abs(d - objetivo) / Math.Max(0.5, objetivo) > 0.12)
+        {
+            int v = Velocidad(d, inicial, objetivo);
+            if (v != inicial)
+            {
+                voz.Decir(texto, v, wav);
+                d = Duracion(wav);
+                inicial = v;
+            }
+        }
+        return d;
+    }
+}
+
+// ---- src/textos/Generador.cs ----
+
+// =====================================================================
+// Eventos de "Titulos y texto" a partir de una plantilla
+//
+// Cada evento de texto es un medio generado con sus propios parametros
+// (OFX). Para copiar el estilo se crea un medio nuevo con el mismo generador
+// y se le pasan, uno por uno, los valores de la plantilla; despues se cambia
+// solo el texto (RTF), conservando su formato.
+// =====================================================================
+
+public class Plantilla
+{
+    public VideoEvent Evento;     // null: Titulos y texto con el estilo por defecto
+    public PlugInNode PlugIn;
+    public string TextoRtf = "";
+    public string Origen = "";    // como se encontro, para mostrarlo
+    public string Texto { get { return Rtf.TextoPlano(TextoRtf); } }
+}
+
+public static class GeneradorTexto
+{
+    static readonly string[] Ids = { "{Svfx:com.vegascreativesoftware:titlesandtext}",
+                                     "{Svfx:com.sonycreativesoftware:titlesandtext}" };
+
+    static OFXEffect Ofx(Effect e)
+    {
+        try { return e != null && e.IsOFX ? e.OFXEffect : null; } catch { return null; }
+    }
+
+    static OFXStringParameter ParametroTexto(Media m)
+    {
+        try
+        {
+            if (m == null || !m.IsGenerated()) return null;
+            OFXEffect o = Ofx(m.Generator);
+            return o == null ? null : o.FindParameterByName("Text") as OFXStringParameter;
+        }
+        catch { return null; }
+    }
+
+    static Media MediaDe(TrackEvent e)
+    {
+        return e == null || e.ActiveTake == null ? null : e.ActiveTake.Media;
+    }
+
+    public static bool EsTexto(TrackEvent e) { return e is VideoEvent && ParametroTexto(MediaDe(e)) != null; }
+
+    // Plantilla: el texto seleccionado; si no hay, el texto mas cercano al
+    // cursor; si no hay ninguno, Titulos y texto con su estilo normal.
+    public static Plantilla Buscar(Vegas vegas)
+    {
+        double cursor = vegas.Transport.CursorPosition.ToMilliseconds() / 1000.0;
+        VideoEvent elegido = null, cercano = null;
+        double mejor = double.MaxValue;
+        foreach (Track t in vegas.Project.Tracks)
+        {
+            if (t.IsAudio()) continue;
+            foreach (TrackEvent e in t.Events)
+            {
+                if (!EsTexto(e)) continue;
+                if (e.Selected && elegido == null) elegido = (VideoEvent)e;
+                double d = Math.Abs(e.Start.ToMilliseconds() / 1000.0 - cursor);
+                if (d < mejor) { mejor = d; cercano = (VideoEvent)e; }
+            }
+        }
+        Plantilla p = new Plantilla();
+        p.Evento = elegido ?? cercano;
+        if (p.Evento != null)
+        {
+            p.Origen = elegido != null ? "el texto seleccionado" : "el texto m\u00e1s cercano al cursor";
+            p.PlugIn = MediaDe(p.Evento).Generator.PlugIn;
+            p.TextoRtf = ParametroTexto(MediaDe(p.Evento)).Value ?? "";
+            return p;
+        }
+        p.Origen = "T\u00edtulos y texto con su estilo normal (no hay ning\u00fan texto en el proyecto)";
+        foreach (string id in Ids)
+        {
+            try { p.PlugIn = vegas.Generators.GetChildByUniqueID(id); } catch { }
+            if (p.PlugIn != null) break;
+        }
+        return p;
+    }
+
+    // Titulos y texto con su estilo normal (sin copiar de otro texto).
+    public static Plantilla PorDefecto(Vegas vegas)
+    {
+        Plantilla p = new Plantilla();
+        p.Origen = "T\u00edtulos y texto con su estilo normal";
+        foreach (string id in Ids)
+        {
+            try { p.PlugIn = vegas.Generators.GetChildByUniqueID(id); } catch { }
+            if (p.PlugIn != null) break;
+        }
+        return p;
+    }
+
+    // Texto plano de un evento de texto ("" si no lo es).
+    public static string TextoDe(TrackEvent e)
+    {
+        OFXStringParameter t = ParametroTexto(MediaDe(e));
+        return t == null ? "" : Rtf.TextoPlano(t.Value ?? "");
+    }
+
+    // Un medio de texto con el estilo de la plantilla, sin ponerlo en la linea de tiempo.
+    public static Media Medio(Plantilla p, string texto)
+    {
+        if (p.PlugIn == null) throw new Exception("No se encontr\u00f3 el generador de T\u00edtulos y texto.");
+        Media media = new Media(p.PlugIn);
+        OFXEffect nuevo = Ofx(media.Generator);
+        if (p.Evento != null) CopiarParametros(Ofx(MediaDe(p.Evento).Generator), nuevo);
+        OFXStringParameter txt = ParametroTexto(media);
+        if (txt != null) txt.Value = Rtf.ReemplazarTexto(p.TextoRtf, texto);
+        if (nuevo != null) try { nuevo.AllParametersChanged(); } catch { }
+        return media;
+    }
+
+    public static int PistaDe(Plantilla p) { return p.Evento == null ? -1 : p.Evento.Track.Index; }
+
+    // Crea el evento de texto en la pista, de inicio a inicio+duracion.
+    public static VideoEvent Crear(VideoTrack pista, Plantilla p, double inicio, double duracion, string texto)
+    {
+        if (p.PlugIn == null) throw new Exception("No se encontr\u00f3 el generador de T\u00edtulos y texto.");
+        Media media = new Media(p.PlugIn);
+        MediaStream flujo = media.Streams.GetItemByMediaType(MediaType.Video, 0);
+        VideoEvent ev = pista.AddVideoEvent(Timecode.FromMilliseconds(inicio * 1000), Timecode.FromMilliseconds(duracion * 1000));
+        ev.AddTake(flujo);
+
+        OFXEffect nuevo = Ofx(media.Generator);
+        if (p.Evento != null)
+        {
+            Media origen = MediaDe(p.Evento);
+            CopiarParametros(Ofx(origen.Generator), nuevo);
+            try { ev.FadeIn.Length = p.Evento.FadeIn.Length; ev.FadeOut.Length = p.Evento.FadeOut.Length; } catch { }
+            CopiarEfectos(p.Evento, ev);
+        }
+        OFXStringParameter txt = ParametroTexto(media);
+        if (txt != null) txt.Value = Rtf.ReemplazarTexto(p.TextoRtf, texto);
+        if (nuevo != null) try { nuevo.AllParametersChanged(); } catch { }
+        return ev;
+    }
+
+    // Efectos del evento (sombra, borde, movimiento...) con sus valores.
+    static void CopiarEfectos(VideoEvent de, VideoEvent a)
+    {
+        try
+        {
+            foreach (Effect fx in de.Effects)
+            {
+                try
+                {
+                    Effect copia = new Effect(fx.PlugIn);
+                    a.Effects.Add(copia);
+                    copia.Bypass = fx.Bypass;
+                    CopiarParametros(Ofx(fx), Ofx(copia));
+                    OFXEffect o = Ofx(copia);
+                    if (o != null) o.AllParametersChanged();
+                }
+                catch { }
+            }
+        }
+        catch { }
+    }
+
+    // Copia cada parametro por nombre (por reflexion: cada tipo de parametro
+    // tiene su propio Value). Si esta animado, tambien sus fotogramas clave.
+    public static int CopiarParametros(OFXEffect de, OFXEffect a)
+    {
+        if (de == null || a == null) return 0;
+        int n = 0;
+        foreach (OFXParameter p in de.Parameters)
+        {
+            if (p.Name == "Text") continue;
+            OFXParameter q;
+            try { q = a.FindParameterByName(p.Name); } catch { continue; }
+            if (q == null || q.GetType() != p.GetType()) continue;
+            try
+            {
+                PropertyInfo valor = p.GetType().GetProperty("Value");
+                if (valor == null || !valor.CanWrite) continue;
+                valor.SetValue(q, valor.GetValue(p, null), null);
+                n++;
+                CopiarClaves(p, q);
+            }
+            catch { }
+        }
+        return n;
+    }
+
+    static void CopiarClaves(OFXParameter de, OFXParameter a)
+    {
+        Type t = de.GetType();
+        PropertyInfo animado = t.GetProperty("IsAnimated");
+        if (animado == null || !(bool)animado.GetValue(de, null)) return;
+        PropertyInfo claves = t.GetProperty("Keyframes");
+        MethodInfo poner = t.GetMethod("SetValueAtTime");
+        if (claves == null || poner == null) return;
+        if (animado.CanWrite) animado.SetValue(a, true, null);
+        foreach (object k in (IEnumerable)claves.GetValue(de, null))
+        {
+            object tiempo = k.GetType().GetProperty("Time").GetValue(k, null);
+            object v = k.GetType().GetProperty("Value").GetValue(k, null);
+            poner.Invoke(a, new object[] { tiempo, v });
+        }
+    }
+}
+
+// ---- src/comun/Rtf.cs ----
+
+// =====================================================================
+// Texto enriquecido (RTF) de los eventos de Titulos y texto
+//
+// Vegas guarda el texto de "Titles & Text" como RTF: fuente, tamano, color y
+// alineacion van como comandos (\f0\fs48\cf1...) antes del texto. Para usar
+// un texto como plantilla se conserva todo lo que hay antes del primer
+// caracter visible y despues del ultimo, y solo se cambia lo de en medio.
+// =====================================================================
+
+public static class Rtf
+{
+    // Grupos que no son texto visible: tablas de fuentes, colores, estilos...
+    static readonly string[] Destinos = { "fonttbl", "colortbl", "stylesheet", "info", "generator", "pict",
+                                          "header", "footer", "listtable", "listoverridetable", "themedata",
+                                          "colorschememapping", "latentstyles", "datastore", "rsidtbl", "xmlnstbl" };
+
+    // Una pieza del RTF: texto visible (Texto != null) o comando.
+    class Pieza
+    {
+        public int Desde, Hasta;
+        public string Texto;      // caracteres visibles que aporta
+        public string Comando;    // nombre del comando (sin \)
+    }
+
+    static List<Pieza> Piezas(string rtf)
+    {
+        List<Pieza> r = new List<Pieza>();
+        Stack<bool> pila = new Stack<bool>();
+        bool oculto = false, inicioGrupo = false;
+        int uc = 1, i = 0;
+        while (i < rtf.Length)
+        {
+            char c = rtf[i];
+            if (c == '{') { pila.Push(oculto); inicioGrupo = true; i++; continue; }
+            if (c == '}') { if (pila.Count > 0) oculto = pila.Pop(); inicioGrupo = false; i++; continue; }
+            if (c == '\r' || c == '\n') { i++; continue; }
+            Pieza p = new Pieza();
+            p.Desde = i;
+            if (c != '\\')
+            {
+                p.Texto = c.ToString();
+                i++;
+            }
+            else if (i + 1 < rtf.Length && char.IsLetter(rtf[i + 1]))
+            {
+                int j = i + 1;
+                while (j < rtf.Length && char.IsLetter(rtf[j])) j++;
+                string nombre = rtf.Substring(i + 1, j - i - 1);
+                int k = j;
+                if (k < rtf.Length && (rtf[k] == '-' || char.IsDigit(rtf[k]))) { k++; while (k < rtf.Length && char.IsDigit(rtf[k])) k++; }
+                string num = rtf.Substring(j, k - j);
+                if (k < rtf.Length && rtf[k] == ' ') k++;
+                i = k;
+                p.Comando = nombre;
+                int n;
+                bool hayNum = int.TryParse(num, NumberStyles.Integer, CultureInfo.InvariantCulture, out n);
+                if (nombre == "uc" && hayNum) uc = n;
+                if (nombre == "u" && hayNum)
+                {
+                    p.Texto = ((char)(n < 0 ? n + 65536 : n)).ToString();
+                    p.Comando = null;
+                    // Se salta el caracter de respaldo que sigue a \uN.
+                    for (int s = 0; s < uc && i < rtf.Length; s++)
+                    {
+                        if (rtf[i] == '\\' && i + 3 < rtf.Length && rtf[i + 1] == '\'') i += 4;
+                        else if (rtf[i] == '{' || rtf[i] == '}' || rtf[i] == '\\') break;
+                        else i++;
+                    }
+                }
+                else if (nombre == "par" || nombre == "line") p.Texto = "\n";
+                else if (nombre == "tab") p.Texto = "\t";
+                if (inicioGrupo && Array.IndexOf(Destinos, nombre) >= 0) oculto = true;
+            }
+            else if (i + 1 < rtf.Length)
+            {
+                char s = rtf[i + 1];
+                if (s == '\'' && i + 3 < rtf.Length)
+                {
+                    int b;
+                    if (int.TryParse(rtf.Substring(i + 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out b))
+                        p.Texto = Ansi(b);
+                    i += 4;
+                }
+                else
+                {
+                    if (s == '*' && inicioGrupo) oculto = true;
+                    if (s == '\\' || s == '{' || s == '}') p.Texto = s.ToString();
+                    else if (s == '~') p.Texto = "\u00a0";
+                    else p.Comando = s.ToString();
+                    i += 2;
+                }
+            }
+            else i++;
+            p.Hasta = i;
+            inicioGrupo = false;
+            if (!oculto) r.Add(p);
+        }
+        return r;
+    }
+
+    static string Ansi(int b)
+    {
+        if (b < 128) return ((char)b).ToString();
+        try { return Encoding.GetEncoding(1252).GetString(new byte[] { (byte)b }); }
+        catch { return ((char)b).ToString(); }
+    }
+
+    public static bool EsRtf(string s) { return s != null && s.TrimStart().StartsWith("{\\rtf"); }
+
+    // Texto visible, con saltos de linea en \par.
+    public static string TextoPlano(string rtf)
+    {
+        if (!EsRtf(rtf)) return rtf ?? "";
+        StringBuilder sb = new StringBuilder();
+        foreach (Pieza p in Piezas(rtf)) if (p.Texto != null) sb.Append(p.Texto);
+        return sb.ToString().TrimEnd('\n', '\r', ' ');
+    }
+
+    // Cambia el texto visible conservando el formato de la plantilla (el del
+    // primer caracter). Los saltos de linea del texto nuevo se vuelven \par.
+    public static string ReemplazarTexto(string rtf, string nuevo)
+    {
+        if (!EsRtf(rtf)) return Simple(nuevo);
+        List<Pieza> piezas = Piezas(rtf);
+        int primera = -1, ultima = -1;
+        for (int k = 0; k < piezas.Count; k++)
+        {
+            Pieza p = piezas[k];
+            if (p.Texto == null || p.Texto == "\n") continue;
+            if (primera < 0) primera = k;
+            ultima = k;
+        }
+        if (primera < 0)
+        {
+            // Plantilla sin texto: se pone antes del ultimo \par o del cierre.
+            int fin = rtf.LastIndexOf('}');
+            for (int k = piezas.Count - 1; k >= 0; k--)
+                if (piezas[k].Comando == "par") { fin = piezas[k].Desde; break; }
+            if (fin < 0) return Simple(nuevo);
+            return rtf.Substring(0, fin) + Escapar(nuevo) + rtf.Substring(fin);
+        }
+        int desde = piezas[primera].Desde, hasta = piezas[ultima].Hasta;
+        string medio = Escapar(nuevo);
+        return rtf.Substring(0, desde) + medio + rtf.Substring(hasta);
+    }
+
+    public static string Escapar(string texto)
+    {
+        StringBuilder sb = new StringBuilder();
+        string t = (texto ?? "").Replace("\r\n", "\n").Replace('\r', '\n');
+        for (int i = 0; i < t.Length; i++)
+        {
+            char c = t[i];
+            if (c == '\\' || c == '{' || c == '}') sb.Append('\\').Append(c);
+            else if (c == '\n') sb.Append("\\par ");
+            else if (c == '\t') sb.Append("\\tab ");
+            else if (c < 128) sb.Append(c);
+            else sb.Append("\\u").Append(((int)(short)c).ToString(CultureInfo.InvariantCulture)).Append('?');
+        }
+        return sb.ToString();
+    }
+
+    // RTF basico centrado, por si la plantilla no trae texto enriquecido.
+    public static string Simple(string texto)
+    {
+        return "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0\\fnil Arial;}}\\uc1\\pard\\qc\\f0\\fs48 " +
+               Escapar(texto) + "\\par\n}";
+    }
+}
+
+// ---- src/musica/LogicaMusica.cs ----
+
+// =====================================================================
+// Musica que baja sola (ducking)
+//
+// Con los tramos de voz se arma la curva de volumen de la musica: baja un
+// poco antes de que alguien hable ("anticipa"), se queda abajo mientras
+// hablan y vuelve a subir despacio al terminar ("recupera"). Las pausas mas
+// cortas que "pausa minima" no la suben, para que no suba y baje a cada rato.
+// =====================================================================
+
+public class PuntoVolumen
+{
+    public double T, Db;   // segundo de la linea de tiempo y ganancia en dB (0 = sin cambio)
+    public PuntoVolumen(double t, double db) { T = t; Db = db; }
+}
+
+public class AjustesMusica
+{
+    public int BajaDb = -14, AnticipaMs = 250, RecuperaMs = 600, PausaMs = 1200;
+
+    static string Ruta
+    {
+        get { return Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut"), "musica.ini"); }
+    }
+
+    public static AjustesMusica Cargar()
+    {
+        AjustesMusica a = new AjustesMusica();
+        try
+        {
+            if (!File.Exists(Ruta)) return a;
+            foreach (string l in File.ReadAllLines(Ruta))
+            {
+                int i = l.IndexOf('='), n;
+                if (i < 0 || !int.TryParse(l.Substring(i + 1).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out n)) continue;
+                switch (l.Substring(0, i).Trim())
+                {
+                    case "baja": a.BajaDb = n; break;
+                    case "anticipa": a.AnticipaMs = n; break;
+                    case "recupera": a.RecuperaMs = n; break;
+                    case "pausa": a.PausaMs = n; break;
+                }
+            }
+        }
+        catch { }
+        return a;
+    }
+
+    public void Guardar()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Ruta));
+            File.WriteAllText(Ruta, "baja=" + BajaDb + "\nanticipa=" + AnticipaMs + "\nrecupera=" + RecuperaMs +
+                "\npausa=" + PausaMs + "\n", new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+public static class LogicaMusica
+{
+    // Valores de deteccion para encontrar la voz: aqui no se corta nada, asi
+    // que no hay margenes ni pedazo minimo; la pausa minima decide cuando
+    // la musica puede subir.
+    public static Valores Deteccion(int pausaMs)
+    {
+        Valores v = new Valores();
+        v.SilencioMinMs = pausaMs; v.HablaMinMs = 150;
+        v.MargenAntesMs = 0; v.MargenDespuesMs = 0; v.PedazoMinMs = 0; v.Sensibilidad = 0;
+        return v;
+    }
+
+    // Lo que no es silencio, dentro de inicio..fin.
+    public static List<Rango> Voz(List<Rango> silencios, double inicio, double fin)
+    {
+        List<Rango> r = new List<Rango>();
+        double cursor = inicio;
+        foreach (Rango s in silencios)
+        {
+            if (s.Inicio > cursor + 0.001) r.Add(new Rango(cursor, Math.Min(s.Inicio, fin)));
+            cursor = Math.Max(cursor, s.Fin);
+        }
+        if (fin > cursor + 0.001) r.Add(new Rango(cursor, fin));
+        return r;
+    }
+
+    public static List<PuntoVolumen> Puntos(List<Rango> voz, double inicio, double fin, double bajaDb, double anticipa, double recupera)
+    {
+        // 1. Cada voz ocupa desde que empieza a bajar hasta que termina de subir.
+        List<Rango> zonas = new List<Rango>();
+        List<Rango> orden = new List<Rango>(voz);
+        orden.Sort(delegate (Rango a, Rango b) { return a.Inicio.CompareTo(b.Inicio); });
+        foreach (Rango v in orden)
+        {
+            Rango z = new Rango(v.Inicio - anticipa, v.Fin + recupera);
+            if (zonas.Count > 0 && z.Inicio <= zonas[zonas.Count - 1].Fin)
+            {
+                Rango u = zonas[zonas.Count - 1];
+                zonas[zonas.Count - 1] = new Rango(u.Inicio, Math.Max(u.Fin, z.Fin));
+            }
+            else zonas.Add(z);
+        }
+
+        // 2. Rampa de bajada, tramo abajo y rampa de subida.
+        List<PuntoVolumen> todos = new List<PuntoVolumen>();
+        foreach (Rango z in zonas)
+        {
+            todos.Add(new PuntoVolumen(z.Inicio, 0));
+            todos.Add(new PuntoVolumen(z.Inicio + anticipa, bajaDb));
+            if (z.Fin - recupera > z.Inicio + anticipa + 0.0005) todos.Add(new PuntoVolumen(z.Fin - recupera, bajaDb));
+            todos.Add(new PuntoVolumen(z.Fin, 0));
+        }
+
+        // 3. Solo lo que cae en el rango, con un punto en cada borde.
+        List<PuntoVolumen> r = new List<PuntoVolumen>();
+        r.Add(new PuntoVolumen(inicio, Valor(todos, inicio)));
+        foreach (PuntoVolumen p in todos)
+            if (p.T > inicio + 0.0005 && p.T < fin - 0.0005) r.Add(p);
+        r.Add(new PuntoVolumen(fin, Valor(todos, fin)));
+
+        // 4. Sin puntos de sobra (tres seguidos con el mismo nivel).
+        List<PuntoVolumen> limpio = new List<PuntoVolumen>();
+        for (int i = 0; i < r.Count; i++)
+        {
+            bool sobra = i > 0 && i < r.Count - 1 &&
+                         Math.Abs(r[i - 1].Db - r[i].Db) < 0.01 && Math.Abs(r[i + 1].Db - r[i].Db) < 0.01;
+            if (!sobra) limpio.Add(r[i]);
+        }
+        return limpio;
+    }
+
+    // Nivel en el instante t (lineal entre puntos; 0 dB fuera de ellos).
+    public static double Valor(List<PuntoVolumen> puntos, double t)
+    {
+        if (puntos.Count == 0 || t < puntos[0].T || t > puntos[puntos.Count - 1].T) return 0;
+        if (puntos.Count == 1) return puntos[0].Db;
+        for (int i = 1; i < puntos.Count; i++)
+        {
+            PuntoVolumen a = puntos[i - 1], b = puntos[i];
+            if (t > b.T) continue;
+            if (b.T - a.T < 1e-9) return b.Db;
+            return a.Db + (b.Db - a.Db) * (t - a.T) / (b.T - a.T);
+        }
+        return 0;
+    }
+
+    public static int Bajadas(List<PuntoVolumen> puntos)
+    {
+        int n = 0;
+        for (int i = 1; i < puntos.Count; i++) if (puntos[i].Db < puntos[i - 1].Db - 0.01 && puntos[i - 1].Db > -0.01) n++;
+        if (puntos.Count > 0 && puntos[0].Db < -0.01) n++;
+        return n;
+    }
+
+    // Ganancia lineal (1 = 0 dB), como la guarda la envolvente de volumen.
+    public static double Ganancia(double db) { return db <= -90 ? 0 : Math.Pow(10, db / 20); }
+
+    // Pone los puntos en la envolvente de volumen de la pista: quita los que
+    // habia dentro del rango y agrega los nuevos.
+    public static int Aplicar(Track pista, List<PuntoVolumen> puntos, double inicio, double fin)
+    {
+        Envelope env = pista.Envelopes.FindByType(EnvelopeType.Volume);
+        if (env == null)
+        {
+            env = new Envelope(EnvelopeType.Volume);
+            pista.Envelopes.Add(env);
+        }
+        List<EnvelopePoint> quitar = new List<EnvelopePoint>();
+        foreach (EnvelopePoint p in env.Points)
+        {
+            double t = p.X.ToMilliseconds() / 1000.0;
+            if (t >= inicio - 0.0005 && t <= fin + 0.0005) quitar.Add(p);
+        }
+        foreach (EnvelopePoint p in quitar)
+            try { env.Points.Remove(p); } catch { } // el primer punto no se puede borrar
+
+        int n = 0;
+        foreach (PuntoVolumen p in puntos)
+        {
+            EnvelopePoint existente = null;
+            foreach (EnvelopePoint e in env.Points)
+                if (Math.Abs(e.X.ToMilliseconds() - p.T * 1000) < 0.5) { existente = e; break; }
+            if (existente != null) existente.Y = Ganancia(p.Db);
+            else env.Points.Add(new EnvelopePoint(Timecode.FromMilliseconds(p.T * 1000), Ganancia(p.Db)));
+            n++;
+        }
+        return n;
+    }
+}
+
+// ---- src/silencios/Deteccion.cs ----
+
+public enum Modo { Eliminar, DejarHuecos, Silenciar, Marcar }
+
+// Valores de deteccion. Un perfil es un conjunto de estos valores con nombre.
+public class Valores
+{
+    public int SilencioMinMs = 500;   // solo se quitan pausas mas largas
+    public int HablaMinMs = 150;      // sonidos mas cortos no cuentan como voz
+    public int MargenAntesMs = 150;   // pausa que queda antes de hablar
+    public int MargenDespuesMs = 250; // pausa que queda al terminar de hablar
+    public int PedazoMinMs = 800;     // no deja clips mas cortos que esto
+    public int SuavizadoMs = 20;      // fundido del audio en cada corte
+    public int Sensibilidad = 0;      // dB que se suman al umbral de cada pista
+
+    public bool Igual(Valores o)
+    {
+        return SilencioMinMs == o.SilencioMinMs && HablaMinMs == o.HablaMinMs &&
+               MargenAntesMs == o.MargenAntesMs && MargenDespuesMs == o.MargenDespuesMs &&
+               PedazoMinMs == o.PedazoMinMs && SuavizadoMs == o.SuavizadoMs && Sensibilidad == o.Sensibilidad;
+    }
+
+    public void CopiarDe(Valores o)
+    {
+        SilencioMinMs = o.SilencioMinMs; HablaMinMs = o.HablaMinMs;
+        MargenAntesMs = o.MargenAntesMs; MargenDespuesMs = o.MargenDespuesMs;
+        PedazoMinMs = o.PedazoMinMs; SuavizadoMs = o.SuavizadoMs; Sensibilidad = o.Sensibilidad;
+    }
+
+    public string Texto()
+    {
+        return "silencioMin=" + SilencioMinMs + "\n" + "hablaMin=" + HablaMinMs + "\n" +
+               "margenAntes=" + MargenAntesMs + "\n" + "margenDespues=" + MargenDespuesMs + "\n" +
+               "pedazoMin=" + PedazoMinMs + "\n" + "suavizado=" + SuavizadoMs + "\n" +
+               "sensibilidad=" + Sensibilidad + "\n";
+    }
+
+    // Devuelve true si la clave era de estos valores.
+    public bool Leer(string k, string v)
+    {
+        int n;
+        if (!int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out n)) return false;
+        switch (k)
+        {
+            case "silencioMin": SilencioMinMs = n; return true;
+            case "hablaMin": HablaMinMs = n; return true;
+            case "margenAntes": MargenAntesMs = n; return true;
+            case "margenDespues": MargenDespuesMs = n; return true;
+            case "pedazoMin": PedazoMinMs = n; return true;
+            case "suavizado": SuavizadoMs = n; return true;
+            case "sensibilidad": Sensibilidad = n; return true;
+        }
+        return false;
+    }
+
+    public static string Carpeta
+    {
+        get
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "vegas-cut");
+        }
+    }
+}
+
+public class Ajustes : Valores
+{
+    public Modo Modo = Modo.Eliminar;
+    public bool TodasLasPistas = true;
+    public string Perfil = "Narraci\u00f3n";
+
+    static string Ruta { get { return Path.Combine(Carpeta, "silencios.ini"); } }
+
+    public static Ajustes Cargar()
+    {
+        Ajustes a = new Ajustes();
+        a.CopiarDe(Perfil_.Incluidos[0]);
+        try
+        {
+            if (!File.Exists(Ruta)) return a;
+            foreach (string linea in File.ReadAllLines(Ruta))
+            {
+                int i = linea.IndexOf('=');
+                if (i < 0) continue;
+                string k = linea.Substring(0, i).Trim(), v = linea.Substring(i + 1).Trim();
+                if (a.Leer(k, v)) continue;
+                switch (k)
+                {
+                    case "modo": a.Modo = (Modo)Enum.Parse(typeof(Modo), v); break;
+                    case "todas": a.TodasLasPistas = v == "1"; break;
+                    case "perfil": a.Perfil = v; break;
+                }
+            }
+        }
+        catch { }
+        return a;
+    }
+
+    public void Guardar()
+    {
+        try
+        {
+            Directory.CreateDirectory(Carpeta);
+            File.WriteAllText(Ruta, Texto() +
+                "modo=" + Modo + "\n" +
+                "todas=" + (TodasLasPistas ? "1" : "0") + "\n" +
+                "perfil=" + Perfil + "\n", new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+// Perfil_ (con guion bajo) para no chocar con nombres de la API de Vegas.
+public class Perfil_ : Valores
+{
+    public string Nombre, Descripcion;
+    public bool Incluido;
+
+    static Perfil_ Nuevo(string nombre, string descripcion, int silencio, int voz, int antes, int despues,
+                         int pedazo, int suavizado, int sensibilidad)
+    {
+        Perfil_ p = new Perfil_();
+        p.Nombre = nombre; p.Descripcion = descripcion; p.Incluido = true;
+        p.SilencioMinMs = silencio; p.HablaMinMs = voz; p.MargenAntesMs = antes; p.MargenDespuesMs = despues;
+        p.PedazoMinMs = pedazo; p.SuavizadoMs = suavizado; p.Sensibilidad = sensibilidad;
+        return p;
+    }
+
+    // Valores pensados para cada tipo de video. En tus video ensayos las pausas
+    // que quitas a mano duran 1 a 1.5 s y los pedazos 4 a 7 s.
+    public static readonly Perfil_[] Incluidos = new Perfil_[]
+    {
+        Nuevo("Narraci\u00f3n", "Voz en off y video ensayos: quita casi todas las pausas y deja la voz fluida.",
+              350, 150, 100, 180, 700, 20, 0),
+        Nuevo("Tutorial", "Explicaciones con pantalla: deja respirar para que se entienda cada paso.",
+              600, 150, 150, 300, 1000, 25, 0),
+        Nuevo("Podcast / charla", "Conversaci\u00f3n entre varios: solo quita pausas largas y conserva las reacciones.",
+              900, 200, 200, 350, 1500, 30, 0),
+        Nuevo("Gameplay", "Partidas con voz: quita los silencios largos, deja que el juego respire e ignora clics de teclado.",
+              1200, 250, 250, 450, 2000, 30, -3),
+        Nuevo("Shorts / r\u00e1pido", "Clips cortos y din\u00e1micos: corta hasta las pausas peque\u00f1as.",
+              200, 100, 50, 80, 400, 15, 2),
+    };
+
+    static string Ruta { get { return Path.Combine(Carpeta, "perfiles.ini"); } }
+
+    // Perfiles guardados por el usuario, en formato:
+    //   [Nombre]
+    //   silencioMin=...
+    public static List<Perfil_> CargarPropios()
+    {
+        List<Perfil_> lista = new List<Perfil_>();
+        try
+        {
+            if (!File.Exists(Ruta)) return lista;
+            Perfil_ actual = null;
+            foreach (string l in File.ReadAllLines(Ruta, Encoding.UTF8))
+            {
+                string linea = l.Trim();
+                if (linea.StartsWith("[") && linea.EndsWith("]"))
+                {
+                    actual = new Perfil_();
+                    actual.Nombre = linea.Substring(1, linea.Length - 2);
+                    actual.Descripcion = "Perfil guardado por ti.";
+                    lista.Add(actual);
+                    continue;
+                }
+                int i = linea.IndexOf('=');
+                if (actual != null && i > 0) actual.Leer(linea.Substring(0, i).Trim(), linea.Substring(i + 1).Trim());
+            }
+        }
+        catch { }
+        return lista;
+    }
+
+    public static void GuardarPropios(List<Perfil_> propios)
+    {
+        try
+        {
+            Directory.CreateDirectory(Carpeta);
+            StringBuilder sb = new StringBuilder();
+            foreach (Perfil_ p in propios) sb.Append("[" + p.Nombre + "]\n" + p.Texto() + "\n");
+            File.WriteAllText(Ruta, sb.ToString(), new UTF8Encoding(false));
+        }
+        catch { }
+    }
+}
+
+public static class Detector
+{
+    // Umbral de una pista por el metodo de Otsu: se hace un histograma de los
+    // niveles (1 dB por barra) y se busca el corte que mejor separa los dos
+    // grupos, ruido de fondo y voz. Asi cada pista tiene su propio umbral
+    // aunque tengan volumenes distintos.
+    public static double UmbralAutomatico(float[] db)
+    {
+        int[] h = new int[101];
+        int total = 0;
+        foreach (float x in db)
+        {
+            if (x <= -99) continue; // silencio digital
+            int i = Math.Max(0, Math.Min(100, 100 + (int)Math.Round(x)));
+            h[i]++;
+            total++;
+        }
+        if (total < 50) return -40;
+
+        double suma = 0;
+        for (int i = 0; i <= 100; i++) suma += (double)i * h[i];
+        double sumaFondo = 0, mejor = -1;
+        long pesoFondo = 0;
+        int corte = 60;
+        for (int i = 0; i <= 100; i++)
+        {
+            pesoFondo += h[i];
+            if (pesoFondo == 0) continue;
+            long pesoVoz = total - pesoFondo;
+            if (pesoVoz == 0) break;
+            sumaFondo += (double)i * h[i];
+            double mFondo = sumaFondo / pesoFondo, mVoz = (suma - sumaFondo) / pesoVoz;
+            double entre = (double)pesoFondo * pesoVoz * (mFondo - mVoz) * (mFondo - mVoz);
+            if (entre > mejor) { mejor = entre; corte = i; }
+        }
+        // Otsu solo separa los grupos; el umbral va a la mitad entre el borde
+        // alto del ruido (percentil 90 del fondo) y el borde bajo de la voz
+        // (percentil 20), para no quedar pegado al ruido.
+        double bordeRuido = Percentil(h, 0, corte, 0.90) - 100;
+        double bordeVoz = Percentil(h, corte + 1, 100, 0.20) - 100;
+        double u = Math.Max(bordeRuido + 3, (bordeRuido + bordeVoz) / 2);
+        return Math.Max(-70, Math.Min(-15, Math.Round(u)));
+    }
+
+    // Percentil de las barras desde..hasta del histograma (devuelve la barra).
+    static int Percentil(int[] h, int desde, int hasta, double fraccion)
+    {
+        long total = 0;
+        for (int i = desde; i <= hasta; i++) total += h[i];
+        if (total == 0) return hasta;
+        long objetivo = (long)Math.Ceiling(total * fraccion), acumulado = 0;
+        for (int i = desde; i <= hasta; i++)
+        {
+            acumulado += h[i];
+            if (acumulado >= objetivo) return i;
+        }
+        return hasta;
+    }
+
+    public static List<Rango> Detectar(Analisis a, double umbral, Valores v)
+    {
+        return Detectar(new List<Analisis> { a }, new List<double> { umbral }, v);
+    }
+
+    // Hay voz en un instante si cualquier pista supera su propio umbral
+    // (mas la sensibilidad general).
+    public static List<Rango> Detectar(List<Analisis> pistas, List<double> umbrales, Valores v)
+    {
+        List<Rango> resultado = new List<Rango>();
+        if (pistas.Count == 0) return resultado;
+        int n = int.MaxValue;
+        foreach (Analisis p in pistas) n = Math.Min(n, p.Db.Length);
+        if (n == 0) return resultado;
+        double paso = Analisis.Paso, inicio = pistas[0].Inicio;
+
+        bool[] hay = new bool[n];
+        for (int k = 0; k < pistas.Count; k++)
+        {
+            float[] db = pistas[k].Db;
+            double u = umbrales[k] + v.Sensibilidad;
+            for (int i = 0; i < n; i++) if (db[i] >= u) hay[i] = true;
+        }
+
+        // 1. Tramos de voz.
+        List<int[]> voz = new List<int[]>();
+        int j = 0;
+        while (j < n)
+        {
+            if (hay[j])
+            {
+                int f = j;
+                while (f < n && hay[f]) f++;
+                voz.Add(new int[] { j, f });
+                j = f;
+            }
+            else j++;
+        }
+
+        // 2. Descartar voz demasiado corta (clics, respiraciones).
+        int hablaMin = (int)Math.Round(v.HablaMinMs / 1000.0 / paso);
+        List<int[]> vozBuena = new List<int[]>();
+        foreach (int[] t in voz) if (t[1] - t[0] >= hablaMin) vozBuena.Add(t);
+
+        // 3. Los huecos entre voz son silencios candidatos (incluye inicio y final).
+        int silMin = (int)Math.Round(v.SilencioMinMs / 1000.0 / paso);
+        int antes = (int)Math.Round(v.MargenAntesMs / 1000.0 / paso);
+        int despues = (int)Math.Round(v.MargenDespuesMs / 1000.0 / paso);
+        int cursor = 0;
+        for (int k = 0; k <= vozBuena.Count; k++)
+        {
+            int ini = cursor;
+            int fin = k < vozBuena.Count ? vozBuena[k][0] : n;
+            bool alInicio = k == 0, alFinal = k == vozBuena.Count;
+            if (fin - ini >= silMin)
+            {
+                // Margen: se deja algo de silencio despues de la voz anterior y
+                // antes de la siguiente para que los cortes no suenen bruscos.
+                int a0 = ini + (alInicio ? 0 : despues);
+                int b0 = fin - (alFinal ? 0 : antes);
+                if (b0 - a0 >= 2)
+                    resultado.Add(new Rango(inicio + a0 * paso, inicio + b0 * paso));
+            }
+            if (k < vozBuena.Count) cursor = vozBuena[k][1];
+        }
+
+        return PedazoMinimo(resultado, inicio, inicio + n * paso, v.PedazoMinMs / 1000.0);
+    }
+
+    // Si entre dos silencios queda un clip mas corto que el minimo, no se
+    // corta el segundo silencio: el clip se une con lo que sigue.
+    static List<Rango> PedazoMinimo(List<Rango> rangos, double inicio, double fin, double minimo)
+    {
+        if (minimo <= 0) return rangos;
+        List<Rango> r = new List<Rango>();
+        double ultimoFin = inicio;
+        foreach (Rango x in rangos)
+        {
+            double pedazo = x.Inicio - ultimoFin;
+            if (pedazo > 0.001 && pedazo < minimo) continue;
+            r.Add(x);
+            ultimoFin = x.Fin;
+        }
+        // El ultimo clip, entre el ultimo silencio y el final.
+        while (r.Count > 0)
+        {
+            double pedazo = fin - r[r.Count - 1].Fin;
+            if (pedazo > 0.001 && pedazo < minimo) r.RemoveAt(r.Count - 1);
+            else break;
+        }
+        return r;
     }
 }
 
@@ -766,6 +2818,9 @@ public static class Rangos
 // Lee el proyecto de Vegas y reconoce para que es cada pista.
 public static class RitmoVegas
 {
+    // Pista donde PulirEpisodio pone la narracion provisional.
+    public const string PistaNarracion = "vegas-cut \u00b7 Narraci\u00f3n provisional";
+
     static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
 
     // Nombre del archivo con barras de Windows o de las otras.
@@ -798,6 +2853,41 @@ public static class RitmoVegas
         if (l.Count == 0) return 0;
         l.Sort();
         return l[l.Count / 2];
+    }
+
+    // Pistas de audio con las grabaciones (voces y sonido del juego): las que
+    // tienen sobre todo archivos de la pista principal o de la transcripcion.
+    // La del narrador (por su nombre o "Narr...") no cuenta.
+    public static List<Track> PistasGrabacion(Project p, Transcripcion t, string narrador)
+    {
+        Dictionary<string, bool> grab = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        Track principal = null;
+        double mejor = 0;
+        foreach (Track pista in p.Tracks)
+        {
+            if (pista.IsAudio()) continue;
+            double cubre = 0;
+            foreach (TrackEvent e in pista.Events) if (!Generado(e)) cubre += S(e.Length);
+            if (cubre > mejor) { mejor = cubre; principal = pista; }
+        }
+        if (principal != null) foreach (TrackEvent e in principal.Events) grab[NombreArchivo(Archivo(e))] = true;
+        if (t != null)
+            foreach (Hablante h in t.Hablantes)
+            {
+                string n = (h.Nombre ?? "").Trim();
+                if (String.Equals(n, (narrador ?? "").Trim(), StringComparison.OrdinalIgnoreCase) || n.ToLowerInvariant().StartsWith("narr")) continue;
+                if (!String.IsNullOrEmpty(h.Archivo)) grab[NombreArchivo(h.Archivo)] = true;
+                foreach (Fuente f in h.Fuentes) grab[NombreArchivo(f.Media)] = true;
+            }
+        List<Track> r = new List<Track>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in pista.Events) { total++; if (grab.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(pista);
+        }
+        return r;
     }
 
     // Mide el proyecto abierto en Vegas con su transcripcion (si la tiene),
@@ -897,11 +2987,17 @@ public static class RitmoVegas
             }
         }
 
+        // La narracion provisional (voz de Windows) cuenta como narrador.
+        foreach (Track pista in p.Tracks)
+            if (pista.IsAudio() && pista.Name == PistaNarracion)
+                foreach (TrackEvent e in pista.Events) if (!e.Mute) narracion.Add(new Rango(S(e.Start), S(e.Start) + S(e.Length)));
+
         // 3. Lo demas: recursos (video encima, efectos cortos) y musica (audio largo).
         List<double> recursos = new List<double>(), musica = new List<double>();
         foreach (Track pista in p.Tracks)
         {
             if (pista == principal || (principal != null && pista.Index == principal.Index)) continue;
+            if (pista.Name == PistaNarracion) continue;
             List<TrackEvent> eventos = new List<TrackEvent>();
             foreach (TrackEvent e in pista.Events) eventos.Add(e);
             if (eventos.Count == 0) continue;
@@ -2563,6 +4659,16 @@ public static class PistasVegas
                 l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
             }
         }
+        // Lo copiado al inicio como gancho repite el mismo audio: se prefiere
+        // donde esta de verdad, fuera de la region "GANCHO".
+        List<Rango> ganchos = new List<Rango>();
+        try
+        {
+            foreach (Region r in p.Regions)
+                if ((r.Label ?? "").StartsWith("GANCHO"))
+                    ganchos.Add(new Rango(S(r.Position), S(r.Position) + S(r.Length) + 0.5));
+        }
+        catch { }
         return delegate (int hablante, double tiempo)
         {
             Fuente f;
@@ -2570,14 +4676,17 @@ public static class PistasVegas
             if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
             List<double[]> l;
             if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
-            double mejor = double.NaN;
+            double mejor = double.NaN, enGancho = double.NaN;
             foreach (double[] x in l)
                 if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
                 {
                     double ahora = x[2] + (segundo - x[0]) / x[3];
-                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                    bool gancho = false;
+                    foreach (Rango g in ganchos) if (ahora >= g.Inicio && ahora < g.Fin) { gancho = true; break; }
+                    if (gancho) { if (double.IsNaN(enGancho) || ahora < enGancho) enGancho = ahora; }
+                    else if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
                 }
-            return mejor;
+            return double.IsNaN(mejor) ? enGancho : mejor;
         };
     }
 
@@ -3001,6 +5110,22 @@ static class Editor
             partes[partes.Count - 1].Add(e);
         }
         return partes;
+    }
+
+    // Corre todo (eventos, marcadores y regiones) "segundos" a la derecha.
+    public static void Desplazar(Project p, double segundos)
+    {
+        if (segundos <= 0) return;
+        List<TrackEvent> eventos = new List<TrackEvent>();
+        foreach (Track t in p.Tracks) foreach (TrackEvent e in t.Events) eventos.Add(e);
+        // De derecha a izquierda para que nada se encime al moverse.
+        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return b.Start.ToMilliseconds().CompareTo(a.Start.ToMilliseconds()); });
+        foreach (TrackEvent e in eventos) e.Start = Timecode.FromMilliseconds(e.Start.ToMilliseconds() + segundos * 1000);
+        List<Marker> marcas = new List<Marker>();
+        foreach (Marker m in p.Markers) marcas.Add(m);
+        foreach (Region r in p.Regions) marcas.Add(r);
+        marcas.Sort(delegate (Marker a, Marker b) { return b.Position.ToMilliseconds().CompareTo(a.Position.ToMilliseconds()); });
+        foreach (Marker m in marcas) try { m.Position = Timecode.FromMilliseconds(m.Position.ToMilliseconds() + segundos * 1000); } catch { }
     }
 }
 

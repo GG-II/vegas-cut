@@ -282,6 +282,9 @@ public static class Rangos
 // Lee el proyecto de Vegas y reconoce para que es cada pista.
 public static class RitmoVegas
 {
+    // Pista donde PulirEpisodio pone la narracion provisional.
+    public const string PistaNarracion = "vegas-cut · Narración provisional";
+
     static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
 
     // Nombre del archivo con barras de Windows o de las otras.
@@ -314,6 +317,41 @@ public static class RitmoVegas
         if (l.Count == 0) return 0;
         l.Sort();
         return l[l.Count / 2];
+    }
+
+    // Pistas de audio con las grabaciones (voces y sonido del juego): las que
+    // tienen sobre todo archivos de la pista principal o de la transcripcion.
+    // La del narrador (por su nombre o "Narr...") no cuenta.
+    public static List<Track> PistasGrabacion(Project p, Transcripcion t, string narrador)
+    {
+        Dictionary<string, bool> grab = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        Track principal = null;
+        double mejor = 0;
+        foreach (Track pista in p.Tracks)
+        {
+            if (pista.IsAudio()) continue;
+            double cubre = 0;
+            foreach (TrackEvent e in pista.Events) if (!Generado(e)) cubre += S(e.Length);
+            if (cubre > mejor) { mejor = cubre; principal = pista; }
+        }
+        if (principal != null) foreach (TrackEvent e in principal.Events) grab[NombreArchivo(Archivo(e))] = true;
+        if (t != null)
+            foreach (Hablante h in t.Hablantes)
+            {
+                string n = (h.Nombre ?? "").Trim();
+                if (String.Equals(n, (narrador ?? "").Trim(), StringComparison.OrdinalIgnoreCase) || n.ToLowerInvariant().StartsWith("narr")) continue;
+                if (!String.IsNullOrEmpty(h.Archivo)) grab[NombreArchivo(h.Archivo)] = true;
+                foreach (Fuente f in h.Fuentes) grab[NombreArchivo(f.Media)] = true;
+            }
+        List<Track> r = new List<Track>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in pista.Events) { total++; if (grab.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(pista);
+        }
+        return r;
     }
 
     // Mide el proyecto abierto en Vegas con su transcripcion (si la tiene),
@@ -413,11 +451,17 @@ public static class RitmoVegas
             }
         }
 
+        // La narracion provisional (voz de Windows) cuenta como narrador.
+        foreach (Track pista in p.Tracks)
+            if (pista.IsAudio() && pista.Name == PistaNarracion)
+                foreach (TrackEvent e in pista.Events) if (!e.Mute) narracion.Add(new Rango(S(e.Start), S(e.Start) + S(e.Length)));
+
         // 3. Lo demas: recursos (video encima, efectos cortos) y musica (audio largo).
         List<double> recursos = new List<double>(), musica = new List<double>();
         foreach (Track pista in p.Tracks)
         {
             if (pista == principal || (principal != null && pista.Index == principal.Index)) continue;
+            if (pista.Name == PistaNarracion) continue;
             List<TrackEvent> eventos = new List<TrackEvent>();
             foreach (TrackEvent e in pista.Events) eventos.Add(e);
             if (eventos.Count == 0) continue;

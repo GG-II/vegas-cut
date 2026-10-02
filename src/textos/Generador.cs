@@ -86,6 +86,39 @@ public static class GeneradorTexto
         return p;
     }
 
+    // Titulos y texto con su estilo normal (sin copiar de otro texto).
+    public static Plantilla PorDefecto(Vegas vegas)
+    {
+        Plantilla p = new Plantilla();
+        p.Origen = "Títulos y texto con su estilo normal";
+        foreach (string id in Ids)
+        {
+            try { p.PlugIn = vegas.Generators.GetChildByUniqueID(id); } catch { }
+            if (p.PlugIn != null) break;
+        }
+        return p;
+    }
+
+    // Texto plano de un evento de texto ("" si no lo es).
+    public static string TextoDe(TrackEvent e)
+    {
+        OFXStringParameter t = ParametroTexto(MediaDe(e));
+        return t == null ? "" : Rtf.TextoPlano(t.Value ?? "");
+    }
+
+    // Un medio de texto con el estilo de la plantilla, sin ponerlo en la linea de tiempo.
+    public static Media Medio(Plantilla p, string texto)
+    {
+        if (p.PlugIn == null) throw new Exception("No se encontró el generador de Títulos y texto.");
+        Media media = new Media(p.PlugIn);
+        OFXEffect nuevo = Ofx(media.Generator);
+        if (p.Evento != null) CopiarParametros(Ofx(MediaDe(p.Evento).Generator), nuevo);
+        OFXStringParameter txt = ParametroTexto(media);
+        if (txt != null) txt.Value = Rtf.ReemplazarTexto(p.TextoRtf, texto);
+        if (nuevo != null) try { nuevo.AllParametersChanged(); } catch { }
+        return media;
+    }
+
     public static int PistaDe(Plantilla p) { return p.Evento == null ? -1 : p.Evento.Track.Index; }
 
     // Crea el evento de texto en la pista, de inicio a inicio+duracion.

@@ -1783,6 +1783,9 @@ public static class Rangos
 // Lee el proyecto de Vegas y reconoce para que es cada pista.
 public static class RitmoVegas
 {
+    // Pista donde PulirEpisodio pone la narracion provisional.
+    public const string PistaNarracion = "vegas-cut \u00b7 Narraci\u00f3n provisional";
+
     static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
 
     // Nombre del archivo con barras de Windows o de las otras.
@@ -1815,6 +1818,41 @@ public static class RitmoVegas
         if (l.Count == 0) return 0;
         l.Sort();
         return l[l.Count / 2];
+    }
+
+    // Pistas de audio con las grabaciones (voces y sonido del juego): las que
+    // tienen sobre todo archivos de la pista principal o de la transcripcion.
+    // La del narrador (por su nombre o "Narr...") no cuenta.
+    public static List<Track> PistasGrabacion(Project p, Transcripcion t, string narrador)
+    {
+        Dictionary<string, bool> grab = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        Track principal = null;
+        double mejor = 0;
+        foreach (Track pista in p.Tracks)
+        {
+            if (pista.IsAudio()) continue;
+            double cubre = 0;
+            foreach (TrackEvent e in pista.Events) if (!Generado(e)) cubre += S(e.Length);
+            if (cubre > mejor) { mejor = cubre; principal = pista; }
+        }
+        if (principal != null) foreach (TrackEvent e in principal.Events) grab[NombreArchivo(Archivo(e))] = true;
+        if (t != null)
+            foreach (Hablante h in t.Hablantes)
+            {
+                string n = (h.Nombre ?? "").Trim();
+                if (String.Equals(n, (narrador ?? "").Trim(), StringComparison.OrdinalIgnoreCase) || n.ToLowerInvariant().StartsWith("narr")) continue;
+                if (!String.IsNullOrEmpty(h.Archivo)) grab[NombreArchivo(h.Archivo)] = true;
+                foreach (Fuente f in h.Fuentes) grab[NombreArchivo(f.Media)] = true;
+            }
+        List<Track> r = new List<Track>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in pista.Events) { total++; if (grab.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(pista);
+        }
+        return r;
     }
 
     // Mide el proyecto abierto en Vegas con su transcripcion (si la tiene),
@@ -1914,11 +1952,17 @@ public static class RitmoVegas
             }
         }
 
+        // La narracion provisional (voz de Windows) cuenta como narrador.
+        foreach (Track pista in p.Tracks)
+            if (pista.IsAudio() && pista.Name == PistaNarracion)
+                foreach (TrackEvent e in pista.Events) if (!e.Mute) narracion.Add(new Rango(S(e.Start), S(e.Start) + S(e.Length)));
+
         // 3. Lo demas: recursos (video encima, efectos cortos) y musica (audio largo).
         List<double> recursos = new List<double>(), musica = new List<double>();
         foreach (Track pista in p.Tracks)
         {
             if (pista == principal || (principal != null && pista.Index == principal.Index)) continue;
+            if (pista.Name == PistaNarracion) continue;
             List<TrackEvent> eventos = new List<TrackEvent>();
             foreach (TrackEvent e in pista.Events) eventos.Add(e);
             if (eventos.Count == 0) continue;
@@ -2117,6 +2161,16 @@ public static class PistasVegas
                 l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
             }
         }
+        // Lo copiado al inicio como gancho repite el mismo audio: se prefiere
+        // donde esta de verdad, fuera de la region "GANCHO".
+        List<Rango> ganchos = new List<Rango>();
+        try
+        {
+            foreach (Region r in p.Regions)
+                if ((r.Label ?? "").StartsWith("GANCHO"))
+                    ganchos.Add(new Rango(S(r.Position), S(r.Position) + S(r.Length) + 0.5));
+        }
+        catch { }
         return delegate (int hablante, double tiempo)
         {
             Fuente f;
@@ -2124,14 +2178,17 @@ public static class PistasVegas
             if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
             List<double[]> l;
             if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
-            double mejor = double.NaN;
+            double mejor = double.NaN, enGancho = double.NaN;
             foreach (double[] x in l)
                 if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
                 {
                     double ahora = x[2] + (segundo - x[0]) / x[3];
-                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                    bool gancho = false;
+                    foreach (Rango g in ganchos) if (ahora >= g.Inicio && ahora < g.Fin) { gancho = true; break; }
+                    if (gancho) { if (double.IsNaN(enGancho) || ahora < enGancho) enGancho = ahora; }
+                    else if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
                 }
-            return mejor;
+            return double.IsNaN(mejor) ? enGancho : mejor;
         };
     }
 
@@ -2555,6 +2612,22 @@ static class Editor
             partes[partes.Count - 1].Add(e);
         }
         return partes;
+    }
+
+    // Corre todo (eventos, marcadores y regiones) "segundos" a la derecha.
+    public static void Desplazar(Project p, double segundos)
+    {
+        if (segundos <= 0) return;
+        List<TrackEvent> eventos = new List<TrackEvent>();
+        foreach (Track t in p.Tracks) foreach (TrackEvent e in t.Events) eventos.Add(e);
+        // De derecha a izquierda para que nada se encime al moverse.
+        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return b.Start.ToMilliseconds().CompareTo(a.Start.ToMilliseconds()); });
+        foreach (TrackEvent e in eventos) e.Start = Timecode.FromMilliseconds(e.Start.ToMilliseconds() + segundos * 1000);
+        List<Marker> marcas = new List<Marker>();
+        foreach (Marker m in p.Markers) marcas.Add(m);
+        foreach (Region r in p.Regions) marcas.Add(r);
+        marcas.Sort(delegate (Marker a, Marker b) { return b.Position.ToMilliseconds().CompareTo(a.Position.ToMilliseconds()); });
+        foreach (Marker m in marcas) try { m.Position = Timecode.FromMilliseconds(m.Position.ToMilliseconds() + segundos * 1000); } catch { }
     }
 }
 

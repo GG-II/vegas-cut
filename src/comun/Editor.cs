@@ -326,4 +326,20 @@ static class Editor
         }
         return partes;
     }
+
+    // Corre todo (eventos, marcadores y regiones) "segundos" a la derecha.
+    public static void Desplazar(Project p, double segundos)
+    {
+        if (segundos <= 0) return;
+        List<TrackEvent> eventos = new List<TrackEvent>();
+        foreach (Track t in p.Tracks) foreach (TrackEvent e in t.Events) eventos.Add(e);
+        // De derecha a izquierda para que nada se encime al moverse.
+        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return b.Start.ToMilliseconds().CompareTo(a.Start.ToMilliseconds()); });
+        foreach (TrackEvent e in eventos) e.Start = Timecode.FromMilliseconds(e.Start.ToMilliseconds() + segundos * 1000);
+        List<Marker> marcas = new List<Marker>();
+        foreach (Marker m in p.Markers) marcas.Add(m);
+        foreach (Region r in p.Regions) marcas.Add(r);
+        marcas.Sort(delegate (Marker a, Marker b) { return b.Position.ToMilliseconds().CompareTo(a.Position.ToMilliseconds()); });
+        foreach (Marker m in marcas) try { m.Position = Timecode.FromMilliseconds(m.Position.ToMilliseconds() + segundos * 1000); } catch { }
+    }
 }

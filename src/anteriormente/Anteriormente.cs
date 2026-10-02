@@ -35,21 +35,7 @@ public static class InsertarAnteriormente
         return r;
     }
 
-    // Corre todo (eventos, marcadores y regiones) "segundos" a la derecha.
-    public static void Desplazar(Project p, double segundos)
-    {
-        if (segundos <= 0) return;
-        List<TrackEvent> eventos = new List<TrackEvent>();
-        foreach (Track t in p.Tracks) foreach (TrackEvent e in t.Events) eventos.Add(e);
-        // De derecha a izquierda para que nada se encime al moverse.
-        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return S(b.Start).CompareTo(S(a.Start)); });
-        foreach (TrackEvent e in eventos) e.Start = TC(S(e.Start) + segundos);
-        List<Marker> marcas = new List<Marker>();
-        foreach (Marker m in p.Markers) marcas.Add(m);
-        foreach (Region r in p.Regions) marcas.Add(r);
-        marcas.Sort(delegate (Marker a, Marker b) { return S(b.Position).CompareTo(S(a.Position)); });
-        foreach (Marker m in marcas) try { m.Position = TC(S(m.Position) + segundos); } catch { }
-    }
+    public static void Desplazar(Project p, double segundos) { Editor.Desplazar(p, segundos); }
 
     static Track PistaAudio(Project p, Hablante h, bool mismas, Dictionary<string, Track> nuevas)
     {

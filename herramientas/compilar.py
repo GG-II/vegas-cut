@@ -42,7 +42,9 @@ HERRAMIENTAS = {
     'DesenlazarClips': ['grupos/cabecera.txt', 'grupos/Desenlazar.cs', 'comun/Editor.cs', 'comun/Audio.cs'],
     'CensurarPalabrotas': ['censura/cabecera.txt', 'censura/Censura.cs', 'censura/LogicaCensura.cs',
                            'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE + ['comun/Ui.cs'],
-    'PulirEpisodio': ['pulir/cabecera.txt', 'pulir/Pulir.cs', 'pulir/LogicaPulir.cs', 'comun/Ritmo.cs', 'comun/Serie.cs',
+    'PulirEpisodio': ['pulir/cabecera.txt', 'pulir/Pulir.cs', 'pulir/LogicaPulir.cs', 'pulir/VentanaPlan.cs', 'pulir/LogicaPlan.cs',
+                      'pulir/AplicarPlan.cs', 'pulir/Voz.cs', 'textos/Generador.cs', 'comun/Rtf.cs', 'musica/LogicaMusica.cs',
+                      'silencios/Deteccion.cs', 'comun/Ritmo.cs', 'comun/Serie.cs',
                       'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
 }

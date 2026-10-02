@@ -266,6 +266,16 @@ public static class PistasVegas
                 l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
             }
         }
+        // Lo copiado al inicio como gancho repite el mismo audio: se prefiere
+        // donde esta de verdad, fuera de la region "GANCHO".
+        List<Rango> ganchos = new List<Rango>();
+        try
+        {
+            foreach (Region r in p.Regions)
+                if ((r.Label ?? "").StartsWith("GANCHO"))
+                    ganchos.Add(new Rango(S(r.Position), S(r.Position) + S(r.Length) + 0.5));
+        }
+        catch { }
         return delegate (int hablante, double tiempo)
         {
             Fuente f;
@@ -273,14 +283,17 @@ public static class PistasVegas
             if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
             List<double[]> l;
             if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
-            double mejor = double.NaN;
+            double mejor = double.NaN, enGancho = double.NaN;
             foreach (double[] x in l)
                 if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
                 {
                     double ahora = x[2] + (segundo - x[0]) / x[3];
-                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                    bool gancho = false;
+                    foreach (Rango g in ganchos) if (ahora >= g.Inicio && ahora < g.Fin) { gancho = true; break; }
+                    if (gancho) { if (double.IsNaN(enGancho) || ahora < enGancho) enGancho = ahora; }
+                    else if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
                 }
-            return mejor;
+            return double.IsNaN(mejor) ? enGancho : mejor;
         };
     }
 
@@ -704,6 +717,22 @@ static class Editor
             partes[partes.Count - 1].Add(e);
         }
         return partes;
+    }
+
+    // Corre todo (eventos, marcadores y regiones) "segundos" a la derecha.
+    public static void Desplazar(Project p, double segundos)
+    {
+        if (segundos <= 0) return;
+        List<TrackEvent> eventos = new List<TrackEvent>();
+        foreach (Track t in p.Tracks) foreach (TrackEvent e in t.Events) eventos.Add(e);
+        // De derecha a izquierda para que nada se encime al moverse.
+        eventos.Sort(delegate (TrackEvent a, TrackEvent b) { return b.Start.ToMilliseconds().CompareTo(a.Start.ToMilliseconds()); });
+        foreach (TrackEvent e in eventos) e.Start = Timecode.FromMilliseconds(e.Start.ToMilliseconds() + segundos * 1000);
+        List<Marker> marcas = new List<Marker>();
+        foreach (Marker m in p.Markers) marcas.Add(m);
+        foreach (Region r in p.Regions) marcas.Add(r);
+        marcas.Sort(delegate (Marker a, Marker b) { return b.Position.ToMilliseconds().CompareTo(a.Position.ToMilliseconds()); });
+        foreach (Marker m in marcas) try { m.Position = Timecode.FromMilliseconds(m.Position.ToMilliseconds() + segundos * 1000); } catch { }
     }
 }
 

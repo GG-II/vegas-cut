@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ScriptPortal.Vegas;
+using Region = ScriptPortal.Vegas.Region;
 
 // =====================================================================
 // Pistas de audio del proyecto y render a WAV
@@ -159,6 +160,16 @@ public static class PistasVegas
                 l.Add(new double[] { desde, desde + largo, S(e.Start), e.PlaybackRate });
             }
         }
+        // Lo copiado al inicio como gancho repite el mismo audio: se prefiere
+        // donde esta de verdad, fuera de la region "GANCHO".
+        List<Rango> ganchos = new List<Rango>();
+        try
+        {
+            foreach (Region r in p.Regions)
+                if ((r.Label ?? "").StartsWith("GANCHO"))
+                    ganchos.Add(new Rango(S(r.Position), S(r.Position) + S(r.Length) + 0.5));
+        }
+        catch { }
         return delegate (int hablante, double tiempo)
         {
             Fuente f;
@@ -166,14 +177,17 @@ public static class PistasVegas
             if (!t.AFuente(hablante, tiempo, out f, out segundo)) return double.NaN;
             List<double[]> l;
             if (!eventos.TryGetValue(f.Media.ToLowerInvariant() + "|" + f.Flujo, out l)) return double.NaN;
-            double mejor = double.NaN;
+            double mejor = double.NaN, enGancho = double.NaN;
             foreach (double[] x in l)
                 if (segundo >= x[0] - 0.0005 && segundo < x[1] - 0.0005)
                 {
                     double ahora = x[2] + (segundo - x[0]) / x[3];
-                    if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
+                    bool gancho = false;
+                    foreach (Rango g in ganchos) if (ahora >= g.Inicio && ahora < g.Fin) { gancho = true; break; }
+                    if (gancho) { if (double.IsNaN(enGancho) || ahora < enGancho) enGancho = ahora; }
+                    else if (double.IsNaN(mejor) || ahora < mejor) mejor = ahora;
                 }
-            return mejor;
+            return double.IsNaN(mejor) ? enGancho : mejor;
         };
     }
 

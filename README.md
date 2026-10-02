@@ -293,14 +293,63 @@ del capítulo: por ejemplo, el primero es más exigente con el narrador y un fin
 - **Valles:** tramos sin narrador más largos que la regla, minutos seguidos con pocos recursos o
   ritmo lento, música que no cambia y duración de más. Los de la zona crítica van primero, en
   rojo. Doble clic: va ahí y lo selecciona en la línea de tiempo.
-- **Marcar valles como regiones:** pone regiones «VALLE · …» para trabajarlos en Vegas. **Quitar
-  regiones** borra solo esas.
-- **Narrador:** se elige la voz de la transcripción. Si la serie lleva narrador pero aún no lo
-  grabaste, los huecos de narrador no cuentan todavía; los cubrirá la narración que propone el
-  paso siguiente.
+- **Marcar valles:** pone regiones «VALLE · …». **Quitar regiones** borra solo esas.
+- **Narrador:** se elige la voz de la transcripción. Si la serie lleva narrador pero aún no hay
+  narración, los huecos de narrador no cuentan; la narración provisional sí cuenta.
 
-Próximamente, en la misma herramienta: el plan de estructura con Gemini, la narración
-provisional con voz de Windows y «Reemplazar narración».
+#### Estructura y narración…
+
+![Estructura y narración](docs/img/plan.png)
+
+**Pedir a Gemini** le manda:
+- lo que se dice en el video, con los tiempos actuales, y las pausas donde nadie habla;
+- el informe de ritmo;
+- la serie: formato, premisa, estilo del narrador, papel y nota del capítulo, fichas de los
+  capítulos anteriores y **cómo abrieron**, para no repetir el mismo inicio;
+- tus indicaciones, si escribes alguna.
+
+Gemini propone:
+
+- **Gancho:** un momento fuerte de 3 a 8 s para mostrar al inicio.
+- **Secciones** del episodio.
+- **Narración** en el estilo de la serie, medida a tu velocidad (ppm). Incluye una frase de gancho
+  en los primeros 7 s, contexto antes de los 30 s, un re-gancho en la zona crítica, la invitación
+  a suscribirse en el minuto 1–3 y el adelanto del siguiente capítulo (no en el final de la serie).
+  Va en las pausas o sobre charla sin importancia.
+- **Avances** en pantalla («Día 3», «Etapa 2»…).
+- **Recursos** que faltan (imagen, meme, efecto, texto o zoom), sobre todo en los valles, cada uno
+  con su código R01, R02…
+- **Recortes**: qué quitar o acelerar si dura de más.
+
+Desmarca lo que no quieras (doble clic en una fila te lleva a ese momento) y elige qué aplicar:
+
+- **Gancho al inicio:** corre todo el video y copia ese momento al principio (video y audios, con
+  región «GANCHO»). La transcripción sigue funcionando: siempre se ubica en el momento original.
+- **Narración con voz:** cada frase con la voz de Windows (robótica a propósito), ajustada a tu
+  velocidad, en la pista «vegas-cut · Narración provisional». Los WAV quedan en
+  `<proyecto>.vegascut-narracion`.
+- **Bajar el juego al narrar:** baja las pistas de las grabaciones (voces y juego) mientras suena
+  la narración. La del narrador no se toca.
+- **Avances en pantalla:** textos con el estilo del texto que ya uses en el proyecto (pista
+  «vegas-cut · Avances»).
+- **Placeholders:** si antes de abrir PulirEpisodio seleccionas en la línea de tiempo una imagen
+  ya editada, cada placeholder es una **copia** de ella (efectos, movimiento y fundidos) con un
+  texto «[R03] IMAGEN: …» en lugar de la imagen. Si no, un texto simple. Pista
+  «vegas-cut · Placeholders».
+- **Regiones:** «SECCIÓN · …», «RECORTAR · …» y «ACELERAR · …». Los recortes no se aplican solos.
+
+Todo queda en un solo paso de deshacer (Ctrl+Z). Al aplicar se guarda el **guion**
+(`<proyecto>.vegascut-guion.txt`): las frases con su código (N01…) y su tiempo, y la lista de
+recursos con el nombre de archivo sugerido. **Exportar guion** lo abre. El plan se guarda en
+`<proyecto>.vegascut-plan.json` (con lo que desmarcaste), así no hay que volver a pedirlo.
+
+**Reemplazar placeholders…:** eliges la carpeta con tus imágenes o videos. Cada archivo debe
+empezar con el código del placeholder (`R03 cadaver de steve.png`; se busca también en
+subcarpetas). Pasa a ser la toma activa del placeholder y conserva sus efectos, movimiento y
+fundidos. Avisa de los que falten.
+
+Próximamente: **Reemplazar narración**. Grabarás el guion de corrido y cada frase irá al lugar
+de la voz robótica.
 
 ### `Anteriormente.cs`
 

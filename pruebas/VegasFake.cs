@@ -27,7 +27,7 @@ public class Media { public string FilePath; public bool Generada; public Effect
   public bool IsGenerated(){return Generada;}
   public Timecode Length=new Timecode(0);
   public Media(){}
-  public Media(string ruta){ FilePath=ruta; if (ruta.EndsWith(".mp4")) Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); if (ruta.EndsWith(".mp4")) { Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); } Length=new Timecode(LargoFalso); }
+  public Media(string ruta){ FilePath=ruta; if (ruta.EndsWith(".png") || ruta.EndsWith(".jpg")) { Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); Length=new Timecode(LargoFalso); return; } if (ruta.EndsWith(".mp4")) Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); if (ruta.EndsWith(".mp4")) { Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Audio}); } Length=new Timecode(LargoFalso); }
   public static double LargoFalso=5000;
   public Media(PlugInNode p){ Generada=true; Generator=new Effect(p); Streams.Add(new MediaStream{Parent=this,MediaType=MediaType.Video}); } }
 public class Fade { public Timecode Length = new Timecode(0); }
@@ -39,7 +39,12 @@ public class TrackEvent {
   public TrackEvent Split(Timecode off){
     var e=(TrackEvent)MemberwiseClone(); e.FadeIn=new Fade(); e.FadeOut=FadeOut; FadeOut=new Fade(); e.Start=new Timecode(Start.ms+off.ms); e.Length=new Timecode(Length.ms-off.ms); e.Offset=Offset+off.ms; if (ActiveTake!=null) { e.ActiveTake=new Take(); e.ActiveTake.Media=ActiveTake.Media; e.ActiveTake.Offset=new Timecode(ActiveTake.Offset.ms+off.ms*PlaybackRate); }
     Length=new Timecode(off.ms); Track.Events.Add(e); if (Group!=null) { e.Group=null; Group.Add(e); } return e; }
-  public Take AddTake(MediaStream m){ ActiveTake=new Take{Media=m.Parent}; return ActiveTake; }
+  public List<Take> Takes=new List<Take>();
+  public Take AddTake(MediaStream m){ return AddTake(m,true); }
+  public Take AddTake(MediaStream m, bool activa){ var t=new Take{Media=m.Parent}; Takes.Add(t); if(activa) ActiveTake=t; return t; }
+  public TrackEvent Copy(Track destino, Timecode pos){ var e=(TrackEvent)MemberwiseClone(); e.Group=null; e.Start=pos; e.Track=destino; e.FadeIn=new Fade{Length=FadeIn.Length}; e.FadeOut=new Fade{Length=FadeOut.Length};
+    if (ActiveTake!=null) e.ActiveTake=new Take{Media=ActiveTake.Media, Offset=ActiveTake.Offset}; e.Takes=new List<Take>(); if (e.ActiveTake!=null) e.Takes.Add(e.ActiveTake);
+    var v=e as VideoEvent; if (v!=null) { var fx=new Effects(); foreach(var f in ((VideoEvent)this).Effects) fx.Add(f); v.Effects=fx; } destino.Events.Add(e); return e; }
 }
 public class AudioEvent: TrackEvent {} public class VideoEvent: TrackEvent { public Effects Effects=new Effects(); }
 public class Events : List<TrackEvent> { public new void Remove(TrackEvent e){ if (e.Group!=null) e.Group.Remove(e); base.Remove(e);} }

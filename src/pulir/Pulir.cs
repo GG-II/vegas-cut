@@ -125,9 +125,12 @@ class VentanaPulir : VentanaBase
     GraficoRitmo grafico = new GraficoRitmo();
     Lista lstChequeos = new Lista();
     Lista lstValles = new Lista();
-    Boton btnRegiones = new Boton("Marcar valles como regiones", EstiloBoton.Secundario);
+    Boton btnRegiones = new Boton("Marcar valles", EstiloBoton.Secundario);
     Boton btnQuitarRegiones = new Boton("Quitar regiones", EstiloBoton.Secundario);
     Boton btnMedir = new Boton("Volver a medir", EstiloBoton.Secundario);
+    Boton btnPlan = new Boton("Estructura y narración…", EstiloBoton.Primario);
+    Boton btnReemplazar = new Boton("Reemplazar placeholders…", EstiloBoton.Secundario);
+    VideoEvent plantilla;
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Primario);
 
     public VentanaPulir(Vegas vegas) : base("Pulir episodio", 1040)
@@ -163,10 +166,12 @@ class VentanaPulir : VentanaBase
         lstValles.Columns.Add("Qué pasa", w - ci - 16 - 110 - 26 - sb);
         Pos(lstValles, m + ci + 16, y, w - ci - 16, 200);
         y += 210;
-        Pos(btnRegiones, m, y, 230, 34);
-        Pos(btnQuitarRegiones, m + 238, y, 140, 34);
-        Pos(btnMedir, m + 386, y, 140, 34);
-        Pos(btnCerrar, m + w - 140, y, 140, 34);
+        Pos(btnRegiones, m, y, 130, 34);
+        Pos(btnQuitarRegiones, m + 138, y, 140, 34);
+        Pos(btnMedir, m + 286, y, 130, 34);
+        Pos(btnReemplazar, m + w - 562, y, 192, 34);
+        Pos(btnPlan, m + w - 362, y, 220, 34);
+        Pos(btnCerrar, m + w - 134, y, 134, 34);
         y += 42;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 34);
         ClientSize = new Size(ClientSize.Width, y + 34 + 16);
@@ -205,6 +210,25 @@ class VentanaPulir : VentanaBase
         };
         btnMedir.Click += delegate { CargarTranscripcion(); Medir(); };
         btnCerrar.Click += delegate { Close(); };
+        btnPlan.Click += delegate
+        {
+            if (inf == null) return;
+            using (VentanaPlan d = new VentanaPlan(vegas, inf, trans, serie, caps, formato, Papel(), plantilla))
+            {
+                d.ShowDialog(this);
+                if (d.Aplicado) { CargarTranscripcion(); Medir(); }
+            }
+        };
+        btnReemplazar.Click += delegate { Reemplazar(); };
+
+        // Plantilla de los placeholders: la imagen o video seleccionado (no un texto).
+        foreach (Track t in vegas.Project.Tracks)
+        {
+            if (t.IsAudio()) continue;
+            foreach (TrackEvent e in t.Events)
+                if (e.Selected && e is VideoEvent && !GeneradorTexto.EsTexto(e)) { plantilla = (VideoEvent)e; break; }
+            if (plantilla != null) break;
+        }
 
         CargarSerie();
         CargarTranscripcion();
@@ -305,6 +329,25 @@ class VentanaPulir : VentanaBase
         if (inf.FaltaNarracion) aviso += "La serie lleva narrador pero aún no hay narración: los huecos de narrador no se cuentan como valles todavía. ";
         Estado(aviso + (inf.Valles.Count == 0 ? "Sin valles: el ritmo cumple las reglas." :
                         inf.Valles.Count + " valles. Clic en el gráfico o doble clic en un valle para ir ahí."), false);
+    }
+
+    void Reemplazar()
+    {
+        string carpeta;
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta con tus recursos. Cada archivo empieza con el código del placeholder (\"R03 cadáver.png\"); se busca también en subcarpetas.";
+            string sugerida = Path.GetDirectoryName(vegas.Project.FilePath);
+            if (Directory.Exists(sugerida)) d.SelectedPath = sugerida;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            carpeta = d.SelectedPath;
+        }
+        List<string> faltan = new List<string>();
+        int n;
+        using (UndoBlock u = new UndoBlock("Reemplazar placeholders")) n = AplicarPlan.ReemplazarPlaceholders(vegas.Project, carpeta, faltan);
+        Estado(n == 0 && faltan.Count == 0 ? "No encontré placeholders (pista «" + AplicarPlan.PistaPlaceholders + "»)."
+               : "✔ " + n + " placeholders reemplazados (conservan efectos y movimiento)." +
+                 (faltan.Count > 0 ? " Faltan: " + String.Join(", ", faltan.ToArray()) + "." : ""), faltan.Count > 0 && n == 0);
     }
 
     // Lleva el cursor (y la seleccion, si hay fin) de Vegas a ese momento.
