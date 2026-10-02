@@ -130,13 +130,46 @@ Qué cambia en las reglas:
 - **Cumplir antes la promesa del título** («de noobs a usuarios de stand»): el primer stand aparece en
   1:23; mostrar uno en acción en los primeros 10–15 s.
 
-Para afinar esto hace falta la **gráfica de retención de público** de cada video (Analytics →
-Interacción → Retención de público), que dice en qué segundo exacto se va la gente.
+### Gráficas de retención de público (leídas de las capturas, aproximadas)
+
+| Tiempo | Parte 1 | | Tiempo | Parte 2 |
+|---|---|---|---|---|
+| 0:30 | 64 % | | 0:30 | 63 % |
+| 0:40–2:00 | **~57 %, casi plano** | | 1:12 | 53 % |
+| 2:30 | 48 % | | 2:36 | 39 % |
+| 3:00 | 41 % | | 3:30–7:00 | **~37–35 %, casi plano** |
+| 5:18 | 33 % | | 8:50 | 33 % |
+| 7:45 | 26 % | | 10:15 | 30 % |
+| ~8:10 | **sube un poco** | | 11:40 | 22 % |
+| 10:36 | 19 % | | 13:59 | 16 % |
+
+Cruzado con lo que pasa en la edición en cada tramo:
+
+1. **El inicio funciona en los dos**: 63–64 % a los 30 s, por encima de lo habitual según YouTube.
+2. **Lo que viene después del inicio es lo que más pesa**:
+   - **Parte 1 (0:40–2:00)**: meteorito → flecha → primeros stands, con narrador el 58 % del
+     minuto. La curva **se queda plana en ~57 %**.
+   - **Parte 2 (0:30–2:30)**: AB Fann se va solo a buscar terreno, sin narrador en el minuto 1 y con
+     pocos recursos. **Se pierden 24 puntos** (63 → 39 %). Es la caída más cara de los dos videos.
+3. **Los tramos largos de una POV o de pelea sin narrador hacen caer la curva**:
+   - **Parte 1 (2:00–3:00)**: la sección «POV de Jason» y el zombie mutante, con narrador el 30 %.
+     Baja **16 puntos en un minuto**.
+   - **Parte 2 (9:40–12:00)**: la pelea final, con 3:44 sin narrador. Baja **11 puntos**.
+4. **Narrador alto + cortes rápidos = curva plana**:
+   - **Parte 2 (3:00–7:00)**: villa, salón de belleza y habilidad de stand. Narrador 40–69 % y 21–42
+     cortes por minuto. La curva no baja: es el modelo a copiar.
+   - **Parte 1 (0:40–2:00)**: lo mismo.
+5. **Un stand nuevo hace volver a la gente**: en la Parte 1 la curva **sube** cerca de 8:10. Ahí
+   llega Jorge con *Soft & Wet*, con presentación de stand, narrador y 10 recursos en ese minuto.
 
 ## Reglas para «Mejorar retención» en esta serie
 
-- **Prioridad 1, el inicio y los minutos 3–6**: promesa del título cumplida o adelantada en los primeros
-  10–15 s, suscripción corta después de la premisa, y un re-gancho fuerte entre el minuto 3 y el 6.
+- **Prioridad 1, de 0:30 a 3:00**: justo después del inicio, ir directo al hilo más interesante (no a
+  exploración lenta), con el narrador llevando la historia (40 % del minuto o más). Promesa del título
+  cumplida o adelantada en los primeros 10–15 s y suscripción corta después de la premisa.
+- **Nunca más de 60–90 s sin narrador** en tramos de una POV o de pelea: recortar, acelerar o narrar
+  antes y después.
+- **Guardar momentos fuertes (un stand nuevo, un personaje) para la segunda mitad**: hacen volver a la gente.
 - **Duración objetivo 10–12 min**; más solo si la segunda mitad mantiene la densidad.
 
 - **Inicio de 15 s o menos**: premisa (+ «después del episodio anterior…»), montaje con texto cinético,
