@@ -31,6 +31,7 @@ public class Propuesta
     public static readonly string[] Tipos = { "normal", "especial", "dos_partes", "doble_duracion" };
 
     public string Id = "", Nombre = "", Tipo = "normal", PorQue = "", ColdOpen = "", Cierre = "", Notas = "";
+    public string TipoCap = "";        // clave de TiposCapitulo (juego, misterio, foco...)
     public List<string> Titulos = new List<string>(), Escaleta = new List<string>(), Estructura = new List<string>();
     public double Minutos;
     public bool Doble { get { return Tipo == "dos_partes"; } }             // dos videos
@@ -62,6 +63,9 @@ public class AnalisisCapitulo
     public double MinutosUtiles;
     public bool DobleRecomendado;
     public string DobleMotivo = "";
+    // Tipo de capitulo y papel que Gemini ve en el material.
+    public string TipoSugerido = "", TipoMotivo = "", PapelSugerido = "", PapelMotivo = "";
+    public List<string> TiposAlternativos = new List<string>();
     public List<MomentoMaterial> Momentos = new List<MomentoMaterial>();
     public List<string> Hilos = new List<string>();
     public List<Propuesta> Propuestas = new List<Propuesta>();
@@ -195,12 +199,20 @@ public static class LogicaProduccion
 
     static string FormatoPropuestas =
         " \"propuestas\": [{\"id\": \"A\", \"nombre\": \"...\", \"tipo\": \"normal|especial|dos_partes|doble_duracion\", " +
+        "\"tipo_capitulo\": \"clave\", " +
         "\"titulos\": [\"...\"], \"minutos\": n, \"estructura\": [\"Cold open (2:00)\", \"Opening\", \"Título\", \"Acto A\", \"...\"], " +
         "\"cold_open\": \"...\", \"cierre\": \"...\", \"escaleta\": [\"[mm:ss] ...\"], \"por_que\": \"...\"}]";
 
     public static string InstruccionesAnalisis(FormatoSerie f, string tipo, string papel)
     {
+        return InstruccionesAnalisis(f, tipo, papel, "");
+    }
+
+    // tipoPedido: clave del tipo de capitulo que pidio el editor ("" = que lo detecte).
+    public static string InstruccionesAnalisis(FormatoSerie f, string tipo, string papel, string tipoPedido)
+    {
         ReglasRitmo r = PapelEpisodio.Reglas(f.Reglas, papel);
+        TipoCapitulo pedido = TiposCapitulo.Buscar(tipoPedido);
         return "Eres el director de " + Serie.QueEs(tipo) + " que se edita como una serie de TV estilo anime de JoJo's Bizarre " +
                "Adventure. Recibes TODO el material grabado de un capítulo (ya sin silencios) y el contexto de la serie. Analízalo y " +
                "propón TRES formas distintas de hacer el capítulo.\n\n" + Prioridad + "\n" +
@@ -208,11 +220,21 @@ public static class LogicaProduccion
                "PAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
                "DURACIÓN DE REFERENCIA: " + r.DuracionMin + "–" + r.DuracionMax + " min por video (el doble si es de doble duración).\n\n" +
                "PLANTILLA DE LA SERIE (punto de partida, se puede cambiar):\n" + Plantilla(f) + "\n" + Guia + "\n" +
+               TiposCapitulo.Catalogo() + "\n" +
+               "QUÉ CAPÍTULO ES: decide qué tipo de capítulo es este según (1) lo que pide el editor (indicaciones y nota del " +
+               "capítulo), (2) lo que hay en el material, (3) el NÚMERO de capítulo y su papel y (4) cómo terminó el capítulo " +
+               "ANTERIOR (si quedó a medias, este lo retoma) y qué tipos se usaron hace poco (varía). Si el papel elegido no encaja " +
+               "con el material (por ejemplo, alguien muere y está como «Normal»), sugiere otro papel de: " +
+               String.Join(", ", PapelEpisodio.Papeles) + ".\n" +
+               (pedido != null ? "EL EDITOR PIDE QUE SEA: " + pedido.Clave + " (" + pedido.Nombre + "). Las tres propuestas son de ese " +
+                                 "tipo, con variantes distintas (otro inicio, otro foco, otro cierre).\n"
+                               : "Las tres propuestas pueden ser de tipos distintos si el material da para eso (por ejemplo, el mismo " +
+                                 "material como juego, como el capítulo de un personaje o como misterio).\n") + "\n" +
                "Análisis:\n- \"momentos\": los mejores momentos con su tipo (" + String.Join(", ", TiposMomento) + "), fuerza 1–5 y quién " +
                "participa. Usa solo tiempos de la transcripción.\n- \"hilos\": qué viene de capítulos anteriores o prepara algo de los " +
                "posteriores.\n- \"minutos_utiles\": cuánto material vale la pena.\n- \"doble\": si da para más de un video normal, dilo " +
                "y si conviene dos partes o doble duración.\n\n" +
-               "Propuestas: tres distintas de verdad. Cada una con su tipo, títulos al estilo JoJo (el nombre del rival, del lugar o de " +
+               "Propuestas: tres distintas de verdad. Cada una con su tipo, su tipo_capitulo (clave), títulos al estilo JoJo (el nombre del rival, del lugar o de " +
                "la situación; en dos partes, «… Parte 1» y «… Parte 2»), duración, su ESTRUCTURA de bloques en orden (con la duración " +
                "de la intro o cold open; puede no tener opening, tener eyecatch entre mitades, etc.), qué cold open y qué cierre usa, una " +
                "escaleta corta (5 a 8 pasos con tiempos del material) y por qué funciona.\n\n" +
@@ -220,7 +242,9 @@ public static class LogicaProduccion
                "{\"resumen\": \"...\", \"minutos_utiles\": n,\n" +
                " \"momentos\": [{\"inicio\": s, \"fin\": s, \"tipo\": \"...\", \"texto\": \"...\", \"fuerza\": n, \"personajes\": [\"...\"]}],\n" +
                " \"hilos\": [\"...\"],\n" +
-               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
+               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" +
+               " \"tipo_capitulo\": {\"sugerido\": \"clave\", \"alternativas\": [\"clave\"], \"motivo\": \"...\"},\n" +
+               " \"papel\": {\"sugerido\": \"" + papel + "\", \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
     }
 
     public static string MensajeAnalisis(Transcripcion t, double duracion, string contextoSerie, string reparto, string indicaciones)
@@ -239,6 +263,7 @@ public static class LogicaProduccion
         Propuesta p = new Propuesta();
         p.Id = Json.Texto(x, "id");
         p.Nombre = Json.Texto(x, "nombre"); p.Tipo = Propuesta.Normalizar(Json.Texto(x, "tipo"));
+        p.TipoCap = TiposCapitulo.Normalizar(Json.Texto(x, "tipo_capitulo"));
         foreach (object y in Json.Lista(x, "titulos")) if (y is string) p.Titulos.Add((string)y);
         foreach (object y in Json.Lista(x, "estructura")) if (y is string) p.Estructura.Add((string)y);
         p.Minutos = Json.Numero(x, "minutos", 0);
@@ -286,6 +311,23 @@ public static class LogicaProduccion
         }
         a.Momentos.Sort(delegate (MomentoMaterial x, MomentoMaterial y) { return x.Inicio.CompareTo(y.Inicio); });
         foreach (object x in Json.Lista(o, "hilos")) if (x is string) a.Hilos.Add((string)x);
+        object tc = Json.Valor(o, "tipo_capitulo");
+        if (tc != null)
+        {
+            a.TipoSugerido = TiposCapitulo.Normalizar(Json.Texto(tc, "sugerido"));
+            a.TipoMotivo = Json.Texto(tc, "motivo");
+            foreach (object x in Json.Lista(tc, "alternativas"))
+            {
+                string k = TiposCapitulo.Normalizar(x as string);
+                if (k.Length > 0 && k != a.TipoSugerido && !a.TiposAlternativos.Contains(k)) a.TiposAlternativos.Add(k);
+            }
+        }
+        object pa = Json.Valor(o, "papel");
+        if (pa != null && Array.IndexOf(PapelEpisodio.Papeles, Json.Texto(pa, "sugerido")) >= 0)
+        {
+            a.PapelSugerido = Json.Texto(pa, "sugerido");
+            a.PapelMotivo = Json.Texto(pa, "motivo");
+        }
         a.Propuestas = LeerPropuestas(o);
         if (a.Propuestas.Count == 0) throw new Exception("La respuesta no trae propuestas.");
         return a;
@@ -294,7 +336,8 @@ public static class LogicaProduccion
     static string PropuestaTexto(Propuesta p)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append(p.Id + " · " + p.Nombre + " (" + p.Tipo + ", ~" + Math.Round(p.Minutos) + " min)\n");
+        sb.Append(p.Id + " · " + p.Nombre + " (" + p.Tipo + (p.TipoCap.Length > 0 ? ", tipo_capitulo " + p.TipoCap : "") +
+                  ", ~" + Math.Round(p.Minutos) + " min)\n");
         if (p.Titulos.Count > 0) sb.Append("  Títulos: " + String.Join(" / ", p.Titulos.ToArray()) + "\n");
         if (p.Estructura.Count > 0) sb.Append("  Estructura: " + String.Join(" → ", p.Estructura.ToArray()) + "\n");
         sb.Append("  Cold open: " + p.ColdOpen + "\n  Cierre: " + p.Cierre + "\n");
@@ -311,7 +354,8 @@ public static class LogicaProduccion
                "- Una propuesta con notas se corrige según sus notas (manteniendo lo que no se pide cambiar).\n" +
                "- Una propuesta sin notas se deja igual, salvo que las notas generales digan otra cosa.\n" +
                "- Si una nota pide combinar propuestas («la B con el cold open de la A»), hazlo en esa propuesta.\n" +
-               "- Mantén los ids.\n\n" + Prioridad + "\n" +
+               "- Mantén los ids.\n- Si una nota pide otro tipo de capítulo («que sea un juego»), cambia su tipo_capitulo y su " +
+               "estructura a ese tipo.\n\n" + Prioridad + "\n" + TiposCapitulo.Catalogo() + "\n" +
                "PAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" + Guia + "\n" +
                "PLANTILLA DE LA SERIE (punto de partida):\n" + Plantilla(f) + "\n" +
                "Responde SOLO con JSON:\n{" + FormatoPropuestas + "}";
@@ -373,6 +417,7 @@ public static class LogicaProduccion
                "y las notas del editor, arma la ESCALETA FINAL del capítulo (tipo: " + tipo + ").\n\n" + Prioridad +
                "Revisa cada nota y cambio del editor y cumple todos; no metas elementos que una nota pide quitar.\n\n" +
                "PAPEL DEL CAPÍTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
+               (p != null ? TiposCapitulo.Instrucciones(p.TipoCap) : "") +
                "PLANTILLA DE LA SERIE (punto de partida; la ESTRUCTURA de cada parte la decides tú según la propuesta y las notas):\n" +
                Plantilla(f) +
                "Bloques posibles: los de la plantilla (cold_open, op, titulo, acto_a, regancho, acto_b, continuara, ed, avance) y otros " +
@@ -593,8 +638,14 @@ public static class LogicaProduccion
 
     public static void Guardar(string veg, AnalisisCapitulo a, string elegida, string indicaciones, string notas, PlanFinal f)
     {
+        Guardar(veg, a, elegida, indicaciones, notas, f, "");
+    }
+
+    public static void Guardar(string veg, AnalisisCapitulo a, string elegida, string indicaciones, string notas, PlanFinal f, string tipoPedido)
+    {
         Dictionary<string, object> d = new Dictionary<string, object>();
         d["formato"] = "vegas-cut-produccion";
+        d["tipo_pedido"] = tipoPedido ?? "";
         d["indicaciones"] = indicaciones ?? "";
         d["notas"] = notas ?? "";
         if (a != null)
@@ -614,6 +665,13 @@ public static class LogicaProduccion
             d["descartados"] = fuera;
         }
         File.WriteAllText(RutaPara(veg), Json.Escribir(d), new UTF8Encoding(false));
+    }
+
+    // El tipo de capitulo que pidio el editor ("" = que lo detecte).
+    public static string TipoPedido(string veg)
+    {
+        try { return File.Exists(RutaPara(veg)) ? TiposCapitulo.Normalizar(Json.Texto(Json.Leer(File.ReadAllText(RutaPara(veg), Encoding.UTF8)), "tipo_pedido")) : ""; }
+        catch { return ""; }
     }
 
     public static bool Cargar(string veg, double duracion, int musicas, int ppm, out AnalisisCapitulo a, out string elegida,

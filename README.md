@@ -351,9 +351,21 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
      - *doble duración*: un solo video largo, con un opening y las mitades unidas por un
        eyecatch.
 
-     Además trae títulos al estilo JoJo, duración, su **estructura de bloques** (por ejemplo
+     Además trae su **tipo de capítulo**, títulos al estilo JoJo, duración, su **estructura de bloques** (por ejemplo
      «Intro (3:00) → Título → Acto A → Eyecatch → Acto B»), qué cold open y qué cierre usa, una
      escaleta corta y por qué funciona.
+
+   **Tipo de capítulo.** JoJo no arma todos los episodios igual: hay juegos y apuestas, misterios,
+   persecuciones, capítulos de un personaje, del lado del villano, con el grupo separado,
+   enfrentamientos en varias partes, despedidas y más (22 tipos, en `docs/tipos-de-capitulo.md`).
+   Gemini detecta de qué tipo es este capítulo. Para eso mira tus indicaciones y la nota del
+   capítulo, el material, **qué número de capítulo es**, **cómo cerró el anterior** y qué tipos
+   se usaron hace poco, para no repetir. Las propuestas pueden ser de tipos distintos.
+   - Si ya sabes qué quieres, elígelo en el combo **Tipo de capítulo**: las tres propuestas serán
+     de ese tipo.
+   - Si el material no encaja con el papel del capítulo (por ejemplo, alguien muere y estaba como
+     «Normal»), la ventana sugiere cambiarlo.
+   - Al producir, la serie guarda el tipo, el título y el cierre del capítulo para el siguiente.
 
    Cada tarjeta tiene su cuadro de **notas** («sin opening», «con el cold open de la A»).
    **Refinar propuestas** corrige las tres con tus notas sin volver a analizar todo, las veces

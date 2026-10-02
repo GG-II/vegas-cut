@@ -94,7 +94,8 @@ class TarjetaPropuesta : Panel
         P = p;
         Titulo.Text = p.Id + " \u00b7 " + p.Nombre;
         StringBuilder sb = new StringBuilder();
-        sb.Append(p.NombreTipo() + " \u00b7 ~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
+        sb.Append((p.TipoCap.Length > 0 ? TiposCapitulo.Nombre(p.TipoCap).ToUpperInvariant() + " \u00b7 " : "") +
+                  (p.Tipo != "normal" || p.TipoCap.Length == 0 ? p.NombreTipo() + " \u00b7 " : "") + "~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
         if (p.Titulos.Count > 0) sb.Append("\u00ab" + String.Join("\u00bb / \u00ab", p.Titulos.ToArray()) + "\u00bb\n");
         if (p.Estructura.Count > 0) sb.Append("\n" + String.Join(" \u2192 ", p.Estructura.ToArray()) + "\n");
         sb.Append("\nCold open: " + p.ColdOpen + "\nCierre: " + p.Cierre + "\n\n");
@@ -126,6 +127,7 @@ class VentanaProduccion : VentanaBase
     Segmentado segPaso = new Segmentado(new string[] { "1 \u00b7 An\u00e1lisis y propuestas", "2 \u00b7 Propuesta final" });
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
+    Combo cmbTipo = new Combo();
     Boton btnAnalizar = new Boton("Analizar y proponer", EstiloBoton.Primario);
     Boton btnRefinar = new Boton("Refinar propuestas", EstiloBoton.Secundario);
     TarjetaPropuesta[] tarjetas = { new TarjetaPropuesta(), new TarjetaPropuesta(), new TarjetaPropuesta() };
@@ -152,23 +154,28 @@ class VentanaProduccion : VentanaBase
 
         // ---- vista 1: analisis y propuestas
         int y1 = y;
-        vista1.Add(Texto("INDICACIONES (opcional: qu\u00e9 no puede faltar, qu\u00e9 cortar, a qui\u00e9n darle protagonismo\u2026)", Tema.Pequena, Tema.TextoSuave, m, y1, w - 220, 18));
+        vista1.Add(Texto("INDICACIONES (opcional: qu\u00e9 no puede faltar, qu\u00e9 cortar, a qui\u00e9n darle protagonismo\u2026)", Tema.Pequena, Tema.TextoSuave, m, y1, w - 460, 18));
         txtIndicaciones.Multilinea = true;
-        vista1.Add(Pos(txtIndicaciones, m, y1 + 20, w - 216, 48));
+        vista1.Add(Pos(txtIndicaciones, m, y1 + 20, w - 456, 48));
+        vista1.Add(Texto("TIPO DE CAP\u00cdTULO", Tema.Pequena, Tema.TextoSuave, m + w - 440, y1, 230, 18));
+        foreach (string o in TiposCapitulo.Opciones()) cmbTipo.Items.Add(o);
+        cmbTipo.SelectedIndex = 0;
+        cmbTipo.DropDownWidth = 300;
+        vista1.Add(Pos(cmbTipo, m + w - 440, y1 + 22, 228, 30));
         vista1.Add(Pos(btnAnalizar, m + w - 200, y1 + 20, 200, 48));
         y1 += 76;
-        lblAnalisis = Texto("", Tema.Pequena, Tema.Texto, m, y1, w, 52);
+        lblAnalisis = Texto("", Tema.Pequena, Tema.Texto, m, y1, w, 70);
         vista1.Add(lblAnalisis);
-        y1 += 58;
+        y1 += 76;
         int tw = (w - 32) / 3;
         for (int i = 0; i < 3; i++)
         {
             TarjetaPropuesta t = tarjetas[i];
-            vista1.Add(Pos(t, m + i * (tw + 16), y1, tw, 410));
+            vista1.Add(Pos(t, m + i * (tw + 16), y1, tw, 400));
             int k = i;
             t.Elegir.Click += delegate { Elegir(k); };
         }
-        y1 += 420;
+        y1 += 410;
         vista1.Add(Texto("OTRAS NOTAS", Tema.Pequena, Tema.TextoSuave, m, y1, 200, 18));
         vista1.Add(Pos(txtNotas, m, y1 + 18, w - 446, 34));
         vista1.Add(Pos(btnRefinar, m + w - 430, y1 + 14, 200, 40));
@@ -272,6 +279,7 @@ class VentanaProduccion : VentanaBase
             return;
         }
         trabajando = false;
+        Registrar();
         foreach (Control c in new Control[] { btnCerrar }) c.Enabled = true;
         Estado(r.Texto() + (r.Avisos.Count > 0 ? " Avisos: " + String.Join(" ", r.Avisos.ToArray()) : ""), r.Avisos.Count > 0);
         MessageBox.Show(this, r.Texto() + "\n\nAhora est\u00e1s en \u00ab" + Path.GetFileName(cap) + "\u00bb. El guion qued\u00f3 junto al proyecto.\n\n" +
@@ -279,6 +287,25 @@ class VentanaProduccion : VentanaBase
                         "(balance de m\u00fasica y censura)." + (r.Avisos.Count > 0 ? "\n\nAvisos:\n" + String.Join("\n", r.Avisos.ToArray()) : ""),
                         "Producir cap\u00edtulo");
         Close();
+    }
+
+    // Lo que se produjo queda en la serie: el siguiente capitulo sabe de que tipo fue y como cerro.
+    void Registrar()
+    {
+        Propuesta p = Elegida();
+        if (serie == null || p == null || final == null || serie.IndiceDe(original) < 0) return;
+        RegistroCapitulo rc = new RegistroCapitulo();
+        rc.Tipo = p.TipoCap; rc.Forma = p.Tipo; rc.Cierre = p.Cierre;
+        List<string> t = new List<string>();
+        foreach (CapituloFinal c in final.Partes) if (c.Titulo.Length > 0) t.Add(c.Titulo);
+        rc.Titulo = String.Join(" / ", t.ToArray());
+        serie.Producidos[original] = rc;
+        try { serie.Guardar(); } catch { }
+    }
+
+    string TipoPedido()
+    {
+        return cmbTipo.SelectedIndex > 0 ? TiposCapitulo.Normalizar((string)cmbTipo.SelectedItem) : "";
     }
 
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
@@ -307,16 +334,15 @@ class VentanaProduccion : VentanaBase
         if (serie != null && serie.Musica.Carpeta.Length > 0 && Directory.Exists(serie.Musica.Carpeta))
             try { biblioteca = BibliotecaMusica.Cargar(serie.Musica.Carpeta); } catch { biblioteca = null; }
         musica = LogicaProduccion.MusicaCandidata(biblioteca, serie != null ? serie.Musica : null);
-        lblContexto.Text = (serie == null ? "Sin serie (uso el formato Serie de TV por defecto; el\u00edgela en Series)" :
-                            "Serie " + serie.Nombre + " \u00b7 " + formato.Nombre + " \u00b7 \u00ab" + papel + "\u00bb") +
-                           "\nMaterial: " + Formato.Tiempo(duracion) + (veg != original ? " (copia base)" : "") +
-                           (biblioteca != null ? " \u00b7 m\u00fasica: " + musica.Count + " temas" : " \u00b7 sin biblioteca de m\u00fasica (Series \u2192 M\u00fasica\u2026)");
+        MostrarContexto();
         if (!formato.EsTV) Estado("La serie no tiene el formato \u00abSerie de TV / anime\u00bb: se usa su plantilla por defecto.", false);
 
         string elegida, ind, notas;
         if (LogicaProduccion.Cargar(veg, duracion, musica.Count, formato.Reglas.PPM, formato.Tv, out analisis, out elegida, out ind, out notas, out final))
         {
             txtIndicaciones.Text = ind; txtNotas.Text = notas;
+            string tp = TiposCapitulo.Nombre(LogicaProduccion.TipoPedido(veg));
+            if (tp.Length > 0) cmbTipo.SelectedItem = tp;
             MostrarAnalisis();
             if (analisis != null)
                 for (int i = 0; i < analisis.Propuestas.Count && i < 3; i++)
@@ -329,12 +355,22 @@ class VentanaProduccion : VentanaBase
         segPaso.Habilitar(1, final != null);
     }
 
+    void MostrarContexto()
+    {
+        CapSerie este = caps.Find(delegate (CapSerie c) { return c.Relacion == 0; });
+        lblContexto.Text = (serie == null ? "Sin serie (uso el formato Serie de TV por defecto; el\u00edgela en Series)" :
+                            "Serie " + serie.Nombre + " \u00b7 " + formato.Nombre + (este != null ? " \u00b7 cap\u00edtulo " + este.Posicion + " de " + caps.Count : "") +
+                            " \u00b7 \u00ab" + papel + "\u00bb") +
+                           "\nMaterial: " + Formato.Tiempo(duracion) + (veg != original ? " (copia base)" : "") +
+                           (biblioteca != null ? " \u00b7 m\u00fasica: " + musica.Count + " temas" : " \u00b7 sin biblioteca de m\u00fasica (Series \u2192 M\u00fasica\u2026)");
+    }
+
     void Guardar()
     {
         if (analisis == null) return;
         LeerNotas();
         Propuesta p = Elegida();
-        try { LogicaProduccion.Guardar(veg, analisis, p != null ? p.Id : "", txtIndicaciones.Text, txtNotas.Text, final); } catch { }
+        try { LogicaProduccion.Guardar(veg, analisis, p != null ? p.Id : "", txtIndicaciones.Text, txtNotas.Text, final, TipoPedido()); } catch { }
     }
 
     void LeerNotas()
@@ -365,6 +401,10 @@ class VentanaProduccion : VentanaBase
         }
         lblAnalisis.Text = !hay ? "Pulsa \u00abAnalizar y proponer\u00bb: Gemini lee todo el material con el contexto de la serie y propone tres formas de hacer el cap\u00edtulo." :
             analisis.Resumen + "\n" + analisis.Momentos.Count + " momentos \u00b7 ~" + Math.Round(analisis.MinutosUtiles) + " min \u00fatiles" +
+            (analisis.TipoSugerido.Length > 0 ? "\nTipo: " + TiposCapitulo.Nombre(analisis.TipoSugerido).ToUpperInvariant() +
+                (analisis.TipoMotivo.Length > 0 ? " \u2014 " + analisis.TipoMotivo : "") +
+                (analisis.TiposAlternativos.Count > 0 ? " (tambi\u00e9n podr\u00eda ser: " + String.Join(", ", analisis.TiposAlternativos.ConvertAll<string>(TiposCapitulo.Nombre).ToArray()) + ")" : "") : "") +
+            (analisis.PapelSugerido.Length > 0 && analisis.PapelSugerido != papel ? " \u00b7 sugiere el papel \u00ab" + analisis.PapelSugerido + "\u00bb" : "") +
             (analisis.DobleRecomendado ? " \u00b7 recomienda EPISODIO DOBLE: " + analisis.DobleMotivo : "") +
             (analisis.Hilos.Count > 0 ? " \u00b7 hilos: " + String.Join("; ", analisis.Hilos.ToArray()) : "");
         btnFinal.Enabled = Elegida() != null;
@@ -410,7 +450,7 @@ class VentanaProduccion : VentanaBase
     {
         string tipo = serie != null ? serie.Tipo : "Gameplay";
         string ctx = serie != null ? Serie.Contexto(serie, caps) : "";
-        string instr = LogicaProduccion.InstruccionesAnalisis(formato, tipo, papel);
+        string instr = LogicaProduccion.InstruccionesAnalisis(formato, tipo, papel, TipoPedido());
         string msg = LogicaProduccion.MensajeAnalisis(trans, duracion, ctx, LogicaProduccion.Reparto(serie != null ? serie.Musica : null), txtIndicaciones.Text);
         Pedir(instr, msg, "Gemini est\u00e1 viendo todo el material (puede tardar un par de minutos)\u2026", delegate (string r)
         {
@@ -418,7 +458,23 @@ class VentanaProduccion : VentanaBase
             MostrarAnalisis();
             Vista(0);
             Estado("\u2714 " + analisis.Propuestas.Count + " propuestas. Elige una, escribe notas si quieres y arma la propuesta final.", false);
+            CambiarPapel();
         });
+    }
+
+    // Si Gemini ve otro papel (alguien muere y estaba como \u00abNormal\u00bb...), se ofrece cambiarlo.
+    void CambiarPapel()
+    {
+        if (serie == null || analisis.PapelSugerido.Length == 0 || analisis.PapelSugerido == papel || serie.IndiceDe(original) < 0) return;
+        if (MessageBox.Show(this, "Gemini sugiere que este cap\u00edtulo sea \u00ab" + analisis.PapelSugerido + "\u00bb (ahora es \u00ab" + papel + "\u00bb)" +
+                (analisis.PapelMotivo.Length > 0 ? ":\n\n" + analisis.PapelMotivo : ".") + "\n\n\u00bfCambiar el papel? (cambia el ritmo y lo que " +
+                "se pide en la propuesta final; las propuestas se quedan como est\u00e1n)", "Producir cap\u00edtulo", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+        serie.CambiarPapel(original, analisis.PapelSugerido);
+        try { serie.Guardar(); } catch { }
+        papel = analisis.PapelSugerido;
+        foreach (CapSerie c in caps) if (c.Relacion == 0) c.Papel = papel;
+        MostrarContexto();
+        MostrarAnalisis();
     }
 
     void Refinar()
@@ -570,6 +626,7 @@ public class Propuesta
     public static readonly string[] Tipos = { "normal", "especial", "dos_partes", "doble_duracion" };
 
     public string Id = "", Nombre = "", Tipo = "normal", PorQue = "", ColdOpen = "", Cierre = "", Notas = "";
+    public string TipoCap = "";        // clave de TiposCapitulo (juego, misterio, foco...)
     public List<string> Titulos = new List<string>(), Escaleta = new List<string>(), Estructura = new List<string>();
     public double Minutos;
     public bool Doble { get { return Tipo == "dos_partes"; } }             // dos videos
@@ -601,6 +658,9 @@ public class AnalisisCapitulo
     public double MinutosUtiles;
     public bool DobleRecomendado;
     public string DobleMotivo = "";
+    // Tipo de capitulo y papel que Gemini ve en el material.
+    public string TipoSugerido = "", TipoMotivo = "", PapelSugerido = "", PapelMotivo = "";
+    public List<string> TiposAlternativos = new List<string>();
     public List<MomentoMaterial> Momentos = new List<MomentoMaterial>();
     public List<string> Hilos = new List<string>();
     public List<Propuesta> Propuestas = new List<Propuesta>();
@@ -734,12 +794,20 @@ public static class LogicaProduccion
 
     static string FormatoPropuestas =
         " \"propuestas\": [{\"id\": \"A\", \"nombre\": \"...\", \"tipo\": \"normal|especial|dos_partes|doble_duracion\", " +
+        "\"tipo_capitulo\": \"clave\", " +
         "\"titulos\": [\"...\"], \"minutos\": n, \"estructura\": [\"Cold open (2:00)\", \"Opening\", \"T\u00edtulo\", \"Acto A\", \"...\"], " +
         "\"cold_open\": \"...\", \"cierre\": \"...\", \"escaleta\": [\"[mm:ss] ...\"], \"por_que\": \"...\"}]";
 
     public static string InstruccionesAnalisis(FormatoSerie f, string tipo, string papel)
     {
+        return InstruccionesAnalisis(f, tipo, papel, "");
+    }
+
+    // tipoPedido: clave del tipo de capitulo que pidio el editor ("" = que lo detecte).
+    public static string InstruccionesAnalisis(FormatoSerie f, string tipo, string papel, string tipoPedido)
+    {
         ReglasRitmo r = PapelEpisodio.Reglas(f.Reglas, papel);
+        TipoCapitulo pedido = TiposCapitulo.Buscar(tipoPedido);
         return "Eres el director de " + Serie.QueEs(tipo) + " que se edita como una serie de TV estilo anime de JoJo's Bizarre " +
                "Adventure. Recibes TODO el material grabado de un cap\u00edtulo (ya sin silencios) y el contexto de la serie. Anal\u00edzalo y " +
                "prop\u00f3n TRES formas distintas de hacer el cap\u00edtulo.\n\n" + Prioridad + "\n" +
@@ -747,11 +815,21 @@ public static class LogicaProduccion
                "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
                "DURACI\u00d3N DE REFERENCIA: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por video (el doble si es de doble duraci\u00f3n).\n\n" +
                "PLANTILLA DE LA SERIE (punto de partida, se puede cambiar):\n" + Plantilla(f) + "\n" + Guia + "\n" +
+               TiposCapitulo.Catalogo() + "\n" +
+               "QU\u00c9 CAP\u00cdTULO ES: decide qu\u00e9 tipo de cap\u00edtulo es este seg\u00fan (1) lo que pide el editor (indicaciones y nota del " +
+               "cap\u00edtulo), (2) lo que hay en el material, (3) el N\u00daMERO de cap\u00edtulo y su papel y (4) c\u00f3mo termin\u00f3 el cap\u00edtulo " +
+               "ANTERIOR (si qued\u00f3 a medias, este lo retoma) y qu\u00e9 tipos se usaron hace poco (var\u00eda). Si el papel elegido no encaja " +
+               "con el material (por ejemplo, alguien muere y est\u00e1 como \u00abNormal\u00bb), sugiere otro papel de: " +
+               String.Join(", ", PapelEpisodio.Papeles) + ".\n" +
+               (pedido != null ? "EL EDITOR PIDE QUE SEA: " + pedido.Clave + " (" + pedido.Nombre + "). Las tres propuestas son de ese " +
+                                 "tipo, con variantes distintas (otro inicio, otro foco, otro cierre).\n"
+                               : "Las tres propuestas pueden ser de tipos distintos si el material da para eso (por ejemplo, el mismo " +
+                                 "material como juego, como el cap\u00edtulo de un personaje o como misterio).\n") + "\n" +
                "An\u00e1lisis:\n- \"momentos\": los mejores momentos con su tipo (" + String.Join(", ", TiposMomento) + "), fuerza 1\u20135 y qui\u00e9n " +
                "participa. Usa solo tiempos de la transcripci\u00f3n.\n- \"hilos\": qu\u00e9 viene de cap\u00edtulos anteriores o prepara algo de los " +
                "posteriores.\n- \"minutos_utiles\": cu\u00e1nto material vale la pena.\n- \"doble\": si da para m\u00e1s de un video normal, dilo " +
                "y si conviene dos partes o doble duraci\u00f3n.\n\n" +
-               "Propuestas: tres distintas de verdad. Cada una con su tipo, t\u00edtulos al estilo JoJo (el nombre del rival, del lugar o de " +
+               "Propuestas: tres distintas de verdad. Cada una con su tipo, su tipo_capitulo (clave), t\u00edtulos al estilo JoJo (el nombre del rival, del lugar o de " +
                "la situaci\u00f3n; en dos partes, \u00ab\u2026 Parte 1\u00bb y \u00ab\u2026 Parte 2\u00bb), duraci\u00f3n, su ESTRUCTURA de bloques en orden (con la duraci\u00f3n " +
                "de la intro o cold open; puede no tener opening, tener eyecatch entre mitades, etc.), qu\u00e9 cold open y qu\u00e9 cierre usa, una " +
                "escaleta corta (5 a 8 pasos con tiempos del material) y por qu\u00e9 funciona.\n\n" +
@@ -759,7 +837,9 @@ public static class LogicaProduccion
                "{\"resumen\": \"...\", \"minutos_utiles\": n,\n" +
                " \"momentos\": [{\"inicio\": s, \"fin\": s, \"tipo\": \"...\", \"texto\": \"...\", \"fuerza\": n, \"personajes\": [\"...\"]}],\n" +
                " \"hilos\": [\"...\"],\n" +
-               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
+               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" +
+               " \"tipo_capitulo\": {\"sugerido\": \"clave\", \"alternativas\": [\"clave\"], \"motivo\": \"...\"},\n" +
+               " \"papel\": {\"sugerido\": \"" + papel + "\", \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
     }
 
     public static string MensajeAnalisis(Transcripcion t, double duracion, string contextoSerie, string reparto, string indicaciones)
@@ -778,6 +858,7 @@ public static class LogicaProduccion
         Propuesta p = new Propuesta();
         p.Id = Json.Texto(x, "id");
         p.Nombre = Json.Texto(x, "nombre"); p.Tipo = Propuesta.Normalizar(Json.Texto(x, "tipo"));
+        p.TipoCap = TiposCapitulo.Normalizar(Json.Texto(x, "tipo_capitulo"));
         foreach (object y in Json.Lista(x, "titulos")) if (y is string) p.Titulos.Add((string)y);
         foreach (object y in Json.Lista(x, "estructura")) if (y is string) p.Estructura.Add((string)y);
         p.Minutos = Json.Numero(x, "minutos", 0);
@@ -825,6 +906,23 @@ public static class LogicaProduccion
         }
         a.Momentos.Sort(delegate (MomentoMaterial x, MomentoMaterial y) { return x.Inicio.CompareTo(y.Inicio); });
         foreach (object x in Json.Lista(o, "hilos")) if (x is string) a.Hilos.Add((string)x);
+        object tc = Json.Valor(o, "tipo_capitulo");
+        if (tc != null)
+        {
+            a.TipoSugerido = TiposCapitulo.Normalizar(Json.Texto(tc, "sugerido"));
+            a.TipoMotivo = Json.Texto(tc, "motivo");
+            foreach (object x in Json.Lista(tc, "alternativas"))
+            {
+                string k = TiposCapitulo.Normalizar(x as string);
+                if (k.Length > 0 && k != a.TipoSugerido && !a.TiposAlternativos.Contains(k)) a.TiposAlternativos.Add(k);
+            }
+        }
+        object pa = Json.Valor(o, "papel");
+        if (pa != null && Array.IndexOf(PapelEpisodio.Papeles, Json.Texto(pa, "sugerido")) >= 0)
+        {
+            a.PapelSugerido = Json.Texto(pa, "sugerido");
+            a.PapelMotivo = Json.Texto(pa, "motivo");
+        }
         a.Propuestas = LeerPropuestas(o);
         if (a.Propuestas.Count == 0) throw new Exception("La respuesta no trae propuestas.");
         return a;
@@ -833,7 +931,8 @@ public static class LogicaProduccion
     static string PropuestaTexto(Propuesta p)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append(p.Id + " \u00b7 " + p.Nombre + " (" + p.Tipo + ", ~" + Math.Round(p.Minutos) + " min)\n");
+        sb.Append(p.Id + " \u00b7 " + p.Nombre + " (" + p.Tipo + (p.TipoCap.Length > 0 ? ", tipo_capitulo " + p.TipoCap : "") +
+                  ", ~" + Math.Round(p.Minutos) + " min)\n");
         if (p.Titulos.Count > 0) sb.Append("  T\u00edtulos: " + String.Join(" / ", p.Titulos.ToArray()) + "\n");
         if (p.Estructura.Count > 0) sb.Append("  Estructura: " + String.Join(" \u2192 ", p.Estructura.ToArray()) + "\n");
         sb.Append("  Cold open: " + p.ColdOpen + "\n  Cierre: " + p.Cierre + "\n");
@@ -850,7 +949,8 @@ public static class LogicaProduccion
                "- Una propuesta con notas se corrige seg\u00fan sus notas (manteniendo lo que no se pide cambiar).\n" +
                "- Una propuesta sin notas se deja igual, salvo que las notas generales digan otra cosa.\n" +
                "- Si una nota pide combinar propuestas (\u00abla B con el cold open de la A\u00bb), hazlo en esa propuesta.\n" +
-               "- Mant\u00e9n los ids.\n\n" + Prioridad + "\n" +
+               "- Mant\u00e9n los ids.\n- Si una nota pide otro tipo de cap\u00edtulo (\u00abque sea un juego\u00bb), cambia su tipo_capitulo y su " +
+               "estructura a ese tipo.\n\n" + Prioridad + "\n" + TiposCapitulo.Catalogo() + "\n" +
                "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" + Guia + "\n" +
                "PLANTILLA DE LA SERIE (punto de partida):\n" + Plantilla(f) + "\n" +
                "Responde SOLO con JSON:\n{" + FormatoPropuestas + "}";
@@ -912,6 +1012,7 @@ public static class LogicaProduccion
                "y las notas del editor, arma la ESCALETA FINAL del cap\u00edtulo (tipo: " + tipo + ").\n\n" + Prioridad +
                "Revisa cada nota y cambio del editor y cumple todos; no metas elementos que una nota pide quitar.\n\n" +
                "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
+               (p != null ? TiposCapitulo.Instrucciones(p.TipoCap) : "") +
                "PLANTILLA DE LA SERIE (punto de partida; la ESTRUCTURA de cada parte la decides t\u00fa seg\u00fan la propuesta y las notas):\n" +
                Plantilla(f) +
                "Bloques posibles: los de la plantilla (cold_open, op, titulo, acto_a, regancho, acto_b, continuara, ed, avance) y otros " +
@@ -1132,8 +1233,14 @@ public static class LogicaProduccion
 
     public static void Guardar(string veg, AnalisisCapitulo a, string elegida, string indicaciones, string notas, PlanFinal f)
     {
+        Guardar(veg, a, elegida, indicaciones, notas, f, "");
+    }
+
+    public static void Guardar(string veg, AnalisisCapitulo a, string elegida, string indicaciones, string notas, PlanFinal f, string tipoPedido)
+    {
         Dictionary<string, object> d = new Dictionary<string, object>();
         d["formato"] = "vegas-cut-produccion";
+        d["tipo_pedido"] = tipoPedido ?? "";
         d["indicaciones"] = indicaciones ?? "";
         d["notas"] = notas ?? "";
         if (a != null)
@@ -1153,6 +1260,13 @@ public static class LogicaProduccion
             d["descartados"] = fuera;
         }
         File.WriteAllText(RutaPara(veg), Json.Escribir(d), new UTF8Encoding(false));
+    }
+
+    // El tipo de capitulo que pidio el editor ("" = que lo detecte).
+    public static string TipoPedido(string veg)
+    {
+        try { return File.Exists(RutaPara(veg)) ? TiposCapitulo.Normalizar(Json.Texto(Json.Leer(File.ReadAllText(RutaPara(veg), Encoding.UTF8)), "tipo_pedido")) : ""; }
+        catch { return ""; }
     }
 
     public static bool Cargar(string veg, double duracion, int musicas, int ppm, out AnalisisCapitulo a, out string elegida,
@@ -4019,6 +4133,8 @@ public class SerieProyecto
     // ruta del .veg. Lo que no esta aqui es "Normal" (o "Primer cap\u00edtulo").
     public Dictionary<string, string> Papeles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> NotasEpisodio = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // Lo que se produjo de cada capitulo (tipo, titulo, como cerro), para los siguientes.
+    public Dictionary<string, RegistroCapitulo> Producidos = new Dictionary<string, RegistroCapitulo>(StringComparer.OrdinalIgnoreCase);
 
     public static string Extension = ".vegascut-serie.json";
 
@@ -4055,6 +4171,8 @@ public class SerieProyecto
             if (Array.IndexOf(PapelEpisodio.Papeles, papel) >= 0) s.Papeles[veg] = papel;
             string nota = Json.Texto(x, "nota");
             if (nota.Length > 0) s.NotasEpisodio[veg] = nota;
+            RegistroCapitulo rc = RegistroCapitulo.Leer(Json.Valor(x, "producido"));
+            if (rc != null) s.Producidos[veg] = rc;
         }
         return s;
     }
@@ -4075,6 +4193,8 @@ public class SerieProyecto
             string papel, nota;
             if (Papeles.TryGetValue(veg, out papel)) x["papel"] = papel;
             if (NotasEpisodio.TryGetValue(veg, out nota) && nota.Trim().Length > 0) x["nota"] = nota.Trim();
+            RegistroCapitulo rc;
+            if (Producidos.TryGetValue(veg, out rc) && !rc.Vacio) x["producido"] = rc.Escribir();
             l.Add(x);
         }
         d["episodios"] = l;
@@ -4108,6 +4228,12 @@ public class SerieProyecto
     {
         string n;
         return !String.IsNullOrEmpty(veg) && NotasEpisodio.TryGetValue(veg, out n) ? n : "";
+    }
+
+    public RegistroCapitulo Producido(string veg)
+    {
+        RegistroCapitulo r;
+        return !String.IsNullOrEmpty(veg) && Producidos.TryGetValue(veg, out r) ? r : null;
     }
 
     public int IndiceDe(string veg)
@@ -4656,6 +4782,7 @@ public static class Serie
                 sb.Append("Este cap\u00edtulo (" + c.Posicion + " de " + caps.Count + "): " + c.Papel + ". " + PapelEpisodio.Instrucciones(c.Papel) + "\n");
                 string nota = serie.NotaEpisodio(c.Veg);
                 if (nota.Length > 0) sb.Append("Nota del editor para este cap\u00edtulo: " + nota + "\n");
+                sb.Append(Anterior(serie, caps, c));
             }
         }
         foreach (int rel in new int[] { -1, 1 })
@@ -4673,9 +4800,43 @@ public static class Serie
                                         "despu\u00e9s, cons\u00e9rvalo aunque aqu\u00ed parezca menor; no adelantes lo que pasa despu\u00e9s.\n");
                     titulo = true;
                 }
-                sb.Append("- " + c.Nombre + ": " + f.Texto(false));
+                RegistroCapitulo rc = serie != null ? serie.Producido(c.Veg) : null;
+                sb.Append("- " + c.Nombre + (c.Papel != "Normal" ? " (" + c.Papel + ")" : "") + ": " +
+                          (rc != null ? "[" + rc.Texto() + "] " : "") + f.Texto(false));
             }
         }
+        return sb.ToString();
+    }
+
+    // El capitulo inmediatamente anterior (como cerro, que tipo fue) y los
+    // tipos de los ultimos, para que este siga bien y no repita la formula.
+    static string Anterior(SerieProyecto serie, List<CapSerie> caps, CapSerie actual)
+    {
+        StringBuilder sb = new StringBuilder();
+        CapSerie ant = caps.Find(delegate (CapSerie x) { return x.Posicion == actual.Posicion - 1; });
+        if (ant == null)
+        {
+            if (actual.Posicion == 1) sb.Append("No hay cap\u00edtulo anterior: es el primero de la serie.\n");
+            return sb.ToString();
+        }
+        RegistroCapitulo rc = serie.Producido(ant.Veg);
+        Ficha f = Ficha.Cargar(ant.Veg);
+        sb.Append("CAP\u00cdTULO ANTERIOR (" + ant.Posicion + ", " + ant.Nombre + (ant.Papel != "Normal" ? ", " + ant.Papel : "") + "): ");
+        if (rc != null) sb.Append(rc.Texto() + ". ");
+        if (f != null) sb.Append(f.Resumen.Trim().Replace("\n", " ") + (f.Estructura.Length > 0 ? " Estructura: " + f.Estructura.Trim().Replace("\n", " ") : "") + " ");
+        if (rc == null && f == null) sb.Append("(sin ficha ni producci\u00f3n guardada) ");
+        sb.Append("\nSi el anterior qued\u00f3 a medias o en cliffhanger, este abre con su recap y lo retoma (cierra o sigue el enfrentamiento); " +
+                  "si cerr\u00f3 anunciando algo, este lo cumple.\n");
+        List<string> tipos = new List<string>();
+        foreach (CapSerie c in caps)
+        {
+            if (c.Posicion >= actual.Posicion || c.Posicion < actual.Posicion - 4) continue;
+            RegistroCapitulo r = serie.Producido(c.Veg);
+            if (r != null && r.Tipo.Length > 0) tipos.Add(c.Posicion + ": " + TiposCapitulo.Nombre(r.Tipo));
+        }
+        if (tipos.Count > 0)
+            sb.Append("Tipos de los \u00faltimos cap\u00edtulos: " + String.Join(", ", tipos.ToArray()) + ". Var\u00eda: no repitas el tipo de los dos " +
+                      "anteriores salvo que el material o el editor lo pidan (o sea la continuaci\u00f3n de un arco).\n");
         return sb.ToString();
     }
 
@@ -4688,6 +4849,263 @@ public static class Serie
         List<string> ex = AjustesProyecto.Excluidos(veg);
         foreach (CapSerie c in caps) if (ex.Contains(c.Nombre)) c.Elegido = false;
         return caps;
+    }
+}
+
+// ---- src/comun/TiposCapitulo.cs ----
+
+// =====================================================================
+// Tipos de capitulo: la formula con la que esta armado un capitulo (un
+// juego, un misterio, una persecucion, el capitulo de un personaje...),
+// aparte de su papel en la temporada (primero, clave, final...).
+//
+// Salen de revisar las escenas de los ~190 episodios del anime de JoJo
+// (PB/BT, SC, DU, GW, SO y SBR) en jojowiki; docs/tipos-de-capitulo.md
+// tiene la tabla con los ejemplos.
+// =====================================================================
+
+public class TipoCapitulo
+{
+    public string Clave, Nombre, Estructura, Senales, EnSerie, Ejemplos;
+
+    public TipoCapitulo(string clave, string nombre, string estructura, string senales, string enSerie, string ejemplos)
+    {
+        Clave = clave; Nombre = nombre; Estructura = estructura; Senales = senales; EnSerie = enSerie; Ejemplos = ejemplos;
+    }
+}
+
+// Lo que se recuerda de un capitulo ya producido, para los siguientes.
+public class RegistroCapitulo
+{
+    public string Tipo = "", Forma = "", Titulo = "", Cierre = "";
+
+    public bool Vacio { get { return Tipo.Length == 0 && Titulo.Length == 0 && Cierre.Length == 0; } }
+
+    public Dictionary<string, object> Escribir()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["tipo"] = Tipo; d["forma"] = Forma; d["titulo"] = Titulo; d["cierre"] = Cierre;
+        return d;
+    }
+
+    public static RegistroCapitulo Leer(object o)
+    {
+        if (o == null) return null;
+        RegistroCapitulo r = new RegistroCapitulo();
+        r.Tipo = TiposCapitulo.Normalizar(Json.Texto(o, "tipo"));
+        r.Forma = Json.Texto(o, "forma"); r.Titulo = Json.Texto(o, "titulo"); r.Cierre = Json.Texto(o, "cierre");
+        return r.Vacio ? null : r;
+    }
+
+    public string Texto()
+    {
+        TipoCapitulo t = TiposCapitulo.Buscar(Tipo);
+        List<string> l = new List<string>();
+        if (Titulo.Length > 0) l.Add("\u00ab" + Titulo + "\u00bb");
+        if (t != null) l.Add("tipo: " + t.Nombre);
+        if (Forma.Length > 0 && Forma != "normal") l.Add(Forma.Replace("_", " "));
+        if (Cierre.Length > 0) l.Add("cerr\u00f3 con: " + Cierre);
+        return String.Join("; ", l.ToArray());
+    }
+}
+
+public static class TiposCapitulo
+{
+    public const string Detectar = "Que lo detecte la IA";
+
+    public static readonly TipoCapitulo[] Todos = {
+        new TipoCapitulo("rival", "Rival de la semana",
+            "llegada o viaje con humor (0\u201315 %) \u2192 algo raro, sin explicarlo (~13 %) \u2192 se revela qu\u00e9 es (~35 %) \u2192 crisis (~45 %) \u2192 " +
+            "giro: el truco o la ayuda (~58 %) \u2192 derrota (~77 %) \u2192 remate c\u00f3mico \u2192 gancho al siguiente.",
+            "un solo problema (mob, jugador, trampa, jefe) que aparece y se resuelve dentro del material.",
+            "un mob fuerte, un jefe, un jugador rival o una trampa de la etapa.",
+            "SC 4 Tower of Gray, SC 7 Strength, SC 8 Devil, SC 13 Wheel of Fortune, GW 24\u201325 Notorious B.I.G."),
+        new TipoCapitulo("arco_abre", "Abre un enfrentamiento largo (parte 1)",
+            "llegada y humor largos (0\u201325 %) \u2192 el problema aparece tarde (~30 %) \u2192 todo empeora sin pausa \u2192 termina en el PEOR " +
+            "momento (98 %), sin remate, con \u00abcontinuar\u00e1\u00bb.",
+            "el material termina a mitad de algo (la pelea o el reto no se resuelve) o el problema da para m\u00e1s de un cap\u00edtulo.",
+            "una grabaci\u00f3n que corta a mitad del reto o de la pelea.",
+            "SC 10 Emperor and Hanged Man 1 (muere Avdol), SC 38 Pet Shop 1, DU 28 Highway Star 1, GW 15 Grateful Dead 1."),
+        new TipoCapitulo("arco_medio", "Parte del medio de un arco",
+            "recap corto del cliffhanger \u2192 la pelea sigue \u2192 cambio de foco a otro grupo u otro hilo \u2192 un logro a medias y un nuevo " +
+            "golpe \u2192 termina en otro cliffhanger.",
+            "el cap\u00edtulo anterior qued\u00f3 a medias y este material tampoco lo cierra.",
+            "la segunda sesi\u00f3n de un reto largo (un jefe, una construcci\u00f3n, una carrera de varias etapas).",
+            "SC 43 Vanilla Ice 2, DU 4 Nijimura 2, DU 32\u201333 15 de julio 2\u20133, GW 31 Green Day 2."),
+        new TipoCapitulo("arco_cierra", "Cierra un enfrentamiento (parte 2)",
+            "cold open con el recap del cliffhanger \u2192 la crisis sigue \u2192 giro (50\u201360 %) \u2192 derrota (65\u201390 %) \u2192 remate \u2192 anuncio de " +
+            "lo siguiente (98 %).",
+            "el material retoma algo que qued\u00f3 pendiente en el cap\u00edtulo anterior y lo resuelve.",
+            "la sesi\u00f3n que termina lo que qued\u00f3 a medias.",
+            "SC 11, SC 39 Pet Shop 2, DU 9 Yukako 2, DU 29 Highway Star 2, GW 16 Grateful Dead 2."),
+        new TipoCapitulo("juego", "Juego o apuesta",
+            "el reto y lo que est\u00e1 en juego (0\u201320 %) \u2192 las reglas explicadas (con texto en pantalla) \u2192 la primera ronda la pierde " +
+            "el protagonista \u2192 trampas del rival \u2192 el protagonista apuesta todo o hace un farol \u2192 se revela su trampa (80\u201390 %) \u2192 " +
+            "el perdedor humillado. Ritmo lento en las apuestas: silencios, caras, tensi\u00f3n.",
+            "reglas, apuestas, marcador, rondas, \u00abel que pierda\u2026\u00bb, minijuegos, PvP con reglas, tratos.",
+            "minijuegos, apuestas entre amigos, PvP con reglas, parkour, carrera de recolecci\u00f3n, tradeos.",
+            "SC 34\u201335 D'Arby (p\u00f3ker), SC 40\u201342 D'Arby el jugador, SC 27 Oingo Boingo, DU 26 piedra, papel o tijera, DU 27 dados, SO 9 Marilyn Manson."),
+        new TipoCapitulo("comedia", "Comedia o vida diaria",
+            "situaci\u00f3n cotidiana (0\u201315 %) \u2192 algo raro pero peque\u00f1o \u2192 malentendido que crece \u2192 las man\u00edas de un personaje en el " +
+            "centro \u2192 cl\u00edmax absurdo \u2192 se aclara todo y final feliz o un chiste. Sin peligro real; m\u00fasica de comedia y calma.",
+            "mucha risa, bromas, nada en juego, un problema peque\u00f1o (una mascota, una casa, un bug, alguien perdido).",
+            "construir una casa, una mascota, un aldeano, un bug, el que se pierde o se cae.",
+            "DU 10 el restaurante de Tonio, DU 13 el beb\u00e9 invisible, DU 20 Cinderella, DU 27 Mikitaka, SC 31 Mariah 2."),
+        new TipoCapitulo("foco", "El cap\u00edtulo de un personaje",
+            "cold open con su pasado o un rasgo suyo \u2192 se queda solo con el problema \u2192 recuerda por qu\u00e9 es as\u00ed (flashback, 30\u201345 %) " +
+            "\u2192 lo resuelve a su manera \u2192 los dem\u00e1s lo reconocen. Su tema musical en el momento clave.",
+            "un jugador lleva casi todo el material o tiene su gran momento.",
+            "el cap\u00edtulo de un jugador: su reto, su base, su venganza.",
+            "GW 6 Abbacchio, GW 8 Mista, GW 11 Narancia, GW 25 Trish, SO 6 Ermes, DU 6 Koichi, DU 17 Rohan, SC 38\u201339 Iggy."),
+        new TipoCapitulo("villano", "Del lado del rival",
+            "abre en la vida del rival (su rutina, sus man\u00edas, 0\u201320 %) \u2192 c\u00f3mo ve a los h\u00e9roes \u2192 los h\u00e9roes casi lo descubren \u2192 " +
+            "cierre inquietante: se escapa o gana esta vez.",
+            "material de otro jugador o del equipo contrario, una traici\u00f3n, alguien que trama algo.",
+            "el equipo rival, el amigo que traiciona, \u00abmientras tanto\u00bb del otro lado.",
+            "DU 21 Kira solo quiere vivir tranquilo, DU 30 Cats Love Kira, GW 10 el equipo de sicarios, GW 26\u201327 Doppio, SC 36 Hol Horse."),
+        new TipoCapitulo("misterio", "Misterio o investigaci\u00f3n",
+            "algo no cuadra (0\u201310 %) \u2192 investigan con pistas (10\u201345 %) \u2192 sospecha falsa \u2192 la revelaci\u00f3n (50\u201360 %: \u00abson todos el " +
+            "enemigo\u00bb) \u2192 pelean con lo que ya entienden \u2192 la explicaci\u00f3n final. Ritmo lento, silencios, m\u00fasica de misterio.",
+            "buscar algo, preguntas sin respuesta, \u00ab\u00bfqui\u00e9n fue?\u00bb, ruidos, una estructura o base desconocida.",
+            "buscar una estructura, una base abandonada, \u00ab\u00bfqui\u00e9n rob\u00f3 el cofre?\u00bb.",
+            "SC 7 el barco vac\u00edo, SC 14 Justice (niebla y cad\u00e1ver), DU 16 la caza de ratas, DU 17 el callej\u00f3n, SO 7 \u00abhay una de m\u00e1s\u00bb."),
+        new TipoCapitulo("persecucion", "Persecuci\u00f3n o carrera",
+            "la salida o alguien huye \u2192 choque u obst\u00e1culo \u2192 el perseguidor gana terreno \u2192 escondite breve (respiro) \u2192 truco con " +
+            "el terreno \u2192 final al l\u00edmite. R\u00e1pido, con pausas cortas.",
+            "correr, huir, carreras, cron\u00f3metro, \u00ab\u00a1corre!\u00bb, viajes con prisa.",
+            "carrera de etapa, escapar de un mob o de la noche, ir a por alguien.",
+            "SC 13 Wheel of Fortune, BT 19 carrera al precipicio, DU 28\u201329 Highway Star, GW 19 White Album, SBR 1\u20133."),
+        new TipoCapitulo("entrenamiento", "Entrenamiento o prueba",
+            "el mentor o el reto plantea algo imposible (0\u201315 %) \u2192 intentos fallidos con humor \u2192 entienden el truco (~55 %) \u2192 lo " +
+            "superan al l\u00edmite \u2192 reconocimiento y algo nuevo (poder, equipo, permiso).",
+            "aprender una mec\u00e1nica, practicar, farmear, preparar equipo, \u00aba ver si puedes\u00bb.",
+            "aprender una mec\u00e1nica, farmear, prepararse para un jefe.",
+            "BT 4 Zeppeli, BT 16 Lisa Lisa (el pilar), GW 3 el examen de Polpo, SC 41 Jotaro aprende a jugar."),
+        new TipoCapitulo("mision", "Misi\u00f3n u operaci\u00f3n",
+            "la orden o el objetivo con mapa o itinerario en pantalla (0\u201315 %) \u2192 el plan \u2192 el plan se tuerce (~40 %) \u2192 improvisan \u2192 " +
+            "lo logran a medias o con un costo \u2192 la siguiente orden.",
+            "un objetivo claro (ir a, conseguir, robar, escoltar), un plan hablado.",
+            "ir al Nether, conseguir un objeto, matar al drag\u00f3n, saquear una estructura.",
+            "GW 5 la fortuna de Polpo, GW 9 la primera orden, GW 14 el tren a Florencia, SO 10\u201311 Operaci\u00f3n Savage Garden, SO 24 la fuga."),
+        new TipoCapitulo("duelo", "Duelo uno a uno",
+            "el reto y las reglas de honor (0\u201315 %) \u2192 respeto mutuo \u2192 intercambio de golpes, cada uno con su truco \u2192 el rival casi " +
+            "gana \u2192 el \u00faltimo truco \u2192 respeto al vencido.",
+            "dos jugadores frente a frente, PvP, una competencia directa.",
+            "PvP 1 contra 1 entre amigos, la final de un torneo.",
+            "BT 21\u201323 la carrera de cuadrigas con Wamuu, GW 2 Giorno contra Bucciarati, DU 15 Josuke contra Rohan, SC 46\u201348 DIO."),
+        new TipoCapitulo("pasado", "Flashback u origen",
+            "abre en el pasado (otra m\u00fasica, otro color) \u2192 alterna pasado y presente \u2192 el pasado explica una decisi\u00f3n de ahora \u2192 " +
+            "vuelve al presente con esa decisi\u00f3n.",
+            "se habla mucho de algo que pas\u00f3 antes; hay clips viejos o recuerdos.",
+            "recuerdos de cap\u00edtulos o temporadas anteriores, la historia de una base o de una pelea vieja.",
+            "GW 26 Doppio, GW 20 el pasado de Bucciarati, BT 20 Caesar, BT 24 Elizabeth, SO 31 Heavy Weather 2."),
+        new TipoCapitulo("despedida", "Muerte o despedida",
+            "inicio c\u00e1lido con quien va a caer (presagio) \u2192 el peligro \u2192 el sacrificio o la ca\u00edda (hasta el 90 %) \u2192 silencio \u2192 " +
+            "reacci\u00f3n del grupo \u2192 su \u00faltima frase o la pista que deja. Tema triste y largo.",
+            "una muerte en hardcore, alguien que se va de la serie, perder la base o una mascota.",
+            "muerte en hardcore, un amigo que deja la serie, perder algo querido.",
+            "BT 20 Caesar, SC 10 Avdol, SC 43 Iggy, SC 46 Kakyoin, DU 22 Shigechi, GW 28 Abbacchio, SO 22 F.F."),
+        new TipoCapitulo("revelacion", "Revelaci\u00f3n o traici\u00f3n",
+            "arranque normal con pistas sembradas \u2192 el giro (40\u201360 % o al final) \u2192 repaso r\u00e1pido de las pistas \u2192 el grupo decide " +
+            "(\u00ab\u00bfqui\u00e9n viene conmigo?\u00bb) \u2192 cierre con el nuevo estado de cosas.",
+            "un secreto, una traici\u00f3n, algo que cambia lo que se sab\u00eda.",
+            "el aliado que traiciona, el secreto de un jugador, la regla oculta del reto.",
+            "GW 20\u201321 el jefe traiciona, BT 23 Lisa Lisa es su madre, SC 22 Avdol vive, DU 35 Bites the Dust."),
+        new TipoCapitulo("separados", "El grupo separado",
+            "el grupo se separa (0\u201315 %) \u2192 se intercalan 2\u20133 historias cortando en los momentos de tensi\u00f3n (cada 1\u20133 min) con " +
+            "carteles de lugar u hora \u2192 las historias se juntan al final (o no: cliffhanger).",
+            "varios jugadores haciendo cosas distintas a la vez, en lugares distintos.",
+            "cada amigo con su propia aventura (sus pistas de grabaci\u00f3n) el mismo d\u00eda.",
+            "DU 31\u201334 15 de julio (jueves), SC 32\u201333 Alessi, GW 12\u201313 Pompeya, SO 25\u201326 Bohemian Rhapsody."),
+        new TipoCapitulo("encierro", "Encierro o regla rara",
+            "quedan atrapados con una regla rara (0\u201320 %) \u2192 la regla en pantalla \u2192 fallan por la regla \u2192 la entienden (50\u201360 %) \u2192 " +
+            "la usan contra el problema \u2192 salen.",
+            "atrapados, sin salida, sin comida, un bug, un reto con restricci\u00f3n.",
+            "atrapados en una cueva o en el End, un reto con una restricci\u00f3n.",
+            "SC 8 Devil (la habitaci\u00f3n), SC 19\u201320 Death 13 (el sue\u00f1o), SC 23\u201324 el submarino, GW 12\u201313 el espejo, DU 35\u201336 el bucle."),
+        new TipoCapitulo("reclutamiento", "Alguien se une",
+            "el nuevo aparece como rival o problema \u2192 pelea o prueba \u2192 se descubre por qu\u00e9 era as\u00ed \u2192 se une \u2192 presentaci\u00f3n (tarjeta " +
+            "con su nombre) y chiste de bienvenida.",
+            "un jugador nuevo, un aliado, una mascota que se queda.",
+            "un amigo nuevo que entra a la serie.",
+            "SC 5 Polnareff, SC 25 Iggy, DU 3\u20135 Okuyasu, GW 4\u20135 Giorno entra a la banda, SO 8 F.F., SO 15 Anasui."),
+        new TipoCapitulo("poder", "Despertar o mejora",
+            "el problema supera al grupo (0\u201340 %) \u2192 desesperaci\u00f3n \u2192 tocan fondo \u2192 despierta el poder o llega la mejora (60\u201375 %) con " +
+            "su tarjeta de stats y su tema \u2192 lo usa para ganar.",
+            "conseguir algo clave (netherite, un encantamiento, el elytra) despu\u00e9s de pasarla mal.",
+            "la primera armadura buena, un encantamiento, el elytra, un beacon.",
+            "DU 9 Echoes ACT2, DU 23 ACT3, GW 25 Spice Girl, GW 37 Requiem, SC 48 Jotaro detiene el tiempo."),
+        new TipoCapitulo("transicion", "Puente o viaje",
+            "consecuencias de lo anterior \u2192 recap del viaje con mapa \u2192 objetivo nuevo \u2192 viaje y llegada \u2192 primer vistazo del " +
+            "arco nuevo al final.",
+            "cambiar de lugar o de etapa, preparar el viaje, mudarse, una dimensi\u00f3n nueva.",
+            "cambio de etapa, mudanza, el primer viaje al Nether o al End.",
+            "SC 3 la partida, SC 24 por fin Egipto, SC 39 la mansi\u00f3n de DIO, GW 29 destino Roma, BT 10 la nueva generaci\u00f3n."),
+        new TipoCapitulo("epilogo", "Ep\u00edlogo",
+            "cap\u00edtulo tranquilo despu\u00e9s de la gran batalla: consecuencias \u2192 despedidas \u2192 la broma de siempre \u2192 una historia corta " +
+            "aparte \u2192 \u00abla vida sigue\u00bb.",
+            "material tranquilo despu\u00e9s de algo grande, recuento, charla.",
+            "despu\u00e9s del jefe, el recuento de la temporada.",
+            "SC 48 (segunda mitad), DU 39, GW 39 Sleeping Slaves, BT 26, SO 38."),
+    };
+
+    public static TipoCapitulo Buscar(string x)
+    {
+        if (String.IsNullOrEmpty(x)) return null;
+        foreach (TipoCapitulo t in Todos)
+            if (String.Equals(t.Clave, x, StringComparison.OrdinalIgnoreCase) || String.Equals(t.Nombre, x, StringComparison.OrdinalIgnoreCase)) return t;
+        return null;
+    }
+
+    // Clave del tipo ("" si no es ninguno).
+    public static string Normalizar(string x)
+    {
+        TipoCapitulo t = Buscar((x ?? "").Trim());
+        return t != null ? t.Clave : "";
+    }
+
+    public static string Nombre(string clave)
+    {
+        TipoCapitulo t = Buscar(clave);
+        return t != null ? t.Nombre : "";
+    }
+
+    // Para el combo: el primero es "que lo detecte".
+    public static string[] Opciones()
+    {
+        List<string> l = new List<string>();
+        l.Add(Detectar);
+        foreach (TipoCapitulo t in Todos) l.Add(t.Nombre);
+        return l.ToArray();
+    }
+
+    // Como se mezclan a lo largo de una temporada (SC, DU, GW).
+    public const string Mezcla =
+        "C\u00f3mo se mezclan en una temporada: los primeros cap\u00edtulos presentan y reclutan (GW 1\u201311: casi todos son el cap\u00edtulo de " +
+        "un personaje que se une); luego la columna es el rival de la semana o la misi\u00f3n, con enfrentamientos de dos partes cuando " +
+        "el material no se resuelve; un respiro de comedia cada 4\u20136 cap\u00edtulos (DU los intercala entre los arcos serios); el villano " +
+        "tiene su propio cap\u00edtulo hacia los 2/3 (DU 21, GW 26); los juegos se agrupan cerca del final (SC 27\u201341); un puente a mitad " +
+        "de temporada (SC 24, por fin Egipto); las muertes y revelaciones se concentran en el \u00faltimo tercio. No m\u00e1s de dos " +
+        "seguidos del mismo tipo, salvo las partes de un mismo enfrentamiento.\n";
+
+    // Todos, para que Gemini elija.
+    public static string Catalogo()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("TIPOS DE CAP\u00cdTULO (c\u00f3mo var\u00eda el anime de JoJo; usa la clave):\n");
+        foreach (TipoCapitulo t in Todos)
+            sb.Append("- " + t.Clave + " (" + t.Nombre + "): " + t.Estructura + " Se nota en: " + t.Senales + " En la serie: " + t.EnSerie + "\n");
+        sb.Append(Mezcla);
+        return sb.ToString();
+    }
+
+    // El elegido, completo, para la escaleta final.
+    public static string Instrucciones(string clave)
+    {
+        TipoCapitulo t = Buscar(clave);
+        if (t == null) return "";
+        return "TIPO DE CAP\u00cdTULO: " + t.Nombre + ". C\u00f3mo lo arma JoJo: " + t.Estructura + " En la serie: " + t.EnSerie +
+               " (ejemplos: " + t.Ejemplos + "). \u00dasalo como gu\u00eda; las notas del editor mandan.\n";
     }
 }
 

@@ -60,6 +60,11 @@ HERRAMIENTAS = {
                  COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
 }
 
+# Los tipos de capitulo van con la serie en todos los scripts que la usan.
+for _partes in HERRAMIENTAS.values():
+    if 'comun/Serie.cs' in _partes and 'comun/TiposCapitulo.cs' not in _partes:
+        _partes.insert(_partes.index('comun/Serie.cs') + 1, 'comun/TiposCapitulo.cs')
+
 def separar_usings(texto):
     usings, cuerpo, en_cabeza = [], [], True
     for linea in texto.split('\n'):

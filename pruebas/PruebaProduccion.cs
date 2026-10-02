@@ -107,6 +107,21 @@ class PruebaProduccion
         Verificar(ia.Contains("TRES") && ia.Contains("~13 %") && ia.Contains("15–18") && ia.Contains("Parte 1"),
                   "Instrucciones: tres propuestas, estructura de referencia, duración y títulos de episodio doble");
 
+        // ------------------------------------------------ tipo de capitulo
+        AnalisisCapitulo at = LogicaProduccion.LeerAnalisis(@"{""resumen"": ""x"", ""tipo_capitulo"": {""sugerido"": ""Juego o apuesta"",
+            ""alternativas"": [""foco"", ""juego"", ""inventado""], ""motivo"": ""apuestan diamantes""}, ""papel"": {""sugerido"": ""Capítulo clave"", ""motivo"": ""muere Gerber""},
+            ""propuestas"": [{""id"": ""A"", ""nombre"": ""La apuesta"", ""tipo_capitulo"": ""juego""}, {""id"": ""B"", ""nombre"": ""Gerber"", ""tipo_capitulo"": ""otro""}]}", 600);
+        Verificar(at.TipoSugerido == "juego" && at.TiposAlternativos.Count == 1 && at.TiposAlternativos[0] == "foco" && at.TipoMotivo == "apuestan diamantes" &&
+                  at.PapelSugerido == "Capítulo clave" && at.Propuestas[0].TipoCap == "juego" && at.Propuestas[1].TipoCap == "",
+                  "Análisis: detecta el tipo de capítulo (por clave o nombre), alternativas válidas y el papel sugerido");
+        string iat = LogicaProduccion.InstruccionesAnalisis(f, "Gameplay", "Normal", "misterio");
+        Verificar(TiposCapitulo.Todos.Length >= 20 && ia.Contains("TIPOS DE CAPÍTULO") && ia.Contains("ANTERIOR") && ia.Contains("tipos distintos") &&
+                  iat.Contains("EL EDITOR PIDE QUE SEA: misterio") && !iat.Contains("tipos distintos"),
+                  "Instrucciones: catálogo de " + TiposCapitulo.Todos.Length + " tipos, detectar según material, número, anterior y lo pedido");
+        Verificar(LogicaProduccion.InstruccionesFinal(f, "Normal", at.Propuestas[0]).Contains("TIPO DE CAPÍTULO: Juego o apuesta") &&
+                  TiposCapitulo.Opciones()[0] == TiposCapitulo.Detectar && TiposCapitulo.Normalizar("Misterio o investigación") == "misterio",
+                  "Escaleta final: sigue el tipo de la propuesta elegida");
+
         a.Propuestas[1].Notas = "que sea un solo video de doble duración, sin opening en la segunda mitad, unido por eyecatch";
         string mr = LogicaProduccion.MensajeRefinar(a, "más intro", "es el primer capítulo", null);
         Verificar(mr.Contains("NOTAS DEL EDITOR: que sea un solo video") && mr.Contains("NOTAS DEL EDITOR: (ninguna)") && mr.Contains("más intro") &&
@@ -165,6 +180,22 @@ class PruebaProduccion
                       inf.Contains("respiro") && inf.Contains("ritmo"), "Instrucciones finales: notas primero, estructura libre, ritmo y narración en pausas");
             Verificar(inf.Contains("TÍTULOS al estilo JoJo") && inf.Contains("Curva de ritmo") && inf.Contains("antes del opening"),
                       "Instrucciones finales: títulos, frases de gancho y curva de ritmo");
+
+            // La serie recuerda lo producido: el siguiente capitulo sabe como cerro el anterior.
+            SerieProyecto sp = new SerieProyecto { Nombre = "SCR", Ruta = Path.Combine(dir, "SCR.vegascut-serie.json") };
+            string e1 = Path.Combine(dir, "S01E01 SCR.veg"), e2 = Path.Combine(dir, "S01E02 SCR.veg"), e3 = Path.Combine(dir, "S01E03 SCR.veg");
+            sp.Episodios.AddRange(new string[] { e1, e2, e3 });
+            sp.Producidos[e1] = new RegistroCapitulo { Tipo = "arco_abre", Forma = "normal", Titulo = "La flecha", Cierre = "Jason cae a la lava" };
+            sp.Producidos[e2] = new RegistroCapitulo { Tipo = "Juego o apuesta" };
+            sp.NotasEpisodio[e3] = "que Steel brille";
+            try { sp.Guardar(); } catch { }
+            SerieProyecto sp2 = SerieProyecto.Cargar(sp.Ruta);
+            string ctx3 = Serie.Contexto(sp2, sp2.Capitulos(e3)), ctx2 = Serie.Contexto(sp2, sp2.Capitulos(e2)), ctx1 = Serie.Contexto(sp2, sp2.Capitulos(e1));
+            Verificar(sp2.Producido(e1) != null && sp2.Producido(e1).Cierre == "Jason cae a la lava" && sp2.Producido(e2).Tipo == "juego" &&
+                      ctx2.Contains("CAPÍTULO ANTERIOR (1, S01E01 SCR, Primer capítulo)") && ctx2.Contains("cerró con: Jason cae a la lava") && ctx2.Contains("Abre un enfrentamiento") &&
+                      ctx3.Contains("Este capítulo (3 de 3)") && ctx3.Contains("que Steel brille") && ctx3.Contains("Tipos de los últimos capítulos: 1: Abre un enfrentamiento largo (parte 1), 2: Juego o apuesta") &&
+                      ctx1.Contains("es el primero de la serie"),
+                      "Serie: guarda tipo, título y cierre de lo producido; el contexto da el número, el anterior y los tipos recientes");
 
             // Guardar y volver a abrir lo que se tenía.
             string veg = Path.Combine(dir, "S01E01 SCR BASE.veg");

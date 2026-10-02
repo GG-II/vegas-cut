@@ -189,6 +189,8 @@ public class SerieProyecto
     // ruta del .veg. Lo que no esta aqui es "Normal" (o "Primer capítulo").
     public Dictionary<string, string> Papeles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> NotasEpisodio = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // Lo que se produjo de cada capitulo (tipo, titulo, como cerro), para los siguientes.
+    public Dictionary<string, RegistroCapitulo> Producidos = new Dictionary<string, RegistroCapitulo>(StringComparer.OrdinalIgnoreCase);
 
     public static string Extension = ".vegascut-serie.json";
 
@@ -225,6 +227,8 @@ public class SerieProyecto
             if (Array.IndexOf(PapelEpisodio.Papeles, papel) >= 0) s.Papeles[veg] = papel;
             string nota = Json.Texto(x, "nota");
             if (nota.Length > 0) s.NotasEpisodio[veg] = nota;
+            RegistroCapitulo rc = RegistroCapitulo.Leer(Json.Valor(x, "producido"));
+            if (rc != null) s.Producidos[veg] = rc;
         }
         return s;
     }
@@ -245,6 +249,8 @@ public class SerieProyecto
             string papel, nota;
             if (Papeles.TryGetValue(veg, out papel)) x["papel"] = papel;
             if (NotasEpisodio.TryGetValue(veg, out nota) && nota.Trim().Length > 0) x["nota"] = nota.Trim();
+            RegistroCapitulo rc;
+            if (Producidos.TryGetValue(veg, out rc) && !rc.Vacio) x["producido"] = rc.Escribir();
             l.Add(x);
         }
         d["episodios"] = l;
@@ -278,6 +284,12 @@ public class SerieProyecto
     {
         string n;
         return !String.IsNullOrEmpty(veg) && NotasEpisodio.TryGetValue(veg, out n) ? n : "";
+    }
+
+    public RegistroCapitulo Producido(string veg)
+    {
+        RegistroCapitulo r;
+        return !String.IsNullOrEmpty(veg) && Producidos.TryGetValue(veg, out r) ? r : null;
     }
 
     public int IndiceDe(string veg)
@@ -826,6 +838,7 @@ public static class Serie
                 sb.Append("Este capítulo (" + c.Posicion + " de " + caps.Count + "): " + c.Papel + ". " + PapelEpisodio.Instrucciones(c.Papel) + "\n");
                 string nota = serie.NotaEpisodio(c.Veg);
                 if (nota.Length > 0) sb.Append("Nota del editor para este capítulo: " + nota + "\n");
+                sb.Append(Anterior(serie, caps, c));
             }
         }
         foreach (int rel in new int[] { -1, 1 })
@@ -843,9 +856,43 @@ public static class Serie
                                         "después, consérvalo aunque aquí parezca menor; no adelantes lo que pasa después.\n");
                     titulo = true;
                 }
-                sb.Append("- " + c.Nombre + ": " + f.Texto(false));
+                RegistroCapitulo rc = serie != null ? serie.Producido(c.Veg) : null;
+                sb.Append("- " + c.Nombre + (c.Papel != "Normal" ? " (" + c.Papel + ")" : "") + ": " +
+                          (rc != null ? "[" + rc.Texto() + "] " : "") + f.Texto(false));
             }
         }
+        return sb.ToString();
+    }
+
+    // El capitulo inmediatamente anterior (como cerro, que tipo fue) y los
+    // tipos de los ultimos, para que este siga bien y no repita la formula.
+    static string Anterior(SerieProyecto serie, List<CapSerie> caps, CapSerie actual)
+    {
+        StringBuilder sb = new StringBuilder();
+        CapSerie ant = caps.Find(delegate (CapSerie x) { return x.Posicion == actual.Posicion - 1; });
+        if (ant == null)
+        {
+            if (actual.Posicion == 1) sb.Append("No hay capítulo anterior: es el primero de la serie.\n");
+            return sb.ToString();
+        }
+        RegistroCapitulo rc = serie.Producido(ant.Veg);
+        Ficha f = Ficha.Cargar(ant.Veg);
+        sb.Append("CAPÍTULO ANTERIOR (" + ant.Posicion + ", " + ant.Nombre + (ant.Papel != "Normal" ? ", " + ant.Papel : "") + "): ");
+        if (rc != null) sb.Append(rc.Texto() + ". ");
+        if (f != null) sb.Append(f.Resumen.Trim().Replace("\n", " ") + (f.Estructura.Length > 0 ? " Estructura: " + f.Estructura.Trim().Replace("\n", " ") : "") + " ");
+        if (rc == null && f == null) sb.Append("(sin ficha ni producción guardada) ");
+        sb.Append("\nSi el anterior quedó a medias o en cliffhanger, este abre con su recap y lo retoma (cierra o sigue el enfrentamiento); " +
+                  "si cerró anunciando algo, este lo cumple.\n");
+        List<string> tipos = new List<string>();
+        foreach (CapSerie c in caps)
+        {
+            if (c.Posicion >= actual.Posicion || c.Posicion < actual.Posicion - 4) continue;
+            RegistroCapitulo r = serie.Producido(c.Veg);
+            if (r != null && r.Tipo.Length > 0) tipos.Add(c.Posicion + ": " + TiposCapitulo.Nombre(r.Tipo));
+        }
+        if (tipos.Count > 0)
+            sb.Append("Tipos de los últimos capítulos: " + String.Join(", ", tipos.ToArray()) + ". Varía: no repitas el tipo de los dos " +
+                      "anteriores salvo que el material o el editor lo pidan (o sea la continuación de un arco).\n");
         return sb.ToString();
     }
 
