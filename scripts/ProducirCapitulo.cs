@@ -94,8 +94,9 @@ class TarjetaPropuesta : Panel
         P = p;
         Titulo.Text = p.Id + " \u00b7 " + p.Nombre;
         StringBuilder sb = new StringBuilder();
-        sb.Append((p.Doble ? "EPISODIO DOBLE" : p.Tipo == "especial" ? "ESPECIAL" : "CAP\u00cdTULO") + " \u00b7 ~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
+        sb.Append(p.NombreTipo() + " \u00b7 ~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
         if (p.Titulos.Count > 0) sb.Append("\u00ab" + String.Join("\u00bb / \u00ab", p.Titulos.ToArray()) + "\u00bb\n");
+        if (p.Estructura.Count > 0) sb.Append("\n" + String.Join(" \u2192 ", p.Estructura.ToArray()) + "\n");
         sb.Append("\nCold open: " + p.ColdOpen + "\nCierre: " + p.Cierre + "\n\n");
         foreach (string x in p.Escaleta) sb.Append("\u2022 " + x + "\n");
         sb.Append("\n" + p.PorQue);
@@ -126,6 +127,7 @@ class VentanaProduccion : VentanaBase
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
     Boton btnAnalizar = new Boton("Analizar y proponer", EstiloBoton.Primario);
+    Boton btnRefinar = new Boton("Refinar propuestas", EstiloBoton.Secundario);
     TarjetaPropuesta[] tarjetas = { new TarjetaPropuesta(), new TarjetaPropuesta(), new TarjetaPropuesta() };
     CampoTexto txtNotas = new CampoTexto();
     Boton btnFinal = new Boton("Armar propuesta final", EstiloBoton.Primario);
@@ -168,7 +170,8 @@ class VentanaProduccion : VentanaBase
         }
         y1 += 420;
         vista1.Add(Texto("OTRAS NOTAS", Tema.Pequena, Tema.TextoSuave, m, y1, 200, 18));
-        vista1.Add(Pos(txtNotas, m, y1 + 18, w - 236, 34));
+        vista1.Add(Pos(txtNotas, m, y1 + 18, w - 446, 34));
+        vista1.Add(Pos(btnRefinar, m + w - 430, y1 + 14, 200, 40));
         vista1.Add(Pos(btnFinal, m + w - 220, y1 + 14, 220, 40));
         y1 += 62;
 
@@ -197,7 +200,13 @@ class VentanaProduccion : VentanaBase
         ClientSize = new Size(ClientSize.Width, yb + 40 + 20);
 
         segPaso.Cambio += delegate { if (!cargando) Vista(segPaso.Seleccion); };
-        btnAnalizar.Click += delegate { Analizar(); };
+        btnAnalizar.Click += delegate
+        {
+            if (analisis != null && MessageBox.Show(this, "Analizar de nuevo descarta las propuestas actuales. Para corregirlas con tus notas usa " +
+                    "\u00abRefinar propuestas\u00bb.\n\n\u00bfAnalizar todo de nuevo?", "Producir cap\u00edtulo", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+            Analizar();
+        };
+        btnRefinar.Click += delegate { Refinar(); };
         btnFinal.Click += delegate { Final(null); };
         btnAjustar.Click += delegate
         {
@@ -252,7 +261,7 @@ class VentanaProduccion : VentanaBase
         try
         {
             r = ArmarCapitulo.EnCopia(vegas, final, formato, serie != null ? serie.Musica : null, biblioteca, musica, plantilla, voz,
-                                      PapelEpisodio.Reglas(formato.Reglas, papel).PPM,
+                                      PapelEpisodio.Reglas(formato.Reglas, papel).PPM, trans,
                                       delegate (string t, double f) { Estado(t, false); Application.DoEvents(); });
         }
         catch (Exception ex)
@@ -305,7 +314,7 @@ class VentanaProduccion : VentanaBase
         if (!formato.EsTV) Estado("La serie no tiene el formato \u00abSerie de TV / anime\u00bb: se usa su plantilla por defecto.", false);
 
         string elegida, ind, notas;
-        if (LogicaProduccion.Cargar(veg, duracion, musica.Count, formato.Reglas.PPM, out analisis, out elegida, out ind, out notas, out final))
+        if (LogicaProduccion.Cargar(veg, duracion, musica.Count, formato.Reglas.PPM, formato.Tv, out analisis, out elegida, out ind, out notas, out final))
         {
             txtIndicaciones.Text = ind; txtNotas.Text = notas;
             MostrarAnalisis();
@@ -364,7 +373,8 @@ class VentanaProduccion : VentanaBase
 
     void Habilitar(bool si)
     {
-        foreach (Control c in new Control[] { btnAnalizar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        if (si) btnRefinar.Enabled = analisis != null;
         if (si) { btnFinal.Enabled = Elegida() != null; segPaso.Habilitar(1, final != null); }
     }
 
@@ -411,17 +421,39 @@ class VentanaProduccion : VentanaBase
         });
     }
 
+    void Refinar()
+    {
+        LeerNotas();
+        if (analisis == null) return;
+        bool hayNotas = txtNotas.Text.Trim().Length > 0 || txtIndicaciones.Text.Trim().Length > 0;
+        foreach (Propuesta p in analisis.Propuestas) if (p.Notas.Trim().Length > 0) hayNotas = true;
+        if (!hayNotas) { Estado("Escribe notas en las propuestas (o en \u00abOtras notas\u00bb) para refinarlas.", true); return; }
+        string elegida = Elegida() != null ? Elegida().Id : "";
+        string instr = LogicaProduccion.InstruccionesRefinar(formato, papel);
+        string msg = LogicaProduccion.MensajeRefinar(analisis, txtNotas.Text, txtIndicaciones.Text, trans);
+        Pedir(instr, msg, "Gemini est\u00e1 corrigiendo las propuestas con tus notas\u2026", delegate (string r)
+        {
+            LogicaProduccion.Refinar(analisis, r);
+            txtNotas.Text = "";
+            MostrarAnalisis();
+            for (int i = 0; i < analisis.Propuestas.Count && i < 3; i++) if (analisis.Propuestas[i].Id == elegida) Elegir(i);
+            Vista(0);
+            Estado("\u2714 Propuestas corregidas con tus notas. Puedes seguir refinando o armar la propuesta final.", false);
+        });
+    }
+
     void Final(string cambios)
     {
         LeerNotas();
         Propuesta p = Elegida();
         if (analisis == null || p == null) { Estado("Elige una propuesta.", true); return; }
         string instr = LogicaProduccion.InstruccionesFinal(formato, papel, p);
-        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, musica, serie != null ? serie.Musica : null,
-                                                   LogicaProduccion.Reparto(serie != null ? serie.Musica : null), trans, cambios != null ? final : null, cambios);
+        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, txtIndicaciones.Text, musica, serie != null ? serie.Musica : null,
+                                                   LogicaProduccion.Reparto(serie != null ? serie.Musica : null), trans, duracion,
+                                                   cambios != null ? final : null, cambios);
         Pedir(instr, msg, cambios == null ? "Gemini est\u00e1 armando la escaleta final\u2026" : "Gemini est\u00e1 ajustando la escaleta\u2026", delegate (string r)
         {
-            final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM);
+            final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM, formato.Tv);
             if (cambios != null) txtCambios.Text = "";
             MostrarFinal();
             segPaso.Habilitar(1, true);
@@ -433,11 +465,6 @@ class VentanaProduccion : VentanaBase
     static readonly Dictionary<string, string> NombreTipo = new Dictionary<string, string> {
         { "clip", "Clip" }, { "texto", "Texto" }, { "musica", "M\u00fasica" }, { "narracion", "Narraci\u00f3n" }, { "recurso", "Recurso" } };
 
-    string NombreBloque(string clave)
-    {
-        BloqueTV b = formato.Tv.Bloque(clave);
-        return b != null ? b.Nombre : clave;
-    }
 
     string Musica(ItemFinal i)
     {
@@ -457,14 +484,15 @@ class VentanaProduccion : VentanaBase
             for (int k = 0; k < final.Partes.Count; k++)
             {
                 CapituloFinal c = final.Partes[k];
-                // Orden: por bloque de la plantilla; dentro, clips en su orden y lo demas por tiempo.
-                foreach (BloqueTV b in formato.Tv.Bloques)
+                // Orden: por bloque de la estructura de esta parte; dentro, clips en su orden y lo demas por tiempo.
+                foreach (BloqueTV b in c.Estructura)
                 {
                     List<ItemFinal> del = c.Items.FindAll(delegate (ItemFinal i) { return i.Bloque == b.Clave || (i.Bloque.Length == 0 && i.Tipo != "clip" && b.Clave == BloqueDe(c, i)); });
                     ListViewItem cab = new ListViewItem((final.Partes.Count > 1 ? "P" + (k + 1) + " \u00b7 " : "") + b.Nombre);
                     cab.SubItems.Add(b.Tipo == "contenido" ? Formato.Tiempo(LogicaProduccion.Bloque(c, b.Clave)) : b.Segundos + " s");
-                    cab.SubItems.Add(b.Tipo == "kit" ? (formato.Tv.Archivo(b.Clave).Length > 0 ? "kit" : "placeholder") : "");
-                    cab.SubItems.Add(b.Clave == "titulo" ? (c.Etapa.Length > 0 ? c.Etapa + " \u00b7 " : "") + c.Titulo : b.Descripcion);
+                    cab.SubItems.Add(b.Tipo == "kit" ? (formato.Tv.Archivo(b.ClaveKit).Length > 0 ? "kit" : "placeholder") :
+                                     b.Ritmo.Length > 0 ? "ritmo " + b.Ritmo : "");
+                    cab.SubItems.Add(b.Tipo == "texto" ? (c.Etapa.Length > 0 ? c.Etapa + " \u00b7 " : "") + c.Titulo : b.Descripcion);
                     cab.Font = Tema.Negrita; cab.ForeColor = Tema.Acento; cab.Checked = true;
                     lstFinal.Items.Add(cab);
                     foreach (ItemFinal i in del)
@@ -473,7 +501,8 @@ class VentanaProduccion : VentanaBase
                         it.SubItems.Add(i.Inicio < 0 ? "" : i.Tipo == "clip" ? Formato.Tiempo(i.Inicio) + "\u2013" + Formato.Tiempo(i.Fin) : Formato.Tiempo(i.Inicio));
                         it.SubItems.Add(NombreTipo.ContainsKey(i.Tipo) ? NombreTipo[i.Tipo] + (i.Clase.Length > 0 ? " \u00b7 " + i.Clase : "") : i.Tipo);
                         it.SubItems.Add(i.Tipo == "musica" ? Musica(i) + (i.Texto.Length > 0 ? " \u2014 " + i.Texto : "") :
-                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") :
+                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
+                                                           (i.Respiro > 0 ? "  \u00b7 respiro " + i.Respiro.ToString("0.#") + " s" : "") :
                                         i.Tipo == "narracion" ? "\u00ab" + i.Texto + "\u00bb" : i.Texto);
                         it.Checked = i.Elegido;
                         it.ForeColor = i.Tipo == "narracion" ? Tema.Voz : i.Tipo == "musica" ? Color.FromArgb(190, 160, 255) : Tema.Texto;
@@ -492,7 +521,7 @@ class VentanaProduccion : VentanaBase
     {
         foreach (ItemFinal i in c.Items)
             if (i.Tipo == "clip" && x.Inicio >= i.Inicio - 0.5 && x.Inicio <= i.Fin + 0.5) return i.Bloque;
-        return "acto_a";
+        return c.Estructura.Count > 0 ? c.Estructura.Find(delegate (BloqueTV b) { return b.Tipo == "contenido"; }).Clave : "acto_a";
     }
 
     void Resumen()
@@ -500,11 +529,13 @@ class VentanaProduccion : VentanaBase
         if (final == null) { lblFinal.Text = ""; return; }
         ReglasRitmo r = PapelEpisodio.Reglas(formato.Reglas, papel);
         List<string> l = new List<string>();
+        Propuesta p = Elegida();
+        double x = p != null && p.DobleDuracion ? 2 : 1;
         foreach (CapituloFinal c in final.Partes)
         {
             double d = LogicaProduccion.Duracion(c, formato.Tv);
-            bool ok = d >= r.DuracionMin * 60 - 30 && d <= r.DuracionMax * 60 + 30;
-            l.Add("\u00ab" + c.Titulo + "\u00bb " + Formato.Tiempo(d) + (ok ? " \u2714" : " (objetivo " + r.DuracionMin + "\u2013" + r.DuracionMax + " min)"));
+            bool ok = d >= r.DuracionMin * 60 * x - 30 && d <= r.DuracionMax * 60 * x + 30;
+            l.Add("\u00ab" + c.Titulo + "\u00bb " + Formato.Tiempo(d) + (ok ? " \u2714" : " (referencia " + r.DuracionMin * x + "\u2013" + r.DuracionMax * x + " min)"));
         }
         lblFinal.Text = final.Resumen + "\n" + String.Join("   \u00b7   ", l.ToArray());
     }
@@ -516,14 +547,14 @@ class VentanaProduccion : VentanaBase
 // ProducirCapitulo: de la grabacion (copia BASE, sin silencios y
 // transcrita) a un capitulo armado como serie.
 //
-// 1. AnalisisCapitulo + 3 propuestas: Gemini lee todo el material con el contexto
-//    de la serie (formato, plantilla, capitulos anteriores y posteriores,
-//    reparto y sus temas) y propone tres formas de hacer el capitulo
-//    (incluido un episodio doble si da para eso).
-// 2. Propuesta final: con la propuesta elegida y tus notas, la escaleta
-//    completa por bloques: tramos del material, titulos y carteles, musica de
-//    tu biblioteca, narracion y placeholders. Se ajusta con notas hasta que
-//    este bien; despues se produce.
+// 1. Analisis + 3 propuestas: Gemini lee todo el material con el contexto
+//    de la serie y propone tres formas de hacer el capitulo, cada una con su
+//    estructura de bloques. Las propuestas se refinan con notas las veces que
+//    haga falta (sin volver a analizar).
+// 2. Propuesta final: la escaleta completa con su estructura (la plantilla
+//    de la serie es solo el punto de partida: las notas mandan), tramos del
+//    material, titulos y carteles, musica, narracion en las pausas y
+//    placeholders. Se ajusta con cambios hasta que este bien.
 // =====================================================================
 
 public class MomentoMaterial
@@ -536,15 +567,37 @@ public class MomentoMaterial
 
 public class Propuesta
 {
+    public static readonly string[] Tipos = { "normal", "especial", "dos_partes", "doble_duracion" };
+
     public string Id = "", Nombre = "", Tipo = "normal", PorQue = "", ColdOpen = "", Cierre = "", Notas = "";
-    public List<string> Titulos = new List<string>(), Escaleta = new List<string>();
+    public List<string> Titulos = new List<string>(), Escaleta = new List<string>(), Estructura = new List<string>();
     public double Minutos;
-    public bool Doble { get { return Tipo == "doble"; } }
+    public bool Doble { get { return Tipo == "dos_partes"; } }             // dos videos
+    public bool DobleDuracion { get { return Tipo == "doble_duracion"; } } // un video el doble de largo
+
+    public string NombreTipo()
+    {
+        switch (Tipo)
+        {
+            case "dos_partes": return "DOS PARTES (dos videos)";
+            case "doble_duracion": return "DOBLE DURACI\u00d3N (un solo video)";
+            case "especial": return "ESPECIAL";
+            default: return "CAP\u00cdTULO";
+        }
+    }
+
+    public static string Normalizar(string tipo)
+    {
+        string t = (tipo ?? "").ToLowerInvariant().Replace(" ", "_").Replace("\u00f3", "o");
+        if (t == "doble" || t == "dos_episodios") return "dos_partes";
+        if (t.StartsWith("doble_dur") || t == "largo") return "doble_duracion";
+        return Array.IndexOf(Tipos, t) >= 0 ? t : "normal";
+    }
 }
 
 public class AnalisisCapitulo
 {
-    public string Resumen = "", Respuesta = "";
+    public string Resumen = "", Respuesta = "", RespuestaPropuestas = "";
     public double MinutosUtiles;
     public bool DobleRecomendado;
     public string DobleMotivo = "";
@@ -556,14 +609,15 @@ public class AnalisisCapitulo
 // Un elemento de la propuesta final.
 public class ItemFinal
 {
-    public int Parte;                  // 0 o 1 (episodio doble)
-    public string Bloque = "";         // clave del bloque de la plantilla
-    public string Tipo = "";           // clip, texto, musica, narracion, recurso, kit
+    public int Parte;                  // 0 o 1 (dos partes)
+    public string Bloque = "";         // clave del bloque de la estructura
+    public string Tipo = "";           // clip, texto, musica, narracion, recurso
     public double Inicio, Fin;         // segundos del material (clips; los demas solo Inicio)
     public string Texto = "", Detalle = "", Clase = "";
     public int Musica = -1;            // id del candidato de musica
     public string Personaje = "";      // tema del personaje
     public string Id = "";             // N01, R01
+    public double Respiro;             // pausa original que se recupera al final del clip (s)
     public bool Elegido = true;
     public double Duracion { get { return Fin - Inicio; } }
 }
@@ -571,7 +625,14 @@ public class ItemFinal
 public class CapituloFinal
 {
     public string Titulo = "", Etapa = "";
+    public List<BloqueTV> Estructura = new List<BloqueTV>();   // la de este capitulo (puede no ser la de la plantilla)
     public List<ItemFinal> Items = new List<ItemFinal>();
+
+    public BloqueTV Bloque(string clave)
+    {
+        foreach (BloqueTV b in Estructura) if (b.Clave == clave) return b;
+        return null;
+    }
 }
 
 public class PlanFinal
@@ -591,6 +652,11 @@ public static class LogicaProduccion
 
     public static readonly string[] TiposMomento = { "llegada", "problema", "revelacion", "crisis", "giro", "resolucion", "comico", "emotivo", "gancho" };
 
+    public const string Prioridad =
+        "PRIORIDAD: las NOTAS, INDICACIONES y CAMBIOS del editor mandan. Si contradicen la plantilla, la estructura de referencia, " +
+        "las reglas de ritmo o la propuesta, sigue lo que pide el editor (por ejemplo: sin opening, una intro m\u00e1s larga, otro orden, " +
+        "unir dos mitades con un eyecatch). Lo dem\u00e1s son gu\u00edas, no obligaciones.\n";
+
     // Lo que salio de analizar los 48 episodios de Stardust Crusaders y SBR
     // (docs/estructura-episodio-sc.md), resumido para Gemini.
     public const string Guia =
@@ -604,10 +670,16 @@ public static class LogicaProduccion
         "- 85\u201395 %: remate c\u00f3mico o calma.\n" +
         "- 95\u201399 %: gancho final: enemigo nuevo, siguiente etapa o cliffhanger, y \u00abcontinuar\u00e1\u00bb.\n" +
         "Cold opens: recap del cliffhanger anterior, llegada con humor, escena del rival o en medio de la pelea. SBR los hace largos " +
-        "(2\u20133 min) y los termina en un misterio justo antes del opening.\n" +
+        "(2\u20133 min) para que se entienda la situaci\u00f3n y los termina en un misterio justo antes del opening. Nunca tan cortos que no " +
+        "d\u00e9 tiempo a entender de qu\u00e9 va.\n" +
         "Cierres: cliffhanger en plena crisis, anuncio de un enemigo nuevo, remate c\u00f3mico, o seguir el viaje con el rival mirando.\n" +
-        "Episodio doble (la mitad de los enemigos en SC): la parte 1 termina en el peor momento de la crisis; la parte 2 abre con el " +
-        "recap de ese cliffhanger, sigue la crisis, llega el giro y la resoluci\u00f3n.\n";
+        "Tipos de cap\u00edtulo:\n" +
+        "- normal: un video con la plantilla de la serie.\n" +
+        "- especial: rompe la f\u00f3rmula (otra estructura, otro foco).\n" +
+        "- dos_partes: DOS videos (como los enemigos de dos episodios de SC): la parte 1 termina en el peor momento; la parte 2 abre " +
+        "con el recap de ese cliffhanger.\n" +
+        "- doble_duracion: UN solo video del doble de largo (como el primer episodio de SBR, de 47 min): un solo opening, las mitades " +
+        "unidas por un eyecatch, sin segundo opening ni segundo ending.\n";
 
     // Transcripcion del material con los tiempos actuales (de la copia base).
     public static string Material(Transcripcion t, double limite)
@@ -624,49 +696,98 @@ public static class LogicaProduccion
         return sb.ToString();
     }
 
+    public static string Pausas(Transcripcion t, double duracion)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (Rango p in LogicaPlan.Pausas(t, duracion, 2.0)) sb.Append("[" + S(p.Inicio) + "-" + S(p.Fin) + "] ");
+        return sb.ToString();
+    }
+
     public static string Reparto(MusicaSerie m)
     {
         if (m == null || String.IsNullOrEmpty(m.Reparto)) return "";
         return "REPARTO:\n" + m.Reparto.Trim() + "\n";
     }
 
+    static string Plantilla(FormatoSerie f)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (BloqueTV b in f.Tv.Bloques)
+            sb.Append("- " + b.Clave + " (" + b.Nombre + ", " + (b.Segundos > 0 ? b.Segundos + " s" : b.Porcentaje + " % de lo que queda") +
+                      (b.Tipo == "kit" ? ", archivo fijo de la serie" : b.Tipo == "texto" ? ", texto en pantalla" : ", con clips del material") +
+                      "): " + b.Descripcion + "\n");
+        return sb.ToString();
+    }
+
     // ------------------------------------------------- 1. analisis + propuestas
+
+    static string FormatoPropuestas =
+        " \"propuestas\": [{\"id\": \"A\", \"nombre\": \"...\", \"tipo\": \"normal|especial|dos_partes|doble_duracion\", " +
+        "\"titulos\": [\"...\"], \"minutos\": n, \"estructura\": [\"Cold open (2:00)\", \"Opening\", \"T\u00edtulo\", \"Acto A\", \"...\"], " +
+        "\"cold_open\": \"...\", \"cierre\": \"...\", \"escaleta\": [\"[mm:ss] ...\"], \"por_que\": \"...\"}]";
 
     public static string InstruccionesAnalisis(FormatoSerie f, string tipo, string papel)
     {
         ReglasRitmo r = PapelEpisodio.Reglas(f.Reglas, papel);
         return "Eres el director de " + Serie.QueEs(tipo) + " que se edita como una serie de TV estilo anime de JoJo's Bizarre " +
                "Adventure. Recibes TODO el material grabado de un cap\u00edtulo (ya sin silencios) y el contexto de la serie. Anal\u00edzalo y " +
-               "prop\u00f3n TRES formas distintas de hacer el cap\u00edtulo.\n\n" +
+               "prop\u00f3n TRES formas distintas de hacer el cap\u00edtulo.\n\n" + Prioridad + "\n" +
                "FORMATO: " + f.Nombre + ". " + FormatoSerie.Objetivo(f.Nombre) + "\n" +
                "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
-               "DURACI\u00d3N OBJETIVO: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por cap\u00edtulo.\n\n" + Guia + "\n" +
+               "DURACI\u00d3N DE REFERENCIA: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por video (el doble si es de doble duraci\u00f3n).\n\n" +
+               "PLANTILLA DE LA SERIE (punto de partida, se puede cambiar):\n" + Plantilla(f) + "\n" + Guia + "\n" +
                "An\u00e1lisis:\n- \"momentos\": los mejores momentos con su tipo (" + String.Join(", ", TiposMomento) + "), fuerza 1\u20135 y qui\u00e9n " +
                "participa. Usa solo tiempos de la transcripci\u00f3n.\n- \"hilos\": qu\u00e9 viene de cap\u00edtulos anteriores o prepara algo de los " +
-               "posteriores.\n- \"minutos_utiles\": cu\u00e1nto material vale la pena.\n- \"doble\": si da para dos cap\u00edtulos (m\u00e1s de ~" +
-               (r.DuracionMax * 2 - 4) + " min \u00fatiles con dos crisis claras), d\u00f3nde cortar y por qu\u00e9.\n\n" +
-               "Propuestas: tres distintas de verdad (por ejemplo una cl\u00e1sica, una que empiece por otro lado o se centre en alguien, y " +
-               "una doble si el material lo amerita). Cada una con t\u00edtulos al estilo JoJo (el nombre del rival, del lugar o de la " +
-               "situaci\u00f3n; si es doble, \u00ab\u2026 Parte 1\u00bb y \u00ab\u2026 Parte 2\u00bb), duraci\u00f3n estimada, qu\u00e9 cold open y qu\u00e9 cierre usa, una escaleta " +
-               "corta (5 a 8 pasos con tiempos del material) y por qu\u00e9 funciona.\n\n" +
+               "posteriores.\n- \"minutos_utiles\": cu\u00e1nto material vale la pena.\n- \"doble\": si da para m\u00e1s de un video normal, dilo " +
+               "y si conviene dos partes o doble duraci\u00f3n.\n\n" +
+               "Propuestas: tres distintas de verdad. Cada una con su tipo, t\u00edtulos al estilo JoJo (el nombre del rival, del lugar o de " +
+               "la situaci\u00f3n; en dos partes, \u00ab\u2026 Parte 1\u00bb y \u00ab\u2026 Parte 2\u00bb), duraci\u00f3n, su ESTRUCTURA de bloques en orden (con la duraci\u00f3n " +
+               "de la intro o cold open; puede no tener opening, tener eyecatch entre mitades, etc.), qu\u00e9 cold open y qu\u00e9 cierre usa, una " +
+               "escaleta corta (5 a 8 pasos con tiempos del material) y por qu\u00e9 funciona.\n\n" +
                "Responde SOLO con JSON:\n" +
                "{\"resumen\": \"...\", \"minutos_utiles\": n,\n" +
                " \"momentos\": [{\"inicio\": s, \"fin\": s, \"tipo\": \"...\", \"texto\": \"...\", \"fuerza\": n, \"personajes\": [\"...\"]}],\n" +
                " \"hilos\": [\"...\"],\n" +
-               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" +
-               " \"propuestas\": [{\"id\": \"A\", \"nombre\": \"...\", \"tipo\": \"normal|doble|especial\", \"titulos\": [\"...\"], " +
-               "\"minutos\": n, \"cold_open\": \"...\", \"cierre\": \"...\", \"escaleta\": [\"[mm:ss] ...\"], \"por_que\": \"...\"}]}";
+               " \"doble\": {\"recomendado\": true|false, \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
     }
 
     public static string MensajeAnalisis(Transcripcion t, double duracion, string contextoSerie, string reparto, string indicaciones)
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Material: " + Formato.Tiempo(duracion) + " (" + S(duracion) + " s)\n");
+        if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR (mandan):\n" + indicaciones.Trim() + "\n");
         if (!String.IsNullOrEmpty(contextoSerie)) sb.Append("\nCONTEXTO DE LA SERIE:\n" + contextoSerie.Trim() + "\n");
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
-        if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR:\n" + indicaciones.Trim() + "\n");
         sb.Append("\nTRANSCRIPCI\u00d3N DEL MATERIAL [inicio-fin] persona: texto\n" + Material(t, 400000));
         return sb.ToString();
+    }
+
+    static Propuesta LeerPropuesta(object x)
+    {
+        Propuesta p = new Propuesta();
+        p.Id = Json.Texto(x, "id");
+        p.Nombre = Json.Texto(x, "nombre"); p.Tipo = Propuesta.Normalizar(Json.Texto(x, "tipo"));
+        foreach (object y in Json.Lista(x, "titulos")) if (y is string) p.Titulos.Add((string)y);
+        foreach (object y in Json.Lista(x, "estructura")) if (y is string) p.Estructura.Add((string)y);
+        p.Minutos = Json.Numero(x, "minutos", 0);
+        p.ColdOpen = Json.Texto(x, "cold_open"); p.Cierre = Json.Texto(x, "cierre"); p.PorQue = Json.Texto(x, "por_que");
+        foreach (object y in Json.Lista(x, "escaleta")) if (y is string) p.Escaleta.Add((string)y);
+        return p;
+    }
+
+    static List<Propuesta> LeerPropuestas(object o)
+    {
+        List<Propuesta> r = new List<Propuesta>();
+        string[] ids = { "A", "B", "C", "D" };
+        foreach (object x in Json.Lista(o, "propuestas"))
+        {
+            Propuesta p = LeerPropuesta(x);
+            if (p.Nombre.Length == 0) continue;
+            if (p.Id.Length == 0 || r.Exists(delegate (Propuesta q) { return q.Id == p.Id; })) p.Id = ids[Math.Min(3, r.Count)];
+            r.Add(p);
+            if (r.Count == 3) break;
+        }
+        return r;
     }
 
     public static AnalisisCapitulo LeerAnalisis(string json, double duracion)
@@ -693,29 +814,66 @@ public static class LogicaProduccion
         }
         a.Momentos.Sort(delegate (MomentoMaterial x, MomentoMaterial y) { return x.Inicio.CompareTo(y.Inicio); });
         foreach (object x in Json.Lista(o, "hilos")) if (x is string) a.Hilos.Add((string)x);
-        string[] ids = { "A", "B", "C", "D" };
-        foreach (object x in Json.Lista(o, "propuestas"))
-        {
-            Propuesta p = new Propuesta();
-            p.Id = Json.Texto(x, "id");
-            if (p.Id.Length == 0 || a.Propuestas.Exists(delegate (Propuesta q) { return q.Id == p.Id; })) p.Id = ids[Math.Min(3, a.Propuestas.Count)];
-            p.Nombre = Json.Texto(x, "nombre"); p.Tipo = Json.Texto(x, "tipo");
-            if (p.Tipo != "doble" && p.Tipo != "especial") p.Tipo = "normal";
-            foreach (object y in Json.Lista(x, "titulos")) if (y is string) p.Titulos.Add((string)y);
-            p.Minutos = Json.Numero(x, "minutos", 0);
-            p.ColdOpen = Json.Texto(x, "cold_open"); p.Cierre = Json.Texto(x, "cierre"); p.PorQue = Json.Texto(x, "por_que");
-            foreach (object y in Json.Lista(x, "escaleta")) if (y is string) p.Escaleta.Add((string)y);
-            if (p.Nombre.Length > 0) a.Propuestas.Add(p);
-            if (a.Propuestas.Count == 3) break;
-        }
+        a.Propuestas = LeerPropuestas(o);
         if (a.Propuestas.Count == 0) throw new Exception("La respuesta no trae propuestas.");
         return a;
     }
 
+    static string PropuestaTexto(Propuesta p)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append(p.Id + " \u00b7 " + p.Nombre + " (" + p.Tipo + ", ~" + Math.Round(p.Minutos) + " min)\n");
+        if (p.Titulos.Count > 0) sb.Append("  T\u00edtulos: " + String.Join(" / ", p.Titulos.ToArray()) + "\n");
+        if (p.Estructura.Count > 0) sb.Append("  Estructura: " + String.Join(" \u2192 ", p.Estructura.ToArray()) + "\n");
+        sb.Append("  Cold open: " + p.ColdOpen + "\n  Cierre: " + p.Cierre + "\n");
+        foreach (string e in p.Escaleta) sb.Append("  - " + e + "\n");
+        sb.Append("  Por qu\u00e9: " + p.PorQue + "\n");
+        return sb.ToString();
+    }
+
+    // Refinar: las mismas propuestas corregidas con las notas (sin volver a analizar).
+    public static string InstruccionesRefinar(FormatoSerie f, string papel)
+    {
+        return "Eres el director de una serie de YouTube editada como un anime de JoJo. Ya propusiste tres formas de hacer un cap\u00edtulo " +
+               "y el editor dej\u00f3 NOTAS. Rehaz las propuestas sigui\u00e9ndolas:\n" +
+               "- Una propuesta con notas se corrige seg\u00fan sus notas (manteniendo lo que no se pide cambiar).\n" +
+               "- Una propuesta sin notas se deja igual, salvo que las notas generales digan otra cosa.\n" +
+               "- Si una nota pide combinar propuestas (\u00abla B con el cold open de la A\u00bb), hazlo en esa propuesta.\n" +
+               "- Mant\u00e9n los ids.\n\n" + Prioridad + "\n" +
+               "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n\n" + Guia + "\n" +
+               "PLANTILLA DE LA SERIE (punto de partida):\n" + Plantilla(f) + "\n" +
+               "Responde SOLO con JSON:\n{" + FormatoPropuestas + "}";
+    }
+
+    public static string MensajeRefinar(AnalisisCapitulo a, string notasGenerales, string indicaciones, Transcripcion t)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (!String.IsNullOrEmpty(indicaciones)) sb.Append("INDICACIONES DEL EDITOR (mandan):\n" + indicaciones.Trim() + "\n\n");
+        sb.Append("PROPUESTAS ACTUALES Y SUS NOTAS:\n");
+        foreach (Propuesta p in a.Propuestas)
+            sb.Append(PropuestaTexto(p) + "  NOTAS DEL EDITOR: " + (p.Notas.Trim().Length > 0 ? p.Notas.Trim() : "(ninguna)") + "\n\n");
+        if (!String.IsNullOrEmpty(notasGenerales)) sb.Append("NOTAS GENERALES: " + notasGenerales.Trim() + "\n\n");
+        sb.Append("AN\u00c1LISIS: " + a.Resumen + "\nMomentos:\n");
+        foreach (MomentoMaterial x in a.Momentos)
+            sb.Append("[" + S(x.Inicio) + "-" + S(x.Fin) + "] " + x.Tipo + " (" + x.Fuerza + "): " + x.Texto + "\n");
+        sb.Append("\nTRANSCRIPCI\u00d3N DEL MATERIAL [inicio-fin] persona: texto\n" + Material(t, 300000));
+        return sb.ToString();
+    }
+
+    // Pone las propuestas refinadas en el analisis; las notas aplicadas se vacian.
+    public static void Refinar(AnalisisCapitulo a, string json)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        List<Propuesta> nuevas = LeerPropuestas(o);
+        if (nuevas.Count == 0) throw new Exception("La respuesta no trae propuestas.");
+        a.Propuestas = nuevas;
+        a.RespuestaPropuestas = json;
+    }
+
     // ------------------------------------------------------ 2. propuesta final
 
-    // Musica que se le ofrece a Gemini: primero los temas de la serie, despues
-    // SC y Golden Wind (viaje, desierto, pandilla) y lo demas con datos del anime.
+    // Musica que se le ofrece a Gemini: SC y Golden Wind (viaje, desierto,
+    // pandilla) y lo demas con datos del anime.
     public static List<ArchivoMusica> MusicaCandidata(BibliotecaMusica b, MusicaSerie m)
     {
         List<ArchivoMusica> r = new List<ArchivoMusica>();
@@ -738,34 +896,48 @@ public static class LogicaProduccion
     public static string InstruccionesFinal(FormatoSerie f, string papel, Propuesta p)
     {
         ReglasRitmo r = PapelEpisodio.Reglas(f.Reglas, papel);
-        PlantillaTV tv = f.Tv;
-        StringBuilder bloques = new StringBuilder();
-        foreach (BloqueTV b in tv.Bloques)
-            bloques.Append("- " + b.Clave + " (" + b.Nombre + ", " + (b.Segundos > 0 ? b.Segundos + " s" : b.Porcentaje + " % de lo que queda") +
-                           (b.Tipo == "kit" ? ", archivo fijo de la serie" : b.Tipo == "texto" ? ", texto en pantalla" : ", con clips del material") +
-                           "): " + b.Descripcion + "\n");
+        string tipo = p != null ? p.Tipo : "normal";
         return "Eres el director y editor de una serie de YouTube editada como un anime de JoJo. Con el an\u00e1lisis, la propuesta elegida " +
-               "y las notas del editor, arma la ESCALETA FINAL del cap\u00edtulo" + (p != null && p.Doble ? " (episodio DOBLE: dos partes)" : "") +
-               ".\n\nBLOQUES DE CADA CAP\u00cdTULO, en este orden:\n" + bloques +
-               "\nDURACI\u00d3N: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por cap\u00edtulo, sumando los bloques fijos y los clips.\n\n" +
-               "Para cada bloque con material da los CLIPS en el orden en que se ver\u00e1n (inicio y fin del material, de 2 a 60 s; " +
-               "corta charla sin inter\u00e9s, repeticiones y silencios). Puedes usar un momento fuera de orden (cold open, avance).\n" +
+               "y las notas del editor, arma la ESCALETA FINAL del cap\u00edtulo (tipo: " + tipo + ").\n\n" + Prioridad +
+               "Revisa cada nota y cambio del editor y cumple todos; no metas elementos que una nota pide quitar.\n\n" +
+               "PAPEL DEL CAP\u00cdTULO: " + papel + ". " + PapelEpisodio.Instrucciones(papel) + "\n" +
+               "PLANTILLA DE LA SERIE (punto de partida; la ESTRUCTURA de cada parte la decides t\u00fa seg\u00fan la propuesta y las notas):\n" +
+               Plantilla(f) +
+               "Bloques posibles: los de la plantilla (cold_open, op, titulo, acto_a, regancho, acto_b, continuara, ed, avance) y otros " +
+               "que necesites (intro, acto_c, eyecatch\u2026). Cada bloque tiene \"tipo\": \"contenido\" (clips del material), \"kit\" " +
+               "(archivo fijo de la serie: \"kit\" dice cu\u00e1l: op, regancho, continuara o ed) o \"texto\" (t\u00edtulo en pantalla), y " +
+               "\"segundos\" para los de kit y texto.\n" +
+               "- normal / especial: una parte. dos_partes: dos partes (dos videos). doble_duracion: UNA sola parte larga con un " +
+               "solo opening y las mitades unidas por un bloque eyecatch (kit regancho).\n" +
+               "- La intro o cold open debe durar lo suficiente para entender de qu\u00e9 va (en un primer cap\u00edtulo, presentar la premisa " +
+               "y a los jugadores con calma antes del opening).\n\n" + Guia + "\n" +
+               "REFERENCIA de duraci\u00f3n: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por video (el doble si es doble_duracion).\n\n" +
+               "Para cada bloque de contenido da los CLIPS en el orden en que se ver\u00e1n (inicio y fin del material, de 2 a 90 s; corta " +
+               "charla sin inter\u00e9s y repeticiones). Un momento puede usarse fuera de orden (cold open, avance).\n" +
+               "RITMO: el material ya no tiene silencios, as\u00ed que sin cuidado todo queda acelerado. El ritmo debe cambiar a lo largo del " +
+               "cap\u00edtulo seg\u00fan lo que pasa: r\u00e1pido en acci\u00f3n, persecuciones y humor encadenado; medio en exploraci\u00f3n y charla; lento en " +
+               "llegadas, revelaciones, momentos emotivos, el cliffhanger y justo despu\u00e9s de un chiste fuerte o un golpe. Cada bloque " +
+               "lleva \"ritmo\": lento|medio|rapido. En los clips que necesitan aire pon \"respiro\": 0.5 a 3 s (se recupera la pausa " +
+               "original de la grabaci\u00f3n al final del clip). Ni todo r\u00e1pido ni todo lento.\n" +
                "TEXTOS en pantalla: \"titulo\" (\"" + (f.Avance != "Ninguno" ? f.Marca(1) + " \u00b7 " : "") + "nombre del cap\u00edtulo\"), " +
-               "\"lugar\" o \"tiempo\" (\u00ab6 horas m\u00e1s tarde\u00bb), \"ranking\" de la etapa, \"stats\" (tarjeta del rival para el re-gancho: " +
-               "nombre y 4\u20136 atributos con letra A\u2013E, como las cartas de stand) y \"continuara\". Cada uno con \"en\": segundo del " +
-               "material donde aparece (o el bloque si va en un bloque fijo).\n" +
+               "\"lugar\" o \"tiempo\" (\u00ab6 horas m\u00e1s tarde\u00bb), \"ranking\", \"stats\" (tarjeta del rival: nombre y 4\u20136 atributos con " +
+               "letra A\u2013E, para el re-gancho o eyecatch) y \"continuara\". Cada uno con \"en\": segundo del material, o \"bloque\" si va " +
+               "en un bloque de kit o texto.\n" +
                "M\u00daSICA: un tema por escena, cambiando cada ~" + r.MusicaCadaSeg + " s o cuando cambia el \u00e1nimo, con \"id\" de la " +
-               "biblioteca y \"en\": segundo del material. Usa el tema de un personaje cuando se luce (\"personaje\": nombre) y el tema " +
-               "principal en el momento clave. No repitas el mismo tema dentro del cap\u00edtulo.\n" +
-               (f.Narrador ? "NARRACI\u00d3N: " + (f.EstiloNarrador.Length > 0 ? f.EstiloNarrador : "primera persona, en pasado") + ". Frases de 4 a 30 " +
-                             "palabras a " + r.PPM + " palabras por minuto, en pausas; al inicio, al final y para unir saltos. \"en\": segundo del " +
-                             "material.\n" : "") +
+               "biblioteca y \"en\": segundo del material. Tema de un personaje cuando se luce (\"personaje\": nombre) y el principal en " +
+               "el momento clave. Sin repetir tema dentro de la misma parte.\n" +
+               (f.Narrador ? "NARRACI\u00d3N: " + (f.EstiloNarrador.Length > 0 ? f.EstiloNarrador : "primera persona, en pasado") + ". Frases " +
+                             "de 4 a 30 palabras a " + r.PPM + " palabras por minuto (N palabras duran N\u00d760/" + r.PPM + " s). SOLO dentro de " +
+                             "las PAUSAS listadas (donde nadie habla) y que quepan enteras: NUNCA encima de las voces de los jugadores. " +
+                             "\"en\": segundo del material donde empieza.\n" : "") +
                "RECURSOS: im\u00e1genes, memes o efectos que faltan (\"clase\", \"descripcion\", \"duracion\" 1\u20135 s, \"en\").\n\n" +
                "Responde SOLO con JSON:\n" +
                "{\"resumen\": \"...\", \"partes\": [{\"titulo\": \"...\", \"etapa\": \"...\",\n" +
-               "  \"bloques\": [{\"bloque\": \"cold_open\", \"clips\": [{\"inicio\": s, \"fin\": s, \"nota\": \"...\"}]}],\n" +
+               "  \"estructura\": [{\"bloque\": \"cold_open\", \"nombre\": \"Cold open\", \"tipo\": \"contenido\", \"ritmo\": \"lento\"}, " +
+               "{\"bloque\": \"op\", \"nombre\": \"Opening\", \"tipo\": \"kit\", \"kit\": \"op\", \"segundos\": 20}, ...],\n" +
+               "  \"bloques\": [{\"bloque\": \"cold_open\", \"clips\": [{\"inicio\": s, \"fin\": s, \"respiro\": s, \"nota\": \"...\"}]}],\n" +
                "  \"textos\": [{\"tipo\": \"titulo|lugar|tiempo|ranking|stats|continuara\", \"texto\": \"...\", \"en\": s, \"bloque\": \"...\"}],\n" +
-               "  \"musica\": [{\"id\": n, \"en\": s, \"bloque\": \"...\", \"personaje\": \"...\", \"motivo\": \"...\"}],\n" +
+               "  \"musica\": [{\"id\": n, \"en\": s, \"personaje\": \"...\", \"motivo\": \"...\"}],\n" +
                "  \"narracion\": [{\"en\": s, \"texto\": \"...\"}],\n" +
                "  \"recursos\": [{\"en\": s, \"duracion\": s, \"clase\": \"...\", \"descripcion\": \"...\"}]}]}";
     }
@@ -773,21 +945,28 @@ public static class LogicaProduccion
     public static string MensajeFinal(AnalisisCapitulo a, Propuesta elegida, string notasGenerales, List<ArchivoMusica> musica, MusicaSerie m,
                                       string reparto, Transcripcion t, PlanFinal anterior, string cambios)
     {
+        return MensajeFinal(a, elegida, notasGenerales, "", musica, m, reparto, t, 0, anterior, cambios);
+    }
+
+    public static string MensajeFinal(AnalisisCapitulo a, Propuesta elegida, string notasGenerales, string indicaciones, List<ArchivoMusica> musica,
+                                      MusicaSerie m, string reparto, Transcripcion t, double duracion, PlanFinal anterior, string cambios)
+    {
         StringBuilder sb = new StringBuilder();
+        // Lo que pide el editor va primero.
+        StringBuilder notas = new StringBuilder();
+        if (!String.IsNullOrEmpty(indicaciones)) notas.Append("- " + indicaciones.Trim() + "\n");
+        foreach (Propuesta p in a.Propuestas)
+            if (p.Notas.Trim().Length > 0) notas.Append("- Sobre " + p.Id + " (" + p.Nombre + "): " + p.Notas.Trim() + "\n");
+        if (!String.IsNullOrEmpty(notasGenerales) && notasGenerales.Trim().Length > 0) notas.Append("- " + notasGenerales.Trim() + "\n");
+        if (anterior != null && !String.IsNullOrEmpty(cambios)) notas.Append("- CAMBIOS PEDIDOS AHORA: " + cambios.Trim() + "\n");
+        if (notas.Length > 0) sb.Append("LO QUE PIDE EL EDITOR (cumplir todo, manda sobre todo lo dem\u00e1s):\n" + notas + "\n");
+
+        sb.Append("PROPUESTA ELEGIDA:\n" + PropuestaTexto(elegida) + "\n");
         sb.Append("AN\u00c1LISIS: " + a.Resumen + "\n");
         if (a.Hilos.Count > 0) sb.Append("Hilos: " + String.Join("; ", a.Hilos.ToArray()) + "\n");
         sb.Append("Momentos:\n");
         foreach (MomentoMaterial x in a.Momentos)
             sb.Append("[" + S(x.Inicio) + "-" + S(x.Fin) + "] " + x.Tipo + " (" + x.Fuerza + "): " + x.Texto + "\n");
-        sb.Append("\nPROPUESTA ELEGIDA: " + elegida.Id + " \u00b7 " + elegida.Nombre + " (" + elegida.Tipo + ")\n");
-        if (elegida.Titulos.Count > 0) sb.Append("T\u00edtulos: " + String.Join(" / ", elegida.Titulos.ToArray()) + "\n");
-        sb.Append("Cold open: " + elegida.ColdOpen + "\nCierre: " + elegida.Cierre + "\nEscaleta:\n");
-        foreach (string e in elegida.Escaleta) sb.Append("- " + e + "\n");
-        StringBuilder notas = new StringBuilder();
-        foreach (Propuesta p in a.Propuestas)
-            if (p.Notas.Trim().Length > 0) notas.Append("- Sobre " + p.Id + " (" + p.Nombre + "): " + p.Notas.Trim() + "\n");
-        if (notasGenerales.Trim().Length > 0) notas.Append("- " + notasGenerales.Trim() + "\n");
-        if (notas.Length > 0) sb.Append("\nNOTAS DEL EDITOR:\n" + notas);
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
         if (m != null)
         {
@@ -803,12 +982,38 @@ public static class LogicaProduccion
                           String.Join(", ", musica[i].Animos.ToArray()) + (musica[i].Momento.Length > 0 ? " | " + musica[i].Momento : "") + "\n");
         }
         if (anterior != null && !String.IsNullOrEmpty(cambios))
-            sb.Append("\nESCALETA ANTERIOR (JSON), aj\u00fastala con estos CAMBIOS: " + cambios.Trim() + "\n" + Gemini.QuitarCercas(anterior.Respuesta) + "\n");
+            sb.Append("\nESCALETA ANTERIOR (JSON): rehazla aplicando los CAMBIOS PEDIDOS AHORA y manteniendo lo dem\u00e1s.\n" +
+                      Gemini.QuitarCercas(anterior.Respuesta) + "\n");
+        if (duracion > 0) sb.Append("\nPAUSAS DEL MATERIAL (nadie habla) [inicio-fin]:\n" + Pausas(t, duracion) + "\n");
         sb.Append("\nTRANSCRIPCI\u00d3N DEL MATERIAL [inicio-fin] persona: texto\n" + Material(t, 300000));
         return sb.ToString();
     }
 
+    static BloqueTV LeerBloque(object x, PlantillaTV tv)
+    {
+        string clave = Json.Texto(x, "bloque");
+        if (clave.Length == 0) return null;
+        BloqueTV base_ = tv.Bloque(clave);
+        BloqueTV b = base_ != null ? base_.Copia() : new BloqueTV(clave, clave, "contenido", 0, 0, "");
+        string nombre = Json.Texto(x, "nombre"), tipo = Json.Texto(x, "tipo"), kit = Json.Texto(x, "kit");
+        string ritmo = Json.Texto(x, "ritmo");
+        if (ritmo == "lento" || ritmo == "medio" || ritmo == "rapido" || ritmo == "r\u00e1pido") b.Ritmo = ritmo.Replace("\u00e1", "a");
+        if (nombre.Length > 0) b.Nombre = nombre;
+        if (tipo == "contenido" || tipo == "kit" || tipo == "texto") b.Tipo = tipo;
+        if (kit.Length > 0) b.Kit = kit;
+        if (b.Tipo == "kit" && b.Kit.Length == 0 && tv.Bloque(clave) == null) b.Kit = clave.Contains("eye") ? "regancho" : clave;
+        double seg = Json.Numero(x, "segundos", -1);
+        if (b.Tipo != "contenido") b.Segundos = seg > 0 ? seg : (b.Segundos > 0 ? b.Segundos : (b.Tipo == "texto" ? 3 : 6));
+        else b.Segundos = 0;
+        return b;
+    }
+
     public static PlanFinal LeerFinal(string json, double duracion, int musicas, int ppm)
+    {
+        return LeerFinal(json, duracion, musicas, ppm, PlantillaTV.PorDefecto());
+    }
+
+    public static PlanFinal LeerFinal(string json, double duracion, int musicas, int ppm, PlantillaTV tv)
     {
         PlanFinal p = new PlanFinal();
         p.Respuesta = json;
@@ -820,15 +1025,29 @@ public static class LogicaProduccion
             CapituloFinal c = new CapituloFinal();
             int parte = p.Partes.Count;
             c.Titulo = Json.Texto(x, "titulo"); c.Etapa = Json.Texto(x, "etapa");
+            foreach (object b in Json.Lista(x, "estructura"))
+            {
+                BloqueTV bl = LeerBloque(b, tv);
+                if (bl != null && c.Bloque(bl.Clave) == null) c.Estructura.Add(bl);
+            }
+            if (c.Estructura.Count == 0) foreach (BloqueTV b in tv.Bloques) c.Estructura.Add(b.Copia());
             foreach (object b in Json.Lista(x, "bloques"))
             {
                 string bloque = Json.Texto(b, "bloque");
+                // Clips de un bloque que no esta en la estructura: se agrega antes del cierre.
+                if (bloque.Length > 0 && c.Bloque(bloque) == null)
+                {
+                    BloqueTV nb = new BloqueTV(bloque, bloque, "contenido", 0, 0, "");
+                    int i = c.Estructura.FindIndex(delegate (BloqueTV q) { return q.Clave == "continuara" || q.Clave == "ed"; });
+                    if (i < 0) c.Estructura.Add(nb); else c.Estructura.Insert(i, nb);
+                }
                 foreach (object y in Json.Lista(b, "clips"))
                 {
                     ItemFinal i = new ItemFinal();
                     i.Parte = parte; i.Bloque = bloque; i.Tipo = "clip";
                     i.Inicio = Math.Max(0, Json.Numero(y, "inicio", -1)); i.Fin = Math.Min(duracion, Json.Numero(y, "fin", -1));
                     i.Texto = Json.Texto(y, "nota");
+                    i.Respiro = Math.Max(0, Math.Min(3, Json.Numero(y, "respiro", 0)));
                     if (i.Fin - i.Inicio >= 0.5) c.Items.Add(i);
                 }
             }
@@ -874,12 +1093,12 @@ public static class LogicaProduccion
         return p;
     }
 
-    // Duracion estimada de una parte: clips elegidos + bloques fijos.
+    // Duracion estimada de una parte: clips elegidos + bloques fijos de su estructura.
     public static double Duracion(CapituloFinal c, PlantillaTV tv)
     {
         double d = 0;
-        foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido) d += i.Duracion;
-        foreach (BloqueTV b in tv.Bloques) if (b.Tipo != "contenido") d += b.Segundos;
+        foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido) d += i.Duracion + i.Respiro;
+        foreach (BloqueTV b in c.Estructura) if (b.Tipo != "contenido") d += b.Segundos;
         return d;
     }
 
@@ -887,7 +1106,7 @@ public static class LogicaProduccion
     public static double Bloque(CapituloFinal c, string bloque)
     {
         double d = 0;
-        foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido && i.Bloque == bloque) d += i.Duracion;
+        foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido && i.Bloque == bloque) d += i.Duracion + i.Respiro;
         return d;
     }
 
@@ -909,6 +1128,7 @@ public static class LogicaProduccion
         if (a != null)
         {
             d["analisis"] = a.Respuesta;
+            if (a.RespuestaPropuestas.Length > 0) d["propuestas"] = a.RespuestaPropuestas;
             Dictionary<string, object> np = new Dictionary<string, object>();
             foreach (Propuesta p in a.Propuestas) np[p.Id] = p.Notas;
             d["notas_propuestas"] = np;
@@ -927,6 +1147,12 @@ public static class LogicaProduccion
     public static bool Cargar(string veg, double duracion, int musicas, int ppm, out AnalisisCapitulo a, out string elegida,
                               out string indicaciones, out string notas, out PlanFinal f)
     {
+        return Cargar(veg, duracion, musicas, ppm, PlantillaTV.PorDefecto(), out a, out elegida, out indicaciones, out notas, out f);
+    }
+
+    public static bool Cargar(string veg, double duracion, int musicas, int ppm, PlantillaTV tv, out AnalisisCapitulo a, out string elegida,
+                              out string indicaciones, out string notas, out PlanFinal f)
+    {
         a = null; f = null; elegida = ""; indicaciones = ""; notas = "";
         string r = RutaPara(veg);
         if (!File.Exists(r)) return false;
@@ -938,13 +1164,15 @@ public static class LogicaProduccion
             if (an.Length > 0)
             {
                 a = LeerAnalisis(an, duracion);
+                string pr = Json.Texto(o, "propuestas");
+                if (pr.Length > 0) Refinar(a, pr);
                 Dictionary<string, object> np = Json.Obj(o, "notas_propuestas");
                 if (np != null) foreach (Propuesta p in a.Propuestas) if (np.ContainsKey(p.Id)) p.Notas = Convert.ToString(np[p.Id]);
             }
             string fi = Json.Texto(o, "final");
             if (fi.Length > 0)
             {
-                f = LeerFinal(fi, duracion, musicas, ppm);
+                f = LeerFinal(fi, duracion, musicas, ppm, tv);
                 List<string> fuera = new List<string>();
                 foreach (object x in Json.Lista(o, "descartados")) if (x is string) fuera.Add((string)x);
                 foreach (ItemFinal i in f.Todos()) if (fuera.Contains(Clave(i))) i.Elegido = false;
@@ -969,7 +1197,7 @@ public static class LogicaProduccion
 
 public class ResultadoProduccion
 {
-    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar;
+    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros;
     public List<double> Partes = new List<double>();
     public List<string> Avisos = new List<string>();
     public StringBuilder Guion = new StringBuilder();
@@ -980,8 +1208,9 @@ public class ResultadoProduccion
         for (int i = 0; i < Partes.Count; i++) l.Add((Partes.Count > 1 ? "parte " + (i + 1) + ": " : "") + Formato.Tiempo(Partes[i]));
         return "\u2714 Cap\u00edtulo armado (" + String.Join(", ", l.ToArray()) + "): " + Clips + " clips, " + Kit + " del kit" +
                (Placeholders > 0 ? " (" + Placeholders + " placeholders)" : "") + ", " + Textos + " textos, " + Temas + " temas, " +
-               Narraciones + " frases de narraci\u00f3n, " + Recursos + " recursos." +
-               (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entr\u00f3 en ning\u00fan clip." : "");
+               Narraciones + " frases de narraci\u00f3n, " + Recursos + " recursos" + (Respiros > 0 ? ", " + Respiros + " respiros" : "") + "." +
+               (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entr\u00f3 en ning\u00fan clip." : "") +
+               (NarracionSinHueco > 0 ? " " + NarracionSinHueco + " frases de narraci\u00f3n no cab\u00edan sin pisar voces (est\u00e1n en el guion)." : "");
     }
 }
 
@@ -1002,6 +1231,34 @@ public static class ArmarCapitulo
     }
 
     class Tramo { public int Parte; public double A, B, Nuevo; }
+
+    // Alarga lo que termina justo en "fin" (todas las pistas): como al material
+    // se le quitaron los silencios, el archivo sigue con la pausa original.
+    static void Respirar(Project p, double fin, double segundos)
+    {
+        foreach (Track t in p.Tracks)
+            foreach (TrackEvent e in t.Events)
+                if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+    }
+
+    // Primer hueco libre (sin voces ni otra narracion) de "largo" segundos
+    // cerca de "desde": hasta 25 s despues o 5 s antes. NaN si no hay.
+    public static double Hueco(List<Rango> ocupado, double desde, double largo, double min, double max)
+    {
+        List<Rango> o = Rangos.Unir(ocupado, 0.15);
+        List<double> c = new List<double>();
+        c.Add(desde);
+        foreach (Rango x in o) if (x.Fin >= desde - 5 && x.Fin <= desde + 25) c.Add(x.Fin + 0.15);
+        c.Sort(delegate (double a, double b) { return Math.Abs(a - desde).CompareTo(Math.Abs(b - desde)); });
+        foreach (double t in c)
+        {
+            if (t < min || t + largo > max) continue;
+            bool libre = true;
+            foreach (Rango x in o) if (x.Inicio < t + largo + 0.1 && x.Fin > t - 0.1) { libre = false; break; }
+            if (libre) return t;
+        }
+        return double.NaN;
+    }
 
     // Donde queda en el capitulo un segundo del material (NaN si no entro).
     static double Ubicar(List<Tramo> tramos, int parte, double t)
@@ -1058,8 +1315,14 @@ public static class ArmarCapitulo
 
     public static ResultadoProduccion Producir(Vegas vegas, PlanFinal final, FormatoSerie formato, MusicaSerie musicaSerie,
                                                BibliotecaMusica biblioteca, List<ArchivoMusica> candidatos, VideoEvent plantillaRecursos,
-                                               ISintetizador voz, int ppm, Action<string, double> estado)
+                                               ISintetizador voz, int ppm, Transcripcion trans, Action<string, double> estado)
     {
+        // Donde habla alguien en el material (para no narrar encima).
+        List<Rango> voces = new List<Rango>();
+        if (trans != null)
+            foreach (Segmento sg in trans.SegmentosActuales())
+                if (sg.Fin > sg.Inicio) voces.Add(new Rango(sg.Inicio, sg.Fin));
+        voces = Rangos.Unir(voces, 0.2);
         Project p = vegas.Project;
         ResultadoProduccion r = new ResultadoProduccion();
         PlantillaTV tv = formato.Tv;
@@ -1088,7 +1351,7 @@ public static class ArmarCapitulo
             string stats = "";
             foreach (ItemFinal i in c.Items) if (i.Tipo == "texto" && i.Clase == "stats" && i.Elegido) stats = i.Texto;
 
-            foreach (BloqueTV b in tv.Bloques)
+            foreach (BloqueTV b in c.Estructura)
             {
                 double ini = cursor;
                 estado("Parte " + (k + 1) + " \u00b7 " + b.Nombre + "\u2026", 0.05 + 0.5 * k / final.Partes.Count);
@@ -1100,11 +1363,12 @@ public static class ArmarCapitulo
                         r.Clips += AplicarPlan.CopiarTramo(p, i.Inicio, i.Fin, cursor) > 0 ? 1 : 0;
                         tramos.Add(new Tramo { Parte = k, A = i.Inicio, B = i.Fin, Nuevo = cursor });
                         cursor += i.Duracion;
+                        if (i.Respiro > 0.05) { Respirar(p, cursor, i.Respiro); cursor += i.Respiro; r.Respiros++; }
                     }
                 }
                 else if (b.Tipo == "kit")
                 {
-                    string archivo = tv.Archivo(b.Clave);
+                    string archivo = tv.Archivo(b.ClaveKit);
                     if (archivo.Length > 0 && File.Exists(archivo))
                     {
                         try { cursor += PonerArchivo(p, archivo, cursor, b.Segundos); }
@@ -1112,7 +1376,7 @@ public static class ArmarCapitulo
                     }
                     else
                     {
-                        string txt = "[" + b.Nombre.ToUpperInvariant() + "]" + (b.Clave == "regancho" && stats.Length > 0 ? "\n" + stats : "");
+                        string txt = "[" + b.Nombre.ToUpperInvariant() + "]" + (b.ClaveKit == "regancho" && stats.Length > 0 ? "\n" + stats : "");
                         try { Texto(vegas, etiqueta, PistaKit, cursor, b.Segundos, txt); r.Placeholders++; }
                         catch (Exception ex) { r.Avisos.Add(b.Nombre + ": " + ex.Message); }
                         cursor += b.Segundos;
@@ -1173,7 +1437,7 @@ public static class ArmarCapitulo
             foreach (ItemFinal i in c.Items)
             {
                 if (i.Tipo != "musica" || !i.Elegido) continue;
-                double en = i.Bloque.Length > 0 && tv.Bloque(i.Bloque) != null && tv.Bloque(i.Bloque).Tipo != "contenido" ? double.NaN : Ubicar(tramos, k, i.Inicio);
+                double en = i.Bloque.Length > 0 && c.Bloque(i.Bloque) != null && c.Bloque(i.Bloque).Tipo != "contenido" ? double.NaN : Ubicar(tramos, k, i.Inicio);
                 if (double.IsNaN(en)) { r.SinLugar++; continue; }
                 string ruta = null;
                 if (i.Personaje.Length > 0 && musicaSerie != null && musicaSerie.Personajes.ContainsKey(i.Personaje)) ruta = musicaSerie.Personajes[i.Personaje].Archivo;
@@ -1209,12 +1473,32 @@ public static class ArmarCapitulo
             string carpeta = AplicarPlan.CarpetaNarracion(RutaPara(p.FilePath));
             int vel = 2;
             double ultimo = -1;
+            // Voces de esta parte ya en la linea de tiempo nueva.
+            List<Rango> ocupado = new List<Rango>();
+            foreach (Tramo x in tramos)
+            {
+                if (x.Parte != k) continue;
+                foreach (Rango v in voces)
+                {
+                    double a = Math.Max(v.Inicio, x.A), b = Math.Min(v.Fin, x.B);
+                    if (b > a) ocupado.Add(new Rango(x.Nuevo + a - x.A, x.Nuevo + b - x.A));
+                }
+            }
+            foreach (Rango kr in kitRangos) ocupado.Add(kr);          // tampoco sobre el opening, el ending...
             for (int j = 0; j < narr.Count; j++)
             {
                 ItemFinal i = narr[j];
-                double en = Ubicar(tramos, k, i.Inicio);
-                if (double.IsNaN(en)) { r.SinLugar++; continue; }
-                en = Math.Max(en, ultimo + 0.2);
+                double ancla = Ubicar(tramos, k, i.Inicio);
+                if (double.IsNaN(ancla)) { r.SinLugar++; continue; }
+                double largo = LogicaPlan.Segundos(i.Texto, ppm);
+                double en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
+                if (double.IsNaN(en))
+                {
+                    r.NarracionSinHueco++;
+                    r.Avisos.Add(i.Id + " no cabe sin pisar voces cerca de su momento: qued\u00f3 solo en el guion.");
+                    r.Guion.Append(i.Id + "  [sin lugar]\n    " + i.Texto + "\n\n");
+                    continue;
+                }
                 r.Guion.Append(i.Id + "  [" + Formato.TiempoPreciso(en - O) + "]\n    " + i.Texto + "\n\n");
                 if (voz == null) continue;
                 estado("Narraci\u00f3n " + i.Id + "\u2026", 0.6 + 0.3 * j / narr.Count);
@@ -1226,6 +1510,7 @@ public static class ArmarCapitulo
                     AudioEvent e = Audio(p, RitmoVegas.PistaNarracion).AddAudioEvent(TC(en), TC(d));
                     e.AddTake(new Media(wav).Streams.GetItemByMediaType(MediaType.Audio, 0));
                     ultimo = en + d;
+                    ocupado.Add(new Rango(en, en + d));
                     r.Narraciones++;
                 }
                 catch (Exception ex) { r.Avisos.Add(i.Id + ": " + ex.Message); }
@@ -1249,7 +1534,7 @@ public static class ArmarCapitulo
     // Guarda la copia CAP, la arma y la vuelve a guardar. La copia base queda como estaba.
     public static ResultadoProduccion EnCopia(Vegas vegas, PlanFinal final, FormatoSerie formato, MusicaSerie musicaSerie,
                                               BibliotecaMusica biblioteca, List<ArchivoMusica> candidatos, VideoEvent plantillaRecursos,
-                                              ISintetizador voz, int ppm, Action<string, double> estado)
+                                              ISintetizador voz, int ppm, Transcripcion trans, Action<string, double> estado)
     {
         string desde = vegas.Project.FilePath, cap = RutaPara(desde);
         vegas.SaveProject(cap);
@@ -1265,7 +1550,7 @@ public static class ArmarCapitulo
         if (File.Exists(serie)) File.Copy(serie, Path.Combine(dir, Path.GetFileNameWithoutExtension(cap) + ".vegascut-proyecto-serie.json"), true);
         ResultadoProduccion r;
         using (UndoBlock u = new UndoBlock("Producir cap\u00edtulo"))
-            r = Producir(vegas, final, formato, musicaSerie, biblioteca, candidatos, plantillaRecursos, voz, ppm, estado);
+            r = Producir(vegas, final, formato, musicaSerie, biblioteca, candidatos, plantillaRecursos, voz, ppm, trans, estado);
         StringBuilder g = new StringBuilder();
         g.Append("GUION \u00b7 " + Path.GetFileNameWithoutExtension(cap) + "\n");
         foreach (CapituloFinal c in final.Partes) g.Append((c.Etapa.Length > 0 ? c.Etapa + " \u00b7 " : "") + c.Titulo + "\n");
@@ -4374,6 +4659,10 @@ public class BloqueTV
     public double Segundos;             // duracion fija (cold open, kit, texto, avance)
     public double Porcentaje;           // de lo que queda (actos)
     public string Descripcion = "";
+    public string Kit = "";             // archivo del kit que usa (vacio = el de su clave)
+    public string Ritmo = "";           // lento, medio o rapido (lo propone la escaleta)
+
+    public string ClaveKit { get { return Kit.Length > 0 ? Kit : Clave; } }
 
     public BloqueTV() { }
     public BloqueTV(string clave, string nombre, string tipo, double segundos, double porcentaje, string descripcion)

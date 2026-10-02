@@ -4569,6 +4569,10 @@ public class BloqueTV
     public double Segundos;             // duracion fija (cold open, kit, texto, avance)
     public double Porcentaje;           // de lo que queda (actos)
     public string Descripcion = "";
+    public string Kit = "";             // archivo del kit que usa (vacio = el de su clave)
+    public string Ritmo = "";           // lento, medio o rapido (lo propone la escaleta)
+
+    public string ClaveKit { get { return Kit.Length > 0 ? Kit : Clave; } }
 
     public BloqueTV() { }
     public BloqueTV(string clave, string nombre, string tipo, double segundos, double porcentaje, string descripcion)

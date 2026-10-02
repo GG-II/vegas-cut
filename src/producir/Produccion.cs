@@ -70,8 +70,9 @@ class TarjetaPropuesta : Panel
         P = p;
         Titulo.Text = p.Id + " · " + p.Nombre;
         StringBuilder sb = new StringBuilder();
-        sb.Append((p.Doble ? "EPISODIO DOBLE" : p.Tipo == "especial" ? "ESPECIAL" : "CAPÍTULO") + " · ~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
+        sb.Append(p.NombreTipo() + " · ~" + Math.Round(p.Minutos) + " min" + (p.Doble ? " cada parte" : "") + "\n");
         if (p.Titulos.Count > 0) sb.Append("«" + String.Join("» / «", p.Titulos.ToArray()) + "»\n");
+        if (p.Estructura.Count > 0) sb.Append("\n" + String.Join(" → ", p.Estructura.ToArray()) + "\n");
         sb.Append("\nCold open: " + p.ColdOpen + "\nCierre: " + p.Cierre + "\n\n");
         foreach (string x in p.Escaleta) sb.Append("• " + x + "\n");
         sb.Append("\n" + p.PorQue);
@@ -102,6 +103,7 @@ class VentanaProduccion : VentanaBase
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
     Boton btnAnalizar = new Boton("Analizar y proponer", EstiloBoton.Primario);
+    Boton btnRefinar = new Boton("Refinar propuestas", EstiloBoton.Secundario);
     TarjetaPropuesta[] tarjetas = { new TarjetaPropuesta(), new TarjetaPropuesta(), new TarjetaPropuesta() };
     CampoTexto txtNotas = new CampoTexto();
     Boton btnFinal = new Boton("Armar propuesta final", EstiloBoton.Primario);
@@ -144,7 +146,8 @@ class VentanaProduccion : VentanaBase
         }
         y1 += 420;
         vista1.Add(Texto("OTRAS NOTAS", Tema.Pequena, Tema.TextoSuave, m, y1, 200, 18));
-        vista1.Add(Pos(txtNotas, m, y1 + 18, w - 236, 34));
+        vista1.Add(Pos(txtNotas, m, y1 + 18, w - 446, 34));
+        vista1.Add(Pos(btnRefinar, m + w - 430, y1 + 14, 200, 40));
         vista1.Add(Pos(btnFinal, m + w - 220, y1 + 14, 220, 40));
         y1 += 62;
 
@@ -173,7 +176,13 @@ class VentanaProduccion : VentanaBase
         ClientSize = new Size(ClientSize.Width, yb + 40 + 20);
 
         segPaso.Cambio += delegate { if (!cargando) Vista(segPaso.Seleccion); };
-        btnAnalizar.Click += delegate { Analizar(); };
+        btnAnalizar.Click += delegate
+        {
+            if (analisis != null && MessageBox.Show(this, "Analizar de nuevo descarta las propuestas actuales. Para corregirlas con tus notas usa " +
+                    "«Refinar propuestas».\n\n¿Analizar todo de nuevo?", "Producir capítulo", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+            Analizar();
+        };
+        btnRefinar.Click += delegate { Refinar(); };
         btnFinal.Click += delegate { Final(null); };
         btnAjustar.Click += delegate
         {
@@ -228,7 +237,7 @@ class VentanaProduccion : VentanaBase
         try
         {
             r = ArmarCapitulo.EnCopia(vegas, final, formato, serie != null ? serie.Musica : null, biblioteca, musica, plantilla, voz,
-                                      PapelEpisodio.Reglas(formato.Reglas, papel).PPM,
+                                      PapelEpisodio.Reglas(formato.Reglas, papel).PPM, trans,
                                       delegate (string t, double f) { Estado(t, false); Application.DoEvents(); });
         }
         catch (Exception ex)
@@ -281,7 +290,7 @@ class VentanaProduccion : VentanaBase
         if (!formato.EsTV) Estado("La serie no tiene el formato «Serie de TV / anime»: se usa su plantilla por defecto.", false);
 
         string elegida, ind, notas;
-        if (LogicaProduccion.Cargar(veg, duracion, musica.Count, formato.Reglas.PPM, out analisis, out elegida, out ind, out notas, out final))
+        if (LogicaProduccion.Cargar(veg, duracion, musica.Count, formato.Reglas.PPM, formato.Tv, out analisis, out elegida, out ind, out notas, out final))
         {
             txtIndicaciones.Text = ind; txtNotas.Text = notas;
             MostrarAnalisis();
@@ -340,7 +349,8 @@ class VentanaProduccion : VentanaBase
 
     void Habilitar(bool si)
     {
-        foreach (Control c in new Control[] { btnAnalizar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        if (si) btnRefinar.Enabled = analisis != null;
         if (si) { btnFinal.Enabled = Elegida() != null; segPaso.Habilitar(1, final != null); }
     }
 
@@ -387,17 +397,39 @@ class VentanaProduccion : VentanaBase
         });
     }
 
+    void Refinar()
+    {
+        LeerNotas();
+        if (analisis == null) return;
+        bool hayNotas = txtNotas.Text.Trim().Length > 0 || txtIndicaciones.Text.Trim().Length > 0;
+        foreach (Propuesta p in analisis.Propuestas) if (p.Notas.Trim().Length > 0) hayNotas = true;
+        if (!hayNotas) { Estado("Escribe notas en las propuestas (o en «Otras notas») para refinarlas.", true); return; }
+        string elegida = Elegida() != null ? Elegida().Id : "";
+        string instr = LogicaProduccion.InstruccionesRefinar(formato, papel);
+        string msg = LogicaProduccion.MensajeRefinar(analisis, txtNotas.Text, txtIndicaciones.Text, trans);
+        Pedir(instr, msg, "Gemini está corrigiendo las propuestas con tus notas…", delegate (string r)
+        {
+            LogicaProduccion.Refinar(analisis, r);
+            txtNotas.Text = "";
+            MostrarAnalisis();
+            for (int i = 0; i < analisis.Propuestas.Count && i < 3; i++) if (analisis.Propuestas[i].Id == elegida) Elegir(i);
+            Vista(0);
+            Estado("✔ Propuestas corregidas con tus notas. Puedes seguir refinando o armar la propuesta final.", false);
+        });
+    }
+
     void Final(string cambios)
     {
         LeerNotas();
         Propuesta p = Elegida();
         if (analisis == null || p == null) { Estado("Elige una propuesta.", true); return; }
         string instr = LogicaProduccion.InstruccionesFinal(formato, papel, p);
-        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, musica, serie != null ? serie.Musica : null,
-                                                   LogicaProduccion.Reparto(serie != null ? serie.Musica : null), trans, cambios != null ? final : null, cambios);
+        string msg = LogicaProduccion.MensajeFinal(analisis, p, txtNotas.Text, txtIndicaciones.Text, musica, serie != null ? serie.Musica : null,
+                                                   LogicaProduccion.Reparto(serie != null ? serie.Musica : null), trans, duracion,
+                                                   cambios != null ? final : null, cambios);
         Pedir(instr, msg, cambios == null ? "Gemini está armando la escaleta final…" : "Gemini está ajustando la escaleta…", delegate (string r)
         {
-            final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM);
+            final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM, formato.Tv);
             if (cambios != null) txtCambios.Text = "";
             MostrarFinal();
             segPaso.Habilitar(1, true);
@@ -409,11 +441,6 @@ class VentanaProduccion : VentanaBase
     static readonly Dictionary<string, string> NombreTipo = new Dictionary<string, string> {
         { "clip", "Clip" }, { "texto", "Texto" }, { "musica", "Música" }, { "narracion", "Narración" }, { "recurso", "Recurso" } };
 
-    string NombreBloque(string clave)
-    {
-        BloqueTV b = formato.Tv.Bloque(clave);
-        return b != null ? b.Nombre : clave;
-    }
 
     string Musica(ItemFinal i)
     {
@@ -433,14 +460,15 @@ class VentanaProduccion : VentanaBase
             for (int k = 0; k < final.Partes.Count; k++)
             {
                 CapituloFinal c = final.Partes[k];
-                // Orden: por bloque de la plantilla; dentro, clips en su orden y lo demas por tiempo.
-                foreach (BloqueTV b in formato.Tv.Bloques)
+                // Orden: por bloque de la estructura de esta parte; dentro, clips en su orden y lo demas por tiempo.
+                foreach (BloqueTV b in c.Estructura)
                 {
                     List<ItemFinal> del = c.Items.FindAll(delegate (ItemFinal i) { return i.Bloque == b.Clave || (i.Bloque.Length == 0 && i.Tipo != "clip" && b.Clave == BloqueDe(c, i)); });
                     ListViewItem cab = new ListViewItem((final.Partes.Count > 1 ? "P" + (k + 1) + " · " : "") + b.Nombre);
                     cab.SubItems.Add(b.Tipo == "contenido" ? Formato.Tiempo(LogicaProduccion.Bloque(c, b.Clave)) : b.Segundos + " s");
-                    cab.SubItems.Add(b.Tipo == "kit" ? (formato.Tv.Archivo(b.Clave).Length > 0 ? "kit" : "placeholder") : "");
-                    cab.SubItems.Add(b.Clave == "titulo" ? (c.Etapa.Length > 0 ? c.Etapa + " · " : "") + c.Titulo : b.Descripcion);
+                    cab.SubItems.Add(b.Tipo == "kit" ? (formato.Tv.Archivo(b.ClaveKit).Length > 0 ? "kit" : "placeholder") :
+                                     b.Ritmo.Length > 0 ? "ritmo " + b.Ritmo : "");
+                    cab.SubItems.Add(b.Tipo == "texto" ? (c.Etapa.Length > 0 ? c.Etapa + " · " : "") + c.Titulo : b.Descripcion);
                     cab.Font = Tema.Negrita; cab.ForeColor = Tema.Acento; cab.Checked = true;
                     lstFinal.Items.Add(cab);
                     foreach (ItemFinal i in del)
@@ -449,7 +477,8 @@ class VentanaProduccion : VentanaBase
                         it.SubItems.Add(i.Inicio < 0 ? "" : i.Tipo == "clip" ? Formato.Tiempo(i.Inicio) + "–" + Formato.Tiempo(i.Fin) : Formato.Tiempo(i.Inicio));
                         it.SubItems.Add(NombreTipo.ContainsKey(i.Tipo) ? NombreTipo[i.Tipo] + (i.Clase.Length > 0 ? " · " + i.Clase : "") : i.Tipo);
                         it.SubItems.Add(i.Tipo == "musica" ? Musica(i) + (i.Texto.Length > 0 ? " — " + i.Texto : "") :
-                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") :
+                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
+                                                           (i.Respiro > 0 ? "  · respiro " + i.Respiro.ToString("0.#") + " s" : "") :
                                         i.Tipo == "narracion" ? "«" + i.Texto + "»" : i.Texto);
                         it.Checked = i.Elegido;
                         it.ForeColor = i.Tipo == "narracion" ? Tema.Voz : i.Tipo == "musica" ? Color.FromArgb(190, 160, 255) : Tema.Texto;
@@ -468,7 +497,7 @@ class VentanaProduccion : VentanaBase
     {
         foreach (ItemFinal i in c.Items)
             if (i.Tipo == "clip" && x.Inicio >= i.Inicio - 0.5 && x.Inicio <= i.Fin + 0.5) return i.Bloque;
-        return "acto_a";
+        return c.Estructura.Count > 0 ? c.Estructura.Find(delegate (BloqueTV b) { return b.Tipo == "contenido"; }).Clave : "acto_a";
     }
 
     void Resumen()
@@ -476,11 +505,13 @@ class VentanaProduccion : VentanaBase
         if (final == null) { lblFinal.Text = ""; return; }
         ReglasRitmo r = PapelEpisodio.Reglas(formato.Reglas, papel);
         List<string> l = new List<string>();
+        Propuesta p = Elegida();
+        double x = p != null && p.DobleDuracion ? 2 : 1;
         foreach (CapituloFinal c in final.Partes)
         {
             double d = LogicaProduccion.Duracion(c, formato.Tv);
-            bool ok = d >= r.DuracionMin * 60 - 30 && d <= r.DuracionMax * 60 + 30;
-            l.Add("«" + c.Titulo + "» " + Formato.Tiempo(d) + (ok ? " ✔" : " (objetivo " + r.DuracionMin + "–" + r.DuracionMax + " min)"));
+            bool ok = d >= r.DuracionMin * 60 * x - 30 && d <= r.DuracionMax * 60 * x + 30;
+            l.Add("«" + c.Titulo + "» " + Formato.Tiempo(d) + (ok ? " ✔" : " (referencia " + r.DuracionMin * x + "–" + r.DuracionMax * x + " min)"));
         }
         lblFinal.Text = final.Resumen + "\n" + String.Join("   ·   ", l.ToArray());
     }

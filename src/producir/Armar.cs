@@ -17,7 +17,7 @@ using Region = ScriptPortal.Vegas.Region;
 
 public class ResultadoProduccion
 {
-    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar;
+    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros;
     public List<double> Partes = new List<double>();
     public List<string> Avisos = new List<string>();
     public StringBuilder Guion = new StringBuilder();
@@ -28,8 +28,9 @@ public class ResultadoProduccion
         for (int i = 0; i < Partes.Count; i++) l.Add((Partes.Count > 1 ? "parte " + (i + 1) + ": " : "") + Formato.Tiempo(Partes[i]));
         return "✔ Capítulo armado (" + String.Join(", ", l.ToArray()) + "): " + Clips + " clips, " + Kit + " del kit" +
                (Placeholders > 0 ? " (" + Placeholders + " placeholders)" : "") + ", " + Textos + " textos, " + Temas + " temas, " +
-               Narraciones + " frases de narración, " + Recursos + " recursos." +
-               (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entró en ningún clip." : "");
+               Narraciones + " frases de narración, " + Recursos + " recursos" + (Respiros > 0 ? ", " + Respiros + " respiros" : "") + "." +
+               (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entró en ningún clip." : "") +
+               (NarracionSinHueco > 0 ? " " + NarracionSinHueco + " frases de narración no cabían sin pisar voces (están en el guion)." : "");
     }
 }
 
@@ -50,6 +51,34 @@ public static class ArmarCapitulo
     }
 
     class Tramo { public int Parte; public double A, B, Nuevo; }
+
+    // Alarga lo que termina justo en "fin" (todas las pistas): como al material
+    // se le quitaron los silencios, el archivo sigue con la pausa original.
+    static void Respirar(Project p, double fin, double segundos)
+    {
+        foreach (Track t in p.Tracks)
+            foreach (TrackEvent e in t.Events)
+                if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+    }
+
+    // Primer hueco libre (sin voces ni otra narracion) de "largo" segundos
+    // cerca de "desde": hasta 25 s despues o 5 s antes. NaN si no hay.
+    public static double Hueco(List<Rango> ocupado, double desde, double largo, double min, double max)
+    {
+        List<Rango> o = Rangos.Unir(ocupado, 0.15);
+        List<double> c = new List<double>();
+        c.Add(desde);
+        foreach (Rango x in o) if (x.Fin >= desde - 5 && x.Fin <= desde + 25) c.Add(x.Fin + 0.15);
+        c.Sort(delegate (double a, double b) { return Math.Abs(a - desde).CompareTo(Math.Abs(b - desde)); });
+        foreach (double t in c)
+        {
+            if (t < min || t + largo > max) continue;
+            bool libre = true;
+            foreach (Rango x in o) if (x.Inicio < t + largo + 0.1 && x.Fin > t - 0.1) { libre = false; break; }
+            if (libre) return t;
+        }
+        return double.NaN;
+    }
 
     // Donde queda en el capitulo un segundo del material (NaN si no entro).
     static double Ubicar(List<Tramo> tramos, int parte, double t)
@@ -106,8 +135,14 @@ public static class ArmarCapitulo
 
     public static ResultadoProduccion Producir(Vegas vegas, PlanFinal final, FormatoSerie formato, MusicaSerie musicaSerie,
                                                BibliotecaMusica biblioteca, List<ArchivoMusica> candidatos, VideoEvent plantillaRecursos,
-                                               ISintetizador voz, int ppm, Action<string, double> estado)
+                                               ISintetizador voz, int ppm, Transcripcion trans, Action<string, double> estado)
     {
+        // Donde habla alguien en el material (para no narrar encima).
+        List<Rango> voces = new List<Rango>();
+        if (trans != null)
+            foreach (Segmento sg in trans.SegmentosActuales())
+                if (sg.Fin > sg.Inicio) voces.Add(new Rango(sg.Inicio, sg.Fin));
+        voces = Rangos.Unir(voces, 0.2);
         Project p = vegas.Project;
         ResultadoProduccion r = new ResultadoProduccion();
         PlantillaTV tv = formato.Tv;
@@ -136,7 +171,7 @@ public static class ArmarCapitulo
             string stats = "";
             foreach (ItemFinal i in c.Items) if (i.Tipo == "texto" && i.Clase == "stats" && i.Elegido) stats = i.Texto;
 
-            foreach (BloqueTV b in tv.Bloques)
+            foreach (BloqueTV b in c.Estructura)
             {
                 double ini = cursor;
                 estado("Parte " + (k + 1) + " · " + b.Nombre + "…", 0.05 + 0.5 * k / final.Partes.Count);
@@ -148,11 +183,12 @@ public static class ArmarCapitulo
                         r.Clips += AplicarPlan.CopiarTramo(p, i.Inicio, i.Fin, cursor) > 0 ? 1 : 0;
                         tramos.Add(new Tramo { Parte = k, A = i.Inicio, B = i.Fin, Nuevo = cursor });
                         cursor += i.Duracion;
+                        if (i.Respiro > 0.05) { Respirar(p, cursor, i.Respiro); cursor += i.Respiro; r.Respiros++; }
                     }
                 }
                 else if (b.Tipo == "kit")
                 {
-                    string archivo = tv.Archivo(b.Clave);
+                    string archivo = tv.Archivo(b.ClaveKit);
                     if (archivo.Length > 0 && File.Exists(archivo))
                     {
                         try { cursor += PonerArchivo(p, archivo, cursor, b.Segundos); }
@@ -160,7 +196,7 @@ public static class ArmarCapitulo
                     }
                     else
                     {
-                        string txt = "[" + b.Nombre.ToUpperInvariant() + "]" + (b.Clave == "regancho" && stats.Length > 0 ? "\n" + stats : "");
+                        string txt = "[" + b.Nombre.ToUpperInvariant() + "]" + (b.ClaveKit == "regancho" && stats.Length > 0 ? "\n" + stats : "");
                         try { Texto(vegas, etiqueta, PistaKit, cursor, b.Segundos, txt); r.Placeholders++; }
                         catch (Exception ex) { r.Avisos.Add(b.Nombre + ": " + ex.Message); }
                         cursor += b.Segundos;
@@ -221,7 +257,7 @@ public static class ArmarCapitulo
             foreach (ItemFinal i in c.Items)
             {
                 if (i.Tipo != "musica" || !i.Elegido) continue;
-                double en = i.Bloque.Length > 0 && tv.Bloque(i.Bloque) != null && tv.Bloque(i.Bloque).Tipo != "contenido" ? double.NaN : Ubicar(tramos, k, i.Inicio);
+                double en = i.Bloque.Length > 0 && c.Bloque(i.Bloque) != null && c.Bloque(i.Bloque).Tipo != "contenido" ? double.NaN : Ubicar(tramos, k, i.Inicio);
                 if (double.IsNaN(en)) { r.SinLugar++; continue; }
                 string ruta = null;
                 if (i.Personaje.Length > 0 && musicaSerie != null && musicaSerie.Personajes.ContainsKey(i.Personaje)) ruta = musicaSerie.Personajes[i.Personaje].Archivo;
@@ -257,12 +293,32 @@ public static class ArmarCapitulo
             string carpeta = AplicarPlan.CarpetaNarracion(RutaPara(p.FilePath));
             int vel = 2;
             double ultimo = -1;
+            // Voces de esta parte ya en la linea de tiempo nueva.
+            List<Rango> ocupado = new List<Rango>();
+            foreach (Tramo x in tramos)
+            {
+                if (x.Parte != k) continue;
+                foreach (Rango v in voces)
+                {
+                    double a = Math.Max(v.Inicio, x.A), b = Math.Min(v.Fin, x.B);
+                    if (b > a) ocupado.Add(new Rango(x.Nuevo + a - x.A, x.Nuevo + b - x.A));
+                }
+            }
+            foreach (Rango kr in kitRangos) ocupado.Add(kr);          // tampoco sobre el opening, el ending...
             for (int j = 0; j < narr.Count; j++)
             {
                 ItemFinal i = narr[j];
-                double en = Ubicar(tramos, k, i.Inicio);
-                if (double.IsNaN(en)) { r.SinLugar++; continue; }
-                en = Math.Max(en, ultimo + 0.2);
+                double ancla = Ubicar(tramos, k, i.Inicio);
+                if (double.IsNaN(ancla)) { r.SinLugar++; continue; }
+                double largo = LogicaPlan.Segundos(i.Texto, ppm);
+                double en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
+                if (double.IsNaN(en))
+                {
+                    r.NarracionSinHueco++;
+                    r.Avisos.Add(i.Id + " no cabe sin pisar voces cerca de su momento: quedó solo en el guion.");
+                    r.Guion.Append(i.Id + "  [sin lugar]\n    " + i.Texto + "\n\n");
+                    continue;
+                }
                 r.Guion.Append(i.Id + "  [" + Formato.TiempoPreciso(en - O) + "]\n    " + i.Texto + "\n\n");
                 if (voz == null) continue;
                 estado("Narración " + i.Id + "…", 0.6 + 0.3 * j / narr.Count);
@@ -274,6 +330,7 @@ public static class ArmarCapitulo
                     AudioEvent e = Audio(p, RitmoVegas.PistaNarracion).AddAudioEvent(TC(en), TC(d));
                     e.AddTake(new Media(wav).Streams.GetItemByMediaType(MediaType.Audio, 0));
                     ultimo = en + d;
+                    ocupado.Add(new Rango(en, en + d));
                     r.Narraciones++;
                 }
                 catch (Exception ex) { r.Avisos.Add(i.Id + ": " + ex.Message); }
@@ -297,7 +354,7 @@ public static class ArmarCapitulo
     // Guarda la copia CAP, la arma y la vuelve a guardar. La copia base queda como estaba.
     public static ResultadoProduccion EnCopia(Vegas vegas, PlanFinal final, FormatoSerie formato, MusicaSerie musicaSerie,
                                               BibliotecaMusica biblioteca, List<ArchivoMusica> candidatos, VideoEvent plantillaRecursos,
-                                              ISintetizador voz, int ppm, Action<string, double> estado)
+                                              ISintetizador voz, int ppm, Transcripcion trans, Action<string, double> estado)
     {
         string desde = vegas.Project.FilePath, cap = RutaPara(desde);
         vegas.SaveProject(cap);
@@ -313,7 +370,7 @@ public static class ArmarCapitulo
         if (File.Exists(serie)) File.Copy(serie, Path.Combine(dir, Path.GetFileNameWithoutExtension(cap) + ".vegascut-proyecto-serie.json"), true);
         ResultadoProduccion r;
         using (UndoBlock u = new UndoBlock("Producir capítulo"))
-            r = Producir(vegas, final, formato, musicaSerie, biblioteca, candidatos, plantillaRecursos, voz, ppm, estado);
+            r = Producir(vegas, final, formato, musicaSerie, biblioteca, candidatos, plantillaRecursos, voz, ppm, trans, estado);
         StringBuilder g = new StringBuilder();
         g.Append("GUION · " + Path.GetFileNameWithoutExtension(cap) + "\n");
         foreach (CapituloFinal c in final.Partes) g.Append((c.Etapa.Length > 0 ? c.Etapa + " · " : "") + c.Titulo + "\n");

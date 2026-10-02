@@ -341,13 +341,25 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
 1. **Analizar y proponer.** Gemini lee todo el material con ese contexto y la estructura de
    referencia de SC y SBR (`docs/estructura-episodio-sc.md`). Devuelve:
    - los mejores momentos y los hilos con otros capítulos;
-   - cuánto material útil hay y si da para un **episodio doble**;
-   - **tres propuestas** distintas, cada una con títulos al estilo JoJo, duración, qué cold
-     open y qué cierre usa, una escaleta corta y por qué funciona.
+   - cuánto material útil hay y si da para más de un video;
+   - **tres propuestas** distintas, cada una con su **tipo**:
+     - *capítulo* normal;
+     - *especial*;
+     - *dos partes*: dos videos;
+     - *doble duración*: un solo video largo, con un opening y las mitades unidas por un
+       eyecatch.
 
-   Cada tarjeta tiene su cuadro de **notas** («me gusta, pero con el cold open de la A»). Elige
-   una.
-2. **Armar propuesta final.** La escaleta completa, bloque por bloque de la plantilla:
+     Además trae títulos al estilo JoJo, duración, su **estructura de bloques** (por ejemplo
+     «Intro (3:00) → Título → Acto A → Eyecatch → Acto B»), qué cold open y qué cierre usa, una
+     escaleta corta y por qué funciona.
+
+   Cada tarjeta tiene su cuadro de **notas** («sin opening», «con el cold open de la A»).
+   **Refinar propuestas** corrige las tres con tus notas sin volver a analizar todo, las veces
+   que quieras. Después elige una.
+2. **Armar propuesta final.** La escaleta completa. **Tus indicaciones, notas y cambios mandan**
+   sobre la plantilla y las reglas: la estructura de cada capítulo la decide la propuesta con tus
+   notas, sin opening si lo pides, con intro más larga, con eyecatch entre mitades, etc. La
+   plantilla es solo el punto de partida.
 
    ![Producir capítulo: propuesta final](docs/img/producir-final.png)
 
@@ -356,7 +368,10 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
      stats del rival para el re-gancho y «continuará»;
    - **música** de tu biblioteca por escena (sin repetir dentro del capítulo), con el tema del
      personaje cuando se luce y el principal en el momento clave;
-   - **narración** a tu velocidad;
+   - **ritmo** de cada bloque (lento, medio o rápido) según lo que pasa: rápido en acción y humor,
+     lento en llegadas, revelaciones, momentos emotivos y el cliffhanger. Los clips que lo
+     necesitan llevan un **respiro** de 0.5 a 3 s;
+   - **narración** a tu velocidad, solo en las pausas donde no habla nadie;
    - **recursos** que faltan.
 
    Arriba ves cuánto dura cada parte contra el objetivo. Desmarca lo que no quieras, escribe
@@ -364,11 +379,15 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    momento del material.
 3. **Producir.** Guarda una copia `<capítulo> CAP.veg` y arma ahí el capítulo; la BASE no se
    toca:
-   - cada clip con todas sus pistas (video, voces y juego), agrupados;
+   - cada clip con todas sus pistas (video, voces y juego), agrupados, en la estructura de la
+     escaleta;
+   - los **respiros**: el clip se alarga sobre la grabación original y recupera la pausa que se
+     había quitado;
    - el **kit** de la serie, o placeholders con la duración de cada bloque;
    - el título y los carteles con el estilo de texto del proyecto;
    - la **música colocada sin balancear** (eso va en *PasoFinal*);
-   - la narración provisional con la voz de Windows;
+   - la narración provisional con la voz de Windows, en el hueco libre más cercano a su momento;
+     si no cabe sin pisar a los jugadores, queda solo en el guion y avisa;
    - los placeholders de recursos (si al abrir tenías seleccionada una imagen editada, la
      copian con sus efectos);
    - una región por bloque y otra por parte.

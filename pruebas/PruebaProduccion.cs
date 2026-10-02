@@ -97,7 +97,8 @@ class PruebaProduccion
 
         // ------------------------------------------------ analisis y propuestas
         AnalisisCapitulo a = LogicaProduccion.LeerAnalisis(RespAnalisis, 635);
-        Verificar(a.Propuestas.Count == 3 && a.Propuestas[1].Id == "B" && a.Propuestas[1].Doble && a.Propuestas[2].Tipo == "normal",
+        Verificar(a.Propuestas.Count == 3 && a.Propuestas[1].Id == "B" && a.Propuestas[1].Doble && a.Propuestas[2].Tipo == "normal" &&
+                  Propuesta.Normalizar("doble duración") == "doble_duracion",
                   "Análisis: tres propuestas con id único (la repetida pasa a B) y su tipo");
         Verificar(a.Momentos.Count == 2 && a.Momentos[0].Inicio == 20 && a.DobleRecomendado && a.Hilos.Count == 1,
                   "Análisis: momentos en orden y dentro del material, doble recomendado, hilos");
@@ -105,6 +106,16 @@ class PruebaProduccion
         string ia = LogicaProduccion.InstruccionesAnalisis(f, "Gameplay", "Normal");
         Verificar(ia.Contains("TRES") && ia.Contains("~13 %") && ia.Contains("15–18") && ia.Contains("Parte 1"),
                   "Instrucciones: tres propuestas, estructura de referencia, duración y títulos de episodio doble");
+
+        a.Propuestas[1].Notas = "que sea un solo video de doble duración, sin opening en la segunda mitad, unido por eyecatch";
+        string mr = LogicaProduccion.MensajeRefinar(a, "más intro", "es el primer capítulo", null);
+        Verificar(mr.Contains("NOTAS DEL EDITOR: que sea un solo video") && mr.Contains("NOTAS DEL EDITOR: (ninguna)") && mr.Contains("más intro") &&
+                  LogicaProduccion.InstruccionesRefinar(FormatoSerie.Preset(FormatoSerie.TV), "Primer capítulo").Contains("mandan"),
+                  "Refinar: cada propuesta con sus notas; las notas mandan");
+        LogicaProduccion.Refinar(a, "{\"propuestas\": [{\"id\": \"A\", \"nombre\": \"Clásica\"}, {\"id\": \"B\", \"nombre\": \"Doble duración\", " +
+            "\"tipo\": \"doble_duracion\", \"estructura\": [\"Intro (3:00)\", \"Título\", \"Acto A\", \"Eyecatch\", \"Acto B\"]}, {\"id\": \"C\", \"nombre\": \"Especial\"}]}");
+        Verificar(a.Propuestas.Count == 3 && a.Propuestas[1].DobleDuracion && a.Propuestas[1].Estructura.Count == 5 && a.Propuestas[1].Notas == "" &&
+                  a.Momentos.Count == 2 && a.RespuestaPropuestas.Length > 0, "Refinar: cambian las propuestas, el análisis se queda (sin analizar de nuevo)");
 
         string dir = Path.Combine(Path.GetTempPath(), "vc-prod-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
@@ -143,12 +154,15 @@ class PruebaProduccion
                       fin.Partes[1].Items.Find(delegate (ItemFinal i) { return i.Tipo == "narracion"; }).Id == "N03", "Narración numerada en todo el episodio");
             double d1 = LogicaProduccion.Duracion(p1, f.Tv);
             Verificar(Math.Abs(d1 - (30 + 170 + 90 + 10 + 47)) < 0.01, "Duración estimada: clips + bloques fijos (" + Formato.Tiempo(d1) + ")");
-            string mf = LogicaProduccion.MensajeFinal(a, a.Propuestas[1], "más Gerber", cand, ms, LogicaProduccion.Reparto(ms), null, null, null);
-            Verificar(mf.Contains("PROPUESTA ELEGIDA: B") && mf.Contains("BIBLIOTECA DE MÚSICA") && mf.Contains("Tema de Gerber") && mf.Contains("más Gerber"),
-                      "Mensaje final: propuesta elegida, notas, biblioteca y temas de personajes");
+            Transcripcion tm = File.Exists(Path.Combine(carpeta, "Cap1.vegascut.json")) ? Transcripcion.Cargar(Path.Combine(carpeta, "Cap1.vegascut.json")) : null;
+            string mf = LogicaProduccion.MensajeFinal(a, a.Propuestas[1], "más Gerber", "primer capítulo sin opening", cand, ms, LogicaProduccion.Reparto(ms),
+                                                      tm, 635, fin, "intro más larga");
+            Verificar(mf.StartsWith("LO QUE PIDE EL EDITOR") && mf.Contains("CAMBIOS PEDIDOS AHORA: intro más larga") && mf.Contains("sin opening") &&
+                      mf.Contains("PROPUESTA ELEGIDA:\nB · Doble duración") && mf.Contains("BIBLIOTECA DE MÚSICA") && mf.Contains("Tema de Gerber") &&
+                      mf.Contains("PAUSAS DEL MATERIAL"), "Mensaje final: lo que pide el editor primero, propuesta, biblioteca, temas y pausas");
             string inf = LogicaProduccion.InstruccionesFinal(f, "Normal", a.Propuestas[1]);
-            Verificar(inf.Contains("DOBLE") && inf.Contains("cold_open") && inf.Contains("stats") && inf.Contains("195 palabras"),
-                      "Instrucciones finales: bloques de la plantilla, tarjeta de stats y narración a tu velocidad");
+            Verificar(inf.Contains("dos_partes") && inf.Contains("PRIORIDAD") && inf.Contains("eyecatch") && inf.Contains("NUNCA encima de las voces") &&
+                      inf.Contains("respiro") && inf.Contains("ritmo"), "Instrucciones finales: notas primero, estructura libre, ritmo y narración en pausas");
 
             // Guardar y volver a abrir lo que se tenía.
             string veg = Path.Combine(dir, "S01E01 SCR BASE.veg");
@@ -180,7 +194,7 @@ class PruebaProduccion
             pr.Regions.Add(new Region(new Timecode(0), new Timecode(1000), "vieja"));
 
             List<string> pasos = new List<string>();
-            ResultadoProduccion r = ArmarCapitulo.EnCopia(v, fin, f, ms, bib, cand, null, new VozFalsa(), 195,
+            ResultadoProduccion r = ArmarCapitulo.EnCopia(v, fin, f, ms, bib, cand, null, new VozFalsa(), 195, t,
                                                           delegate (string s, double x) { pasos.Add(s); });
             Console.WriteLine("      " + r.Texto());
             foreach (string w in r.Avisos) Console.WriteLine("      aviso: " + w);
@@ -235,6 +249,52 @@ class PruebaProduccion
             Track grab = RitmoVegas.PistasGrabacion(pr, t3, "Narrador")[0];
             Envelope env = grab.Envelopes.FindByType(EnvelopeType.Volume);
             Verificar(n >= 3 && env != null && env.Points.Count > 3, "Paso final: el juego baja bajo la narración (" + n + " pistas)");
+
+            // Narracion: el primer hueco libre cerca de su momento.
+            List<Rango> oc = new List<Rango> { new Rango(10, 14), new Rango(14.5, 20), new Rango(23, 30) };
+            Verificar(ArmarCapitulo.Hueco(oc, 12, 2, 0, 100) == 20.15 && double.IsNaN(ArmarCapitulo.Hueco(oc, 12, 9, 0, 32)) &&
+                      ArmarCapitulo.Hueco(oc, 5, 3, 0, 100) == 5, "Narración: va al hueco libre más cercano; si no cabe, no se pone");
+
+            // Un solo video de doble duración: intro larga, sin opening, eyecatch entre mitades.
+            string dd = @"{""resumen"": ""Doble duración"", ""partes"": [{""titulo"": ""El comienzo"", ""etapa"": ""Etapa 1"",
+              ""estructura"": [{""bloque"": ""intro"", ""nombre"": ""Intro"", ""tipo"": ""contenido"", ""ritmo"": ""lento""},
+                               {""bloque"": ""titulo"", ""tipo"": ""texto"", ""segundos"": 4},
+                               {""bloque"": ""acto_a"", ""tipo"": ""contenido"", ""ritmo"": ""medio""},
+                               {""bloque"": ""eyecatch"", ""nombre"": ""Eyecatch"", ""tipo"": ""kit"", ""segundos"": 5},
+                               {""bloque"": ""acto_b"", ""tipo"": ""contenido"", ""ritmo"": ""rapido""},
+                               {""bloque"": ""ed"", ""tipo"": ""kit""}],
+              ""bloques"": [{""bloque"": ""intro"", ""clips"": [{""inicio"": 0, ""fin"": 90, ""respiro"": 2}]},
+                            {""bloque"": ""acto_a"", ""clips"": [{""inicio"": 100, ""fin"": 200, ""respiro"": 9}]},
+                            {""bloque"": ""acto_b"", ""clips"": [{""inicio"": 300, ""fin"": 400}]},
+                            {""bloque"": ""final"", ""clips"": [{""inicio"": 500, ""fin"": 520}]}],
+              ""narracion"": [{""en"": 1, ""texto"": ""Cada año hago un server con mis amigos.""}]}]}";
+            PlanFinal pd = LogicaProduccion.LeerFinal(dd, 635, cand.Count, 195, f.Tv);
+            CapituloFinal cd = pd.Partes[0];
+            Verificar(pd.Partes.Count == 1 && cd.Bloque("op") == null && cd.Bloque("eyecatch").ClaveKit == "regancho" && cd.Bloque("intro").Ritmo == "lento" &&
+                      cd.Bloque("titulo").Segundos == 4 && cd.Estructura.FindIndex(delegate (BloqueTV b) { return b.Clave == "final"; }) ==
+                      cd.Estructura.FindIndex(delegate (BloqueTV b) { return b.Clave == "ed"; }) - 1,
+                      "Estructura propia: sin opening, eyecatch con el kit del re-gancho, ritmo por bloque (y lo que falta va antes del cierre)");
+            Verificar(Math.Abs(LogicaProduccion.Duracion(cd, f.Tv) - (92 + 4 + 103 + 5 + 100 + 15 + 20)) < 0.01, "Duración: con los respiros (máx. 3 s)");
+            Vegas v2 = new Vegas();
+            v2.Generators.Hijos.Add(new PlugInNode { Name = "VEGAS Títulos y texto", UniqueID = "{Svfx:com.vegascreativesoftware:titlesandtext}" });
+            v2.Project = Rearmar(export);
+            v2.Project.FilePath = Path.Combine(dir, "S01E02 SCR BASE.veg");
+            Transcripcion t2 = Transcripcion.Cargar(tr);
+            t2.Ubicador = PistasVegas.Ubicador(v2.Project, t2);
+            ResultadoProduccion r2 = ArmarCapitulo.Producir(v2, pd, f, ms, bib, cand, null, new VozFalsa(), 195, t2, delegate (string x, double y) { });
+            List<string> regs = new List<string>();
+            foreach (Region x in v2.Project.Regions) regs.Add(x.Label);
+            Verificar(r2.Partes.Count == 1 && regs.Contains("INTRO") && regs.Contains("EYECATCH") && !regs.Contains("OPENING") && r2.Respiros == 2,
+                      "Producir doble duración: un solo video con intro, eyecatch y sin opening; " + r2.Respiros + " respiros");
+            Verificar(Math.Abs(r2.Partes[0] - (92 + 4 + 103 + 5 + 100 + 15 + 20)) < 0.5, "Producir: el respiro alarga el clip con la pausa original (" + Formato.Tiempo(r2.Partes[0]) + ")");
+            Track n2 = v2.Project.Tracks.Find(delegate (Track x) { return x.Name == RitmoVegas.PistaNarracion; });
+            bool pisa = false;
+            if (n2 != null)
+                foreach (TrackEvent e in n2.Events)
+                    foreach (Segmento sg in t2.SegmentosActuales())
+                        if (sg.Inicio < 90 && sg.Fin > 0 && S(e.Start) < sg.Fin - 0.05 && S(e.End) > sg.Inicio + 0.05) pisa = true;
+            Verificar((n2 != null && n2.Events.Count == 1 && !pisa) || r2.NarracionSinHueco == 1,
+                      "Narración: no pisa las voces de los jugadores" + (r2.NarracionSinHueco > 0 ? " (no cabía: quedó en el guion)" : " (en " + Formato.Tiempo(S(n2.Events[0].Start)) + ")"));
         }
         finally { try { Directory.Delete(dir, true); } catch { } }
         return Fin();
