@@ -1,0 +1,2327 @@
+{
+ "episodios": {
+  "S02E01": {
+   "duracion": 1424,
+   "avance": [
+    1408,
+    1422
+   ],
+   "eyecatch": 428,
+   "titulo": 258,
+   "lineas_min": 18.0,
+   "palabras_min": 105,
+   "hablado_pct": 74,
+   "narrador_lineas": 30,
+   "narrador_pct": 6.3,
+   "hueco_max": 17,
+   "huecos_20s": 0,
+   "temas": 13,
+   "musica_pct": 55,
+   "tema_mediana": 52,
+   "final": [
+    "Un destino del que me desharé...",
+    "Un destino que debo desvanecer...",
+    "Ya comencé las preparaciones.",
+    "¡Jotaro!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E02": {
+   "duracion": 1424,
+   "op": [
+    301,
+    391
+   ],
+   "avance": [
+    1406,
+    1422
+   ],
+   "recap": [
+    0,
+    109
+   ],
+   "eyecatch": 732,
+   "titulo": 393,
+   "cold_open": 301,
+   "lineas_min": 15.0,
+   "palabras_min": 76,
+   "hablado_pct": 60,
+   "narrador_lineas": 12,
+   "narrador_pct": 1.8,
+   "hueco_max": 93,
+   "huecos_20s": 3,
+   "temas": 16,
+   "musica_pct": 71,
+   "tema_mediana": 51,
+   "temporada": "SC"
+  },
+  "S02E03": {
+   "duracion": 1424,
+   "op": [
+    0,
+    90
+   ],
+   "ed": [
+    1256,
+    1344
+   ],
+   "avance": [
+    1405,
+    1421
+   ],
+   "eyecatch": 628,
+   "titulo": 91,
+   "cold_open": 0,
+   "lineas_min": 15.2,
+   "palabras_min": 92,
+   "hablado_pct": 65,
+   "narrador_lineas": 3,
+   "narrador_pct": 1.0,
+   "hueco_max": 115,
+   "huecos_20s": 2,
+   "temas": 14,
+   "musica_pct": 81,
+   "tema_mediana": 72,
+   "final": [
+    "Noriaki Kakyoin. El nombre de  su Stand es: ¡Hierophant Green!",
+    "Sus poderes: ¡Manipulación a  larga distancia y Emerald Splash!",
+    "Muy bien, nos vamos.",
+    "¡En marcha!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E04": {
+   "duracion": 1423,
+   "op": [
+    157,
+    247
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1406,
+    1421
+   ],
+   "eyecatch": 876,
+   "titulo": 248,
+   "cold_open": 157,
+   "lineas_min": 13.6,
+   "palabras_min": 82,
+   "hablado_pct": 68,
+   "narrador_lineas": 18,
+   "narrador_pct": 3.9,
+   "hueco_max": 92,
+   "huecos_20s": 2,
+   "temas": 14,
+   "musica_pct": 75,
+   "tema_mediana": 64,
+   "final": [
+    "Carro Plateado.",
+    "Mohammed Avdol, veo que quieres  ser el primero en morir.",
+    "¡Hice un reloj de fuego en esa mesa!",
+    "¡Te mataré antes de que marque las doce!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E05": {
+   "duracion": 1424,
+   "op": [
+    150,
+    240
+   ],
+   "ed": [
+    1317,
+    1405
+   ],
+   "avance": [
+    1406,
+    1421
+   ],
+   "eyecatch": 665,
+   "titulo": 242,
+   "cold_open": 150,
+   "lineas_min": 14.3,
+   "palabras_min": 91,
+   "hablado_pct": 72,
+   "narrador_lineas": 8,
+   "narrador_pct": 1.8,
+   "hueco_max": 106,
+   "huecos_20s": 3,
+   "temas": 16,
+   "musica_pct": 86,
+   "tema_mediana": 61,
+   "final": [
+    "Qué persona más fluctuante.",
+    "Cambia de ánimo muy rápido, ¿no?",
+    "Más bien, creo que su cabeza y la parte inferior  de su cuerpo están bien separados.",
+    "Denme un respiro."
+   ],
+   "temporada": "SC"
+  },
+  "S02E06": {
+   "duracion": 1424,
+   "op": [
+    32,
+    121
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1406,
+    1421
+   ],
+   "recap": [
+    0,
+    147
+   ],
+   "eyecatch": 816,
+   "titulo": 123,
+   "cold_open": 32,
+   "lineas_min": 14.4,
+   "palabras_min": 90,
+   "hablado_pct": 69,
+   "narrador_lineas": 20,
+   "narrador_pct": 4.7,
+   "hueco_max": 92,
+   "huecos_20s": 3,
+   "temas": 16,
+   "musica_pct": 78,
+   "tema_mediana": 56,
+   "final": [
+    "¡Oye! ¡El agua es un bien preciado!  ¡¿Cómo se te ocurre escupirla?!",
+    "N-no... Mi-mi...",
+    "mi-mi-mi-mi-mi-mi...",
+    "¡miren eso!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E07": {
+   "duracion": 1424,
+   "op": [
+    167,
+    257
+   ],
+   "ed": [
+    1318,
+    1406
+   ],
+   "avance": [
+    1406,
+    1421
+   ],
+   "eyecatch": 1209,
+   "titulo": 257,
+   "cold_open": 167,
+   "lineas_min": 11.3,
+   "palabras_min": 72,
+   "hablado_pct": 52,
+   "narrador_lineas": 30,
+   "narrador_pct": 7.4,
+   "hueco_max": 107,
+   "huecos_20s": 5,
+   "temas": 14,
+   "musica_pct": 92,
+   "tema_mediana": 74,
+   "final": [
+    "es tanto occidental como oriental  gracias al libre comercio, ¡Singapur!",
+    "Santo cielo. Al fin llegamos.",
+    "Pasaremos la noche en un hotel para  luego definir nuestra ruta a Egipto.",
+    "Bien, nos quedaremos en ese hotel."
+   ],
+   "temporada": "SC"
+  },
+  "S02E08": {
+   "duracion": 1511,
+   "op": [
+    241,
+    331
+   ],
+   "ed": [
+    1406,
+    1493
+   ],
+   "avance": [
+    1495,
+    1509
+   ],
+   "eyecatch": 820,
+   "titulo": 332,
+   "cold_open": 241,
+   "lineas_min": 14.1,
+   "palabras_min": 75,
+   "hablado_pct": 62,
+   "narrador_lineas": 36,
+   "narrador_pct": 4.8,
+   "hueco_max": 106,
+   "huecos_20s": 5,
+   "temas": 13,
+   "musica_pct": 81,
+   "tema_mediana": 83,
+   "final": [
+    "es posible que pueda  matarnos mientras dormimos.",
+    "¡Sería como su caballo de Troya!",
+    "¿Dónde está Kakyoin?",
+    "Salió con Jotaro."
+   ],
+   "temporada": "SC"
+  },
+  "S02E09": {
+   "duracion": 1424,
+   "op": [
+    166,
+    256
+   ],
+   "ed": [
+    1318,
+    1406
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    0,
+    25
+   ],
+   "eyecatch": 646,
+   "titulo": 257,
+   "cold_open": 166,
+   "lineas_min": 16.0,
+   "palabras_min": 80,
+   "hablado_pct": 68,
+   "narrador_lineas": 27,
+   "narrador_pct": 3.7,
+   "hueco_max": 108,
+   "huecos_20s": 2,
+   "temas": 15,
+   "musica_pct": 88,
+   "tema_mediana": 75,
+   "final": [
+    "Lame, lame, lame, lame, lame....",
+    "Mira, JoJo.  Esos flamencos están volando.",
+    "Dame un respiro.",
+    "JoJo..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E10": {
+   "duracion": 1510,
+   "op": [
+    92,
+    182
+   ],
+   "ed": [
+    1405,
+    1493
+   ],
+   "avance": [
+    1495,
+    1509
+   ],
+   "eyecatch": 949,
+   "titulo": 183,
+   "cold_open": 92,
+   "lineas_min": 14.0,
+   "palabras_min": 81,
+   "hablado_pct": 58,
+   "narrador_lineas": 22,
+   "narrador_pct": 4.0,
+   "hueco_max": 97,
+   "huecos_20s": 5,
+   "temas": 14,
+   "musica_pct": 79,
+   "tema_mediana": 68,
+   "final": [
+    "Es agobiante...",
+    "tener que verlo morir así...",
+    "Polnareff...",
+    "¡No sabes lo agobiante que es!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E11": {
+   "duracion": 1422,
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 747,
+   "titulo": 122,
+   "lineas_min": 14.4,
+   "palabras_min": 82,
+   "hablado_pct": 63,
+   "narrador_lineas": 9,
+   "narrador_pct": 2.0,
+   "hueco_max": 14,
+   "huecos_20s": 0,
+   "temas": 18,
+   "musica_pct": 80,
+   "tema_mediana": 32,
+   "final": [
+    "Eso es lo que esperan que hagamos.",
+    "¿Entendido?",
+    "¡En marcha!",
+    "Dame un respiro."
+   ],
+   "temporada": "SC"
+  },
+  "S02E12": {
+   "duracion": 1424,
+   "op": [
+    114,
+    204
+   ],
+   "ed": [
+    1318,
+    1407
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 687,
+   "titulo": 213,
+   "cold_open": 114,
+   "lineas_min": 13.7,
+   "palabras_min": 76,
+   "hablado_pct": 63,
+   "narrador_lineas": 28,
+   "narrador_pct": 7.0,
+   "hueco_max": 98,
+   "huecos_20s": 3,
+   "temas": 12,
+   "musica_pct": 74,
+   "tema_mediana": 86,
+   "final": [
+    "Polnareff, tú conduces.",
+    "Oye, ¿aún no te recuperas?",
+    "El Stand me atacó a mí.",
+    "Pues hubiese preferido eso..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E13": {
+   "duracion": 1424,
+   "op": [
+    119,
+    209
+   ],
+   "ed": [
+    1319,
+    1406
+   ],
+   "avance": [
+    1408,
+    1422
+   ],
+   "eyecatch": 697,
+   "titulo": 209,
+   "cold_open": 119,
+   "lineas_min": 13.5,
+   "palabras_min": 77,
+   "hablado_pct": 59,
+   "narrador_lineas": 5,
+   "narrador_pct": 1.4,
+   "hueco_max": 107,
+   "huecos_20s": 4,
+   "temas": 10,
+   "musica_pct": 67,
+   "tema_mediana": 74,
+   "final": [
+    "¡Malditos sean Polnareff y Kakyoin!",
+    "¡Jotaro y ese viejo de Joestar también!",
+    "¡Yo, Enyaba, los enfrentaré en persona!",
+    "¡Con mi propio Stand de  la carta de la Justicia!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E14": {
+   "duracion": 1424,
+   "op": [
+    105,
+    195
+   ],
+   "ed": [
+    1317,
+    1405
+   ],
+   "avance": [
+    1406,
+    1422
+   ],
+   "eyecatch": 793,
+   "titulo": 220,
+   "cold_open": 105,
+   "lineas_min": 13.8,
+   "palabras_min": 86,
+   "hablado_pct": 68,
+   "narrador_lineas": 12,
+   "narrador_pct": 3.6,
+   "hueco_max": 98,
+   "huecos_20s": 1,
+   "temas": 12,
+   "musica_pct": 75,
+   "tema_mediana": 66,
+   "final": [
+    "Creí haber oído un ruido extraño...",
+    "Solo le echaré un vistazo al primer piso.",
+    "Si me necesitan, estaré en el vestíbulo.",
+    "¡Maldito seas, Polnareff!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E15": {
+   "duracion": 1424,
+   "op": [
+    0,
+    90
+   ],
+   "ed": [
+    1319,
+    1406
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 751,
+   "titulo": 91,
+   "cold_open": 0,
+   "lineas_min": 15.4,
+   "palabras_min": 83,
+   "hablado_pct": 69,
+   "narrador_lineas": 69,
+   "narrador_pct": 16.2,
+   "hueco_max": 24,
+   "huecos_20s": 1,
+   "temas": 16,
+   "musica_pct": 91,
+   "tema_mediana": 72,
+   "final": [
+    "Deberían matar a esa vieja cuanto antes.",
+    "De lo contrario, les mostrará lo  verdaderamente aterrador que es Dio.",
+    "¡Nos vemos!",
+    "¿De qué rayos habla?"
+   ],
+   "temporada": "SC"
+  },
+  "S02E16": {
+   "duracion": 1423,
+   "op": [
+    22,
+    111
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1406,
+    1421
+   ],
+   "eyecatch": 768,
+   "titulo": 112,
+   "cold_open": 22,
+   "lineas_min": 13.9,
+   "palabras_min": 81,
+   "hablado_pct": 66,
+   "narrador_lineas": 34,
+   "narrador_pct": 8.7,
+   "hueco_max": 102,
+   "huecos_20s": 2,
+   "temas": 13,
+   "musica_pct": 94,
+   "tema_mediana": 85,
+   "final": [
+    "Controlar Stands tan pequeños  es realmente agotador...",
+    "Esto requiere de muchísima energía.",
+    "¡Aquí vamos!",
+    "¡Oh, my God! Ya comienzo a sentirme mal..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E17": {
+   "duracion": 1426,
+   "op": [
+    0,
+    90
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1407,
+    1422
+   ],
+   "eyecatch": 704,
+   "titulo": 91,
+   "cold_open": 0,
+   "lineas_min": 14.8,
+   "palabras_min": 73,
+   "hablado_pct": 63,
+   "narrador_lineas": 15,
+   "narrador_pct": 3.2,
+   "hueco_max": 31,
+   "huecos_20s": 2,
+   "temas": 11,
+   "musica_pct": 93,
+   "tema_mediana": 95,
+   "final": [
+    "Lo que me debes...",
+    "¡no se puede pagar con dinero!",
+    "Aquí tienes la cuenta."
+   ],
+   "temporada": "SC"
+  },
+  "S02E18": {
+   "duracion": 1424,
+   "op": [
+    41,
+    130
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1407,
+    1424
+   ],
+   "eyecatch": 751,
+   "titulo": 146,
+   "cold_open": 41,
+   "lineas_min": 14.2,
+   "palabras_min": 84,
+   "hablado_pct": 66,
+   "narrador_lineas": 9,
+   "narrador_pct": 1.9,
+   "hueco_max": 93,
+   "huecos_20s": 4,
+   "temas": 13,
+   "musica_pct": 66,
+   "tema_mediana": 66,
+   "final": [
+    "¡E-esperen! ¡Viajar de noche es peligroso!",
+    "¡Pasemos la noche aquí!",
+    "Como ya derrotamos al enemigo,  creo que tendré dulces sueños.",
+    "¡Chan chán!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E19": {
+   "duracion": 1423,
+   "op": [
+    186,
+    276
+   ],
+   "ed": [
+    1318,
+    1406
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 686,
+   "titulo": 276,
+   "cold_open": 186,
+   "lineas_min": 14.4,
+   "palabras_min": 78,
+   "hablado_pct": 63,
+   "narrador_lineas": 21,
+   "narrador_pct": 4.6,
+   "hueco_max": 107,
+   "huecos_20s": 3,
+   "temas": 12,
+   "musica_pct": 60,
+   "tema_mediana": 58,
+   "final": [
+    "Te sentirás mejor cuando comas.",
+    "Oye, Jotaro, parece que  Kakyoin perdió la cabeza.",
+    "Vamos, vamos. Ya pasó.",
+    "Me pregunto si soportará el viaje..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E20": {
+   "duracion": 1424,
+   "op": [
+    0,
+    90
+   ],
+   "ed": [
+    1317,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    1268,
+    1317
+   ],
+   "eyecatch": 687,
+   "titulo": 91,
+   "cold_open": 0,
+   "lineas_min": 14.0,
+   "palabras_min": 74,
+   "hablado_pct": 63,
+   "narrador_lineas": 53,
+   "narrador_pct": 12.7,
+   "hueco_max": 27,
+   "huecos_20s": 2,
+   "temas": 20,
+   "musica_pct": 77,
+   "tema_mediana": 48,
+   "final": [
+    "pero quiero desviarme un poco  antes de viajar a Egipto.",
+    "Debo encontrarme con cierta persona.",
+    "Será un hombre crucial en nuestro viaje...",
+    "¿Un hombre crucial...?"
+   ],
+   "temporada": "SC"
+  },
+  "S02E21": {
+   "duracion": 1424,
+   "ed": [
+    1319,
+    1406
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    0,
+    31
+   ],
+   "eyecatch": 747,
+   "titulo": 157,
+   "lineas_min": 12.8,
+   "palabras_min": 65,
+   "hablado_pct": 55,
+   "narrador_lineas": 9,
+   "narrador_pct": 1.9,
+   "hueco_max": 107,
+   "huecos_20s": 2,
+   "temas": 17,
+   "musica_pct": 63,
+   "tema_mediana": 47,
+   "final": [
+    "Con respecto a tu tercer deseo,",
+    "si mal no recuerdo, ya me lo habías  dicho con anterioridad, ¿no?",
+    "No...",
+    "No puede ser..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E22": {
+   "duracion": 1424,
+   "op": [
+    85,
+    174
+   ],
+   "ed": [
+    1319,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 576,
+   "titulo": 185,
+   "cold_open": 85,
+   "lineas_min": 13.3,
+   "palabras_min": 72,
+   "hablado_pct": 63,
+   "narrador_lineas": 31,
+   "narrador_pct": 7.8,
+   "hueco_max": 100,
+   "huecos_20s": 3,
+   "temas": 16,
+   "musica_pct": 82,
+   "tema_mediana": 56,
+   "final": [
+    "¡¿Qué?!",
+    "¡¿Un submarino?!",
+    "¡Exacto! ¡Así iremos a Egipto!",
+    "¡Tiene que ser una broma!  ¡¿De verdad compraron algo así?!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E23": {
+   "duracion": 1424,
+   "op": [
+    41,
+    130
+   ],
+   "ed": [
+    1318,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    0,
+    40
+   ],
+   "eyecatch": 891,
+   "titulo": 132,
+   "cold_open": 41,
+   "lineas_min": 15.9,
+   "palabras_min": 85,
+   "hablado_pct": 67,
+   "narrador_lineas": 42,
+   "narrador_pct": 10.0,
+   "hueco_max": 99,
+   "huecos_20s": 1,
+   "temas": 12,
+   "musica_pct": 53,
+   "tema_mediana": 42,
+   "final": [
+    "Denme un respiro.",
+    "No podré prepararme bien  en estas condiciones.",
+    "Dame una mano, Jotaro.",
+    "Hazlo tú solo."
+   ],
+   "temporada": "SC"
+  },
+  "S02E24": {
+   "duracion": 1405,
+   "op": [
+    175,
+    262
+   ],
+   "ed": [
+    1297,
+    1385
+   ],
+   "recap": [
+    910,
+    983
+   ],
+   "eyecatch": 732,
+   "titulo": 266,
+   "cold_open": 175,
+   "lineas_min": 15.1,
+   "palabras_min": 84,
+   "hablado_pct": 62,
+   "narrador_lineas": 42,
+   "narrador_pct": 10.3,
+   "hueco_max": 98,
+   "huecos_20s": 2,
+   "temas": 13,
+   "musica_pct": 74,
+   "tema_mediana": 73,
+   "final": [
+    "Es un país multicultural que, además  de contar con la antigua cultura egipcia,",
+    "también cuenta con la cultura persa,  la griega, la romana, la islámica y la árabe.",
+    "¿Qué clase de infortunios  sufrirán Jotaro y los demás",
+    "mientras viajan por esta tierra eterna?"
+   ],
+   "temporada": "SC"
+  },
+  "S02E25": {
+   "duracion": 1424,
+   "op": [
+    29,
+    118
+   ],
+   "ed": [
+    1317,
+    1406
+   ],
+   "avance": [
+    1408,
+    1422
+   ],
+   "eyecatch": 734,
+   "titulo": 119,
+   "cold_open": 29,
+   "lineas_min": 14.7,
+   "palabras_min": 78,
+   "hablado_pct": 61,
+   "narrador_lineas": 0,
+   "narrador_pct": 0.0,
+   "hueco_max": 98,
+   "huecos_20s": 5,
+   "temas": 17,
+   "musica_pct": 76,
+   "tema_mediana": 41,
+   "final": [
+    "Ahora no dudaré...",
+    "¡Es muy afilada!  ¡Cortó las ruedas a la mitad!",
+    "¡Sigan subiendo!",
+    "Co-conque eso intentaba...  ¡Sujétense, chicos!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E26": {
+   "duracion": 1508,
+   "op": [
+    85,
+    174
+   ],
+   "ed": [
+    1130,
+    1219
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 572,
+   "titulo": 175,
+   "cold_open": 85,
+   "lineas_min": 12.0,
+   "palabras_min": 67,
+   "hablado_pct": 54,
+   "narrador_lineas": 76,
+   "narrador_pct": 14.4,
+   "hueco_max": 132,
+   "huecos_20s": 5,
+   "temas": 18,
+   "musica_pct": 82,
+   "tema_mediana": 40,
+   "final": [
+    "¡Oye!",
+    "¡Jotaro!",
+    "¡Jotaro! ¿Estás bien?",
+    "Denme un respiro."
+   ],
+   "temporada": "SC"
+  },
+  "S02E27": {
+   "duracion": 1514,
+   "op": [
+    82,
+    170
+   ],
+   "ed": [
+    1406,
+    1494
+   ],
+   "avance": [
+    1497,
+    1514
+   ],
+   "eyecatch": 571,
+   "titulo": 173,
+   "cold_open": 82,
+   "lineas_min": 15.8,
+   "palabras_min": 84,
+   "hablado_pct": 74,
+   "narrador_lineas": 0,
+   "narrador_pct": 0.0,
+   "hueco_max": 101,
+   "huecos_20s": 3,
+   "temas": 19,
+   "musica_pct": 76,
+   "tema_mediana": 40,
+   "final": [
+    "Bien, vayamos a ver cómo están Avdol y Kakyoin.",
+    "Lamentablemente, los hermanos tuvieron que retirarse.",
+    "La batalla terminó sin que Jotaro y el resto supieran que los habían atacado.",
+    "Chan chán."
+   ],
+   "temporada": "SC"
+  },
+  "S02E28": {
+   "duracion": 1424,
+   "op": [
+    132,
+    221
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 807,
+   "titulo": 223,
+   "cold_open": 132,
+   "lineas_min": 14.2,
+   "palabras_min": 76,
+   "hablado_pct": 64,
+   "narrador_lineas": 38,
+   "narrador_pct": 9.3,
+   "hueco_max": 87,
+   "huecos_20s": 4,
+   "temas": 17,
+   "musica_pct": 71,
+   "tema_mediana": 39,
+   "final": [
+    "Debajo de tu barbilla, ¿verdad?",
+    "¡Debajo de tu barbilla, Polnareff!",
+    "¡¿Qué?!",
+    "Soy yo, estúpido.  ¡El Stand que representa a Anubis!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E29": {
+   "duracion": 1424,
+   "op": [
+    85,
+    174
+   ],
+   "avance": [
+    1407,
+    1423
+   ],
+   "eyecatch": 708,
+   "titulo": 178,
+   "cold_open": 85,
+   "lineas_min": 11.5,
+   "palabras_min": 62,
+   "hablado_pct": 56,
+   "narrador_lineas": 73,
+   "narrador_pct": 16.6,
+   "hueco_max": 87,
+   "huecos_20s": 2,
+   "temas": 20,
+   "musica_pct": 83,
+   "tema_mediana": 44,
+   "temporada": "SC"
+  },
+  "S02E30": {
+   "duracion": 1423,
+   "op": [
+    105,
+    195
+   ],
+   "ed": [
+    1315,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 843,
+   "titulo": 197,
+   "cold_open": 105,
+   "lineas_min": 13.7,
+   "palabras_min": 74,
+   "hablado_pct": 63,
+   "narrador_lineas": 12,
+   "narrador_pct": 2.9,
+   "hueco_max": 114,
+   "huecos_20s": 5,
+   "temas": 17,
+   "musica_pct": 62,
+   "tema_mediana": 37,
+   "final": [
+    "Lo sé, estamos en problemas.",
+    "Nuestra enemiga...",
+    "Nuestra enemiga...",
+    "¡Es muy fuerte!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E31": {
+   "duracion": 1424,
+   "op": [
+    55,
+    144
+   ],
+   "ed": [
+    1317,
+    1406
+   ],
+   "avance": [
+    1407,
+    1423
+   ],
+   "recap": [
+    0,
+    54
+   ],
+   "eyecatch": 593,
+   "titulo": 146,
+   "cold_open": 55,
+   "lineas_min": 12.3,
+   "palabras_min": 65,
+   "hablado_pct": 59,
+   "narrador_lineas": 1,
+   "narrador_pct": 0.2,
+   "hueco_max": 101,
+   "huecos_20s": 4,
+   "temas": 20,
+   "musica_pct": 83,
+   "tema_mediana": 46,
+   "final": [
+    "Ya entendí, ya entendí.  Tienes hambre, ¿no?",
+    "Yo también.",
+    "Mariah se enfrenta a Joestar y Avdol.",
+    "Yo, el gran Alessi, mataré a Jotaro y Polnareff."
+   ],
+   "temporada": "SC"
+  },
+  "S02E32": {
+   "duracion": 1424,
+   "op": [
+    0,
+    89
+   ],
+   "ed": [
+    1315,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 690,
+   "titulo": 92,
+   "cold_open": 0,
+   "lineas_min": 12.5,
+   "palabras_min": 63,
+   "hablado_pct": 59,
+   "narrador_lineas": 29,
+   "narrador_pct": 7.7,
+   "hueco_max": 31,
+   "huecos_20s": 2,
+   "temas": 19,
+   "musica_pct": 79,
+   "tema_mediana": 41,
+   "final": [
+    "Vaya... Qué bien...",
+    "¡Lo diré una vez más!",
+    "¡Qué bien!",
+    "¡N-no puede ser!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E33": {
+   "duracion": 1424,
+   "op": [
+    89,
+    178
+   ],
+   "ed": [
+    1318,
+    1407
+   ],
+   "avance": [
+    1408,
+    1422
+   ],
+   "recap": [
+    0,
+    20
+   ],
+   "eyecatch": 741,
+   "titulo": 183,
+   "cold_open": 89,
+   "lineas_min": 12.3,
+   "palabras_min": 65,
+   "hablado_pct": 59,
+   "narrador_lineas": 58,
+   "narrador_pct": 14.9,
+   "hueco_max": 114,
+   "huecos_20s": 3,
+   "temas": 20,
+   "musica_pct": 92,
+   "tema_mediana": 64,
+   "final": [
+    "Se está revelando...",
+    "Se está revelando...",
+    "¡Aquí está!",
+    "¡Este es el lugar que debemos encontrar!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E34": {
+   "duracion": 1423,
+   "op": [
+    200,
+    289
+   ],
+   "ed": [
+    1369,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 811,
+   "titulo": 291,
+   "cold_open": 200,
+   "lineas_min": 14.6,
+   "palabras_min": 86,
+   "hablado_pct": 66,
+   "narrador_lineas": 60,
+   "narrador_pct": 12.4,
+   "hueco_max": 107,
+   "huecos_20s": 3,
+   "temas": 14,
+   "musica_pct": 95,
+   "tema_mediana": 110,
+   "final": [
+    "No usa la violencia,",
+    "pero es más peligroso que cualquier otro usuario  de Stand que hayamos enfrentado.",
+    "Sin embargo...",
+    "es algo que tengo que hacer."
+   ],
+   "temporada": "SC"
+  },
+  "S02E35": {
+   "duracion": 1423,
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 449,
+   "titulo": 97,
+   "lineas_min": 13.3,
+   "palabras_min": 82,
+   "hablado_pct": 67,
+   "narrador_lineas": 74,
+   "narrador_pct": 19.7,
+   "hueco_max": 26,
+   "huecos_20s": 2,
+   "temas": 13,
+   "musica_pct": 94,
+   "tema_mediana": 96,
+   "final": [
+    "Estuvo a punto de derrotarnos  a los cuatro él solo.",
+    "Sí, era un hombre aterrador.",
+    "No sé muy bien qué sucede...",
+    "Parece que no nos lucimos esta vez..."
+   ],
+   "temporada": "SC"
+  },
+  "S02E36": {
+   "duracion": 1424,
+   "op": [
+    362,
+    451
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 849,
+   "titulo": 453,
+   "cold_open": 362,
+   "lineas_min": 14.7,
+   "palabras_min": 88,
+   "hablado_pct": 73,
+   "narrador_lineas": 66,
+   "narrador_pct": 15.2,
+   "hueco_max": 89,
+   "huecos_20s": 1,
+   "temas": 13,
+   "musica_pct": 94,
+   "tema_mediana": 84,
+   "final": [
+    "¡Demonios! ¡Los otros tres se acercan!",
+    "¡Maldición!",
+    "¿Qué debo hacer para cumplir  el resto de la predicción?",
+    "¡¿Qué demonios se supone que haga?!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E37": {
+   "duracion": 1424,
+   "op": [
+    128,
+    216
+   ],
+   "ed": [
+    1317,
+    1405
+   ],
+   "avance": [
+    1408,
+    1422
+   ],
+   "recap": [
+    4,
+    127
+   ],
+   "eyecatch": 499,
+   "titulo": 218,
+   "cold_open": 128,
+   "lineas_min": 15.4,
+   "palabras_min": 81,
+   "hablado_pct": 71,
+   "narrador_lineas": 61,
+   "narrador_pct": 14.1,
+   "hueco_max": 92,
+   "huecos_20s": 3,
+   "temas": 15,
+   "musica_pct": 95,
+   "tema_mediana": 70,
+   "final": [
+    "nadie tendría problemas.",
+    "\"Boingo se volvió incluso  más depresivo que antes,",
+    "y fue internado en  el hospital con Hol Horse\".",
+    "¡Chan chán!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E38": {
+   "duracion": 1424,
+   "op": [
+    221,
+    310
+   ],
+   "ed": [
+    1315,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    3,
+    31
+   ],
+   "eyecatch": 811,
+   "titulo": 312,
+   "cold_open": 221,
+   "lineas_min": 11.1,
+   "palabras_min": 66,
+   "hablado_pct": 50,
+   "narrador_lineas": 86,
+   "narrador_pct": 19.7,
+   "hueco_max": 193,
+   "huecos_20s": 7,
+   "temas": 22,
+   "musica_pct": 79,
+   "tema_mediana": 38,
+   "final": [
+    "¡Es una máquina de rastrear y matar!",
+    "Además, si me atrapa, ¡me comerá vivo!",
+    "¿Qué? ¡M-mi pata!",
+    "¡N-no puedo sacarla!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E39": {
+   "duracion": 1424,
+   "op": [
+    79,
+    168
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "recap": [
+    0,
+    1187
+   ],
+   "eyecatch": 746,
+   "titulo": 171,
+   "cold_open": 79,
+   "lineas_min": 10.4,
+   "palabras_min": 61,
+   "hablado_pct": 48,
+   "narrador_lineas": 41,
+   "narrador_pct": 11.4,
+   "hueco_max": 129,
+   "huecos_20s": 5,
+   "temas": 17,
+   "musica_pct": 84,
+   "tema_mediana": 51,
+   "final": [
+    "¿Quién rayos es? ¿Un usuario de Stand?",
+    "Bienvenidos.",
+    "Señor Joestar, los estábamos esperando.",
+    "Soy el mayordomo de la mansión."
+   ],
+   "temporada": "SC"
+  },
+  "S02E40": {
+   "duracion": 1422,
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 703,
+   "titulo": 247,
+   "lineas_min": 16.0,
+   "palabras_min": 92,
+   "hablado_pct": 71,
+   "narrador_lineas": 60,
+   "narrador_pct": 12.2,
+   "hueco_max": 25,
+   "huecos_20s": 2,
+   "temas": 11,
+   "musica_pct": 92,
+   "tema_mediana": 111,
+   "final": [
+    "¡Se ve la salida!  ¡Están por dejar el túnel!",
+    "D'Arby tiene la delantera.",
+    "¡Tiene un auto de ventaja!",
+    "¡La victoria es mía!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E41": {
+   "duracion": 1424,
+   "op": [
+    218,
+    307
+   ],
+   "avance": [
+    1408,
+    1422
+   ],
+   "eyecatch": 839,
+   "titulo": 308,
+   "cold_open": 218,
+   "lineas_min": 14.9,
+   "palabras_min": 89,
+   "hablado_pct": 71,
+   "narrador_lineas": 64,
+   "narrador_pct": 12.9,
+   "hueco_max": 97,
+   "huecos_20s": 1,
+   "temas": 14,
+   "musica_pct": 96,
+   "tema_mediana": 89,
+   "final": [
+    "¡Jotaro!",
+    "¿Me creerás o no?",
+    "¿Eres estúpido?",
+    "¡¿Qué dijiste, Jotaro?!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E42": {
+   "duracion": 1424,
+   "op": [
+    61,
+    150
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 932,
+   "titulo": 152,
+   "cold_open": 61,
+   "lineas_min": 14.1,
+   "palabras_min": 77,
+   "hablado_pct": 65,
+   "narrador_lineas": 53,
+   "narrador_pct": 11.9,
+   "hueco_max": 87,
+   "huecos_20s": 4,
+   "temas": 13,
+   "musica_pct": 90,
+   "tema_mediana": 64,
+   "final": [
+    "Mientes...",
+    "No mataste...",
+    "a Avdol...",
+    "¡No mientas!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E43": {
+   "duracion": 1424,
+   "op": [
+    76,
+    165
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 610,
+   "titulo": 167,
+   "cold_open": 76,
+   "lineas_min": 12.4,
+   "palabras_min": 72,
+   "hablado_pct": 58,
+   "narrador_lineas": 67,
+   "narrador_pct": 16.8,
+   "hueco_max": 103,
+   "huecos_20s": 1,
+   "temas": 11,
+   "musica_pct": 91,
+   "tema_mediana": 99,
+   "final": [
+    "La respuesta era la tercera.",
+    "La realidad no perdona.",
+    "Parece que su tenacidad ganó.",
+    "Nos vemos, Iggy."
+   ],
+   "temporada": "SC"
+  },
+  "S02E44": {
+   "duracion": 1424,
+   "op": [
+    32,
+    121
+   ],
+   "ed": [
+    1275,
+    1364
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 553,
+   "titulo": 149,
+   "cold_open": 32,
+   "lineas_min": 12.2,
+   "palabras_min": 73,
+   "hablado_pct": 59,
+   "narrador_lineas": 30,
+   "narrador_pct": 7.0,
+   "hueco_max": 97,
+   "huecos_20s": 8,
+   "temas": 13,
+   "musica_pct": 80,
+   "tema_mediana": 60,
+   "final": [
+    "Vamos, llévanos con Dio.  El sol está por ponerse.",
+    "E-está bien... Pero  ¿puedo preguntarte algo primero?",
+    "¿Cómo supiste que me apodaban \"estúpido\"?",
+    "Dame un respiro."
+   ],
+   "temporada": "SC"
+  },
+  "S02E45": {
+   "duracion": 1424,
+   "op": [
+    170,
+    259
+   ],
+   "ed": [
+    1370,
+    1406
+   ],
+   "avance": [
+    1407,
+    1424
+   ],
+   "eyecatch": 872,
+   "titulo": 260,
+   "cold_open": 170,
+   "lineas_min": 13.9,
+   "palabras_min": 85,
+   "hablado_pct": 67,
+   "narrador_lineas": 51,
+   "narrador_pct": 10.6,
+   "hueco_max": 93,
+   "huecos_20s": 4,
+   "temas": 17,
+   "musica_pct": 90,
+   "tema_mediana": 58,
+   "final": [
+    "¡Señor Joestar!",
+    "¿Qué estás haciendo, Kakyoin?",
+    "Lo tengo.",
+    "Descubrí cómo revelar  el secreto del Stand de Dio."
+   ],
+   "temporada": "SC"
+  },
+  "S02E46": {
+   "duracion": 1423,
+   "op": [
+    159,
+    248
+   ],
+   "ed": [
+    1316,
+    1405
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 834,
+   "titulo": 250,
+   "cold_open": 159,
+   "lineas_min": 12.3,
+   "palabras_min": 72,
+   "hablado_pct": 59,
+   "narrador_lineas": 83,
+   "narrador_pct": 19.5,
+   "hueco_max": 88,
+   "huecos_20s": 4,
+   "temas": 9,
+   "musica_pct": 84,
+   "tema_mediana": 129,
+   "final": [
+    "Muy bien, te seguiré el juego",
+    "y seguiré con mi prueba.",
+    "¿Quieres ver quién es más rápido?",
+    "¡Es inútil, inútil,  inútil, inútil, inútil!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E47": {
+   "duracion": 1424,
+   "op": [
+    49,
+    147
+   ],
+   "avance": [
+    1407,
+    1421
+   ],
+   "eyecatch": 893,
+   "titulo": 149,
+   "cold_open": 49,
+   "lineas_min": 11.5,
+   "palabras_min": 70,
+   "hablado_pct": 59,
+   "narrador_lineas": 50,
+   "narrador_pct": 11.1,
+   "hueco_max": 106,
+   "huecos_20s": 2,
+   "temas": 15,
+   "musica_pct": 89,
+   "tema_mediana": 75,
+   "final": [
+    "No me digas que esta calle...",
+    "Así es.",
+    "¡Era mi ruta de escape hacia  la sangre de Joseph Joestar!",
+    "¡Dio, miserable!"
+   ],
+   "temporada": "SC"
+  },
+  "S02E48": {
+   "duracion": 1511,
+   "op": [
+    209,
+    306
+   ],
+   "ed": [
+    1421,
+    1511
+   ],
+   "eyecatch": 673,
+   "titulo": 308,
+   "cold_open": 209,
+   "lineas_min": 13.0,
+   "palabras_min": 75,
+   "hablado_pct": 62,
+   "narrador_lineas": 39,
+   "narrador_pct": 9.3,
+   "hueco_max": 108,
+   "huecos_20s": 3,
+   "temas": 15,
+   "musica_pct": 74,
+   "tema_mediana": 50,
+   "final": [
+    "¡Ambos regresarán, mamá!",
+    "¡Holly!",
+    "¡Papá y Jotaro!",
+    "¡Están volviendo a casa!"
+   ],
+   "temporada": "SC"
+  },
+  "S03E01": {
+   "duracion": 1422,
+   "avance": [
+    1418,
+    1422
+   ],
+   "eyecatch": 867,
+   "titulo": 113,
+   "lineas_min": 17.9,
+   "palabras_min": 96,
+   "hablado_pct": 73,
+   "narrador_lineas": 70,
+   "narrador_pct": 14.9,
+   "hueco_max": 46,
+   "huecos_20s": 1,
+   "temas": 24,
+   "musica_pct": 82,
+   "tema_mediana": 35,
+   "final": [
+    "Ni hablar de su joven y hermosa madre…",
+    "Qué envidia…",
+    "Josuke Higashikata, que no se te suban los humos.",
+    "Acabaré con tu alma, tu vida y tu existencia."
+   ],
+   "temporada": "DU"
+  },
+  "S03E02": {
+   "duracion": 1423,
+   "op": [
+    186,
+    260
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 785,
+   "titulo": 266,
+   "cold_open": 186,
+   "lineas_min": 13.7,
+   "palabras_min": 81,
+   "hablado_pct": 64,
+   "narrador_lineas": 42,
+   "narrador_pct": 9.9,
+   "hueco_max": 77,
+   "huecos_20s": 1,
+   "temas": 17,
+   "musica_pct": 88,
+   "tema_mediana": 58,
+   "final": [
+    "Es muy popular entre los ciudadanos",
+    "a pesar de su apariencia repulsiva.",
+    "Debo decir que este sujeto está bastante loco.",
+    "Denme un respiro…"
+   ],
+   "temporada": "DU"
+  },
+  "S03E03": {
+   "duracion": 1424,
+   "op": [
+    0,
+    74
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "titulo": 77,
+   "cold_open": 0,
+   "lineas_min": 14.1,
+   "palabras_min": 81,
+   "hablado_pct": 68,
+   "narrador_lineas": 30,
+   "narrador_pct": 7.1,
+   "hueco_max": 25,
+   "huecos_20s": 1,
+   "temas": 20,
+   "musica_pct": 88,
+   "tema_mediana": 39,
+   "final": [
+    "y ahora los utiliza para aumentar el número de usuarios de Stand en Morioh.",
+    "Debo destruir ese arco y flecha cuanto antes.",
+    "Para asegurarme de que no nazca…",
+    "un villano peor que Dio con un Stand más fuerte que The World…"
+   ],
+   "temporada": "DU"
+  },
+  "S03E04": {
+   "duracion": 1423,
+   "op": [
+    98,
+    172
+   ],
+   "ed": [
+    1347,
+    1416
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 703,
+   "titulo": 173,
+   "cold_open": 98,
+   "lineas_min": 13.9,
+   "palabras_min": 81,
+   "hablado_pct": 69,
+   "narrador_lineas": 32,
+   "narrador_pct": 6.8,
+   "hueco_max": 74,
+   "huecos_20s": 1,
+   "temas": 17,
+   "musica_pct": 91,
+   "tema_mediana": 82,
+   "final": [
+    "¡Los misiles con los que ataqué el brazo de Josuke…!",
+    "¿Ya lo olvidaste?",
+    "Mi Crazy Diamond puede arreglar lo que fue destruido.",
+    "Si eres tan olvidadizo, deberías comenzar a anotar las cosas metódicamente."
+   ],
+   "temporada": "DU"
+  },
+  "S03E05": {
+   "duracion": 1424,
+   "op": [
+    131,
+    205
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 869,
+   "titulo": 208,
+   "cold_open": 131,
+   "lineas_min": 13.4,
+   "palabras_min": 79,
+   "hablado_pct": 64,
+   "narrador_lineas": 26,
+   "narrador_pct": 7.4,
+   "hueco_max": 94,
+   "huecos_20s": 4,
+   "temas": 15,
+   "musica_pct": 92,
+   "tema_mediana": 59,
+   "final": [
+    "¿Puedo? ¡Muchas gracias!",
+    "Tu mamá es muy linda.",
+    "¡Con permiso!",
+    "Qué sujeto más pesado."
+   ],
+   "temporada": "DU"
+  },
+  "S03E06": {
+   "duracion": 1424,
+   "op": [
+    172,
+    246
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 683,
+   "titulo": 248,
+   "cold_open": 172,
+   "lineas_min": 16.5,
+   "palabras_min": 88,
+   "hablado_pct": 76,
+   "narrador_lineas": 15,
+   "narrador_pct": 3.4,
+   "hueco_max": 78,
+   "huecos_20s": 1,
+   "temas": 17,
+   "musica_pct": 83,
+   "tema_mediana": 73,
+   "final": [
+    "¡Señor Koichi! ¡Eres un hombre entre hombres!",
+    "Vamos, detente…",
+    "Oye, Okuyasu…",
+    "No me preguntes, ya te dije que no soy nada listo."
+   ],
+   "temporada": "DU"
+  },
+  "S03E07": {
+   "duracion": 1422,
+   "op": [
+    42,
+    118
+   ],
+   "ed": [
+    1348,
+    1415
+   ],
+   "avance": [
+    1416,
+    1422
+   ],
+   "eyecatch": 789,
+   "titulo": 57,
+   "cold_open": 42,
+   "lineas_min": 15.1,
+   "palabras_min": 85,
+   "hablado_pct": 70,
+   "narrador_lineas": 36,
+   "narrador_pct": 8.2,
+   "hueco_max": 80,
+   "huecos_20s": 2,
+   "temas": 22,
+   "musica_pct": 89,
+   "tema_mediana": 35,
+   "final": [
+    "Y sin que nadie lo supiera,",
+    "llevaron a Tamami al hospital.",
+    "Pero qué imbécil.",
+    "Mis más sentidas condolencias."
+   ],
+   "temporada": "DU"
+  },
+  "S03E08": {
+   "duracion": 1421,
+   "op": [
+    122,
+    196
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 761,
+   "titulo": 137,
+   "cold_open": 122,
+   "lineas_min": 15.9,
+   "palabras_min": 94,
+   "hablado_pct": 78,
+   "narrador_lineas": 36,
+   "narrador_pct": 7.4,
+   "hueco_max": 76,
+   "huecos_20s": 1,
+   "temas": 17,
+   "musica_pct": 75,
+   "tema_mediana": 50,
+   "final": [
+    "¡¿Hasta el verano?!",
+    "Aunque tampoco importaría que viniese alguien.",
+    "Porque el amor es invencible.",
+    "¡A-auxilio!"
+   ],
+   "temporada": "DU"
+  },
+  "S03E09": {
+   "duracion": 1421,
+   "op": [
+    65,
+    139
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 705,
+   "titulo": 80,
+   "cold_open": 65,
+   "lineas_min": 15.0,
+   "palabras_min": 84,
+   "hablado_pct": 68,
+   "narrador_lineas": 37,
+   "narrador_pct": 7.3,
+   "hueco_max": 88,
+   "huecos_20s": 1,
+   "temas": 19,
+   "musica_pct": 88,
+   "tema_mediana": 46,
+   "final": [
+    "Estudiaste mucho para este examen.",
+    "Parece que puedes cuando te lo propones.",
+    "No sé",
+    "cómo sentirme al respecto."
+   ],
+   "temporada": "DU"
+  },
+  "S03E10": {
+   "duracion": 1422,
+   "ed": [
+    1348,
+    1357
+   ],
+   "avance": [
+    1418,
+    1421
+   ],
+   "eyecatch": 1306,
+   "titulo": 84,
+   "lineas_min": 13.9,
+   "palabras_min": 86,
+   "hablado_pct": 72,
+   "narrador_lineas": 7,
+   "narrador_pct": 1.5,
+   "hueco_max": 19,
+   "huecos_20s": 0,
+   "temas": 21,
+   "musica_pct": 90,
+   "tema_mediana": 53,
+   "final": [
+    "Como estar cerca del tendido eléctrico y líneas telefónicas es peligroso,",
+    "vine a entregarte este mensaje en persona.",
+    "\"Llegaré al puerto de Morioh mañana al mediodía\".",
+    "Son palabras de Joseph Joestar."
+   ],
+   "temporada": "DU"
+  },
+  "S03E11": {
+   "duracion": 1422,
+   "op": [
+    80,
+    154
+   ],
+   "ed": [
+    1347,
+    1417
+   ],
+   "avance": [
+    1418,
+    1421
+   ],
+   "titulo": 95,
+   "cold_open": 80,
+   "lineas_min": 16.5,
+   "palabras_min": 100,
+   "hablado_pct": 81,
+   "narrador_lineas": 28,
+   "narrador_pct": 7.0,
+   "hueco_max": 79,
+   "huecos_20s": 1,
+   "temas": 19,
+   "musica_pct": 78,
+   "tema_mediana": 43,
+   "final": [
+    "Debo superar a mi hermano.",
+    "Me has enseñado una lección, Red Hot Chili Pepper.",
+    "Señor Joestar.",
+    "Llegaremos al puerto de Morioh dentro de poco."
+   ],
+   "temporada": "DU"
+  },
+  "S03E12": {
+   "duracion": 1422,
+   "op": [
+    138,
+    212
+   ],
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "eyecatch": 713,
+   "titulo": 153,
+   "cold_open": 138,
+   "lineas_min": 15.0,
+   "palabras_min": 86,
+   "hablado_pct": 69,
+   "narrador_lineas": 22,
+   "narrador_pct": 4.2,
+   "hueco_max": 81,
+   "huecos_20s": 3,
+   "temas": 16,
+   "musica_pct": 77,
+   "tema_mediana": 44,
+   "final": [
+    "¿Eh? ¿Por?",
+    "¿Por qué?",
+    "Solo falta ir a por el arco y flecha para acabar con esto",
+    "y con el peligro que acecha a la ciudad."
+   ],
+   "temporada": "DU"
+  },
+  "S03E13": {
+   "duracion": 1422,
+   "op": [
+    0,
+    76
+   ],
+   "ed": [
+    1348,
+    1417
+   ],
+   "avance": [
+    1418,
+    1422
+   ],
+   "eyecatch": 649,
+   "titulo": 15,
+   "cold_open": 0,
+   "lineas_min": 14.8,
+   "palabras_min": 88,
+   "hablado_pct": 75,
+   "narrador_lineas": 28,
+   "narrador_pct": 6.6,
+   "hueco_max": 16,
+   "huecos_20s": 0,
+   "temas": 15,
+   "musica_pct": 79,
+   "tema_mediana": 55,
+   "final": [
+    "Pero parece que todo se ha resuelto por ahora.",
+    "¡¿130.000 yenes?!",
+    "Los ahorros que tanto me costó reunir…",
+    "¡Viejo de mierda…!"
+   ],
+   "temporada": "DU"
+  },
+  "S03E14": {
+   "duracion": 1423,
+   "ed": [
+    1347,
+    1415
+   ],
+   "avance": [
+    1416,
+    1421
+   ],
+   "titulo": 177,
+   "lineas_min": 16.5,
+   "palabras_min": 99,
+   "hablado_pct": 79,
+   "narrador_lineas": 18,
+   "narrador_pct": 3.4,
+   "hueco_max": 23,
+   "huecos_20s": 1,
+   "temas": 18,
+   "musica_pct": 90,
+   "tema_mediana": 60,
+   "final": [
+    "No puedo dejar de sentir que este lugar debería aterrarme.",
+    "¿A qué se deberá?",
+    "Me alegro de verte.",
+    "Te esperaba. Llegas justo a tiempo."
+   ],
+   "temporada": "DU"
+  },
+  "S04E01": {
+   "duracion": 1423,
+   "op": [
+    0,
+    17
+   ],
+   "avance": [
+    1415,
+    1420
+   ],
+   "eyecatch": 934,
+   "titulo": 159,
+   "cold_open": 0,
+   "lineas_min": 17.7,
+   "palabras_min": 90,
+   "hablado_pct": 71,
+   "narrador_lineas": 29,
+   "narrador_pct": 5.2,
+   "hueco_max": 20,
+   "huecos_20s": 0,
+   "temas": 21,
+   "musica_pct": 81,
+   "tema_mediana": 42,
+   "final": [
+    "¡Giorno Giovanna!",
+    "¡Este tipo es peligroso!",
+    "Por eso…",
+    "¡debo usar a Gold Experience y evitar todos sus ataques!"
+   ],
+   "temporada": "GW"
+  },
+  "S06E01": {
+   "duracion": 2825,
+   "ed": [
+    2736,
+    2825
+   ],
+   "titulo": 127,
+   "lineas_min": 14.7,
+   "palabras_min": 90,
+   "hablado_pct": 69,
+   "narrador_lineas": 3,
+   "narrador_pct": 0.3,
+   "hueco_max": 19,
+   "huecos_20s": 0,
+   "temas": 47,
+   "musica_pct": 87,
+   "tema_mediana": 35,
+   "final": [
+    "No hablo de pasos físicos,",
+    "sino de mi transición de la juventud a la adultez.",
+    "Todo comenzó cuando yo, Johnny Joestar,",
+    "conocí al misterioso Gyro Zeppeli."
+   ],
+   "temporada": "SBR"
+  },
+  "S06E02": {
+   "duracion": 1415,
+   "op": [
+    136,
+    225
+   ],
+   "ed": [
+    1298,
+    1386
+   ],
+   "titulo": 227,
+   "cold_open": 136,
+   "lineas_min": 16.3,
+   "palabras_min": 87,
+   "hablado_pct": 69,
+   "narrador_lineas": 0,
+   "narrador_pct": 0.0,
+   "hueco_max": 97,
+   "huecos_20s": 2,
+   "temas": 19,
+   "musica_pct": 91,
+   "tema_mediana": 42,
+   "final": [
+    "‎Fueron los cactus.",
+    "‎Nos costó más tiempo del que esperaba.",
+    "‎Vamos, Johnny. Andando.",
+    "‎Claro, Gyro."
+   ],
+   "temporada": "SBR"
+  },
+  "S06E03": {
+   "duracion": 1415,
+   "op": [
+    182,
+    271
+   ],
+   "ed": [
+    1326,
+    1415
+   ],
+   "cold_open": 182,
+   "lineas_min": 17.1,
+   "palabras_min": 130,
+   "hablado_pct": 71,
+   "narrador_lineas": 9,
+   "narrador_pct": 1.4,
+   "hueco_max": 92,
+   "huecos_20s": 2,
+   "temas": 21,
+   "musica_pct": 90,
+   "tema_mediana": 34,
+   "final": [
+    "a Johnny Joestar y a Gyro Zeppeli por nosotros.",
+    "¡Y cuando los alcance, nosotros estaremos viendo",
+    "cómo se les salen las entrañas desde la primera fila!",
+    "{\\an8}CONTINUARÁ"
+   ],
+   "temporada": "SBR"
+  }
+ },
+ "resumen": {
+  "DU": {
+   "episodios": 14,
+   "duracion": 1422.0,
+   "cold_open": 98,
+   "op_dur": 74,
+   "ed_dur": 68.0,
+   "eyecatch": 761,
+   "eyecatch_frac": 0.54,
+   "avance_dur": 5.0,
+   "con_recap": 0,
+   "lineas_min": 15.0,
+   "palabras_min": 86.0,
+   "hablado_pct": 71.0,
+   "narrador_pct": 7.0,
+   "hueco_max": 76.5,
+   "huecos_20s": 1.0,
+   "temas": 17.5,
+   "musica_pct": 88.0,
+   "tema_mediana": 51.5
+  },
+  "GW": {
+   "episodios": 1,
+   "duracion": 1423,
+   "cold_open": 0,
+   "op_dur": 17,
+   "ed_dur": null,
+   "eyecatch": 934,
+   "eyecatch_frac": 0.66,
+   "avance_dur": 5,
+   "con_recap": 0,
+   "lineas_min": 17.7,
+   "palabras_min": 90,
+   "hablado_pct": 71,
+   "narrador_pct": 5.2,
+   "hueco_max": 20,
+   "huecos_20s": 0,
+   "temas": 21,
+   "musica_pct": 81,
+   "tema_mediana": 42
+  },
+  "SBR": {
+   "episodios": 3,
+   "duracion": 1415,
+   "cold_open": 159.0,
+   "op_dur": 89.0,
+   "ed_dur": 89,
+   "eyecatch": null,
+   "eyecatch_frac": null,
+   "avance_dur": null,
+   "con_recap": 0,
+   "lineas_min": 16.3,
+   "palabras_min": 90,
+   "hablado_pct": 69,
+   "narrador_pct": 0.3,
+   "hueco_max": 92,
+   "huecos_20s": 2,
+   "temas": 21,
+   "musica_pct": 90,
+   "tema_mediana": 35
+  },
+  "SC": {
+   "episodios": 48,
+   "duracion": 1424.0,
+   "cold_open": 92,
+   "op_dur": 89,
+   "ed_dur": 88,
+   "eyecatch": 737.5,
+   "eyecatch_frac": 0.52,
+   "avance_dur": 14.0,
+   "con_recap": 12,
+   "lineas_min": 14.0,
+   "palabras_min": 77.5,
+   "hablado_pct": 63.0,
+   "narrador_pct": 7.8,
+   "hueco_max": 98.0,
+   "huecos_20s": 3.0,
+   "temas": 14.5,
+   "musica_pct": 81.0,
+   "tema_mediana": 64.0
+  }
+ }
+}
