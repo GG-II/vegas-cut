@@ -121,7 +121,7 @@ class VentanaPreparar : VentanaBase
         this.pistas = pistas;
         ruta = Transcripcion.RutaPara(vegas.Project.FilePath);
         int m = Margen, w = Ancho;
-        Encabezado("Preparar episodio", "Quita los silencios y transcribe de una pasada; al final abre MomentosIA.");
+        Encabezado("Preparar episodio", "Quita los silencios y transcribe de una pasada, guarda una copia BASE y abre MomentosIA.");
 
         int y = 92;
         if (File.Exists(ruta))
@@ -359,7 +359,15 @@ class VentanaPreparar : VentanaBase
     {
         Bloquear(false);
         barra.Valor = 1;
-        lblEstado.Text = "✔ Listo en " + Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + ". Abriendo MomentosIA…";
+        string copia = "";
+        if (chipTranscribir.Activo || chipSilencios.Activo)
+            try
+            {
+                string b = CopiaBase.Guardar(vegas);
+                if (b != null) copia = " Copia base: " + Path.GetFileName(b) + ".";
+            }
+            catch (Exception ex) { copia = " (No se pudo guardar la copia base: " + ex.Message + ")"; }
+        lblEstado.Text = "✔ Listo en " + Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + "." + copia + " Abriendo MomentosIA…";
         Application.DoEvents();
         AbrirMomentos = true;
         Pedir = chipPedir.Activo;

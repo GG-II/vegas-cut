@@ -2860,6 +2860,7 @@ public class SerieProyecto
         int agregados = 0;
         foreach (string f in Serie.ArchivosVeg(Carpeta, 6))
         {
+            if (Regex.IsMatch(Path.GetFileNameWithoutExtension(f), @"\s(BASE|CAP)$", RegexOptions.IgnoreCase)) continue;   // copias del mismo capitulo
             int t, n; string k;
             if (!Serie.Clave(Path.GetFileNameWithoutExtension(f), out t, out n, out k)) continue;
             if (claves.Count > 0 && !claves.Contains(k)) continue;
@@ -3203,7 +3204,7 @@ public static class Serie
     public static bool Clave(string nombre, out int temporada, out int numero, out string serie)
     {
         temporada = 0; numero = 0; serie = "";
-        nombre = nombre ?? "";
+        nombre = Regex.Replace(nombre ?? "", @"\s+(BASE|CAP)$", "", RegexOptions.IgnoreCase);
         Match m = Patron.Match(nombre);
         if (m.Success) { temporada = int.Parse(m.Groups[1].Value); numero = int.Parse(m.Groups[2].Value); }
         else

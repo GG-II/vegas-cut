@@ -144,7 +144,7 @@ class VentanaPreparar : VentanaBase
         this.pistas = pistas;
         ruta = Transcripcion.RutaPara(vegas.Project.FilePath);
         int m = Margen, w = Ancho;
-        Encabezado("Preparar episodio", "Quita los silencios y transcribe de una pasada; al final abre MomentosIA.");
+        Encabezado("Preparar episodio", "Quita los silencios y transcribe de una pasada, guarda una copia BASE y abre MomentosIA.");
 
         int y = 92;
         if (File.Exists(ruta))
@@ -382,7 +382,15 @@ class VentanaPreparar : VentanaBase
     {
         Bloquear(false);
         barra.Valor = 1;
-        lblEstado.Text = "\u2714 Listo en " + Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + ". Abriendo MomentosIA\u2026";
+        string copia = "";
+        if (chipTranscribir.Activo || chipSilencios.Activo)
+            try
+            {
+                string b = CopiaBase.Guardar(vegas);
+                if (b != null) copia = " Copia base: " + Path.GetFileName(b) + ".";
+            }
+            catch (Exception ex) { copia = " (No se pudo guardar la copia base: " + ex.Message + ")"; }
+        lblEstado.Text = "\u2714 Listo en " + Formato.Tiempo((DateTime.Now - comienzo).TotalSeconds) + "." + copia + " Abriendo MomentosIA\u2026";
         Application.DoEvents();
         AbrirMomentos = true;
         Pedir = chipPedir.Activo;
@@ -585,6 +593,49 @@ public class ProcesoTranscripcion
     {
         foreach (string w in wavs.Values) { try { File.Delete(w); } catch { } }
         wavs.Clear();
+    }
+}
+
+// Copia "<proyecto> BASE.veg": el episodio sin silencios y transcrito, para
+// volver a partir de ahi (MomentosIA o ProducirCapitulo) sin repetir esos pasos.
+public static class CopiaBase
+{
+    public const string Sufijo = " BASE";
+
+    public static string RutaPara(string veg)
+    {
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + Sufijo + ".veg");
+    }
+
+    // El proyecto original de una copia base (o el mismo si no lo es).
+    public static string Original(string veg)
+    {
+        string n = Path.GetFileNameWithoutExtension(veg);
+        return n.EndsWith(Sufijo) ? Path.Combine(Path.GetDirectoryName(veg), n.Substring(0, n.Length - Sufijo.Length) + ".veg") : veg;
+    }
+
+    // Guarda la copia (con su transcripcion y su serie) y vuelve al proyecto original.
+    public static string Guardar(Vegas vegas)
+    {
+        string original = vegas.Project.FilePath;
+        if (String.IsNullOrEmpty(original) || Path.GetFileNameWithoutExtension(original).EndsWith(Sufijo)) return null;
+        string base_ = RutaPara(original);
+        vegas.SaveProject(base_);
+        try
+        {
+            string t = Transcripcion.RutaPara(original);
+            if (File.Exists(t))
+            {
+                Transcripcion tr = Transcripcion.Cargar(t);
+                tr.Proyecto = base_;
+                tr.Guardar(Transcripcion.RutaPara(base_));
+            }
+            string dir = Path.GetDirectoryName(original), n = Path.GetFileNameWithoutExtension(original);
+            string serie = Path.Combine(dir, n + ".vegascut-proyecto-serie.json");
+            if (File.Exists(serie)) File.Copy(serie, Path.Combine(dir, n + Sufijo + ".vegascut-proyecto-serie.json"), true);
+        }
+        finally { vegas.SaveProject(original); }
+        return base_;
     }
 }
 
@@ -3413,6 +3464,7 @@ public class SerieProyecto
         int agregados = 0;
         foreach (string f in Serie.ArchivosVeg(Carpeta, 6))
         {
+            if (Regex.IsMatch(Path.GetFileNameWithoutExtension(f), @"\s(BASE|CAP)$", RegexOptions.IgnoreCase)) continue;   // copias del mismo capitulo
             int t, n; string k;
             if (!Serie.Clave(Path.GetFileNameWithoutExtension(f), out t, out n, out k)) continue;
             if (claves.Count > 0 && !claves.Contains(k)) continue;
@@ -3756,7 +3808,7 @@ public static class Serie
     public static bool Clave(string nombre, out int temporada, out int numero, out string serie)
     {
         temporada = 0; numero = 0; serie = "";
-        nombre = nombre ?? "";
+        nombre = Regex.Replace(nombre ?? "", @"\s+(BASE|CAP)$", "", RegexOptions.IgnoreCase);
         Match m = Patron.Match(nombre);
         if (m.Success) { temporada = int.Parse(m.Groups[1].Value); numero = int.Parse(m.Groups[2].Value); }
         else

@@ -74,6 +74,8 @@ public class RenderTemplate { public string Name="PCM 16"; public bool IsValid()
 public class Renderer { public string FileExtension="*.wav"; public List<RenderTemplate> Templates=new List<RenderTemplate>{new RenderTemplate()}; }
 public class RenderArgs { public string OutputFile; public RenderTemplate RenderTemplate; public Timecode Start, Length; }
 public class Vegas { public Project Project=new Project(); public PlugInNode Generators=new PlugInNode(); public Transport Transport=new Transport(); public List<Renderer> Renderers=new List<Renderer>{new Renderer()};
+  public List<string> Guardados=new List<string>(); public Func<string,bool> AlGuardar;
+  public bool SaveProject(string ruta){ Project.FilePath=ruta; Guardados.Add(ruta); if (AlGuardar!=null) AlGuardar(ruta); return true; }
   public Func<RenderArgs,RenderStatus> OnRender; public RenderStatus Render(RenderArgs a){return OnRender(a);} }
 public class UndoBlock : IDisposable { public UndoBlock(string s){} public void Dispose(){} }
 }

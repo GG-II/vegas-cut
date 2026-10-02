@@ -71,6 +71,21 @@ class PruebaPreparar
         otro.Cancelar();
         Verificar(otro.Terminado && otro.Error == "Cancelado." && !File.Exists(Path.Combine(tmp, "otra.json")), "Cancelar no guarda nada");
 
+        // Copia base: sin silencios y transcrita, y se sigue en el original.
+        File.WriteAllText(Path.Combine(tmp, "S01E01 Prueba.vegascut-proyecto-serie.json"), "{\"serie\": \"x\"}");
+        string original = p.FilePath;
+        string copia = CopiaBase.Guardar(v);
+        Verificar(copia == Path.Combine(tmp, "S01E01 Prueba BASE.veg") && v.Guardados.Count == 2 && v.Guardados[0] == copia &&
+                  p.FilePath == original, "Copia base: se guarda como «… BASE.veg» y se sigue en el original");
+        Transcripcion tb = Transcripcion.Cargar(Transcripcion.RutaPara(copia));
+        Verificar(tb.Segmentos.Count == 1 && tb.Proyecto == copia && File.Exists(Path.Combine(tmp, "S01E01 Prueba BASE.vegascut-proyecto-serie.json")),
+                  "Copia base: con su transcripción y su serie");
+        Verificar(CopiaBase.Original(copia) == original && CopiaBase.Guardar(new Vegas { Project = new Project { FilePath = copia } }) == null,
+                  "Copia base: sabe cuál es su original y no copia una copia");
+        int tt, nn; string kk, kb;
+        Serie.Clave("S01E01 Prueba", out tt, out nn, out kk); Serie.Clave("S01E01 Prueba BASE", out tt, out nn, out kb);
+        Verificar(kk == kb, "Copia base: cuenta como el mismo capítulo de la serie");
+
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " pruebas fallaron.");
         return fallos == 0 ? 0 : 1;
