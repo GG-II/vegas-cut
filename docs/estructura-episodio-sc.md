@@ -88,3 +88,76 @@ tipo se arma distinto; por eso cada capítulo de la serie tiene un **papel** (Se
 | **Capítulo de respiro** | Sin pelea al inicio, humor y manías de los personajes, un problema pequeño que crece, final feliz. | DU 20 (el salón de Aya Tsuji), DU 27 (Mikitaka y los dados) |
 | **Penúltimo** | Recap del cliffhanger, tensión máxima todo el capítulo, puede caer alguien importante, termina en el peor momento y sin remate. | SC 47 («DIO está totalmente sincronizado»), DU 38, SO 37 (muere Jotaro) |
 | **Final** | El clímax se resuelve entre el 40 y el 75 % y queda un **epílogo largo** (25–50 %): despedidas, la broma de siempre, «la vida sigue», el ending sobre el epílogo; a veces sin opening. Termina con un nuevo estado de cosas. | SC 48 (DIO cae al 60 %; bromas de Joseph y vuelta a casa), DU 39 (Kira cae al 40 %; despedida de Reimi), GW 39 (Giorno nuevo jefe), PB/BT 26 (partida a Tokio) |
+
+## Títulos
+
+Revisé los títulos de todas las partes. Se repiten estos patrones; el productor los usa para
+proponer el título de cada capítulo.
+
+| Patrón | Ejemplos de JoJo | En SCR |
+|---|---|---|
+| Nombre del rival o del peligro | «Tower of Gray», «Yellow Temperance» | «El Creeper de la cueva» |
+| Apodo + nombre | «The Lovers», «The Emperor and the Hanged Man» | «El cazador, Steel» |
+| «¡X contra Y!» / «X conoce a Y» | «Jotaro Kujo! Meets Josuke Higashikata» | «¡Steel contra el Wither!» |
+| Invitación o rumbo | «Let's Go to the Manga Artist's House», «Head to Pompeii!» | «¡Vamos al Nether!» |
+| Algo raro de un personaje | «Shigechi's Harvest», «Rohan Kishibe's Adventure» | «Steel no quiere bañarse» |
+| Guiño a una canción o grupo | stands con nombre de bandas | — |
+| Fecha o tiempo | «The Day of the Duel» | «Día 7» |
+| «, parte N» (hasta 4) | «Dark Blue Moon, Part 1» | en los capítulos de dos partes |
+| Primer capítulo | el nombre de la serie o del protagonista («Dio the Invader», «Golden Wind») | el nombre de la serie |
+| Final | una despedida («Goodbye, Morioh», «Farewell, My Friends») | «La vida sigue», despedida |
+
+En SBR: «The Sheriff's Request to Mountain Tim», un título que dice quién pide qué a quién.
+
+## La última frase antes del opening y del ending
+
+Tipos de frase que cierran el cold open:
+- la amenaza del villano;
+- una pregunta o una frase cortada por la sorpresa;
+- la llegada a un lugar, narrada;
+- una decisión del grupo;
+- el remate de un chiste.
+
+Antes del ending:
+- declaración del villano o una amenaza nueva, con «CONTINUARÁ»;
+- una frase emotiva en calma;
+- un chiste;
+- «seguimos el viaje»;
+- un golpe en plena pelea;
+- una noticia que lo cambia todo;
+- el narrador enmarcando.
+
+Siempre es una frase que se entiende sola.
+
+## Curva de ritmo dentro del capítulo
+
+Medida con los subtítulos, por décimos del capítulo:
+
+| Décimo | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| SC: líneas/min | 14.4 | 14.5 | 14.4 | 14.0 | 13.1 | 13.7 | 14.1 | 13.2 | 13.7 | 13.3 |
+| SC: % sin música | 24 | 24 | 15 | 18 | 14 | 15 | 16 | 20 | 25 | 17 |
+| SC: % voz interna | 4.2 | 4.9 | 3.8 | 3.0 | 1.8 | 3.4 | 2.7 | 2.4 | 2.4 | 2.4 |
+| SC: silencios ≥ 15 s | 7 | 15 | 13 | 19 | 17 | 16 | 22 | 16 | 14 | 12 |
+| SBR: líneas/min | 18.4 | 17.8 | 14.9 | 15.5 | 16.9 | 20.0 | 18.9 | 18.3 | 15.5 | 13.8 |
+
+Qué se ve en la tabla:
+- **Al inicio** hay más diálogo y más voz interna (o narrador) para situar.
+- **Entre el 30 y el 70 %** hay más pausas largas: es la tensión.
+- **Entre el 60 y el 80 %** la pelea acelera (SBR llega a 20 líneas/min).
+- **El último décimo** es más calmado. DU baja de ~15 a 12.8 líneas/min.
+
+SBR casi siempre tiene música y no usa voz interna. SC deja más escenas en silencio.
+
+## Qué más conviene analizar
+
+Lo que más mejoraría el productor, de mayor a menor:
+1. **Tus propios capítulos publicados con su retención** (YouTube Studio → curva de retención). Es lo
+   único que dice qué funciona con *tu* público: dónde se va la gente, si el cold open retiene o
+   cuánto aguanta un tramo sin narrador.
+2. **Los episodios nuevos de SBR** a medida que salen. Es el estilo más cercano: carrera por etapas,
+   cold opens largos y muchos personajes.
+3. **Los subtítulos completos de Golden Wind.** Un equipo que viaja junto y tiene capítulos de
+   «inicio de arco», así que sirve mucho para un grupo de amigos.
+4. **Series de Minecraft exitosas en YouTube** (transcripciones de los auto-subs). Sirven para medir
+   cada cuánto hay un chiste, un giro o una tarjeta en el formato que ve tu público.

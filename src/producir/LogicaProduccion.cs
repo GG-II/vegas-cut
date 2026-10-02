@@ -134,6 +134,17 @@ public static class LogicaProduccion
         "(2–3 min) para que se entienda la situación y los termina en un misterio justo antes del opening. Nunca tan cortos que no " +
         "dé tiempo a entender de qué va.\n" +
         "Cierres: cliffhanger en plena crisis, anuncio de un enemigo nuevo, remate cómico, o seguir el viaje con el rival mirando.\n" +
+        "Última frase antes del opening: amenaza del rival, una pregunta o frase cortada por la sorpresa, la llegada a un lugar, " +
+        "una decisión del grupo o el remate de un chiste. Última antes del ending: declaración del rival o amenaza nueva (+ " +
+        "«continuará»), una frase emotiva en calma, un chiste, «seguimos el viaje», un golpe en plena pelea o una noticia que " +
+        "cambia todo. Que sea una frase que se entienda sola.\n" +
+        "Curva de ritmo (medida en SC, DU y SBR): primer 20 % con más diálogo y más voz interna o narrador para situar; del 30 al " +
+        "70 % más pausas largas y escenas sin música (tensión); repunte de velocidad en la pelea (60–80 %); el último 10 % más " +
+        "calmado (menos líneas por minuto) salvo en un cliffhanger.\n" +
+        "TÍTULOS al estilo JoJo (cortos, en español): el nombre del rival o del peligro («El Creeper de la cueva»), apodo + nombre " +
+        "(«El cazador, Steel»), «¡X contra Y!» o «X conoce a Y», una invitación («¡Vamos al Nether!», «Rumbo a la aldea»), algo " +
+        "raro de un personaje («Steel no quiere bañarse»), un guiño a una canción o grupo, una fecha («Día 7»), «, parte N» en los " +
+        "de varias partes. El primero lleva el nombre de la serie o del protagonista; el final, una despedida o «la vida sigue».\n" +
         "Tipos de capítulo:\n" +
         "- normal: un video con la plantilla de la serie.\n" +
         "- especial: rompe la fórmula (otra estructura, otro foco).\n" +

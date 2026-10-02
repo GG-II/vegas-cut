@@ -163,6 +163,8 @@ class PruebaProduccion
             string inf = LogicaProduccion.InstruccionesFinal(f, "Normal", a.Propuestas[1]);
             Verificar(inf.Contains("dos_partes") && inf.Contains("PRIORIDAD") && inf.Contains("eyecatch") && inf.Contains("NUNCA encima de las voces") &&
                       inf.Contains("respiro") && inf.Contains("ritmo"), "Instrucciones finales: notas primero, estructura libre, ritmo y narración en pausas");
+            Verificar(inf.Contains("TÍTULOS al estilo JoJo") && inf.Contains("Curva de ritmo") && inf.Contains("antes del opening"),
+                      "Instrucciones finales: títulos, frases de gancho y curva de ritmo");
 
             // Guardar y volver a abrir lo que se tenía.
             string veg = Path.Combine(dir, "S01E01 SCR BASE.veg");

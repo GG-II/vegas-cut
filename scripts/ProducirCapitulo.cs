@@ -673,6 +673,17 @@ public static class LogicaProduccion
         "(2\u20133 min) para que se entienda la situaci\u00f3n y los termina en un misterio justo antes del opening. Nunca tan cortos que no " +
         "d\u00e9 tiempo a entender de qu\u00e9 va.\n" +
         "Cierres: cliffhanger en plena crisis, anuncio de un enemigo nuevo, remate c\u00f3mico, o seguir el viaje con el rival mirando.\n" +
+        "\u00daltima frase antes del opening: amenaza del rival, una pregunta o frase cortada por la sorpresa, la llegada a un lugar, " +
+        "una decisi\u00f3n del grupo o el remate de un chiste. \u00daltima antes del ending: declaraci\u00f3n del rival o amenaza nueva (+ " +
+        "\u00abcontinuar\u00e1\u00bb), una frase emotiva en calma, un chiste, \u00abseguimos el viaje\u00bb, un golpe en plena pelea o una noticia que " +
+        "cambia todo. Que sea una frase que se entienda sola.\n" +
+        "Curva de ritmo (medida en SC, DU y SBR): primer 20 % con m\u00e1s di\u00e1logo y m\u00e1s voz interna o narrador para situar; del 30 al " +
+        "70 % m\u00e1s pausas largas y escenas sin m\u00fasica (tensi\u00f3n); repunte de velocidad en la pelea (60\u201380 %); el \u00faltimo 10 % m\u00e1s " +
+        "calmado (menos l\u00edneas por minuto) salvo en un cliffhanger.\n" +
+        "T\u00cdTULOS al estilo JoJo (cortos, en espa\u00f1ol): el nombre del rival o del peligro (\u00abEl Creeper de la cueva\u00bb), apodo + nombre " +
+        "(\u00abEl cazador, Steel\u00bb), \u00ab\u00a1X contra Y!\u00bb o \u00abX conoce a Y\u00bb, una invitaci\u00f3n (\u00ab\u00a1Vamos al Nether!\u00bb, \u00abRumbo a la aldea\u00bb), algo " +
+        "raro de un personaje (\u00abSteel no quiere ba\u00f1arse\u00bb), un gui\u00f1o a una canci\u00f3n o grupo, una fecha (\u00abD\u00eda 7\u00bb), \u00ab, parte N\u00bb en los " +
+        "de varias partes. El primero lleva el nombre de la serie o del protagonista; el final, una despedida o \u00abla vida sigue\u00bb.\n" +
         "Tipos de cap\u00edtulo:\n" +
         "- normal: un video con la plantilla de la serie.\n" +
         "- especial: rompe la f\u00f3rmula (otra estructura, otro foco).\n" +
