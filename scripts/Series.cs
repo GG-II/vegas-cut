@@ -1644,9 +1644,9 @@ public static class Ritmo
                 });
         // Minutos seguidos con pocos recursos o pocos cortes.
         Agrupar(m, v, delegate (MinutoRitmo x) { return x.Recursos < reglas.RecursosPorMin; }, "recursos",
-                delegate (int a, int b) { return "pocos recursos (menos de " + reglas.RecursosPorMin + " por minuto)"; }, zona);
+                delegate (int a, int b) { return "pocos recursos (menos de " + reglas.RecursosPorMin + "/min)"; }, zona);
         Agrupar(m, v, delegate (MinutoRitmo x) { return x.Cortes < reglas.CortesMin && (x.Minuto + 1) * 60 <= m.Duracion + 30; }, "cortes",
-                delegate (int a, int b) { return "ritmo lento (menos de " + reglas.CortesMin + " cortes por minuto)"; }, zona);
+                delegate (int a, int b) { return "ritmo lento (menos de " + reglas.CortesMin + " cortes/min)"; }, zona);
         // Musica que no cambia.
         List<double> cambios = new List<double>(m.CambiosMusica);
         cambios.Sort();

@@ -13,7 +13,7 @@ REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.
 # -noconfig: sin System.Core ni otras bibliotecas que Vegas no le da a los
 # scripts (HashSet, LINQ...), para que falle aqui y no en Vegas.
 VEGAS_REF="-noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -r:$T/ScriptPortal.Vegas.dll"
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs
@@ -22,7 +22,7 @@ mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/textos.exe" PruebaTexto
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/musica.exe" PruebaMusica.cs ../scripts/MusicaAutomatica.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/censura.exe" PruebaCensura.cs ../scripts/CensurarPalabrotas.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/anteriormente.exe" PruebaAnteriormente.cs ../scripts/Anteriormente.cs
-mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ritmo.exe" PruebaRitmo.cs ../scripts/Series.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ritmo.exe" PruebaRitmo.cs ../scripts/PulirEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/preparar.exe" PruebaPreparar.cs ../scripts/PrepararEpisodio.cs
 EJEMPLOS="$(cd .. && pwd)/ejemplos/jojmania"
 cd "$T"

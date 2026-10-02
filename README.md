@@ -277,6 +277,31 @@ historia) y de los **posteriores** (para no cortar lo que prepara algo que se re
 Anteriormente toma los capítulos anteriores con la ficha de los viejos (incluidas sus frases
 clave) y el texto completo de los 2 más recientes.
 
+### `PulirEpisodio.cs`
+
+![Pulir episodio](docs/img/pulir.png)
+
+Para después de MomentosIA, con el episodio ya cortado; no hay que volver a transcribir. Mide el
+ritmo y lo compara con las reglas de su serie (**Series → Formato y ritmo**), ajustadas al papel
+del capítulo: por ejemplo, el primero es más exigente con el narrador y un final puede durar más.
+
+- **Gráfico minuto a minuto:** cortes y recursos (en rojo los minutos bajo la regla, con la línea
+  punteada como mínimo), la narración, cada cambio de música, la zona crítica del inicio
+  sombreada y los valles arriba. Un clic lleva el cursor de Vegas a ese momento.
+- **Contra las reglas de la serie:** duración, cortes y recursos por minuto, valles en el inicio,
+  huecos sin narrador, velocidad del narrador y música.
+- **Valles:** tramos sin narrador más largos que la regla, minutos seguidos con pocos recursos o
+  ritmo lento, música que no cambia y duración de más. Los de la zona crítica van primero, en
+  rojo. Doble clic: va ahí y lo selecciona en la línea de tiempo.
+- **Marcar valles como regiones:** pone regiones «VALLE · …» para trabajarlos en Vegas. **Quitar
+  regiones** borra solo esas.
+- **Narrador:** se elige la voz de la transcripción. Si la serie lleva narrador pero aún no lo
+  grabaste, los huecos de narrador no cuentan todavía; los cubrirá la narración que propone el
+  paso siguiente.
+
+Próximamente, en la misma herramienta: el plan de estructura con Gemini, la narración
+provisional con voz de Windows y «Reemplazar narración».
+
 ### `Anteriormente.cs`
 
 ![Ventana de Anteriormente](docs/img/anteriormente.png)

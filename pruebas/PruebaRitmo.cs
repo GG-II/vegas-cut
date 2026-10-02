@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ScriptPortal.Vegas;
+using Region = ScriptPortal.Vegas.Region;
 
 class PruebaRitmo
 {
@@ -34,7 +35,8 @@ class PruebaRitmo
                 Media m;
                 if (Json.Valor(e, "generado") is bool && (bool)Json.Valor(e, "generado")) m = new Media(generador);
                 else if (!medios.TryGetValue(archivo, out m)) { m = new Media(archivo); medios[archivo] = m; }
-                ev.ActiveTake = new Take { Media = m };
+                ev.ActiveTake = new Take { Media = m, Offset = new Timecode(Json.Numero(e, "offset", 0) * 1000) };
+                ev.PlaybackRate = Json.Numero(e, "velocidad", 1);
             }
             p.Tracks.Add(t);
         }
@@ -67,6 +69,12 @@ class PruebaRitmo
             Project p = Rearmar(export);
             Transcripcion t = Transcripcion.Cargar(trans);
             Medicion c = RitmoVegas.Medir(p, t, "Narrador");
+            // En Vegas la transcripcion sigue las ediciones con el ubicador: debe dar lo mismo.
+            Transcripcion tu = Transcripcion.Cargar(trans);
+            tu.Ubicador = PistasVegas.Ubicador(p, tu);
+            Medicion cu = RitmoVegas.Medir(p, tu, "Narrador");
+            Verificar(tu.TieneFuentes && Math.Abs(cu.Palabras - c.Palabras) <= c.Palabras / 20 && cu.Narracion.Count > 10,
+                      "Cap1: con el ubicador mide la misma narración (" + cu.Palabras + " de " + c.Palabras + " palabras)");
             Console.WriteLine("      " + Ritmo.Resumen(c));
             Console.Write(Ritmo.Tabla(c).Replace("\n", "\n      ").Insert(0, "      "));
             Console.WriteLine();
@@ -85,6 +93,31 @@ class PruebaRitmo
             Verificar(vc.Exists(delegate (Valle x) { return x.Tipo == "narrador" && x.Inicio < 7 * 60 && x.Fin > 7 * 60; }),
                       "Cap1: valle sin narrador en el minuto 6–7");
             foreach (Valle x in vc) Console.WriteLine("      " + (x.Critico ? "! " : "  ") + Formato.Tiempo(x.Inicio) + "–" + Formato.Tiempo(x.Fin) + " " + x.Texto);
+            // PulirEpisodio: informe contra las reglas y regiones.
+            Informe inf = LogicaPulir.Analizar(c, FormatoSerie.Preset("100 días"), "Normal");
+            foreach (Chequeo ch in inf.Chequeos) Console.WriteLine("      " + (ch.Ok ? "ok " : "!! ") + ch.Que + ": " + ch.Medido + " (" + ch.Objetivo + ")");
+            Chequeo cc = inf.Chequeos.Find(delegate (Chequeo x) { return x.Que == "Cortes por minuto"; });
+            Chequeo cn = inf.Chequeos.Find(delegate (Chequeo x) { return x.Que == "Narrador"; });
+            Verificar(cc != null && cc.Ok && inf.Chequeos[0].Ok, "Pulir: Cap1 cumple cortes y duración de «100 días»");
+            Verificar(cn != null && !cn.Ok && cn.Medido.Contains("hueco"), "Pulir: avisa del hueco largo sin narrador (" + (cn == null ? "" : cn.Medido) + ")");
+            int antes = p.Regions.Count;
+            p.Regions.Add(new Region(new Timecode(0), new Timecode(1000), "Mi región"));
+            int n1 = LogicaPulir.MarcarRegiones(p, inf.Valles), n2 = LogicaPulir.MarcarRegiones(p, inf.Valles);
+            Verificar(n1 > 0 && n1 == n2 && p.Regions.Count == antes + 1 + n1 && p.Regions[antes].Label == "Mi región",
+                      "Pulir: marca los valles como regiones sin duplicarlas ni tocar las tuyas");
+            Verificar(LogicaPulir.QuitarRegiones(p) == n1 && p.Regions.Count == antes + 1, "Pulir: quita solo sus regiones");
+            Verificar(LogicaPulir.Texto(inf).Contains("Valles:") && LogicaPulir.Texto(inf).Contains("min;narrador"), "Pulir: informe en texto");
+
+            Medicion sinN = RitmoVegas.Medir(p, t, int.MaxValue);
+            Informe inf2 = LogicaPulir.Analizar(sinN, FormatoSerie.Preset("Aventura por episodios"), "Final de temporada");
+            Verificar(inf2.FaltaNarracion && !inf2.Valles.Exists(delegate (Valle x) { return x.Tipo == "narrador"; }),
+                      "Pulir: sin narración grabada todavía no cuenta huecos de narrador");
+            Verificar(inf2.Reglas.DuracionMax > FormatoSerie.Preset("Aventura por episodios").Reglas.DuracionMax,
+                      "Pulir: las reglas se ajustan al papel del capítulo");
+            Informe inf3 = LogicaPulir.Analizar(sinN, FormatoSerie.Preset("Podcast"), "Normal");
+            Verificar(!inf3.FaltaNarracion && !inf3.Chequeos.Exists(delegate (Chequeo x) { return x.Que == "Narrador"; }),
+                      "Pulir: un formato sin narrador no lo pide");
+
             ReglasRitmo ap = Ritmo.Aprender(c, new ReglasRitmo());
             Verificar(ap.CortesMin >= 12 && ap.CortesMax <= 25 && ap.CortesMin < ap.CortesMax && ap.DuracionMin == 10 && ap.DuracionMax == 12,
                       "Aprender: reglas de Cap1 (" + ap.CortesMin + "–" + ap.CortesMax + " cortes, " + ap.RecursosPorMin + " recursos, narrador cada " +

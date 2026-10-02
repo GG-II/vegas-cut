@@ -1,0 +1,8 @@
+// PulirEpisodio.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Mide el ritmo del episodio abierto (cortes, recursos, narrador y musica
+// minuto a minuto) contra las reglas de su serie y el papel del capitulo, y
+// muestra los valles donde se puede caer la retencion. Puede marcarlos como
+// regiones en la linea de tiempo.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.
