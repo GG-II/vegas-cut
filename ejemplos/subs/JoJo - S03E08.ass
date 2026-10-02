@@ -1,0 +1,576 @@
+﻿[Script Info]
+Title: Español
+ScaledBorderAndShadow: yes
+ScriptType: v4.00+
+WrapStyle: 0
+PlayResX: 1920
+PlayResY: 1080
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: JoJo-main,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-internal/narrator,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H001E0200,&H00000000,0,-1,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-announcer,Trebuchet MS,72,&H00E6F5FD,&H000000FF,&H001E0200,&H00000000,0,-1,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-top,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H001E0200,&H00000000,0,0,0,0,100,100,0,0,1,6,3,8,30,30,54,0
+Style: JoJo-flashback,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H004D0701,&H00000000,0,0,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-flashbackinternal,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H004D0701,&H00000000,0,-1,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-MainTitle,Arial,120,&H009332CC,&H000000FF,&H00FFFFFF,&H00000000,-1,0,0,0,100,100,0,0,1,6,12,8,30,30,54,0
+Style: JoJo-MainTitle2,Arial,90,&H00F3F9FC,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,6,12,2,255,30,54,0
+Style: JoJo-EpTitle,Arial,42,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,6,0,1,135,30,195,0
+Style: JoJo-topinternal,Trebuchet MS,72,&H00FFFFFF,&H000000FF,&H001E0200,&H00000000,0,-1,0,0,100,100,0,0,1,6,3,8,30,30,54,0
+Style: JoJo-overlap,Trebuchet MS,72,&H00E9DDC8,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: JoJo-Eyecatch2,Times New Roman,78,&H00FFFFFF,&H000000FF,&H00404040,&H00404040,0,0,0,0,100,100,0,0,1,3,3,1,105,30,294,0
+Style: JoJo-Eyecatch3,Times New Roman,78,&H00FFFFFF,&H000000FF,&H00404040,&H00404040,0,0,0,0,100,100,0,0,1,3,3,7,1287,30,285,0
+Style: JoJo-NextTitle,Arial,72,&H00140D0D,&H000000FF,&H00F5DBEE,&H00000000,-1,0,0,0,100,100,0,0,1,9,0,7,105,30,105,0
+Style: JoJo-announcertop,Trebuchet MS,72,&H00E6F5FD,&H000000FF,&H001E0200,&H00000000,0,-1,0,0,100,100,0,0,1,6,3,8,30,30,54,0
+Style: JoJo-fboverlap,Trebuchet MS,72,&H00E9DDC8,&H000000FF,&H004D0701,&H00000000,0,0,0,0,100,100,0,0,1,6,3,2,30,30,54,0
+Style: sign_10771_112_Chemistry_Lab,Times New Roman,90,&H00191E22,&H000000FF,&H00DCE2E3,&H00B3A3EA,-1,0,0,0,100,100,0,0,1,12,0,7,60,1134,90,0
+Style: sign_12809_137_Charm,Times New Roman,66,&H0092B0B6,&H000000FF,&H00A3566F,&H00565392,-1,0,0,0,100,100,0,-34,1,12,0,8,801,864,546,0
+Style: sign_18397_211_Year_1____Englis,Times New Roman,66,&H003F414C,&H000000FF,&H00F3F2F6,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,276,276,90,0
+Style: sign_18397_212_Quiz_2_______Koi,Comic Sans MS,66,&H003F414C,&H000000FF,&H00F3F2F6,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,354,714,426,0
+Style: sign_27855_315_English_Exam____,Times New Roman,66,&H003B3944,&H000000FF,&H00F6F5F7,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,246,621,90,0
+Style: sign_27855_316_Koichi_Hirose,Comic Sans MS,66,&H00464549,&H000000FF,&H00F3F2F6,&H00565392,-1,0,0,0,100,100,0,-15,1,12,0,8,54,1452,381,0
+Style: sign_28867_332_Wild_Music,Times New Roman,66,&H001F1C2E,&H000000FF,&H00EEE8EC,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,870,639,645,0
+Style: sign_28948_334_Primeval_Music,Times New Roman,66,&H00181C2A,&H000000FF,&H00EFEBEC,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,699,666,633,0
+Style: sign_29017_336_Fantasy_Music,Times New Roman,66,&H00251D2B,&H000000FF,&H00ECE9E9,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,696,711,630,0
+Style: sign_29870_346_Wild_Music,Times New Roman,78,&H001B1A27,&H000000FF,&H00ECE9E5,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,744,729,552,0
+Style: sign_30292_353_Missing_Missing_,Times New Roman,60,&H00191C30,&H000000FF,&H00EBE8E9,&H00565392,-1,0,0,0,100,100,0,0,1,12,0,8,309,1125,642,0
+Style: Note,Impress BT,60,&H00FFFFFF,&H00FFFFFF,&H00000000,&H96000000,0,-1,0,0,100,100,0,0,1,1.5,1.5,8,120,120,18,1
+Style: Title Part 4 Episode 2,Linux Biolinum,80,&H00FDFDFD,&H000000FF,&H000E0811,&H96000000,-1,0,0,0,90,100,0,0,1,3,0,1,90,90,40,1
+Style: Eyecatch - Left,Book Antiqua,70,&H00FFFFFF,&H000000FF,&H3C3A3E4D,&H3C3A3E4D,0,0,0,0,100,100,3,0,1,1,3,1,90,90,40,1
+Style: Eyecatch - Stats,Designosaur,47,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,3,0,1,0.7,2,9,90,40,25,1
+Style: Episode 8 Typesetting,Bell Gothic Black,90,&H00232324,&H000000FF,&H00D5DCE2,&H00000000,0,0,0,0,100,100,0,0,1,3,0,2,10,10,10,1
+Style: notSFX,Designosaur,90,&H0077AFAF,&H000000FF,&H00A2556F,&H00000000,0,0,0,0,100,100,0,0,1,3,0,8,50,40,20,1
+Style: Part 4 OP Japanese-furigana,Grinched,36,&H00000000,&H99FFFFFF,&H00161617,&H6B000000,0,0,0,0,110,100,0,0,1,2,0,8,15,15,15,1
+Style: Part 4 OP Español-furigana,Lato Bold,31,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,-1,0,0,100,100,0,0,1,3,2.25,2,45,45,45,1
+Style: Part 4 OP Español,Lato Bold,62,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,-1,0,0,100,100,0,0,1,6,4.5,2,45,45,45,1
+Style: Part 4 OP Japanese,Grinched,72,&H00000000,&H5FFFFFFF,&H00161617,&H6B000000,0,0,0,0,110,100,0,0,1,4,0,8,15,15,15,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:01.34,0:00:05.16,JoJo-main,Oku,0,0,0,,Entonces, ¿Hazamada\Ndice que no sabe nada
+Dialogue: 0,0:00:05.16,0:00:08.84,JoJo-main,Oku,0,0,0,,sobre el desgraciado eléctrico\Nque mató a mi hermano?
+Dialogue: 0,0:00:08.84,0:00:12.54,JoJo-main,Josu,0,0,0,,Así es. Solo hablaron por teléfono.
+Dialogue: 0,0:00:12.54,0:00:17.26,JoJo-main,Oku,0,0,0,,¿Y le creíste, Josuke?\N¿No lo torturaste?
+Dialogue: 0,0:00:17.26,0:00:20.35,JoJo-main,Josu,0,0,0,,Si Hazamada conociera su identidad,
+Dialogue: 0,0:00:20.35,0:00:24.04,JoJo-main,Josu,0,0,0,,él ya habría ido a silenciarlo.
+Dialogue: 0,0:00:24.36,0:00:29.21,JoJo-main,Oku,0,0,0,,Ti-tienes razón,\Ncomo lo hizo con mi hermano.
+Dialogue: 0,0:00:29.21,0:00:35.43,JoJo-main,Josu,0,0,0,,Sí. Que Hazamada siga con vida\Nprueba que de verdad no sabe nada.
+Dialogue: 0,0:00:35.43,0:00:39.19,JoJo-main,Josu,0,0,0,,Sin embargo, nos mencionó algo…
+Dialogue: 0,0:00:39.80,0:00:45.44,JoJo-flashback,Haza,0,0,0,,Por alguna razón, los usuarios de Stand\Nse atraen entre sí de forma inconsciente
+Dialogue: 0,0:00:45.44,0:00:47.73,JoJo-flashback,,0,0,0,,aunque no se conozcan.
+Dialogue: 0,0:00:48.04,0:00:53.57,JoJo-flashback,Haza,0,0,0,,Dicen que estás atado a tu futura esposa\Npor el hilo rojo del destino, ¿no?
+Dialogue: 0,0:00:53.57,0:00:54.85,JoJo-flashback,Haza,0,0,0,,Es algo así.
+Dialogue: 0,0:00:54.85,0:00:57.20,JoJo-flashback,,0,0,0,,Simplemente acaban topándose.
+Dialogue: 0,0:00:58.34,0:01:03.40,JoJo-flashback,Haza,0,0,0,,Podrían ser amigos, enemigos, el tío\Nque te pisó en la parada de autobús,
+Dialogue: 0,0:01:03.40,0:01:06.34,JoJo-flashback,Haza,0,0,0,,o incluso tu nuevo vecino.
+Dialogue: 0,0:01:06.34,0:01:08.44,JoJo-flashback,Haza,0,0,0,,No hay forma de saberlo.
+Dialogue: 0,0:01:08.44,0:01:10.55,JoJo-flashback,Haza,0,0,0,,Morioh no es muy grande…
+Dialogue: 0,0:01:10.55,0:01:14.17,JoJo-flashback,,0,0,0,,No sabemos cuántos\Nusuarios de Stand alberga,
+Dialogue: 0,0:01:14.17,0:01:18.18,JoJo-flashback,Haza,0,0,0,,pero aunque intenten ocultarse,\Nsiempre cometen algún desliz.
+Dialogue: 0,0:01:18.99,0:01:22.76,JoJo-flashback,Haza,0,0,0,,Él sabe que sucederá\Nen algún momento.
+Dialogue: 0,0:01:22.76,0:01:26.07,JoJo-flashback,Haza,0,0,0,,Y por eso quiere que desaparezcas.
+Dialogue: 0,0:01:27.35,0:01:28.77,JoJo-main,Oku,0,0,0,,Me cago en todo.
+Dialogue: 0,0:01:28.77,0:01:30.60,JoJo-main,Oku,0,0,0,,Maldito cobarde.
+Dialogue: 0,0:01:30.60,0:01:32.84,JoJo-main,Oku,0,0,0,,¡Debería atacarnos de una vez!
+Dialogue: 0,0:01:32.84,0:01:36.22,JoJo-main,Josu,0,0,0,,Eso significa que es cauteloso.
+Dialogue: 0,0:01:36.22,0:01:38.66,JoJo-main,Josu,0,0,0,,Cuando los de su tipo atacan,
+Dialogue: 0,0:01:39.14,0:01:42.68,JoJo-main,Josu,0,0,0,,es porque tienen\Nla certeza de que ganarán.
+Dialogue: 0,0:01:46.77,0:01:48.96,JoJo-main,Oku,0,0,0,,Oye, ese es Koichi.
+Dialogue: 0,0:01:48.96,0:01:52.34,JoJo-main,Josu,0,0,0,,¿Intenta hacerse el guay bebiendo té?
+Dialogue: 0,0:01:52.34,0:01:54.09,JoJo-main,Oku,0,0,0,,Oye, Ko…
+Dialogue: 0,0:01:59.16,0:02:01.93,JoJo-main,Oku,0,0,0,,¡¿Una chica?!
+Dialogue: 0,0:02:17.47,0:02:19.86,JoJo-MainTitle,Title,0,0,0,,{\fad(236,106)}Las extrañas aventuras de JoJo
+Dialogue: 0,0:02:17.47,0:02:19.86,JoJo-MainTitle2,Title,0,0,0,,{\fad(1,106)}El diamante es irrompible
+Dialogue: 0,0:02:21.37,0:02:25.00,Part 4 OP Japanese,,0,0,0,,{\k24}{\1c&H94D6DE&}{\fad(100,100)\2c&H94D6DE&} {\k16}su{\k16}re{\k21}chi{\k20}ga{\k23}tte{\k42}ku {\k24}kao {\k23}no {\k37}nai {\k18}shi{\k99}sen
+Dialogue: 0,0:02:21.37,0:02:25.00,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Cuando veo las caras de indiferencia pasar de mi
+Dialogue: 1,0:02:21.61,0:02:21.77,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 1] \an5\pos(597.73,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}su
+Dialogue: 1,0:02:21.77,0:02:21.93,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 2] \an5\pos(650.72,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}re
+Dialogue: 1,0:02:21.93,0:02:22.14,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 3] \an5\pos(710.49,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}chi
+Dialogue: 1,0:02:22.14,0:02:22.34,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 4] \an5\pos(776.07,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ga
+Dialogue: 1,0:02:22.34,0:02:22.57,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 5] \an5\pos(843.08,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}tte
+Dialogue: 1,0:02:22.57,0:02:22.99,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 6] \an5\pos(912.46,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ku
+Dialogue: 1,0:02:22.99,0:02:23.23,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 7] \an5\pos(1003.63,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}kao
+Dialogue: 1,0:02:23.23,0:02:23.46,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 8] \an5\pos(1087.93,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:23.46,0:02:23.83,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 9] \an5\pos(1161.14,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}nai
+Dialogue: 1,0:02:23.83,0:02:24.01,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 10] \an5\pos(1247.8,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}shi
+Dialogue: 1,0:02:24.01,0:02:25.00,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 50 - line fx: 11] \an5\pos(1325.6,51)\1c&H94D6DE&\4a&H00&\4c&H54AAB5&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}sen
+Dialogue: 0,0:02:25.00,0:02:28.51,Part 4 OP Japanese,,0,0,0,,{\k23}{\1c&HEF61E5&}{\fad(100,100)\2c&HEF61E5&} {\k9}mu{\k13}ne {\k25}no {\k17}a{\k21}na {\k47}ga {\k23}kae{\k21}te{\k24}tta {\k18}ni{\k40}chi{\k70}jou
+Dialogue: 0,0:02:25.00,0:02:28.51,Part 4 OP Español,,0,0,0,,{\fad(100,100)}El hueco en mi pecho me recuerda lo mucho que ha cambiado mi vida
+Dialogue: 1,0:02:25.23,0:02:25.32,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 1] \an5\pos(610.25,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mu
+Dialogue: 1,0:02:25.32,0:02:25.45,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 2] \an5\pos(664.84,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ne
+Dialogue: 1,0:02:25.45,0:02:25.70,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 3] \an5\pos(727.34,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:25.70,0:02:25.87,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 4] \an5\pos(780.73,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}a
+Dialogue: 1,0:02:25.87,0:02:26.08,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 5] \an5\pos(822.41,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}na
+Dialogue: 1,0:02:26.08,0:02:26.55,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 6] \an5\pos(891.51,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ga
+Dialogue: 1,0:02:26.55,0:02:26.78,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 7] \an5\pos(979.89,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}kae
+Dialogue: 1,0:02:26.78,0:02:26.99,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 8] \an5\pos(1051.06,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}te
+Dialogue: 1,0:02:26.99,0:02:27.23,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 9] \an5\pos(1116.31,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}tta
+Dialogue: 1,0:02:27.23,0:02:27.41,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 10] \an5\pos(1189.32,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ni
+Dialogue: 1,0:02:27.41,0:02:27.81,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 11] \an5\pos(1245.44,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}chi
+Dialogue: 1,0:02:27.81,0:02:28.51,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 51 - line fx: 12] \an5\pos(1317.54,51)\1c&HEF61E5&\4a&H00&\4c&HB537AB&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}jou
+Dialogue: 0,0:02:28.51,0:02:35.64,Part 4 OP Japanese,,0,0,0,,{\k28}{\1c&H77FFE8&}{\fad(100,100)\2c&H77FFE8&} {\k18}kyou{\k18}kai {\k25}nan{\k25}te {\k23}na{\k22}ku{\k23}te{\k22}a{\k42}ru {\k22}a{\k22}ta{\k15}ri{\k29}mae {\k27}no {\k17}ki{\k56}myou,{\k82} {\k15}oh {\k182}yeah!
+Dialogue: 0,0:02:28.51,0:02:35.64,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Mi falta de límites es solo porque estoy siendo mi yo bizarro habitual, oh yeah!
+Dialogue: 1,0:02:28.79,0:02:28.97,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 1] \an5\pos(384.3,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}kyou
+Dialogue: 1,0:02:28.97,0:02:29.15,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 2] \an5\pos(479.19,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}kai
+Dialogue: 1,0:02:29.15,0:02:29.40,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 3] \an5\pos(571.41,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}nan
+Dialogue: 1,0:02:29.40,0:02:29.65,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 4] \an5\pos(634.49,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}te
+Dialogue: 1,0:02:29.65,0:02:29.88,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 5] \an5\pos(699.75,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}na
+Dialogue: 1,0:02:29.88,0:02:30.10,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 6] \an5\pos(757.84,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ku
+Dialogue: 1,0:02:30.10,0:02:30.33,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 7] \an5\pos(814.93,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}te
+Dialogue: 1,0:02:30.33,0:02:30.55,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 8] \an5\pos(855.6,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}a
+Dialogue: 1,0:02:30.55,0:02:30.97,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 9] \an5\pos(895.48,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ru
+Dialogue: 1,0:02:30.97,0:02:31.19,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 10] \an5\pos(948.73,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}a
+Dialogue: 1,0:02:31.19,0:02:31.41,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 11] \an5\pos(991.49,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ta
+Dialogue: 1,0:02:31.41,0:02:31.56,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 12] \an5\pos(1037.96,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ri
+Dialogue: 1,0:02:31.56,0:02:31.85,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 13] \an5\pos(1101.22,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mae
+Dialogue: 1,0:02:31.85,0:02:32.12,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 14] \an5\pos(1183.68,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:32.12,0:02:32.29,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 15] \an5\pos(1247.79,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ki
+Dialogue: 1,0:02:32.29,0:02:32.85,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 16] \an5\pos(1334.19,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}myou,
+Dialogue: 1,0:02:33.67,0:02:33.82,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 17] \an5\pos(1435.98,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}oh
+Dialogue: 1,0:02:33.82,0:02:35.64,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 52 - line fx: 18] \an5\pos(1540.04,51)\1c&H77FFE8&\4a&H00&\4c&H42D6C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}yeah!
+Dialogue: 0,0:02:35.64,0:02:38.98,Part 4 OP Japanese,,0,0,0,,{\k17}{\1c&HFA9C7F&}{\fad(100,100)\2c&HFA9C7F&} {\k22}(itsu{\k22}mo{\k23}do{\k22}ri {\k24}no {\k33}asa {\k23}ga) {\k43}uwa{\k25}tsu{\k29}ra {\k16}de {\k17}wa{\k18}rau
+Dialogue: 0,0:02:35.64,0:02:38.98,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Con el amanecer de cada día, pongo una falsa sonrisa
+Dialogue: 1,0:02:35.81,0:02:36.03,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 1] \an5\pos(525.54,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}(itsu
+Dialogue: 1,0:02:36.03,0:02:36.25,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 2] \an5\pos(615.96,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mo
+Dialogue: 1,0:02:36.25,0:02:36.48,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 3] \an5\pos(673.76,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}do
+Dialogue: 1,0:02:36.48,0:02:36.70,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 4] \an5\pos(721.02,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ri
+Dialogue: 1,0:02:36.70,0:02:36.94,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 5] \an5\pos(778.11,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:36.94,0:02:37.27,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 6] \an5\pos(861.94,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}asa
+Dialogue: 1,0:02:37.27,0:02:37.50,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 7] \an5\pos(959.18,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ga)
+Dialogue: 1,0:02:37.50,0:02:37.93,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 8] \an5\pos(1058.16,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}uwa
+Dialogue: 1,0:02:37.93,0:02:38.18,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 9] \an5\pos(1147.36,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}tsu
+Dialogue: 1,0:02:38.18,0:02:38.47,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 10] \an5\pos(1214.73,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ra
+Dialogue: 1,0:02:38.47,0:02:38.63,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 11] \an5\pos(1281.55,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}de
+Dialogue: 1,0:02:38.63,0:02:38.80,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 12] \an5\pos(1355.91,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}wa
+Dialogue: 1,0:02:38.80,0:02:38.98,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 53 - line fx: 13] \an5\pos(1428.88,51)\1c&HFA9C7F&\4a&H00&\4c&HBD6C51&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}rau
+Dialogue: 0,0:02:38.98,0:02:42.65,Part 4 OP Japanese,,0,0,0,,{\k24}{\1c&HA971ED&}{\fad(100,100)\4c&HA971ED&\2c&HA971ED&} {\k27}(shou{\k28}hai {\k22}fu{\k23}mei {\k21}no {\k14}ma{\k16}mani) {\k27}hika{\k84}re{\k11}ru {\k70}mystery
+Dialogue: 0,0:02:38.98,0:02:42.65,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Aunque me esperan batallas desconocidas, su misterio me obliga
+Dialogue: 1,0:02:39.22,0:02:39.49,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 1] \an5\pos(528.71,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}(shou
+Dialogue: 1,0:02:39.49,0:02:39.77,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 2] \an5\pos(634.97,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}hai
+Dialogue: 1,0:02:39.77,0:02:39.99,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 3] \an5\pos(711.81,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}fu
+Dialogue: 1,0:02:39.99,0:02:40.22,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 4] \an5\pos(774.71,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mei
+Dialogue: 1,0:02:40.22,0:02:40.43,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 5] \an5\pos(850.55,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:40.43,0:02:40.57,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 6] \an5\pos(919.86,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ma
+Dialogue: 1,0:02:40.57,0:02:40.73,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 7] \an5\pos(1010.92,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mani)
+Dialogue: 1,0:02:40.73,0:02:41.00,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 8] \an5\pos(1139.8,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}hika
+Dialogue: 1,0:02:41.00,0:02:41.84,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 9] \an5\pos(1218.89,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}re
+Dialogue: 1,0:02:41.84,0:02:41.95,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 10] \an5\pos(1267,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ru
+Dialogue: 1,0:02:41.95,0:02:42.65,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 54 - line fx: 11] \an5\pos(1388.84,51)\1c&HA971ED&\4a&H00&\4c&H8646CE&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mystery
+Dialogue: 0,0:02:42.65,0:02:46.08,Part 4 OP Japanese,,0,0,0,,{\k19}{\1c&H7EFF9E&}{\fad(100,0)\2c&H7EFF9E&} {\k14}(ha{\k10}ji{\k22}ma{\k24}ri {\k17}mo {\k14}i{\k33}wazu) {\k22}ji{\k13}tto {\k44}hi{\k50}son{\k32}de{\k29}ru
+Dialogue: 0,0:02:42.65,0:02:46.48,Part 4 OP Español,,0,0,0,,{\fad(100,0)}Una amenaza oculta ha despertado
+Dialogue: 1,0:02:42.84,0:02:42.98,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 1] \an5\pos(591.65,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}(ha
+Dialogue: 1,0:02:42.98,0:02:43.08,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 2] \an5\pos(648.36,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ji
+Dialogue: 1,0:02:43.08,0:02:43.30,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 3] \an5\pos(696.07,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ma
+Dialogue: 1,0:02:43.30,0:02:43.54,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 4] \an5\pos(746.18,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ri
+Dialogue: 1,0:02:43.54,0:02:43.71,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 5] \an5\pos(807.99,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mo
+Dialogue: 1,0:02:43.71,0:02:43.85,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 6] \an5\pos(859.48,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}i
+Dialogue: 1,0:02:43.85,0:02:44.18,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 7] \an5\pos(934.69,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}wazu)
+Dialogue: 1,0:02:44.18,0:02:44.40,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 8] \an5\pos(1031.21,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ji
+Dialogue: 1,0:02:44.40,0:02:44.53,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 9] \an5\pos(1085.91,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}tto
+Dialogue: 1,0:02:44.53,0:02:44.97,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 10] \an5\pos(1160.46,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}hi
+Dialogue: 1,0:02:44.97,0:02:45.47,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 11] \an5\pos(1223.47,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}son
+Dialogue: 1,0:02:45.47,0:02:45.79,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 12] \an5\pos(1291.33,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}de
+Dialogue: 1,0:02:45.79,0:02:46.08,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 55 - line fx: 13] \an5\pos(1343.86,51)\1c&H7EFF9E&\4a&H00&\4c&H53CC73&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ru
+Dialogue: 0,0:02:46.07,0:02:50.24,Part 4 OP Japanese,,0,0,0,,{\k10}{\1c&HEEFF83&}{\fad(0,100)\2c&HEEFF83&} {\k17}ko{\k25}no {\k21}ma{\k25}chi {\k24}no {\k44}do{\k44}ko{\k207}ka
+Dialogue: 1,0:02:46.17,0:02:46.34,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 1] \an5\pos(737.83,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ko
+Dialogue: 1,0:02:46.34,0:02:46.59,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 2] \an5\pos(793.51,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 0,0:02:46.48,0:02:50.24,Part 4 OP Español,,0,0,0,,{\fad(0,100)}acechando en algún lugar de esta ciudad
+Dialogue: 1,0:02:46.59,0:02:46.80,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 3] \an5\pos(862.82,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ma
+Dialogue: 1,0:02:46.80,0:02:47.05,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 4] \an5\pos(930.27,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}chi
+Dialogue: 1,0:02:47.05,0:02:47.29,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 5] \an5\pos(1004.71,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}no
+Dialogue: 1,0:02:47.29,0:02:47.73,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 6] \an5\pos(1071.17,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}do
+Dialogue: 1,0:02:47.73,0:02:48.17,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 7] \an5\pos(1130.39,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ko
+Dialogue: 1,0:02:48.17,0:02:50.24,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 56 - line fx: 8] \an5\pos(1193.88,51)\1c&HEEFF83&\4a&H00&\4c&HBCCE4B&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ka
+Dialogue: 0,0:02:51.82,0:02:55.41,Part 4 OP Japanese,,0,0,0,,{\k25}{\1c&HFC5EEE&}{\fad(100,100)\2c&HFC5EEE&} {\k28}da{\k24}ke{\k19}do {\k46}kyou {\k36}mo {\k26}jo{\k39}jo {\k116}ni
+Dialogue: 0,0:02:51.82,0:02:55.41,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Pero por hoy, bromearemos juntos
+Dialogue: 1,0:02:52.07,0:02:52.35,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 1] \an5\pos(735.14,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}da
+Dialogue: 1,0:02:52.35,0:02:52.59,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 2] \an5\pos(795.6,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ke
+Dialogue: 1,0:02:52.59,0:02:52.78,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 3] \an5\pos(854.4,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}do
+Dialogue: 1,0:02:52.78,0:02:53.24,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 4] \an5\pos(949.76,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}kyou
+Dialogue: 1,0:02:53.24,0:02:53.60,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 5] \an5\pos(1046.32,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mo
+Dialogue: 1,0:02:53.60,0:02:53.86,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 6] \an5\pos(1110.68,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}jo
+Dialogue: 1,0:02:53.86,0:02:54.25,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 7] \an5\pos(1153.69,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}jo
+Dialogue: 1,0:02:54.25,0:02:55.41,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 57 - line fx: 8] \an5\pos(1208.39,51)\1c&HFC5EEE&\4a&H00&\4c&HCE47C0&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ni
+Dialogue: 0,0:02:55.41,0:02:58.91,Part 4 OP Japanese,,0,0,0,,{\k26}{\1c&HC6FF90&}{\fad(100,100)\2c&HC6FF90&} {\k42}mon{\k23}ku {\k39}nan{\k50}ka {\k20}i{\k48}a{\k102}tte
+Dialogue: 0,0:02:55.41,0:02:58.91,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Así como siempre lo hemos hecho
+Dialogue: 1,0:02:55.67,0:02:56.09,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 1] \an5\pos(789.85,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}mon
+Dialogue: 1,0:02:56.09,0:02:56.32,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 2] \an5\pos(862.2,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ku
+Dialogue: 1,0:02:56.32,0:02:56.71,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 3] \an5\pos(944.88,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}nan
+Dialogue: 1,0:02:56.71,0:02:57.21,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 4] \an5\pos(1015.1,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ka
+Dialogue: 1,0:02:57.21,0:02:57.41,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 5] \an5\pos(1069.67,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}i
+Dialogue: 1,0:02:57.41,0:02:57.89,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 6] \an5\pos(1093.53,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}a
+Dialogue: 1,0:02:57.89,0:02:58.91,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 58 - line fx: 7] \an5\pos(1146.49,51)\1c&HC6FF90&\4a&H00&\4c&H7CB843&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}tte
+Dialogue: 0,0:02:58.91,0:03:02.25,Part 4 OP Japanese,,0,0,0,,{\k27}{\1c&HEDADC5&}{\fad(100,100)\2c&HEDADC5&} {\k17}ni{\k25}chi{\k62}jou {\k47}wo {\k49}o{\k23}do{\k84}ru
+Dialogue: 0,0:02:58.91,0:03:02.25,Part 4 OP Español,,0,0,0,,{\fad(100,100)}Mientras bailamos por la vida
+Dialogue: 1,0:02:59.18,0:02:59.35,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 1] \an5\pos(783.27,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ni
+Dialogue: 1,0:02:59.35,0:02:59.60,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 2] \an5\pos(839.39,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}chi
+Dialogue: 1,0:02:59.60,0:03:00.22,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 3] \an5\pos(911.49,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}jou
+Dialogue: 1,0:03:00.22,0:03:00.69,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 4] \an5\pos(992.1,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}wo
+Dialogue: 1,0:03:00.69,0:03:01.18,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 5] \an5\pos(1050.47,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}o
+Dialogue: 1,0:03:01.18,0:03:01.41,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 6] \an5\pos(1092.34,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}do
+Dialogue: 1,0:03:01.41,0:03:02.25,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 59 - line fx: 7] \an5\pos(1145.29,51)\1c&HEDADC5&\4a&H00&\4c&HCA829C&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}ru
+Dialogue: 0,0:03:02.25,0:03:08.21,Part 4 OP Japanese,,0,0,0,,{\k24}{\1c&HB061F6&}{\fad(100,100)\2c&HB061F6&} {\k82}Crazy {\k82}Noisy{\k16} {\k148}Bizarre {\k244}Town
+Dialogue: 0,0:03:02.25,0:03:08.21,Part 4 OP Español,,0,0,0,,{\fad(100,100)}¡En esta ciudad loca, ruidosa y extraña!
+Dialogue: 1,0:03:02.49,0:03:03.31,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 60 - line fx: 1] \an5\pos(737.28,51)\1c&HB061F6&\4a&H00&\4c&H8032C3&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}Crazy
+Dialogue: 1,0:03:03.31,0:03:04.13,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 60 - line fx: 2] \an5\pos(878.39,51)\1c&HB061F6&\4a&H00&\4c&H8032C3&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}Noisy
+Dialogue: 1,0:03:04.29,0:03:05.77,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 60 - line fx: 3] \an5\pos(1036.07,51)\1c&HB061F6&\4a&H00&\4c&H8032C3&\blur1.2\xshad-15\t(\xshad15)\fscx148.5\fscy135\t(\fscx110\fscy100)}Bizarre
+Dialogue: 1,0:03:05.77,0:03:08.21,Part 4 OP Japanese,hi-light,0,0,0,Effector [fx],{Kara Effector[fx] 3.3: Zoom move Shad VIII AH [line origin: 60 - line fx: 4] \an5\pos(1196.09,51)\1c&HB061F6&\4a&H00&\4c&H8032C3&\blur1.2\xshad15\t(\xshad-15)\fscx148.5\fscy135\t(\fscx110\fscy100)}Town
+Dialogue: 0,0:03:17.81,0:03:22.27,Title Part 4 Episode 2,sign,0,0,0,,{\fad(654,590)\pos(139,880)\fs60}Episodio 8  Yukako Yamagishi está enamorada - Primera parte{\fs80}
+Dialogue: 0,0:03:18.40,0:03:22.60,JoJo-top,Yuka,0,0,0,,Koichi, que te haya\Npedido que vinieras…
+Dialogue: 0,0:03:23.48,0:03:24.89,JoJo-main,Yuka,0,0,0,,¿es una molestia?
+Dialogue: 0,0:03:24.89,0:03:27.24,JoJo-main,Koi,0,0,0,,¿Qué? No es ninguna molestia…
+Dialogue: 0,0:03:27.24,0:03:31.65,JoJo-main,Koi,0,0,0,,Aunque me pregunto por qué lo hiciste.
+Dialogue: 0,0:03:31.65,0:03:34.76,JoJo-main,Josu,0,0,0,,Vaya, Koichi está con una chica…
+Dialogue: 0,0:03:34.76,0:03:38.35,JoJo-main,Oku,0,0,0,,Esa es Yukako Yamagishi,\Nestá en mi clase.
+Dialogue: 0,0:03:38.35,0:03:40.53,JoJo-main,Oku,0,0,0,,¡Bien! ¡Acerquémonos un poco!
+Dialogue: 0,0:03:41.06,0:03:43.94,JoJo-main,Koi,0,0,0,,Si quieres ver mis apuntes o los deberes,
+Dialogue: 0,0:03:43.94,0:03:47.92,JoJo-main,,0,0,0,,te advierto que tengo mala letra,\Ny mis notas no son muy destacables…
+Dialogue: 0,0:03:47.92,0:03:50.83,JoJo-main,Koi,0,0,0,,Si es cuestión de dinero,\Npodría prestarte unos 1,000 yenes.
+Dialogue: 0,0:03:51.29,0:03:54.29,JoJo-main,Koi,0,0,0,,¿O quieres que cubra\Nen los deberes semanales?
+Dialogue: 0,0:03:54.29,0:03:56.25,JoJo-main,Yuka,0,0,0,,No se trata de eso.
+Dialogue: 0,0:03:56.25,0:03:59.47,JoJo-main,Koi,0,0,0,,¿No? ¿De qué se trata, entonces?
+Dialogue: 0,0:03:59.47,0:04:02.18,JoJo-main,Koi,0,0,0,,Si quieres que adopte\Nun perro o un gato,
+Dialogue: 0,0:04:02.18,0:04:04.85,JoJo-main,Koi,0,0,0,,ya tenemos un perro\Nllamado Police en casa.
+Dialogue: 0,0:04:04.85,0:04:06.22,JoJo-main,Yuka,0,0,0,,Koichi.
+Dialogue: 0,0:04:06.81,0:04:08.43,JoJo-main,Yuka,0,0,0,,Te lo diré claramente.
+Dialogue: 0,0:04:09.96,0:04:11.31,JoJo-main,Yuka,0,0,0,,Koichi.
+Dialogue: 0,0:04:12.33,0:04:15.19,JoJo-main,Yuka,0,0,0,,Me gustas, Koichi.
+Dialogue: 0,0:04:15.86,0:04:17.86,JoJo-main,Oku,0,0,0,,¡¿Qué ha dicho?!
+Dialogue: 0,0:04:19.11,0:04:23.17,JoJo-main,Koi,0,0,0,,Pu-pues, verás… ¡¿Co-cómo?!
+Dialogue: 0,0:04:23.17,0:04:27.54,JoJo-main,Yuka,0,0,0,,Me paso los días pensando en ti.
+Dialogue: 0,0:04:27.92,0:04:30.47,JoJo-main,Yuka,0,0,0,,Temía expresarte lo que siento,
+Dialogue: 0,0:04:30.86,0:04:34.92,JoJo-main,Yuka,0,0,0,,pero sentía que mi pecho\Nacabaría estallando si no lo hacía.
+Dialogue: 0,0:04:34.92,0:04:36.85,JoJo-main,Yuka,0,0,0,,No me importa si te desagrado.
+Dialogue: 0,0:04:37.32,0:04:40.63,JoJo-main,,0,0,0,,Pero tenía que reunir\Nel valor para decírtelo.
+Dialogue: 0,0:04:42.43,0:04:45.77,JoJo-internal/narrator,Koi,0,0,0,,¿Qué pasa? ¡¿Se me acaba de declarar?!
+Dialogue: 0,0:04:45.77,0:04:46.93,JoJo-internal/narrator,Koi,0,0,0,,¡¿A mí?!
+Dialogue: 0,0:04:47.39,0:04:50.81,JoJo-internal/narrator,Koi,0,0,0,,No me lo puedo creer,\Npero lo ha hecho, ¿verdad?
+Dialogue: 0,0:04:52.27,0:04:54.56,JoJo-internal/narrator,Koi,0,0,0,,¡Qué felicidad!
+Dialogue: 0,0:04:55.75,0:04:59.84,JoJo-main,Oku,0,0,0,,¿Por qué Koichi? ¡Debe ser mentira!\N¡Tiene que serlo!
+Dialogue: 0,0:04:59.84,0:05:02.59,JoJo-main,Oku,0,0,0,,¡A mí nunca me ha pasado algo así!
+Dialogue: 0,0:05:02.59,0:05:05.12,JoJo-main,Josu,0,0,0,,Tampoco es para llorar.
+Dialogue: 0,0:05:05.12,0:05:09.00,JoJo-main,Josu,0,0,0,,Pero ¿es en serio?\NMe sorprendes, Koichi…
+Dialogue: 0,0:05:09.48,0:05:12.71,JoJo-main,Yuka,0,0,0,,Seguro que ya tienes novia…
+Dialogue: 0,0:05:12.71,0:05:14.96,JoJo-main,Koi,0,0,0,,¿Qué? No tengo…
+Dialogue: 0,0:05:14.96,0:05:18.42,JoJo-main,Koi,0,0,0,,¿No me estarás gastando una broma?
+Dialogue: 0,0:05:18.42,0:05:20.05,JoJo-main,Yuka,0,0,0,,¡Hablo en serio!
+Dialogue: 0,0:05:21.19,0:05:25.36,JoJo-main,Yuka,0,0,0,,Tu rostro se ha vuelto más masculino.
+Dialogue: 0,0:05:25.80,0:05:29.06,JoJo-main,Yuka,0,0,0,,Ahora pareces más valiente y decidido.
+Dialogue: 0,0:05:29.06,0:05:32.19,JoJo-main,Yuka,0,0,0,,Pero también estás mono cuando sonríes.
+Dialogue: 0,0:05:32.19,0:05:35.42,JoJo-main,Josu,0,0,0,,Sí, creo que tiene razón.
+Dialogue: 0,0:05:35.42,0:05:37.61,JoJo-main,Oku,0,0,0,,Yo también soy masculino.
+Dialogue: 0,0:05:37.61,0:05:42.45,JoJo-main,Yuka,0,0,0,,En mi opinión, lo más importante\Nde un hombre es su futuro.
+Dialogue: 0,0:05:42.45,0:05:44.89,JoJo-main,Yuka,0,0,0,,Y, Koichi, tu futuro es deslumbrante.
+Dialogue: 0,0:05:44.89,0:05:48.13,JoJo-main,Koi,0,0,0,,S-si lo pones así…
+Dialogue: 0,0:05:48.63,0:05:52.62,JoJo-main,Yuka,0,0,0,,Seguro que detestas\Na las chicas feas como yo.
+Dialogue: 0,0:05:52.62,0:05:56.63,JoJo-main,Koi,0,0,0,,¿Qué? ¿Dices que eres fea?\NEse no es el caso…
+Dialogue: 0,0:05:56.63,0:05:59.12,JoJo-main,Oku,0,0,0,,Maldición, qué guapa es.
+Dialogue: 0,0:05:59.12,0:06:00.90,JoJo-main,Oku,0,0,0,,¡Acepta de una vez!
+Dialogue: 0,0:06:00.90,0:06:03.51,JoJo-main,,0,0,0,,¡Maldito desgraciado con suerte!
+Dialogue: 0,0:06:04.33,0:06:06.76,JoJo-main,Yuka,0,0,0,,¿Acaso me odias?
+Dialogue: 0,0:06:09.40,0:06:13.39,JoJo-main,Koi,0,0,0,,¿Qué? Pa-para nada, pero…
+Dialogue: 0,0:06:14.09,0:06:15.23,JoJo-main,Yuka,0,0,0,,¿Te gusto?
+Dialogue: 0,0:06:15.23,0:06:19.48,JoJo-main,Koi,0,0,0,,¿Eh? Dame un momento,\N¿cómo te lo explico…?
+Dialogue: 0,0:06:19.82,0:06:21.44,JoJo-main,Yuka,0,0,0,,Sí que me odias.
+Dialogue: 0,0:06:21.44,0:06:23.07,JoJo-main,Koi,0,0,0,,¡No es eso!
+Dialogue: 0,0:06:23.07,0:06:25.82,JoJo-main,,0,0,0,,Pero es que todo esto\Nes muy repentino…
+Dialogue: 0,0:06:25.82,0:06:29.97,JoJo-main,Yuka,0,0,0,,¡Decídete! ¡¿Me amas o no me amas?!
+Dialogue: 0,0:06:29.97,0:06:32.98,JoJo-main,Yuka,0,0,0,,¡Contéstame!\N¡Te he dicho todo lo que siento!
+Dialogue: 0,0:06:33.74,0:06:37.08,JoJo-main,Yuka,0,0,0,,¡He derramado mi café!\N¡Todo por tu culpa!
+Dialogue: 0,0:06:41.35,0:06:45.84,JoJo-main,Yuka,0,0,0,,Me dejé llevar… Pe-perdón, es que…
+Dialogue: 0,0:06:49.15,0:06:52.45,JoJo-main,Yuka,0,0,0,,Por cierto, volveremos a vernos, ¿no?
+Dialogue: 0,0:06:55.23,0:07:00.20,JoJo-main,Oku,0,0,0,,O-oye, me siento\Ncomo un globo desinflado.
+Dialogue: 0,0:07:00.20,0:07:02.96,JoJo-main,Oku,0,0,0,,Mi envidia ha salido\N volando por los aires.
+Dialogue: 0,0:07:02.96,0:07:04.13,JoJo-main,Josu,0,0,0,,S-sí…
+Dialogue: 0,0:07:04.13,0:07:06.45,JoJo-main,Josu,0,0,0,,Dejémoslo solo mientras tanto.
+Dialogue: 0,0:07:12.64,0:07:14.66,JoJo-main,Koi,0,0,0,,¡¿Qué le pasa a mi refresco?!
+Dialogue: 0,0:07:14.66,0:07:18.88,JoJo-main,Koi,0,0,0,,¡Ti-tiene muchísimo pelo dentro!
+Dialogue: 0,0:07:19.30,0:07:22.38,JoJo-main,Josu,0,0,0,,Los usuarios de Stand\Nse atraen entre sí…
+Dialogue: 0,0:07:23.00,0:07:24.46,JoJo-main,Josu,0,0,0,,¿No será…?
+Dialogue: 0,0:07:28.68,0:07:30.23,Episode 8 Typesetting,Sign,0,0,0,,{\pos(511.2,747.8)\frx348\fry36\frz16.47}Laboratorio de química
+Dialogue: 0,0:07:30.23,0:07:30.27,Episode 8 Typesetting,Sign,0,0,0,,{\pos(490,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:30.27,0:07:30.31,Episode 8 Typesetting,Sign,0,0,0,,{\pos(432,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:30.31,0:07:30.35,Episode 8 Typesetting,Sign,0,0,0,,{\pos(338,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:30.35,0:07:30.39,Episode 8 Typesetting,Sign,0,0,0,,{\pos(212,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:30.39,0:07:30.43,Episode 8 Typesetting,Sign,0,0,0,,{\pos(59,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:30.43,0:07:30.48,Episode 8 Typesetting,Sign,0,0,0,,{\pos(-113,747.8)\frx348\fry36\frz16.47}Laboratorio de Química
+Dialogue: 0,0:07:39.62,0:07:40.97,JoJo-main,Yuka,0,0,0,,Soy yo, Koichi.
+Dialogue: 0,0:07:42.83,0:07:44.44,JoJo-main,Koi,0,0,0,,¡Yu-Yukako!
+Dialogue: 0,0:07:45.32,0:07:46.82,JoJo-main,Yuka,0,0,0,,¿Qué haces?
+Dialogue: 0,0:07:46.82,0:07:50.90,JoJo-main,Koi,0,0,0,,Pues, como puedes ver,\Nme toca limpiar el laboratorio.
+Dialogue: 0,0:07:50.90,0:07:53.52,JoJo-main,Koi,0,0,0,,Tuvimos Química a cuarta hora.
+Dialogue: 0,0:07:56.54,0:07:57.96,JoJo-main,Yuka,0,0,0,,Koichi.
+Dialogue: 0,0:07:58.61,0:08:01.83,JoJo-main,Uka,0,0,0,,Ayer dije cosas muy raras…
+Dialogue: 0,0:08:01.83,0:08:03.96,JoJo-main,Yuka,0,0,0,,¿Podrías olvidarlas?
+Dialogue: 0,0:08:04.98,0:08:09.23,JoJo-main,Yuka,0,0,0,,Me pongo así cuando pienso\Ndemasiado las cosas.
+Dialogue: 0,0:08:09.23,0:08:13.97,JoJo-main,Yuka,0,0,0,,Qué vergüenza. Las personas\Ndeberían ser más tolerantes.
+Dialogue: 0,0:08:13.97,0:08:16.22,JoJo-main,Koi,0,0,0,,Ti-tienes razón…
+Dialogue: 0,0:08:16.22,0:08:21.19,JoJo-main,Koi,0,0,0,,Me sorprendí un poco,\Npero no me lo tomé a mal…
+Dialogue: 0,0:08:21.48,0:08:24.94,JoJo-main,Yuka,0,0,0,,¿Podríamos seguir siendo amigos?
+Dialogue: 0,0:08:24.94,0:08:27.82,JoJo-main,Koi,0,0,0,,¡Por supuesto! Sería un placer.
+Dialogue: 0,0:08:29.25,0:08:31.31,JoJo-main,Yuka,0,0,0,,¡Qué alivio!
+Dialogue: 0,0:08:31.31,0:08:35.50,JoJo-main,Yuka,0,0,0,,Me preocupaba tanto que\Nme odiaras que no pude dormir.
+Dialogue: 0,0:08:36.65,0:08:38.17,JoJo-main,Koi,0,0,0,,No exageres.
+Dialogue: 0,0:08:38.17,0:08:42.25,JoJo-main,Yuka,0,0,0,,Así que, para compensártelo…
+Dialogue: 0,0:08:43.04,0:08:47.41,JoJo-main,Yuka,0,0,0,,Me quedé despierta toda la noche\Ntejiendo esto para ti, Koichi.
+Dialogue: 0,0:08:47.41,0:08:50.21,JoJo-main,Yuka,0,0,0,,¡Menos mal! ¡Te queda bien!
+Dialogue: 0,0:08:50.21,0:08:53.88,JoJo-main,Yuka,0,0,0,,Conocía tus medidas, pero no sabía\Nsi te quedaría bien de los hombros.
+Dialogue: 0,0:08:53.65,0:08:56.08,notSFX,Sign,0,0,0,,{\fad(200,1)\frz329\move(909,412,909,564,36,2455)}Amuleto
+Dialogue: 0,0:08:53.88,0:08:55.58,JoJo-main,Yuka,0,0,0,,También te hice un amuleto.
+Dialogue: 0,0:08:55.56,0:08:57.93,JoJo-main,Yuka,0,0,0,,Es para que encuentres el amor.
+Dialogue: 0,0:08:57.93,0:09:03.35,JoJo-main,Yuka,0,0,0,,Por último, preparé un almuerzo\Npara que podamos comer juntos.
+Dialogue: 0,0:09:05.58,0:09:08.03,JoJo-main,Yuka,0,0,0,,Los compré esta mañana\Nen la pescadería.
+Dialogue: 0,0:09:08.03,0:09:10.99,JoJo-main,Yuka,0,0,0,,En el supermercado no hay \Ncamarones tan frescos.
+Dialogue: 0,0:09:11.32,0:09:15.99,JoJo-main,Yuka,0,0,0,,Y le quité todas las espinas al lenguado\Nantes de prepararlo a la Meunière.
+Dialogue: 0,0:09:16.35,0:09:18.11,JoJo-main,Yuka,0,0,0,,Vamos, di "aah".
+Dialogue: 0,0:09:19.12,0:09:21.16,JoJo-internal/narrator,Koi,0,0,0,,Hay algo que no comprendo…
+Dialogue: 0,0:09:21.16,0:09:22.46,JoJo-internal/narrator,Koi,0,0,0,,Yukako Yamagishi…
+Dialogue: 0,0:09:22.46,0:09:25.46,JoJo-internal/narrator,Koi,0,0,0,,Siendo sincero, ¡no es nada normal!
+Dialogue: 0,0:09:26.75,0:09:28.59,JoJo-internal/narrator,Koi,0,0,0,,Tengo que rechazarlo…
+Dialogue: 0,0:09:28.59,0:09:32.02,JoJo-internal/narrator,,0,0,0,,Si me lo como, será como decir que sí…
+Dialogue: 0,0:09:32.02,0:09:33.92,JoJo-internal/narrator,Koi,0,0,0,,Si me niego, podría enfadarse.
+Dialogue: 0,0:09:33.92,0:09:36.39,JoJo-internal/narrator,Koi,0,0,0,,¡¿Qué hago?!
+Dialogue: 0,0:09:36.82,0:09:38.12,JoJo-main,Girl,0,0,0,,¡Hirose!
+Dialogue: 0,0:09:38.12,0:09:40.22,JoJo-main,Girl,0,0,0,,¿Qué haces perdiendo el tiempo?
+Dialogue: 0,0:09:40.22,0:09:43.90,JoJo-main,Girl,0,0,0,,La clase va a comenzar\Nantes de que tires la basura.
+Dialogue: 0,0:09:43.90,0:09:46.20,JoJo-internal/narrator,Koi,0,0,0,,¡Po-por los pelos!
+Dialogue: 0,0:09:46.20,0:09:48.40,JoJo-main,Koi,0,0,0,,¡Es cierto! ¡Es cierto!
+Dialogue: 0,0:09:48.78,0:09:51.34,JoJo-main,Koi,0,0,0,,La tiraré enseguida.
+Dialogue: 0,0:09:52.15,0:09:54.24,JoJo-main,girl,0,0,0,,No tienes remedio.
+Dialogue: 0,0:09:54.24,0:09:55.79,JoJo-main,Girl,0,0,0,,Déjame ayudarte.
+Dialogue: 0,0:09:55.79,0:09:57.12,JoJo-main,Girl,0,0,0,,Llevaré la mitad.
+Dialogue: 0,0:09:57.12,0:09:59.80,JoJo-main,Koi,0,0,0,,¿Qué? No es necesario…
+Dialogue: 0,0:09:59.80,0:10:01.83,JoJo-main,Girl,0,0,0,,¡Vamos, date prisa!
+Dialogue: 0,0:10:01.83,0:10:04.83,JoJo-main,Girl,0,0,0,,Como soy la delegada,\Nluego me regañarán a mí.
+Dialogue: 0,0:10:04.83,0:10:05.39,JoJo-main,,0,0,0,,Jopé.
+Dialogue: 0,0:10:05.39,0:10:06.68,JoJo-main,Koi,0,0,0,,Perdón…
+Dialogue: 0,0:10:18.01,0:10:19.37,JoJo-main,Yuka,0,0,0,,Oye, tú.
+Dialogue: 0,0:10:20.28,0:10:23.14,JoJo-main,Yuka,0,0,0,,¿Dejarías tranquilo a Koichi?
+Dialogue: 0,0:10:23.14,0:10:26.92,JoJo-main,Girl,0,0,0,,¿A Koichi? ¿Hablas de Koichi Hirose?
+Dialogue: 0,0:10:26.92,0:10:30.78,JoJo-main,Girl,0,0,0,,No tengo ni la más mínima idea\Nde lo que hablas.
+Dialogue: 0,0:10:30.78,0:10:32.40,JoJo-main,Yuka,0,0,0,,Sé muy bien lo que planeas.
+Dialogue: 0,0:10:32.40,0:10:35.66,JoJo-main,,0,0,0,,Apestas como un gato\Nbuscando qué robar.
+Dialogue: 0,0:10:35.66,0:10:38.28,JoJo-main,Girl,0,0,0,,¡¿Robar?! ¿De qué hablas?
+Dialogue: 0,0:10:38.55,0:10:42.29,JoJo-main,Yuka,0,0,0,,Escucha, si vuelves\Na acercarte a Koichi,
+Dialogue: 0,0:10:42.29,0:10:45.72,JoJo-main,Yuka,0,0,0,,te aseguro que lo lamentarás.
+Dialogue: 0,0:10:48.13,0:10:49.75,JoJo-main,Girl,0,0,0,,Un momento.
+Dialogue: 0,0:10:49.75,0:10:51.63,JoJo-main,Girl,0,0,0,,Intenté ser educada, pero…
+Dialogue: 0,0:10:51.63,0:10:53.13,JoJo-main,Girl,0,0,0,,¿Koichi Hirose?
+Dialogue: 0,0:10:53.48,0:10:56.01,JoJo-main,Girl,0,0,0,,No podría interesarme menos.
+Dialogue: 0,0:10:56.01,0:11:00.64,JoJo-main,Girl,0,0,0,,¡Y no eres quién para decirme\Nqué puedo hacer y qué no!
+Dialogue: 0,0:11:00.64,0:11:01.76,JoJo-main,Girl,0,0,0,,¡Idiota!
+Dialogue: 0,0:11:02.35,0:11:04.26,JoJo-main,Girl,0,0,0,,¡Qué dolor!
+Dialogue: 0,0:11:06.17,0:11:08.21,JoJo-main,Girl,0,0,0,,¿Qué fue eso?
+Dialogue: 0,0:11:09.96,0:11:11.73,JoJo-main,Girl,0,0,0,,¡¿Qué demonios le pasa?!
+Dialogue: 0,0:11:11.99,0:11:15.32,JoJo-main,Girl,0,0,0,,Está mal de la cabeza.\N¿De verdad le gusta Koichi?
+Dialogue: 0,0:11:15.32,0:11:18.99,JoJo-main,Girl,0,0,0,,Qué gracioso, se lo contaré\Na toda la escuela.
+Dialogue: 0,0:11:21.76,0:11:23.87,JoJo-main,Girl,0,0,0,,¿Qué es eso?
+Dialogue: 0,0:11:25.66,0:11:29.17,JoJo-main,Girl,0,0,0,,Hace calor… Es extraño.
+Dialogue: 0,0:11:29.17,0:11:30.90,JoJo-main,,0,0,0,,Algo anda mal…
+Dialogue: 0,0:11:31.68,0:11:33.88,JoJo-main,Girl,0,0,0,,Siento mucho calor…
+Dialogue: 0,0:11:39.30,0:11:40.89,JoJo-main,Girl,0,0,0,,¡A-agua!
+Dialogue: 0,0:11:44.43,0:11:47.39,JoJo-main,Girl,0,0,0,,¡Socorro! ¡Que alguien…!
+Dialogue: 0,0:11:56.43,0:11:58.11,JoJo-main,Oku,0,0,0,,Oye, Josuke.
+Dialogue: 0,0:11:59.08,0:12:03.28,JoJo-main,Oku,0,0,0,,Al final Yukako Yamagishi sí\N que era una usuaria de Stand.
+Dialogue: 0,0:12:03.28,0:12:05.87,JoJo-main,Oku,0,0,0,,Un Stand que controla su pelo.
+Dialogue: 0,0:12:05.87,0:12:11.88,JoJo-main,Josu,0,0,0,,Sí. Pero no me parece que vaya a atacar\Na Koichi o que sea una enemiga…
+Dialogue: 0,0:12:11.88,0:12:16.84,JoJo-main,Josu,0,0,0,,Por cierto, Okuyasu,\N¿qué harás con su cabeza?
+Dialogue: 0,0:12:16.84,0:12:21.89,JoJo-main,Josu,0,0,0,,No puedo arreglar lo que\Nhiciste desaparecer con The Hand.
+Dialogue: 0,0:12:22.82,0:12:26.74,JoJo-main,Oku,0,0,0,,Debería agradecer\Nque la haya salvado de morir quemada.
+Dialogue: 0,0:12:26.74,0:12:29.77,JoJo-main,Oku,0,0,0,,Lo siento, pero no soy peluquero.
+Dialogue: 0,0:12:41.29,0:12:41.37,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}E
+Dialogue: 0,0:12:41.37,0:12:41.50,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Ech
+Dialogue: 0,0:12:41.50,0:12:41.58,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echo
+Dialogue: 0,0:12:41.58,0:12:41.79,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echoes
+Dialogue: 0,0:12:41.79,0:12:41.87,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echoes A
+Dialogue: 0,0:12:41.87,0:12:42.00,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echoes AC
+Dialogue: 0,0:12:42.00,0:12:42.08,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echoes ACT
+Dialogue: 0,0:12:42.08,0:12:44.00,Eyecatch - Left,Signtop,0,0,0,,{\pos(1456,350)}Echoes ACT1
+Dialogue: 0,0:12:42.58,0:12:42.71,Eyecatch - Left,Signbot,0,0,0,,{\pos(81,794)}Hiro
+Dialogue: 0,0:12:42.71,0:12:42.83,Eyecatch - Left,Signbot,0,0,0,,{\pos(81,794)}Hirose
+Dialogue: 0,0:12:42.71,0:12:44.00,Eyecatch - Stats,sign bot,0,0,0,,{\an7\fad(300,0)\pos(48,31)}Poder: E \NVelocidad: E \NRango: B \NResistencia: B \NPrecisión: C \NPotencial de Desarrollo: A
+Dialogue: 0,0:12:42.83,0:12:42.96,Eyecatch - Left,Signbot,0,0,0,,{\pos(81,794)}Hirose Ko
+Dialogue: 0,0:12:42.96,0:12:44.00,Eyecatch - Left,Signbot,0,0,0,,{\pos(81,794)}Hirose Koichi
+Dialogue: 0,0:12:45.59,0:12:47.96,JoJo-main,Koi,0,0,0,,¿Qué se supone que voy a hacer?
+Dialogue: 0,0:12:47.20,0:12:50.46,sign_18397_211_Year_1____Englis,Sign,0,0,0,,Primero         Examen de inglés
+Dialogue: 0,0:12:47.20,0:12:50.46,sign_18397_212_Quiz_2_______Koi,Sign,0,0,0,,2° examen       Koichi Hirose
+Dialogue: 0,0:12:47.96,0:12:50.46,JoJo-main,Koi,0,0,0,,Es mi último examen de Inglés.
+Dialogue: 0,0:12:51.62,0:12:55.76,JoJo-main,Koi,0,0,0,,Yukako me tenía tan preocupado\Nque no pude concentrarme.
+Dialogue: 0,0:12:55.76,0:12:59.72,JoJo-main,Oku,0,0,0,,Te gané, y eso que solo saqué 32 puntos.
+Dialogue: 0,0:13:00.00,0:13:05.30,JoJo-main,Koi,0,0,0,,A decir verdad, el asunto\Nme alegró un poco al principio.
+Dialogue: 0,0:13:05.30,0:13:09.08,JoJo-main,Koi,0,0,0,,Nunca se me había declarado una chica.
+Dialogue: 0,0:13:09.08,0:13:14.31,JoJo-main,Oku,0,0,0,,Te comprendo, cuánto te comprendo.\NTe comprendo tanto que duele.
+Dialogue: 0,0:13:14.31,0:13:18.42,JoJo-main,Koi,0,0,0,,Pero esto es culpa mía\Npor no ser tan claro como debía.
+Dialogue: 0,0:13:18.42,0:13:21.66,JoJo-main,Koi,0,0,0,,Tengo que decírselo directamente.
+Dialogue: 0,0:13:21.66,0:13:25.09,JoJo-main,Koi,0,0,0,,Que no me gusta y que me deje tranquilo.
+Dialogue: 0,0:13:25.09,0:13:27.16,JoJo-main,Josu,0,0,0,,No es una buena idea, Koichi.
+Dialogue: 0,0:13:27.16,0:13:32.53,JoJo-main,Josu,0,0,0,,Si le dices eso, solo alimentarás\Nlas llamas de la pasión de Yukako.
+Dialogue: 0,0:13:32.53,0:13:34.16,JoJo-main,Josu,0,0,0,,La cabrearás.
+Dialogue: 0,0:13:35.41,0:13:37.04,JoJo-main,Koi,0,0,0,,¿De verdad?
+Dialogue: 0,0:13:37.04,0:13:39.52,JoJo-main,Josu,0,0,0,,¡Por supuesto! Escucha.
+Dialogue: 0,0:13:39.52,0:13:44.92,JoJo-main,,0,0,0,,La convenceremos para que no haga \Nmal uso de su stand que controla el pelo.
+Dialogue: 0,0:13:44.92,0:13:50.44,JoJo-main,Josu,0,0,0,,Ahora necesitamos encontrar\Nun modo de hacer que te no te odie.
+Dialogue: 0,0:13:50.44,0:13:52.31,JoJo-main,Koi,0,0,0,,Pero ¿cómo?
+Dialogue: 0,0:13:52.74,0:13:55.79,JoJo-main,Josu,0,0,0,,Por mucho que le gustes,
+Dialogue: 0,0:13:55.79,0:14:00.63,JoJo-main,Josu,0,0,0,,si logramos que piense que \Neres un patán, torpe e inútil,
+Dialogue: 0,0:14:00.63,0:14:03.16,JoJo-main,Josu,0,0,0,,se arreglará todo, ¿no?
+Dialogue: 0,0:14:03.16,0:14:04.39,JoJo-main,Koi,0,0,0,,S-sí…
+Dialogue: 0,0:14:04.39,0:14:08.52,JoJo-main,Josu,0,0,0,,Así que tendrás que hacerle\Nver que eres así.
+Dialogue: 0,0:14:08.52,0:14:11.29,JoJo-main,Oku,0,0,0,,¡Ya veo! ¡Tiene sentido!
+Dialogue: 0,0:14:11.29,0:14:12.82,JoJo-main,Oku,0,0,0,,¡Qué listo eres!
+Dialogue: 0,0:14:12.82,0:14:14.24,JoJo-main,Josu,0,0,0,,Gracias, gracias.
+Dialogue: 0,0:14:14.24,0:14:16.87,JoJo-main,Josu,0,0,0,,Aunque no me alegran\Nmucho tus cumplidos.
+Dialogue: 0,0:14:16.87,0:14:21.21,JoJo-main,Koi,0,0,0,,¿Qué tendré que hacer\Npara hacerla cambiar de parecer?
+Dialogue: 0,0:14:21.47,0:14:26.84,JoJo-main,Josu,0,0,0,,Las chicas suelen detestar a los niños de\Nmamá y a los chicos que no cuidan su higiene.
+Dialogue: 0,0:14:26.84,0:14:29.11,JoJo-main,Koi,0,0,0,,¡No seré un niño de mamá!
+Dialogue: 0,0:14:29.11,0:14:32.39,JoJo-main,Koi,0,0,0,,¡Podría guardarle rencor\Na mi madre y hacerle daño!
+Dialogue: 0,0:14:32.39,0:14:34.61,JoJo-main,Oku,0,0,0,,Pues tendrás que ser un cerdo.
+Dialogue: 0,0:14:34.61,0:14:36.40,JoJo-main,Oku,0,0,0,,Dejarás de bañarte hoy mismo.
+Dialogue: 0,0:14:37.04,0:14:40.66,JoJo-main,Josu,0,0,0,,Sí, no te cepillarás los dientes\Nni te cambiarás de ropa interior.
+Dialogue: 0,0:14:40.66,0:14:43.78,JoJo-main,Oku,0,0,0,,¿Y si crías pulgas\Ny piojos en tu cabeza?
+Dialogue: 0,0:14:43.78,0:14:45.90,JoJo-main,Josu,0,0,0,,Los calcetines apestosos también sirven.
+Dialogue: 0,0:14:45.90,0:14:47.72,JoJo-main,Oku,0,0,0,,¿Y si te tiras pedos en público?
+Dialogue: 0,0:14:47.72,0:14:49.45,JoJo-main,Josu,0,0,0,,Con eso lo detestará.
+Dialogue: 0,0:14:49.45,0:14:52.86,JoJo-main,Koi,0,0,0,,¡Menos bromas! ¡Esto es un asunto serio!
+Dialogue: 0,0:14:52.86,0:14:54.97,JoJo-main,Oku,0,0,0,,¡Nos lo tomamos en serio!
+Dialogue: 0,0:14:54.97,0:14:56.96,JoJo-main,,0,0,0,,¡Tendrás que babear y moquear!
+Dialogue: 0,0:14:59.15,0:15:02.96,JoJo-main,Josu,0,0,0,,Si no quieres hacer todo eso,\Ntendrás que volverte
+Dialogue: 0,0:15:02.96,0:15:05.85,JoJo-main,,0,0,0,,un chico que no parezca tener futuro.
+Dialogue: 0,0:15:07.62,0:15:10.35,JoJo-main,Josu,0,0,0,,Tienes que hacer que se olvide de ti.
+Dialogue: 0,0:15:11.60,0:15:14.61,JoJo-main,Josu,0,0,0,,Te ayudaremos, ¿vale?
+Dialogue: 0,0:15:21.78,0:15:26.78,JoJo-main,Josu,0,0,0,,¿Que Koichi Hirose hizo qué?\NNo lo puedo creer.
+Dialogue: 0,0:15:26.78,0:15:30.23,JoJo-main,Josu,0,0,0,,¿De verdad robó en una tienda?\NEs lo peor.
+Dialogue: 0,0:15:30.23,0:15:32.79,JoJo-main,Oku,0,0,0,,¡Sí! Él mismo lo dijo.
+Dialogue: 0,0:15:32.79,0:15:36.57,JoJo-main,Oku,0,0,0,,Y presumía mientras me lo contaba.
+Dialogue: 0,0:15:36.57,0:15:40.61,JoJo-main,Josu,0,0,0,,A todo esto, Koichi nunca\Ncumple sus promesas.
+Dialogue: 0,0:15:40.61,0:15:43.42,JoJo-main,Josu,0,0,0,,Cuando le presté dinero,\Nnunca me lo devolvió.
+Dialogue: 0,0:15:43.42,0:15:47.41,JoJo-main,Oku,0,0,0,,Hace trampa en los exámenes\Ny roba ropa interior a las chicas.
+Dialogue: 0,0:15:47.41,0:15:50.92,JoJo-main,Oku,0,0,0,,No tiene futuro. Es muy tóxico.
+Dialogue: 0,0:15:50.92,0:15:52.69,JoJo-main,Josu,0,0,0,,Dejaré de juntarme con él.
+Dialogue: 0,0:15:52.69,0:15:54.43,JoJo-main,Oku,0,0,0,,Creo que yo también.
+Dialogue: 0,0:16:00.54,0:16:03.95,JoJo-main,Oku,0,0,0,,Estar cerca de ella es muy estresante.
+Dialogue: 0,0:16:03.95,0:16:07.90,JoJo-main,Josu,0,0,0,,Cuando Koichi le diga que hizo todo eso,
+Dialogue: 0,0:16:07.90,0:16:10.70,JoJo-main,Josu,0,0,0,,se olvidará de él.
+Dialogue: 0,0:16:15.48,0:16:17.91,JoJo-main,Koi,0,0,0,,Josuke, Okuyasu…
+Dialogue: 0,0:16:17.91,0:16:21.17,JoJo-main,Koi,0,0,0,,Espero que todo haya salido bien.
+Dialogue: 0,0:16:23.34,0:16:27.44,JoJo-main,Koi,0,0,0,,Desearía que se olvidara de mí.
+Dialogue: 0,0:16:37.31,0:16:39.18,JoJo-internal/narrator,Koi,0,0,0,,¿Qué es eso?
+Dialogue: 0,0:16:40.17,0:16:43.86,JoJo-internal/narrator,Koi,0,0,0,,Tengo los ojos cerrados…\N¿Será un sueño?
+Dialogue: 0,0:16:44.71,0:16:46.45,JoJo-internal/narrator,Koi,0,0,0,,¿Una mujer…?
+Dialogue: 0,0:16:48.08,0:16:50.45,JoJo-internal/narrator,Koi,0,0,0,,¡Es Yukako!
+Dialogue: 0,0:16:52.10,0:16:56.81,JoJo-internal/narrator,Koi,0,0,0,,No lo puedo creer.\NIncluso aparece en mis sueños…
+Dialogue: 0,0:16:56.81,0:17:00.22,JoJo-internal/narrator,Koi,0,0,0,,¡No puedo descansar ni un solo momento!
+Dialogue: 0,0:17:10.00,0:17:14.83,JoJo-main,Yuka,0,0,0,,Parece que tus amigos no tienen\Nuna buena opinión de ti, Koichi.
+Dialogue: 0,0:17:20.38,0:17:23.35,JoJo-main,Yuka,0,0,0,,Descuida, cuentas con mi apoyo.
+Dialogue: 0,0:17:23.35,0:17:27.73,JoJo-main,Yuka,0,0,0,,Te disciplinaré para convertirte\Nen un hombre hecho y derecho.
+Dialogue: 0,0:17:28.27,0:17:31.89,JoJo-main,Yuka,0,0,0,,Tienes algo que el resto\Nde los hombres no.
+Dialogue: 0,0:17:31.89,0:17:35.20,JoJo-main,Yuka,0,0,0,,No puedes desperdiciar tu potencial.
+Dialogue: 0,0:17:36.21,0:17:40.46,JoJo-internal/narrator,Koi,0,0,0,,¡Jo-Josuke! ¡Nos salió\Nel tiro por la culata!
+Dialogue: 0,0:17:52.88,0:17:55.65,JoJo-internal/narrator,Koi,0,0,0,,¿Dónde estoy?
+Dialogue: 0,0:18:08.87,0:18:11.13,JoJo-main,Yuka,0,0,0,,Koichi, ¿tienes hambre?
+Dialogue: 0,0:18:11.13,0:18:13.15,JoJo-main,Yuka,0,0,0,,Ya casi he terminado el desayuno.
+Dialogue: 0,0:18:13.15,0:18:15.16,JoJo-main,Koi,0,0,0,,Bi-bien…
+Dialogue: 0,0:18:16.07,0:18:18.91,JoJo-internal/narrator,Koi,0,0,0,,Tiene su Stand de pelo…
+Dialogue: 0,0:18:18.91,0:18:22.24,JoJo-internal/narrator,Koi,0,0,0,,Debo encontrar\Nuna oportunidad para huir.
+Dialogue: 0,0:18:23.41,0:18:24.82,JoJo-internal/narrator,Koi,0,0,0,,¡No tengo opción!
+Dialogue: 0,0:18:25.38,0:18:28.67,JoJo-main,Koi,0,0,0,,Ha-hay algo que quiero preguntarte.
+Dialogue: 0,0:18:28.67,0:18:29.66,JoJo-main,Yuka,0,0,0,,¿Sí?
+Dialogue: 0,0:18:29.66,0:18:33.67,JoJo-main,Koi,0,0,0,,¿Qué fue lo que hiciste\Ncon tu pelo anoche?
+Dialogue: 0,0:18:33.67,0:18:34.80,JoJo-main,Yuka,0,0,0,,¿Te asusté?
+Dialogue: 0,0:18:35.18,0:18:38.72,JoJo-main,Yuka,0,0,0,,Por supuesto, cualquiera\Nse sorprendería al verlo.
+Dialogue: 0,0:18:39.16,0:18:41.18,JoJo-main,Yuka,0,0,0,,En febrero de este año,
+Dialogue: 0,0:18:41.18,0:18:43.73,JoJo-main,Yuka,0,0,0,,alguien me disparó una flecha al pecho.
+Dialogue: 0,0:18:45.14,0:18:47.90,JoJo-main,Yuka,0,0,0,,No, tal vez fuera un sueño.
+Dialogue: 0,0:18:47.90,0:18:53.35,JoJo-main,Yuka,0,0,0,,Al despertar, mi herida había sanado\Ny había obtenido esa habilidad.
+Dialogue: 0,0:18:53.87,0:18:55.74,JoJo-internal/narrator,Koi,0,0,0,,Keicho Nijimura…
+Dialogue: 0,0:18:55.74,0:18:59.21,JoJo-main,koi,0,0,0,,¿Conoces a otras personas\Ncon capacidades similares?
+Dialogue: 0,0:18:59.21,0:19:00.39,JoJo-main,Yuka,0,0,0,,No.
+Dialogue: 0,0:19:00.39,0:19:04.00,JoJo-internal/narrator,Koi,0,0,0,,¡No sabe que soy un usuario de Stand!
+Dialogue: 0,0:19:04.00,0:19:07.67,JoJo-main,Yuka,0,0,0,,Vamos, toma asiento.\NEres un chico en crecimiento.
+Dialogue: 0,0:19:07.67,0:19:09.50,JoJo-main,Yuka,0,0,0,,Si no comes bien,
+Dialogue: 0,0:19:09.50,0:19:13.01,JoJo-main,Yuka,0,0,0,,no podrás crecer grande y fuerte.
+Dialogue: 0,0:19:13.01,0:19:16.22,JoJo-internal/narrator,Koi,0,0,0,,Te-tendré que seguirle el juego.
+Dialogue: 0,0:19:16.22,0:19:18.93,JoJo-main,Koi,0,0,0,,¡Qué buena pinta! ¡Buen provecho!
+Dialogue: 0,0:19:18.93,0:19:21.26,JoJo-main,Yuka,0,0,0,,Todavía no puedes comer, Koichi.
+Dialogue: 0,0:19:21.68,0:19:23.89,sign_27855_315_English_Exam____,Sign,0,0,0,,Examen de inglés
+Dialogue: 0,0:19:21.68,0:19:23.89,sign_27855_316_Koichi_Hirose,Sign,0,0,0,,Koichi Hirose
+Dialogue: 0,0:19:21.95,0:19:23.89,JoJo-main,Yuka,0,0,0,,Sacaste un 16 en tu examen…
+Dialogue: 0,0:19:24.68,0:19:29.90,JoJo-main,Yuka,0,0,0,,Aunque la inteligencia no lo es todo\Nen un hombre, este resultado es terrible.
+Dialogue: 0,0:19:30.55,0:19:34.07,JoJo-main,Yuka,0,0,0,,Así que te haré estudiar mientras comes.
+Dialogue: 0,0:19:34.07,0:19:35.06,JoJo-main,Yuka,0,0,0,,¿Entendido?
+Dialogue: 0,0:19:40.40,0:19:42.39,JoJo-main,Yuka,0,0,0,,Te haré algunas preguntas.
+Dialogue: 0,0:19:42.39,0:19:45.34,JoJo-main,Yuka,0,0,0,,Elegirás la caja\Ncon la respuesta A, B o C,
+Dialogue: 0,0:19:45.34,0:19:47.68,JoJo-main,,0,0,0,,y te comerás el contenido\Nde lo que elegiste.
+Dialogue: 0,0:19:47.68,0:19:48.79,JoJo-main,Koi,0,0,0,,U-un momento…
+Dialogue: 0,0:19:48.79,0:19:50.20,JoJo-main,Yuka,0,0,0,,¡Tendrás que hacerlo!
+Dialogue: 0,0:19:50.20,0:19:54.30,JoJo-main,,0,0,0,,Usaremos todo el tiempo que estés aquí\Nen tu perfeccionamiento personal.
+Dialogue: 0,0:19:54.30,0:19:55.41,JoJo-main,Yuka,0,0,0,,¿Bien?
+Dialogue: 0,0:19:57.38,0:19:58.77,JoJo-main,Yuka,0,0,0,,He aquí tu pregunta.
+Dialogue: 0,0:19:58.77,0:20:04.30,JoJo-main,Yuka,0,0,0,,Prince suele repetir la expresión\N{\i1}funky music{\i0} al cantar. ¿Qué significa?
+Dialogue: 0,0:20:04.22,0:20:06.62,sign_28867_332_Wild_Music,Sign,0,0,0,,Música salvaje
+Dialogue: 0,0:20:04.30,0:20:06.65,JoJo-main,Yuka,0,0,0,,A: Música salvaje,
+Dialogue: 0,0:20:06.65,0:20:08.87,JoJo-main,Yuka,0,0,0,,B: Música original
+Dialogue: 0,0:20:07.27,0:20:09.51,sign_28948_334_Primeval_Music,Sign,0,0,0,,Música original
+Dialogue: 0,0:20:08.87,0:20:11.44,JoJo-main,Yuka,0,0,0,,o C: Música de fantasía.
+Dialogue: 0,0:20:10.15,0:20:11.43,sign_29017_336_Fantasy_Music,Sign,0,0,0,,Música de fantasía
+Dialogue: 0,0:20:13.22,0:20:15.55,JoJo-internal/narrator,Koi,0,0,0,,No puedo negarme a participar,
+Dialogue: 0,0:20:15.55,0:20:18.11,JoJo-internal/narrator,,0,0,0,,pero tampoco conozco la respuesta.
+Dialogue: 0,0:20:18.11,0:20:23.12,JoJo-internal/narrator,Koi,0,0,0,,Siento que es la A, pero la B\Ny la C no suenan mal…
+Dialogue: 0,0:20:23.81,0:20:26.12,JoJo-internal/narrator,Koi,0,0,0,,No importa, elegiré al azar…
+Dialogue: 0,0:20:26.75,0:20:29.90,JoJo-main,Koi,0,0,0,,Creo que es la B…
+Dialogue: 0,0:20:32.89,0:20:35.13,JoJo-main,Yuka,0,0,0,,¡Acertaste!
+Dialogue: 0,0:20:35.13,0:20:38.92,JoJo-main,Yuka,0,0,0,,¡Qué felicidad! ¡Esta caja\Ncontenía huevos cocidos!
+Dialogue: 0,0:20:39.91,0:20:43.50,JoJo-main,Uka,0,0,0,,Los voy a pelar.\NLos quieres con sal, ¿verdad?
+Dialogue: 0,0:20:44.10,0:20:48.23,JoJo-main,Yuka,0,0,0,,Si hubieses elegido la A,\Nhabrías tenido que comerte una goma.
+Dialogue: 0,0:20:45.72,0:20:46.85,sign_29870_346_Wild_Music,Sign,0,0,0,,{\fad(528,185)}Música salvaje
+Dialogue: 0,0:20:49.14,0:20:51.31,JoJo-main,Yuka,0,0,0,,La C contenía jabón.
+Dialogue: 0,0:20:51.55,0:20:53.74,JoJo-internal/narrator,Koi,0,0,0,,¡¿Qu-qué?!
+Dialogue: 0,0:20:53.74,0:20:57.40,JoJo-main,Yuka,0,0,0,,La próxima pregunta es por\Nhuevos con bacon, esfuérzate.
+Dialogue: 0,0:20:58.22,0:21:02.10,JoJo-main,Yuka,0,0,0,,Dime: ¿Cómo traducirías\N{\i1}contrast{\i0} al japonés?
+Dialogue: 0,0:21:02.54,0:21:07.83,Note,,0,0,0,,Nota: El segundo carácter de cada respuesta es distinto.
+Dialogue: 0,0:21:02.55,0:21:04.39,JoJo-main,Yuka,0,0,0,,A: Taishou (objetivo).
+Dialogue: 0,0:21:04.39,0:21:06.13,JoJo-main,Yuka,0,0,0,,B: Taishou (simetría).
+Dialogue: 0,0:21:06.13,0:21:07.79,JoJo-main,Yuka,0,0,0,,C: Taishou (contraste).
+Dialogue: 0,0:21:07.79,0:21:09.35,JoJo-internal/narrator,Koi,0,0,0,,Ha-habla en serio…
+Dialogue: 0,0:21:09.35,0:21:13.79,JoJo-internal/narrator,Koi,0,0,0,,Si me equivoco, me hará\Ncomerme lo que contenga.
+Dialogue: 0,0:21:13.79,0:21:16.01,JoJo-main,Yuka,0,0,0,,Vamos, contesta pronto.
+Dialogue: 0,0:21:16.01,0:21:17.67,JoJo-main,Yuka,0,0,0,,Se te enfriará la comida.
+Dialogue: 0,0:21:17.67,0:21:21.43,JoJo-internal/narrator,Koi,0,0,0,,A-a ver, veamos…
+Dialogue: 0,0:21:21.43,0:21:24.93,JoJo-internal/narrator,Koi,0,0,0,,¿Qué hago? Esto es ridículo…
+Dialogue: 0,0:21:33.06,0:21:35.81,JoJo-main,Koi,0,0,0,,Cre-creo que es la C…
+Dialogue: 0,0:21:36.42,0:21:41.44,JoJo-main,Yuka,0,0,0,,Koichi, elegiste fijándote\Nen mis expresiones, ¿verdad?
+Dialogue: 0,0:21:42.32,0:21:45.20,JoJo-main,Yuka,0,0,0,,¡Parece que los rumores\Nde que eras un bribón
+Dialogue: 0,0:21:45.20,0:21:48.30,JoJo-main,,0,0,0,,que hurta y hace trampa eran ciertos!
+Dialogue: 0,0:21:48.30,0:21:52.31,JoJo-main,Yuka,0,0,0,,Como castigo, te comerás\Nlos contenidos de la A y la B.
+Dialogue: 0,0:21:52.31,0:21:54.63,JoJo-main,Yuka,0,0,0,,A tiene hojuelas de vocabulario.
+Dialogue: 0,0:21:54.63,0:21:57.40,JoJo-main,Yuka,0,0,0,,B tiene espárragos envueltos\Nen páginas de diccionario.
+Dialogue: 0,0:21:57.40,0:22:00.50,JoJo-main,Yuka,0,0,0,,¡Haré que aprendas mientras comes!
+Dialogue: 0,0:22:01.35,0:22:02.47,JoJo-main,Yuka,0,0,0,,¡Vamos!
+Dialogue: 0,0:22:02.47,0:22:06.10,JoJo-main,Yuka,0,0,0,,¡Abre la boca! Te daré de comer.
+Dialogue: 0,0:22:06.44,0:22:09.74,JoJo-main,Yuka,0,0,0,,¿Qué pasa? ¡Come!
+Dialogue: 0,0:22:11.92,0:22:13.57,JoJo-main,Koi,0,0,0,,¡No seas ridícula!
+Dialogue: 0,0:22:13.57,0:22:16.61,JoJo-main,Koi,0,0,0,,¿Crees que aceptaré esto? ¡Estoy harto!
+Dialogue: 0,0:22:16.61,0:22:18.36,JoJo-main,Koi,0,0,0,,¡Me largo de aquí!
+Dialogue: 0,0:22:22.22,0:22:25.33,JoJo-main,Koi,0,0,0,,¡Algo me sostiene!\N¡Por el cuero cabelludo!
+Dialogue: 0,0:22:25.33,0:22:29.24,JoJo-main,Koi,0,0,0,,Hay pelo que no me pertenece.
+Dialogue: 0,0:22:29.45,0:22:34.53,JoJo-main,Yuka,0,0,0,,Así es, te coloqué alrededor\Nde 100 hebras de mi cabello.
+Dialogue: 0,0:22:36.85,0:22:38.32,JoJo-main,Yuka,0,0,0,,Koichi,
+Dialogue: 0,0:22:38.32,0:22:41.95,JoJo-main,Yuka,0,0,0,,puede que llegues a detestarme,
+Dialogue: 0,0:22:42.58,0:22:44.64,JoJo-main,Yuka,0,0,0,,pero cuando dejes esta casa,
+Dialogue: 0,0:22:44.64,0:22:48.50,JoJo-main,,0,0,0,,verás que serás un mejor hombre\Nde lo que fuiste,
+Dialogue: 0,0:22:48.50,0:22:50.89,JoJo-main,Yuka,0,0,0,,y sé que me lo agradecerás.
+Dialogue: 0,0:22:50.89,0:22:54.09,JoJo-main,Yuka,0,0,0,,Verás que necesitas a alguien\Ncomo yo en tu vida.
+Dialogue: 0,0:22:54.09,0:22:58.40,JoJo-main,Yuka,0,0,0,,No podrás vivir sin mí.
+Dialogue: 0,0:23:00.27,0:23:04.57,JoJo-main,Yuka,0,0,0,,Por cierto, si no te terminas\Nlos platos de las cajas A y B,
+Dialogue: 0,0:23:04.57,0:23:06.78,JoJo-main,Yuka,0,0,0,,no podrás probar los siguientes.
+Dialogue: 0,0:23:07.67,0:23:11.41,JoJo-main,Yuka,0,0,0,,Este es el chalet\Ndel presidente de una empresa.
+Dialogue: 0,0:23:11.41,0:23:13.64,JoJo-main,,0,0,0,,Nadie vendrá hasta el verano.
+Dialogue: 0,0:23:14.16,0:23:16.00,JoJo-internal/narrator,Koi,0,0,0,,¡¿Hasta el verano?!
+Dialogue: 0,0:23:16.00,0:23:20.55,JoJo-main,Yuka,0,0,0,,Aunque tampoco importaría\Nque viniese alguien.
+Dialogue: 0,0:23:21.02,0:23:23.53,JoJo-main,Yuka,0,0,0,,Porque el amor es invencible.
+Dialogue: 0,0:23:29.83,0:23:34.74,JoJo-main,Koi,0,0,0,,¡A-auxilio!
+Dialogue: 0,0:23:38.63,0:23:39.75,JoJo-NextTitle,sign,0,0,0,,Episodio 9\N{\fs75}Yukako Yamagishi está enamorada - Segunda parte
+Dialogue: 0,0:23:39.75,0:23:41.40,JoJo-NextTitle,sign,0,0,0,,Episodio 9\N{\fs75}Yu{\c&H259eeb&}ka{\fs\c&H140d0d&}ko Yamagishi está {\c&H3328db&}enamorada{\c&H140d0d&} - Segunda parte
