@@ -381,6 +381,12 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    cubren el **mismo material** y los mismos momentos fuertes; cambia el enfoque (cómo abre, qué
    destaca, el orden, desde quién se cuenta, cómo cierra).
 
+   **Privacidad y soporte técnico.** Nunca entran charlas personales del mundo real (familia,
+   trabajo, escuela, salud, datos) ni el soporte para instalar o actualizar el juego (launcher,
+   AnyDesk, Java, lag, «¿me escuchan?»). La transcripción que recibe Gemini marca esas frases y
+   las zonas donde se juntan, y en la escaleta final los clips que las tocan salen con ⚠ para
+   que los revises.
+
    **Fidelidad.** Títulos, lugares y escaleta tienen que salir del material, no del anime ni de
    capítulos posteriores. La tarjeta avisa con ⚠ de los nombres propios que no aparecen en la
    transcripción (por ejemplo «Palma, Diablo»). **Refinar** los corrige aunque no escribas notas,
@@ -397,7 +403,9 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    ![Producir capítulo: propuesta final](docs/img/producir-final.png)
 
    - **clips** del material en el orden en que se verán. Ningún tramo se repite: lo que ya salió
-     en el cold open se recorta de los actos (solo el avance y el recap pueden repetir);
+     en el cold open se recorta de los actos. El **recap** es del capítulo anterior y el
+     **avance** del próximo, así que no usan clips de este material: quedan como placeholder
+     (salvo en un capítulo de dos partes, donde el avance de la 1 y el recap de la 2 sí);
    - **textos**: título «Etapa N · nombre», carteles de lugar y tiempo, ranking, tarjeta de
      stats del rival para el re-gancho y «continuará»;
    - **música** de tu biblioteca por escena (sin repetir dentro del capítulo), con el tema del
@@ -421,8 +429,10 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    - el título y los carteles con el estilo de texto del proyecto;
    - la **música colocada sin balancear** (eso va en *PasoFinal*), con la pista a −21 dB (o lo que
      elijas en la ventana);
-   - la narración provisional con la voz de Windows, en el hueco libre más cercano a su momento;
-     si no cabe sin pisar a los jugadores, queda solo en el guion y avisa;
+   - la narración provisional con la voz de Windows, en el hueco libre más cercano a su momento.
+     Como el material ya no tiene silencios, casi nunca hay pausas largas: si la frase no cabe,
+     el clip se **alarga** lo que falta (el video y el sonido del juego siguen; las voces se
+     callan) y la frase va ahí, sin pisar a nadie;
    - los placeholders de recursos (si al abrir tenías seleccionada una imagen editada, la
      copian con sus efectos);
    - una región por bloque y otra por parte.

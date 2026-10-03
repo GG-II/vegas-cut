@@ -706,7 +706,7 @@ class VentanaProduccion : VentanaBase
                         it.SubItems.Add(i.Inicio < 0 ? "" : i.Tipo == "clip" ? Formato.Tiempo(i.Inicio) + "–" + Formato.Tiempo(i.Fin) : Formato.Tiempo(i.Inicio));
                         it.SubItems.Add(NombreTipo.ContainsKey(i.Tipo) ? NombreTipo[i.Tipo] + (i.Clase.Length > 0 ? " · " + i.Clase : "") : i.Tipo);
                         it.SubItems.Add(i.Tipo == "musica" ? Musica(i) + (i.Texto.Length > 0 ? " — " + i.Texto : "") :
-                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
+                                        i.Tipo == "clip" ? Aviso(i) + (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
                                                            (i.Respiro > 0 ? "  · respiro " + i.Respiro.ToString("0.#") + " s" : "") :
                                         i.Tipo == "narracion" ? "«" + i.Texto + "»" : i.Texto);
                         it.Checked = i.Elegido;
@@ -719,6 +719,13 @@ class VentanaProduccion : VentanaBase
         }
         cargando = false;
         Resumen();
+    }
+
+    // Clip con charla tecnica o personal (para revisarlo o desmarcarlo).
+    string Aviso(ItemFinal i)
+    {
+        string x = LogicaProduccion.SensibleEn(trans, i.Inicio, i.Fin);
+        return x.Length > 0 ? "⚠ charla " + x + " · " : "";
     }
 
     // Bloque de un texto, musica o narracion sin bloque: el del clip que contiene su tiempo.

@@ -17,7 +17,7 @@ using Region = ScriptPortal.Vegas.Region;
 
 public class ResultadoProduccion
 {
-    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros;
+    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros, Huecos;
     public List<double> Partes = new List<double>();
     public List<string> Avisos = new List<string>();
     public StringBuilder Guion = new StringBuilder();
@@ -30,6 +30,7 @@ public class ResultadoProduccion
                (Placeholders > 0 ? " (" + Placeholders + " placeholders)" : "") + ", " + Textos + " textos, " + Temas + " temas, " +
                Narraciones + " frases de narración, " + Recursos + " recursos" + (Respiros > 0 ? ", " + Respiros + " respiros" : "") + "." +
                (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entró en ningún clip." : "") +
+               (Huecos > 0 ? " " + Huecos + " huecos para la narración (el juego sigue sin voces)." : "") +
                (NarracionSinHueco > 0 ? " " + NarracionSinHueco + " frases de narración no cabían sin pisar voces (están en el guion)." : "");
     }
 }
@@ -59,6 +60,62 @@ public static class ArmarCapitulo
         foreach (Track t in p.Tracks)
             foreach (TrackEvent e in t.Events)
                 if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+    }
+
+    // Hueco para la narracion: lo que termina en "fin" sigue "segundos" mas
+    // (el video y el sonido del juego), menos las voces, que se callan.
+    static void Extender(Project p, double fin, double segundos, List<Track> pistasVoz)
+    {
+        foreach (Track t in p.Tracks)
+        {
+            if (pistasVoz.Contains(t)) continue;
+            foreach (TrackEvent e in t.Events)
+                if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+        }
+    }
+
+    // El tramo libre de voces mas largo de [a, b] (y el que termina en b).
+    static void Libre(List<Rango> voces, double a, double b, out double mayor, out double inicioCola)
+    {
+        mayor = 0; inicioCola = a;
+        double desde = a;
+        foreach (Rango v in voces)
+        {
+            if (v.Fin <= a || v.Inicio >= b) continue;
+            mayor = Math.Max(mayor, v.Inicio - desde);
+            desde = Math.Max(desde, v.Fin);
+        }
+        mayor = Math.Max(mayor, b - desde);
+        inicioCola = Math.Min(desde, b);
+    }
+
+    // Cuanto alargar cada clip para que su narracion quepa sin pisar voces, y
+    // desde que segundo del material empieza cada frase.
+    public static Dictionary<ItemFinal, double> HuecosNarracion(CapituloFinal c, List<Rango> voces, int ppm, Dictionary<ItemFinal, double> desde)
+    {
+        Dictionary<ItemFinal, double> extra = new Dictionary<ItemFinal, double>();
+        List<ItemFinal> clips = new List<ItemFinal>();
+        foreach (BloqueTV b in c.Estructura)
+            if (b.Tipo == "contenido")
+                foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido && i.Bloque == b.Clave) clips.Add(i);
+        foreach (ItemFinal n in c.Items)
+        {
+            if (n.Tipo != "narracion" || !n.Elegido) continue;
+            ItemFinal clip = clips.Find(delegate (ItemFinal x) { return n.Inicio >= x.Inicio - 0.25 && n.Inicio <= x.Fin + 0.25; });
+            if (clip == null) clip = clips.Find(delegate (ItemFinal x) { return x.Inicio >= n.Inicio; });
+            if (clip == null) continue;
+            double largo = LogicaPlan.Segundos(n.Texto, ppm) + 0.4;
+            double a = Math.Max(clip.Inicio, Math.Min(n.Inicio, clip.Fin)), mayor, cola;
+            Libre(voces, a, clip.Fin, out mayor, out cola);
+            if (mayor >= largo) continue;                          // ya cabe en una pausa del clip
+            double ya;
+            extra.TryGetValue(clip, out ya);
+            double falta = largo - (clip.Fin - cola);
+            if (falta <= 0) continue;
+            extra[clip] = ya + falta;
+            desde[n] = cola;                                       // empieza al callarse todos
+        }
+        return extra;
     }
 
     // Primer hueco libre (sin voces ni otra narracion) de "largo" segundos
@@ -158,6 +215,9 @@ public static class ArmarCapitulo
         double O = Math.Ceiling(finMaterial) + 60;   // el capitulo se arma despues del material
 
         Plantilla estiloTexto = GeneradorTexto.Buscar(vegas), etiqueta = GeneradorTexto.PorDefecto(vegas);
+        List<Track> pistasVoz = RitmoVegas.PistasDeVoz(p, trans);
+        Dictionary<ItemFinal, double> desdeNarr = new Dictionary<ItemFinal, double>();
+        Dictionary<ItemFinal, double> huecoNarr = new Dictionary<ItemFinal, double>();
         List<Tramo> tramos = new List<Tramo>();
         List<Rango> kitRangos = new List<Rango>();
         double inicioParte = O;
@@ -170,6 +230,7 @@ public static class ArmarCapitulo
             double cursor = inicioParte;
             string stats = "";
             foreach (ItemFinal i in c.Items) if (i.Tipo == "texto" && i.Clase == "stats" && i.Elegido) stats = i.Texto;
+            Dictionary<ItemFinal, double> extra = HuecosNarracion(c, voces, ppm, desdeNarr);
 
             foreach (BloqueTV b in c.Estructura)
             {
@@ -184,6 +245,17 @@ public static class ArmarCapitulo
                         tramos.Add(new Tramo { Parte = k, A = i.Inicio, B = i.Fin, Nuevo = cursor });
                         cursor += i.Duracion;
                         if (i.Respiro > 0.05) { Respirar(p, cursor, i.Respiro); cursor += i.Respiro; r.Respiros++; }
+                        double ex;
+                        if (extra.TryGetValue(i, out ex) && ex > 0.05)
+                        {
+                            Extender(p, cursor, ex, pistasVoz);
+                            // La narracion de este clip empieza donde se callan todos (ya en la linea nueva).
+                            foreach (KeyValuePair<ItemFinal, double> kv in desdeNarr)
+                                if (kv.Value >= i.Inicio - 0.01 && kv.Value <= i.Fin + 0.01 && !huecoNarr.ContainsKey(kv.Key))
+                                    huecoNarr[kv.Key] = cursor - i.Duracion - i.Respiro + (kv.Value - i.Inicio) + 0.15;
+                            cursor += ex;
+                            r.Huecos++;
+                        }
                     }
                 }
                 else if (b.Tipo == "kit")
@@ -311,9 +383,16 @@ public static class ArmarCapitulo
             {
                 ItemFinal i = narr[j];
                 double ancla = Ubicar(tramos, k, i.Inicio);
-                if (double.IsNaN(ancla)) { r.SinLugar++; continue; }
+                if (double.IsNaN(ancla))
+                {
+                    r.SinLugar++;
+                    r.Guion.Append(i.Id + "  [sin lugar: su momento no entró en el capítulo]\n    " + i.Texto + "\n\n");
+                    continue;
+                }
                 double largo = LogicaPlan.Segundos(i.Texto, ppm);
-                double en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
+                double en = double.NaN, plan;
+                if (huecoNarr.TryGetValue(i, out plan)) en = Hueco(ocupado, Math.Max(plan, ultimo + 0.2), largo, inicioParte, finParte);
+                if (double.IsNaN(en)) en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
                 if (double.IsNaN(en))
                 {
                     r.NarracionSinHueco++;

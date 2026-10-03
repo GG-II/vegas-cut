@@ -3403,6 +3403,28 @@ public static class RitmoVegas
         return r;
     }
 
+    // Pistas de audio con las voces transcritas (no el sonido del juego).
+    public static List<Track> PistasDeVoz(Project p, Transcripcion t)
+    {
+        Dictionary<string, bool> voz = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        if (t != null)
+            foreach (Hablante h in t.Hablantes)
+            {
+                if (!h.Voz) continue;
+                if (!String.IsNullOrEmpty(h.Archivo)) voz[NombreArchivo(h.Archivo)] = true;
+                foreach (Fuente f in h.Fuentes) voz[NombreArchivo(f.Media)] = true;
+            }
+        List<Track> r = new List<Track>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in pista.Events) { total++; if (voz.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(pista);
+        }
+        return r;
+    }
+
     // Mide el proyecto abierto en Vegas con su transcripcion (si la tiene),
     // siguiendo las ediciones hechas despues de transcribir.
     public static Medicion MedirAbierto(Vegas vegas, string narrador)

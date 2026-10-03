@@ -143,9 +143,29 @@ class PruebaProduccion
                           {""bloque"": ""cold_open"", ""clips"": [{""inicio"": 10, ""fin"": 40}, {""inicio"": 195, ""fin"": 205}]},
                           {""bloque"": ""avance"", ""clips"": [{""inicio"": 110, ""fin"": 120}]}]}]}", 600, 0, 195);
         List<ItemFinal> rc = rep.Partes[0].Items.FindAll(delegate (ItemFinal i) { return i.Tipo == "clip"; });
-        Verificar(rc.Count == 6 && rc[0].Bloque == "cold_open" && rc[2].Inicio == 0 && rc[2].Fin == 10 && rc[3].Inicio == 40 && rc[3].Fin == 60 &&
-                  rc[4].Inicio == 100 && rc[4].Respiro == 2 && rc[5].Bloque == "avance" && Math.Abs(rep.Repetido - 31.5) < 0.01,
-                  "Escaleta: lo del cold open no se repite en los actos (se recorta; lo que queda corto se quita); el avance sí repite");
+        Verificar(rc.Count == 5 && rc[0].Bloque == "cold_open" && rc[2].Inicio == 0 && rc[2].Fin == 10 && rc[3].Inicio == 40 && rc[3].Fin == 60 &&
+                  rc[4].Inicio == 100 && rc[4].Respiro == 2 && rep.Partes[0].Bloque("avance").Tipo == "kit" && rep.Partes[0].Bloque("avance").Segundos > 0 &&
+                  Math.Abs(rep.Repetido - 41.5) < 0.01,
+                  "Escaleta: nada se repite (lo del cold open se recorta de los actos); el avance es del próximo capítulo y queda como placeholder");
+
+        // ------------------------------------------------ hueco para la narracion y charla sensible
+        CapituloFinal cn = new CapituloFinal();
+        cn.Estructura.Add(new BloqueTV("acto_a", "Acto A", "contenido", 0, 100, ""));
+        cn.Items.Add(new ItemFinal { Tipo = "clip", Bloque = "acto_a", Inicio = 0, Fin = 30 });
+        cn.Items.Add(new ItemFinal { Tipo = "clip", Bloque = "acto_a", Inicio = 50, Fin = 80 });
+        ItemFinal na1 = new ItemFinal { Tipo = "narracion", Inicio = 5, Texto = "Así empezó todo, con cuatro amigos y un caballo." };
+        ItemFinal na2 = new ItemFinal { Tipo = "narracion", Inicio = 55, Texto = "Corto." };
+        cn.Items.Add(na1); cn.Items.Add(na2);
+        List<Rango> vz = new List<Rango> { new Rango(0, 27), new Rango(50, 60), new Rango(68, 80) };
+        Dictionary<ItemFinal, double> dn = new Dictionary<ItemFinal, double>();
+        Dictionary<ItemFinal, double> hx = ArmarCapitulo.HuecosNarracion(cn, vz, 150, dn);
+        double l1 = LogicaPlan.Segundos(na1.Texto, 150) + 0.4;
+        Verificar(hx.Count == 1 && Math.Abs(hx[cn.Items[0]] - (l1 - 3)) < 0.01 && dn[na1] == 27 && !dn.ContainsKey(na2),
+                  "Narración: si no hay pausa, el clip se alarga (el juego sigue sin voces) lo que falta; si cabe en una pausa, no");
+        Verificar(LogicaProduccion.Sensible("oye, ¿cómo instalo el modpack?") == "técnico" && LogicaProduccion.Sensible("se me laggea, tengo lag") == "técnico" &&
+                  LogicaProduccion.Sensible("mañana tengo examen en la uni") == "personal" && LogicaProduccion.Sensible("vamos a fabricar una espada") == "" &&
+                  LogicaProduccion.Sensible("ese obstáculo") == "" && LogicaProduccion.Material(tf, 10000).Length > 0 && ia.Contains("PRIVACIDAD"),
+                  "Charla técnica o personal: se marca en la transcripción para dejarla fuera");
 
         // ------------------------------------------------ opciones, estreno, tres propuestas
         OpcionesCapitulo opx = OpcionesCapitulo.PorDefecto("Primer capítulo", 1, PapelEpisodio.Reglas(f.Reglas, "Primer capítulo"));
@@ -298,8 +318,8 @@ class PruebaProduccion
             Track kitA = pr.Tracks.Find(delegate (Track x) { return x.Name == ArmarCapitulo.PistaKitAudio; });
             int phKit = 0; bool stats = false;
             foreach (TrackEvent e in kit.Events) { string tx = GeneradorTexto.TextoDe(e); if (tx.StartsWith("[")) phKit++; if (tx.Contains("JASON · Poder A")) stats = true; }
-            Verificar(kitA != null && kitA.Events.Count == 2 && phKit == 6 && stats,
-                      "Kit: el OP con su archivo (video y audio) y placeholders para lo que falta, con la tarjeta de stats");
+            Verificar(kitA != null && kitA.Events.Count == 2 && phKit == 7 && stats,
+                      "Kit: el OP con su archivo (video y audio) y placeholders para lo que falta (también el avance de la parte 2, que es del próximo capítulo), con la tarjeta de stats");
             Track textos = pr.Tracks.Find(delegate (Track x) { return x.Name == ArmarCapitulo.PistaTextos; });
             List<string> tt = new List<string>();
             foreach (TrackEvent e in textos.Events) tt.Add(GeneradorTexto.TextoDe(e));

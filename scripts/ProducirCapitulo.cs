@@ -729,7 +729,7 @@ class VentanaProduccion : VentanaBase
                         it.SubItems.Add(i.Inicio < 0 ? "" : i.Tipo == "clip" ? Formato.Tiempo(i.Inicio) + "\u2013" + Formato.Tiempo(i.Fin) : Formato.Tiempo(i.Inicio));
                         it.SubItems.Add(NombreTipo.ContainsKey(i.Tipo) ? NombreTipo[i.Tipo] + (i.Clase.Length > 0 ? " \u00b7 " + i.Clase : "") : i.Tipo);
                         it.SubItems.Add(i.Tipo == "musica" ? Musica(i) + (i.Texto.Length > 0 ? " \u2014 " + i.Texto : "") :
-                                        i.Tipo == "clip" ? (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
+                                        i.Tipo == "clip" ? Aviso(i) + (i.Texto.Length > 0 ? i.Texto : "(" + Formato.Tiempo(i.Duracion) + ")") +
                                                            (i.Respiro > 0 ? "  \u00b7 respiro " + i.Respiro.ToString("0.#") + " s" : "") :
                                         i.Tipo == "narracion" ? "\u00ab" + i.Texto + "\u00bb" : i.Texto);
                         it.Checked = i.Elegido;
@@ -742,6 +742,13 @@ class VentanaProduccion : VentanaBase
         }
         cargando = false;
         Resumen();
+    }
+
+    // Clip con charla tecnica o personal (para revisarlo o desmarcarlo).
+    string Aviso(ItemFinal i)
+    {
+        string x = LogicaProduccion.SensibleEn(trans, i.Inicio, i.Fin);
+        return x.Length > 0 ? "\u26a0 charla " + x + " \u00b7 " : "";
     }
 
     // Bloque de un texto, musica o narracion sin bloque: el del clip que contiene su tiempo.
@@ -981,7 +988,14 @@ public static class LogicaProduccion
         "FIDELIDAD: todo lo que propongas (t\u00edtulos, lugares, carteles, escaleta, cold open, cierre, narraci\u00f3n) tiene que PASAR en " +
         "la TRANSCRIPCI\u00d3N de este material. No inventes lugares, nombres ni hechos: ni del anime (Steel Ball Run, JoJo) ni de los " +
         "cap\u00edtulos posteriores (esos son solo contexto para no cortar lo que se retoma). El estilo JoJo es la forma, no el " +
-        "contenido. Si un t\u00edtulo usa un lugar, que sea uno que se nombra o se ve en el material.\n";
+        "contenido. Si un t\u00edtulo usa un lugar, que sea uno que se nombra o se ve en el material.\n" +
+        "PRIVACIDAD Y SOPORTE: NUNCA uses conversaciones privadas o personales del mundo real (familia, pareja, salud, trabajo, " +
+        "escuela, dinero, datos personales) ni soporte t\u00e9cnico (instalar o actualizar el juego o el modpack, launcher, Java, RAM, " +
+        "lag, crasheos, Discord, micr\u00f3fono, \u00ab\u00bfme escuchan?\u00bb, la grabaci\u00f3n). Las l\u00edneas marcadas \u27e8t\u00e9cnico\u27e9 o \u27e8personal\u27e9 en la " +
+        "transcripci\u00f3n probablemente lo son: d\u00e9jalas fuera salvo que el editor las pida.\n" +
+        "NADA SE REPITE: lo que sale al inicio no vuelve a salir al final. El RECAP es del cap\u00edtulo ANTERIOR (en el primer " +
+        "cap\u00edtulo no hay recap) y el AVANCE es del PR\u00d3XIMO cap\u00edtulo: ninguno de los dos usa clips de este material (quedan como " +
+        "placeholder para llenarlos despu\u00e9s).\n";
 
     // Las tres propuestas: el mismo capitulo visto de tres maneras.
     public const string Variantes =
@@ -1029,14 +1043,72 @@ public static class LogicaProduccion
     {
         StringBuilder sb = new StringBuilder();
         if (t == null) return "(sin transcripci\u00f3n)\n";
+        List<Rango> zonas = ZonasSensibles(t);
         foreach (Segmento s in t.SegmentosActuales())
         {
             if (String.IsNullOrEmpty(s.Texto)) continue;
             string quien = s.Hablante >= 0 && s.Hablante < t.Hablantes.Count ? t.Hablantes[s.Hablante].Nombre : "?";
-            sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + quien + ": " + s.Texto + "\n");
+            string sen = Sensible(s.Texto);
+            if (sen.Length == 0)
+                foreach (Rango z in zonas) if (s.Inicio >= z.Inicio && s.Fin <= z.Fin) { sen = "t\u00e9cnico/personal?"; break; }
+            sb.Append("[" + S(s.Inicio) + "-" + S(s.Fin) + "] " + quien + ": " + s.Texto + (sen.Length > 0 ? " \u27e8" + sen + "\u27e9" : "") + "\n");
             if (sb.Length > limite) { sb.Append("\u2026\n"); break; }
         }
         return sb.ToString();
+    }
+
+    // ----------------------------------------- charla tecnica o personal
+
+    // Principios de palabra (con espacio al final: palabra completa).
+    static readonly string[] Tecnico = { "instal", "desinstal", "descarg", "launcher", "tlauncher", "curseforge", "modrinth", "java",
+        "ram ", "gigas de ram", "forge ", "fabric ", "actualiz", "crashe", "crash", "lag ", "lagea", "ping ", "fps ", "discord",
+        "microfono", "mic ", "me escuchan", "me escuchas", "no te escucho", "no se escucha", "se escucha bien", "se trabo",
+        "reinicia", "la ip ", "obs ", "estoy grabando", "estas grabando", "grabacion", "la version", "drivers", "la compu se",
+        "anydesk", "anidesk", "anidesc", "teamviewer", "prism", "lanzador", "te envio un link", "te paso el link", "minecraft premium" };
+    static readonly string[] Personal = { "mi mama ", "mi papa ", "mi novia ", "mi novio ", "mi esposa ", "mi esposo ",
+        "mi hermana ", "mi hermano ", "mi jefe ", "el trabajo ", "mi trabajo ", "la escuela ", "la universidad ", "la uni ", "examen",
+        "doctor", "hospital", "enferm", "la renta ", "el sueldo ", "whatsapp", "mi numero ", "mi telefono ", "mi direccion ",
+        "en la vida real", "irl " };
+
+    // "t\u00e9cnico", "personal" o "" segun lo que parece la frase.
+    public static string Sensible(string texto)
+    {
+        string t = " " + System.Text.RegularExpressions.Regex.Replace(Plano(texto), @"[^\p{L}\p{N}]+", " ").Trim() + " ";
+        foreach (string k in Tecnico) if (t.Contains(" " + k)) return "t\u00e9cnico";
+        foreach (string k in Personal) if (t.Contains(" " + k)) return "personal";
+        return "";
+    }
+
+    // Tramos donde se juntan frases tecnicas o personales (3 o mas, a menos de
+    // 30 s una de otra): las frases de en medio seguramente tambien lo son.
+    public static List<Rango> ZonasSensibles(Transcripcion t)
+    {
+        List<Rango> r = new List<Rango>();
+        if (t == null) return r;
+        double ini = -1, fin = -1;
+        int n = 0;
+        foreach (Segmento s in t.SegmentosActuales())
+        {
+            if (String.IsNullOrEmpty(s.Texto) || Sensible(s.Texto).Length == 0) continue;
+            if (n > 0 && s.Inicio - fin <= 30) { fin = s.Fin; n++; continue; }
+            if (n >= 3) r.Add(new Rango(ini, fin));
+            ini = s.Inicio; fin = s.Fin; n = 1;
+        }
+        if (n >= 3) r.Add(new Rango(ini, fin));
+        return r;
+    }
+
+    // Lo sensible que se dice dentro de un tramo del material ("" si nada).
+    public static string SensibleEn(Transcripcion t, double a, double b)
+    {
+        if (t == null) return "";
+        foreach (Segmento s in t.SegmentosActuales())
+        {
+            if (s.Fin <= a || s.Inicio >= b || String.IsNullOrEmpty(s.Texto)) continue;
+            string x = Sensible(s.Texto);
+            if (x.Length > 0) return x;
+        }
+        return "";
     }
 
     public static string Pausas(Transcripcion t, double duracion)
@@ -1382,7 +1454,7 @@ public static class LogicaProduccion
                "lleva \"ritmo\": lento|medio|rapido. En los clips que necesitan aire pon \"respiro\": 0.5 a 3 s (se recupera la pausa " +
                "original de la grabaci\u00f3n al final del clip). Ni todo r\u00e1pido ni todo lento.\n" +
                "NO REPITAS MATERIAL: cada tramo se usa UNA sola vez en cada parte (lo que va en el cold open no vuelve a salir en " +
-               "los actos); solo el avance y un recap pueden repetir.\n" +
+               "los actos ni al final). El recap y el avance van sin clips de este material (placeholder).\n" +
                "TEXTOS en pantalla: \"presentacion\" (nombre y un rasgo del personaje cuando aparece por primera vez), \"titulo\" (\"" + (f.Avance != "Ninguno" ? f.Marca(1) + " \u00b7 " : "") + "nombre del cap\u00edtulo\"), " +
                "\"lugar\" o \"tiempo\" (\u00ab6 horas m\u00e1s tarde\u00bb), \"ranking\", \"stats\" (tarjeta del rival: nombre y 4\u20136 atributos con " +
                "letra A\u2013E, para el re-gancho o eyecatch) y \"continuara\". Cada uno con \"en\": segundo del material, o \"bloque\" si va " +
@@ -1553,25 +1625,36 @@ public static class LogicaProduccion
                 i.Id = "R" + (++nr).ToString("00");
                 c.Items.Add(i);
             }
-            p.Repetido += QuitarRepetidos(c);
             p.Partes.Add(c);
             if (p.Partes.Count == 2) break;
         }
         if (p.Partes.Count == 0) throw new Exception("La respuesta no trae la escaleta.");
+        for (int k = 0; k < p.Partes.Count; k++) p.Repetido += QuitarRepetidos(p.Partes[k], k > 0, k < p.Partes.Count - 1);
         return p;
     }
 
-    // Bloques que pueden repetir material a proposito (avance, recap).
-    public static bool RepiteAProposito(string bloque)
+    // Bloques que no son de este capitulo: el recap (del anterior) y el avance (del proximo).
+    public static bool EsDeOtroCapitulo(string bloque)
     {
         string b = (bloque ?? "").ToLowerInvariant();
-        return b.Contains("avance") || b.Contains("recap") || b.Contains("anteriormente") || b.Contains("preview");
+        return Avance(b) || b.Contains("recap") || b.Contains("anteriormente") || b.Contains("resumen");
+    }
+
+    static bool Avance(string bloque)
+    {
+        string b = (bloque ?? "").ToLowerInvariant();
+        return b.Contains("avance") || b.Contains("preview") || b.Contains("proximo") || b.Contains("pr\u00f3ximo");
     }
 
     // Cada tramo del material se ve una sola vez por parte: en el orden de la
-    // estructura, lo que ya salio se recorta de los clips siguientes (salvo en
-    // el avance y el recap). Devuelve los segundos quitados.
-    public static double QuitarRepetidos(CapituloFinal c)
+    // estructura, lo que ya salio se recorta de los clips siguientes (tambien
+    // en el recap y el avance, que son de otros capitulos: si se quedan sin
+    // clips pasan a placeholder). Devuelve los segundos quitados.
+    public static double QuitarRepetidos(CapituloFinal c) { return QuitarRepetidos(c, false, false); }
+
+    // recapPropio: el recap puede usar este material (parte 2 de dos, recap de la parte 1).
+    // avancePropio: el avance puede usar este material (parte 1 de dos, avance de la parte 2).
+    public static double QuitarRepetidos(CapituloFinal c, bool recapPropio, bool avancePropio)
     {
         List<Rango> usados = new List<Rango>();
         List<ItemFinal> clips = new List<ItemFinal>();
@@ -1583,7 +1666,7 @@ public static class LogicaProduccion
             foreach (ItemFinal i in c.Items)
             {
                 if (i.Tipo != "clip" || i.Bloque != bloque) continue;
-                if (RepiteAProposito(bloque)) { clips.Add(i); continue; }
+                if (EsDeOtroCapitulo(bloque) && !(Avance(bloque) ? avancePropio : recapPropio)) { quitado += i.Duracion; continue; }
                 Rango original = new Rango(i.Inicio, i.Fin);
                 double respiro = i.Respiro;
                 List<Rango> partes = new List<Rango>();
@@ -1615,6 +1698,15 @@ public static class LogicaProduccion
         List<ItemFinal> resto = c.Items.FindAll(delegate (ItemFinal i) { return i.Tipo != "clip"; });
         c.Items = clips;
         c.Items.AddRange(resto);
+        // El recap (del anterior) y el avance (del proximo) quedan como placeholder si se quedaron sin clips.
+        foreach (BloqueTV b in c.Estructura)
+        {
+            if (b.Tipo != "contenido" || !EsDeOtroCapitulo(b.Clave)) continue;
+            string clave = b.Clave;
+            if (c.Items.Exists(delegate (ItemFinal i) { return i.Tipo == "clip" && i.Bloque == clave; })) continue;
+            b.Tipo = "kit";
+            if (b.Segundos <= 0) b.Segundos = Avance(clave) ? 12 : 20;
+        }
         return quitado;
     }
 
@@ -1749,7 +1841,7 @@ public static class LogicaProduccion
 
 public class ResultadoProduccion
 {
-    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros;
+    public int Clips, Kit, Placeholders, Textos, Temas, Narraciones, Recursos, SinLugar, NarracionSinHueco, Respiros, Huecos;
     public List<double> Partes = new List<double>();
     public List<string> Avisos = new List<string>();
     public StringBuilder Guion = new StringBuilder();
@@ -1762,6 +1854,7 @@ public class ResultadoProduccion
                (Placeholders > 0 ? " (" + Placeholders + " placeholders)" : "") + ", " + Textos + " textos, " + Temas + " temas, " +
                Narraciones + " frases de narraci\u00f3n, " + Recursos + " recursos" + (Respiros > 0 ? ", " + Respiros + " respiros" : "") + "." +
                (SinLugar > 0 ? " " + SinLugar + " elementos quedaron fuera porque su momento no entr\u00f3 en ning\u00fan clip." : "") +
+               (Huecos > 0 ? " " + Huecos + " huecos para la narraci\u00f3n (el juego sigue sin voces)." : "") +
                (NarracionSinHueco > 0 ? " " + NarracionSinHueco + " frases de narraci\u00f3n no cab\u00edan sin pisar voces (est\u00e1n en el guion)." : "");
     }
 }
@@ -1791,6 +1884,62 @@ public static class ArmarCapitulo
         foreach (Track t in p.Tracks)
             foreach (TrackEvent e in t.Events)
                 if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+    }
+
+    // Hueco para la narracion: lo que termina en "fin" sigue "segundos" mas
+    // (el video y el sonido del juego), menos las voces, que se callan.
+    static void Extender(Project p, double fin, double segundos, List<Track> pistasVoz)
+    {
+        foreach (Track t in p.Tracks)
+        {
+            if (pistasVoz.Contains(t)) continue;
+            foreach (TrackEvent e in t.Events)
+                if (Math.Abs(S(e.End) - fin) < 0.02 && S(e.Start) < fin) e.Length = TC(S(e.Length) + segundos);
+        }
+    }
+
+    // El tramo libre de voces mas largo de [a, b] (y el que termina en b).
+    static void Libre(List<Rango> voces, double a, double b, out double mayor, out double inicioCola)
+    {
+        mayor = 0; inicioCola = a;
+        double desde = a;
+        foreach (Rango v in voces)
+        {
+            if (v.Fin <= a || v.Inicio >= b) continue;
+            mayor = Math.Max(mayor, v.Inicio - desde);
+            desde = Math.Max(desde, v.Fin);
+        }
+        mayor = Math.Max(mayor, b - desde);
+        inicioCola = Math.Min(desde, b);
+    }
+
+    // Cuanto alargar cada clip para que su narracion quepa sin pisar voces, y
+    // desde que segundo del material empieza cada frase.
+    public static Dictionary<ItemFinal, double> HuecosNarracion(CapituloFinal c, List<Rango> voces, int ppm, Dictionary<ItemFinal, double> desde)
+    {
+        Dictionary<ItemFinal, double> extra = new Dictionary<ItemFinal, double>();
+        List<ItemFinal> clips = new List<ItemFinal>();
+        foreach (BloqueTV b in c.Estructura)
+            if (b.Tipo == "contenido")
+                foreach (ItemFinal i in c.Items) if (i.Tipo == "clip" && i.Elegido && i.Bloque == b.Clave) clips.Add(i);
+        foreach (ItemFinal n in c.Items)
+        {
+            if (n.Tipo != "narracion" || !n.Elegido) continue;
+            ItemFinal clip = clips.Find(delegate (ItemFinal x) { return n.Inicio >= x.Inicio - 0.25 && n.Inicio <= x.Fin + 0.25; });
+            if (clip == null) clip = clips.Find(delegate (ItemFinal x) { return x.Inicio >= n.Inicio; });
+            if (clip == null) continue;
+            double largo = LogicaPlan.Segundos(n.Texto, ppm) + 0.4;
+            double a = Math.Max(clip.Inicio, Math.Min(n.Inicio, clip.Fin)), mayor, cola;
+            Libre(voces, a, clip.Fin, out mayor, out cola);
+            if (mayor >= largo) continue;                          // ya cabe en una pausa del clip
+            double ya;
+            extra.TryGetValue(clip, out ya);
+            double falta = largo - (clip.Fin - cola);
+            if (falta <= 0) continue;
+            extra[clip] = ya + falta;
+            desde[n] = cola;                                       // empieza al callarse todos
+        }
+        return extra;
     }
 
     // Primer hueco libre (sin voces ni otra narracion) de "largo" segundos
@@ -1890,6 +2039,9 @@ public static class ArmarCapitulo
         double O = Math.Ceiling(finMaterial) + 60;   // el capitulo se arma despues del material
 
         Plantilla estiloTexto = GeneradorTexto.Buscar(vegas), etiqueta = GeneradorTexto.PorDefecto(vegas);
+        List<Track> pistasVoz = RitmoVegas.PistasDeVoz(p, trans);
+        Dictionary<ItemFinal, double> desdeNarr = new Dictionary<ItemFinal, double>();
+        Dictionary<ItemFinal, double> huecoNarr = new Dictionary<ItemFinal, double>();
         List<Tramo> tramos = new List<Tramo>();
         List<Rango> kitRangos = new List<Rango>();
         double inicioParte = O;
@@ -1902,6 +2054,7 @@ public static class ArmarCapitulo
             double cursor = inicioParte;
             string stats = "";
             foreach (ItemFinal i in c.Items) if (i.Tipo == "texto" && i.Clase == "stats" && i.Elegido) stats = i.Texto;
+            Dictionary<ItemFinal, double> extra = HuecosNarracion(c, voces, ppm, desdeNarr);
 
             foreach (BloqueTV b in c.Estructura)
             {
@@ -1916,6 +2069,17 @@ public static class ArmarCapitulo
                         tramos.Add(new Tramo { Parte = k, A = i.Inicio, B = i.Fin, Nuevo = cursor });
                         cursor += i.Duracion;
                         if (i.Respiro > 0.05) { Respirar(p, cursor, i.Respiro); cursor += i.Respiro; r.Respiros++; }
+                        double ex;
+                        if (extra.TryGetValue(i, out ex) && ex > 0.05)
+                        {
+                            Extender(p, cursor, ex, pistasVoz);
+                            // La narracion de este clip empieza donde se callan todos (ya en la linea nueva).
+                            foreach (KeyValuePair<ItemFinal, double> kv in desdeNarr)
+                                if (kv.Value >= i.Inicio - 0.01 && kv.Value <= i.Fin + 0.01 && !huecoNarr.ContainsKey(kv.Key))
+                                    huecoNarr[kv.Key] = cursor - i.Duracion - i.Respiro + (kv.Value - i.Inicio) + 0.15;
+                            cursor += ex;
+                            r.Huecos++;
+                        }
                     }
                 }
                 else if (b.Tipo == "kit")
@@ -2043,9 +2207,16 @@ public static class ArmarCapitulo
             {
                 ItemFinal i = narr[j];
                 double ancla = Ubicar(tramos, k, i.Inicio);
-                if (double.IsNaN(ancla)) { r.SinLugar++; continue; }
+                if (double.IsNaN(ancla))
+                {
+                    r.SinLugar++;
+                    r.Guion.Append(i.Id + "  [sin lugar: su momento no entr\u00f3 en el cap\u00edtulo]\n    " + i.Texto + "\n\n");
+                    continue;
+                }
                 double largo = LogicaPlan.Segundos(i.Texto, ppm);
-                double en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
+                double en = double.NaN, plan;
+                if (huecoNarr.TryGetValue(i, out plan)) en = Hueco(ocupado, Math.Max(plan, ultimo + 0.2), largo, inicioParte, finParte);
+                if (double.IsNaN(en)) en = Hueco(ocupado, Math.Max(ancla, ultimo + 0.2), largo, inicioParte, finParte);
                 if (double.IsNaN(en))
                 {
                     r.NarracionSinHueco++;
@@ -4223,6 +4394,28 @@ public static class RitmoVegas
             if (!pista.IsAudio()) continue;
             int si = 0, total = 0;
             foreach (TrackEvent e in pista.Events) { total++; if (grab.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(pista);
+        }
+        return r;
+    }
+
+    // Pistas de audio con las voces transcritas (no el sonido del juego).
+    public static List<Track> PistasDeVoz(Project p, Transcripcion t)
+    {
+        Dictionary<string, bool> voz = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        if (t != null)
+            foreach (Hablante h in t.Hablantes)
+            {
+                if (!h.Voz) continue;
+                if (!String.IsNullOrEmpty(h.Archivo)) voz[NombreArchivo(h.Archivo)] = true;
+                foreach (Fuente f in h.Fuentes) voz[NombreArchivo(f.Media)] = true;
+            }
+        List<Track> r = new List<Track>();
+        foreach (Track pista in p.Tracks)
+        {
+            if (!pista.IsAudio()) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in pista.Events) { total++; if (voz.ContainsKey(NombreArchivo(Archivo(e)))) si++; }
             if (total > 0 && si * 2 >= total) r.Add(pista);
         }
         return r;
