@@ -387,6 +387,20 @@ class PruebaProduccion
             Verificar(hl.Count == 3 && hl[0].Inicio == 0 && hl[0].Fin == 110 && hl[2].Fin == 300 && hl[1].Duracion <= LogicaRelleno.MaximoHueco,
                       "Rellenar música: un hueco largo se parte en tramos de hasta 2 min (en el borde de un bloque si hay uno cerca)");
 
+            // Video de MomentosIA: la musica esta en una pista con otro nombre, pero sus temas son de la biblioteca.
+            Project pmo = new Project();
+            VideoTrack vmo = new VideoTrack(0, "Video"); pmo.Tracks.Add(vmo);
+            vmo.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(60000));
+            AudioTrack amo = new AudioTrack(1, "Audio 5"); pmo.Tracks.Add(amo);
+            amo.AddAudioEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(40000)).ActiveTake = new Take { Media = new Media(Path.Combine(musDir, "SC", "tema.mp3")) };
+            LogicaRelleno.CarpetaMusica = "";
+            int sinBib = LogicaRelleno.Huecos(pmo, null, 8).Count;
+            LogicaRelleno.CarpetaMusica = musDir;
+            List<HuecoMusica> hmo = LogicaRelleno.Huecos(pmo, null, 8);
+            LogicaRelleno.CarpetaMusica = "";
+            Verificar(sinBib == 1 && hmo.Count == 1 && hmo[0].Inicio == 40,
+                      "Rellenar música en un video de MomentosIA: la pista con temas de la biblioteca cuenta como música aunque se llame «Audio 5»");
+
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
             be.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden", Album = "Minecraft - Volume Alpha" });

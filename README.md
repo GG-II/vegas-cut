@@ -127,6 +127,12 @@ Necesita la transcripción y la clave de Gemini.
    - **Aplicar corte**: quita todo lo que no está marcado y acelera los tramos acelerados, en
      todas las pistas (hazlo antes de poner música), y deja los textos y momentos como
      marcadores en su nuevo lugar. Ctrl+Z lo deshace. Vegas permite hasta ×4 por evento.
+     El material sin cortar siempre queda guardado:
+     - si el proyecto todavía no tiene copia `… BASE.veg`, la guarda antes de cortar;
+     - si estás en la BASE, te ofrece guardar el corte en una copia nueva `… MOM.veg` (o
+       `MOM 2`, `MOM 3`…) con su transcripción y su serie, y seguir ahí. La BASE no se corta.
+
+       Las copias `MOM` cuentan como el mismo capítulo de la serie.
    - **Guardar informe**: `<proyecto>.vegascut-informe.md` con todo lo anterior.
    - **Conservar tramo…** (tramos fijos): escribe desde y hasta (`57:00` y `1:09:30`) un tramo que
      quieres completo, por ejemplo una carrera donde casi no hablan. Si antes de abrir MomentosIA
@@ -474,7 +480,9 @@ Lo último antes de exportar, con la narración ya grabada:
    ![Rellenar la música](docs/img/rellenar-musica.png)
 
    - **Buscar huecos** encuentra los tramos sin música en la pista de música, sin contar el
-     opening, el ending ni los demás bloques del kit. Por defecto busca huecos de 8 s o más; los
+     opening, el ending ni los demás bloques del kit. Sirve también para videos hechos con
+     MomentosIA: cuenta como pista de música la que se llama «Música», «Music», «OST» o
+     «BGM», y cualquier pista cuyos audios vengan de la carpeta de la biblioteca. Por defecto busca huecos de 8 s o más; los
      de más de 2 min se parten, en el borde de un bloque si hay uno cerca.
    - Cada hueco muestra lo que se dice ahí (la transcripción sigue tus cortes) y su bloque.
    - **Elegir temas con IA**: Gemini elige un tema de tu biblioteca para cada hueco según lo que

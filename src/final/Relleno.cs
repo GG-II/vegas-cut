@@ -63,6 +63,7 @@ class VentanaRelleno : VentanaBase
         }
         catch { biblioteca = null; }
         if (biblioteca != null) candidatos = MusicaSerie.Candidatos(biblioteca);
+        LogicaRelleno.CarpetaMusica = musica != null ? musica.Carpeta : "";
         if (candidatos.Count > 300) candidatos = candidatos.GetRange(0, 300);
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de música: elígela en Series → Música… (con la serie de este capítulo)."
                                           : "Biblioteca: " + candidatos.Count + " temas que sirven" + (trans == null ? " · sin transcripción (la IA solo ve los bloques)" : "");

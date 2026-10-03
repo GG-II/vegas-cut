@@ -86,6 +86,19 @@ class PruebaPreparar
         Serie.Clave("S01E01 Prueba", out tt, out nn, out kk); Serie.Clave("S01E01 Prueba BASE", out tt, out nn, out kb);
         Verificar(kk == kb, "Copia base: cuenta como el mismo capítulo de la serie");
 
+        // MomentosIA sobre la BASE: el corte va a una copia «… MOM.veg» y la BASE queda intacta.
+        Vegas vb = new Vegas { Project = new Project { FilePath = copia } };
+        string mom = CopiaBase.RutaCorte(copia);
+        CopiaBase.GuardarComo(vb, mom);
+        string km;
+        Serie.Clave("S01E01 Prueba MOM", out tt, out nn, out km);
+        File.WriteAllText(Path.Combine(tmp, "S01E01 Prueba MOM.veg"), "");
+        Verificar(mom == Path.Combine(tmp, "S01E01 Prueba MOM.veg") && vb.Project.FilePath == mom && CopiaBase.EsBase(copia) && !CopiaBase.EsBase(mom) &&
+                  CopiaBase.EsCorte(mom) && CopiaBase.Original(mom) == original && Transcripcion.Cargar(Transcripcion.RutaPara(mom)).Proyecto == mom &&
+                  File.Exists(Path.Combine(tmp, "S01E01 Prueba MOM.vegascut-proyecto-serie.json")) && km == kk &&
+                  CopiaBase.RutaCorte(copia) == Path.Combine(tmp, "S01E01 Prueba MOM 2.veg"),
+                  "Corte de MomentosIA sobre la BASE: copia «… MOM.veg» con su transcripción y su serie, mismo capítulo, la BASE no se toca");
+
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " pruebas fallaron.");
         return fallos == 0 ? 0 : 1;

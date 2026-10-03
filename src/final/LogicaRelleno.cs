@@ -41,15 +41,27 @@ public static class LogicaRelleno
     }
 
     // Pistas de musica: la de vegas-cut y las que se llaman "musica" / "music" / "ost".
+    // Carpeta de la biblioteca de la serie: una pista cuyos audios vienen de ahi tambien es de musica
+    // (en un video hecho con MomentosIA la pista puede llamarse de cualquier forma).
+    public static string CarpetaMusica = "";
+
     public static List<Track> PistasMusica(Project p)
     {
         List<Track> r = new List<Track>();
+        string raiz = (CarpetaMusica ?? "").TrimEnd('\\', '/');
         foreach (Track t in p.Tracks)
         {
             if (!t.IsAudio()) continue;
             string n = Plano(t.Name);
             if (t.Name == PistaMusica || n.Contains("musica") || n.Contains("music") || n.Contains(" ost") || n.StartsWith("ost") || n.Contains("bgm"))
+            {
                 r.Add(t);
+                continue;
+            }
+            if (raiz.Length == 0) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in t.Events) { total++; if (Archivo(e).StartsWith(raiz, StringComparison.OrdinalIgnoreCase)) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(t);
         }
         return r;
     }

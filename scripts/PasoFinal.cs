@@ -239,6 +239,7 @@ class VentanaRelleno : VentanaBase
         }
         catch { biblioteca = null; }
         if (biblioteca != null) candidatos = MusicaSerie.Candidatos(biblioteca);
+        LogicaRelleno.CarpetaMusica = musica != null ? musica.Carpeta : "";
         if (candidatos.Count > 300) candidatos = candidatos.GetRange(0, 300);
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de m\u00fasica: el\u00edgela en Series \u2192 M\u00fasica\u2026 (con la serie de este cap\u00edtulo)."
                                           : "Biblioteca: " + candidatos.Count + " temas que sirven" + (trans == null ? " \u00b7 sin transcripci\u00f3n (la IA solo ve los bloques)" : "");
@@ -393,15 +394,27 @@ public static class LogicaRelleno
     }
 
     // Pistas de musica: la de vegas-cut y las que se llaman "musica" / "music" / "ost".
+    // Carpeta de la biblioteca de la serie: una pista cuyos audios vienen de ahi tambien es de musica
+    // (en un video hecho con MomentosIA la pista puede llamarse de cualquier forma).
+    public static string CarpetaMusica = "";
+
     public static List<Track> PistasMusica(Project p)
     {
         List<Track> r = new List<Track>();
+        string raiz = (CarpetaMusica ?? "").TrimEnd('\\', '/');
         foreach (Track t in p.Tracks)
         {
             if (!t.IsAudio()) continue;
             string n = Plano(t.Name);
             if (t.Name == PistaMusica || n.Contains("musica") || n.Contains("music") || n.Contains(" ost") || n.StartsWith("ost") || n.Contains("bgm"))
+            {
                 r.Add(t);
+                continue;
+            }
+            if (raiz.Length == 0) continue;
+            int si = 0, total = 0;
+            foreach (TrackEvent e in t.Events) { total++; if (Archivo(e).StartsWith(raiz, StringComparison.OrdinalIgnoreCase)) si++; }
+            if (total > 0 && si * 2 >= total) r.Add(t);
         }
         return r;
     }
@@ -3966,7 +3979,7 @@ public class SerieProyecto
         int agregados = 0;
         foreach (string f in Serie.ArchivosVeg(Carpeta, 6))
         {
-            if (Regex.IsMatch(Path.GetFileNameWithoutExtension(f), @"\s(BASE|CAP)$", RegexOptions.IgnoreCase)) continue;   // copias del mismo capitulo
+            if (Regex.IsMatch(Path.GetFileNameWithoutExtension(f), @"\s(BASE|CAP|MOM( \d+)?)$", RegexOptions.IgnoreCase)) continue;   // copias del mismo capitulo
             int t, n; string k;
             if (!Serie.Clave(Path.GetFileNameWithoutExtension(f), out t, out n, out k)) continue;
             if (claves.Count > 0 && !claves.Contains(k)) continue;
@@ -4367,7 +4380,7 @@ public static class Serie
     public static bool Clave(string nombre, out int temporada, out int numero, out string serie)
     {
         temporada = 0; numero = 0; serie = "";
-        nombre = Regex.Replace(nombre ?? "", @"\s+(BASE|CAP)$", "", RegexOptions.IgnoreCase);
+        nombre = Regex.Replace(nombre ?? "", @"\s+(BASE|CAP|MOM( \d+)?)$", "", RegexOptions.IgnoreCase);
         Match m = Patron.Match(nombre);
         if (m.Success) { temporada = int.Parse(m.Groups[1].Value); numero = int.Parse(m.Groups[2].Value); }
         else
@@ -5885,49 +5898,6 @@ public class ProcesoTranscripcion
     {
         foreach (string w in wavs.Values) { try { File.Delete(w); } catch { } }
         wavs.Clear();
-    }
-}
-
-// Copia "<proyecto> BASE.veg": el episodio sin silencios y transcrito, para
-// volver a partir de ahi (MomentosIA o ProducirCapitulo) sin repetir esos pasos.
-public static class CopiaBase
-{
-    public const string Sufijo = " BASE";
-
-    public static string RutaPara(string veg)
-    {
-        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + Sufijo + ".veg");
-    }
-
-    // El proyecto original de una copia base (o el mismo si no lo es).
-    public static string Original(string veg)
-    {
-        string n = Path.GetFileNameWithoutExtension(veg);
-        return n.EndsWith(Sufijo) ? Path.Combine(Path.GetDirectoryName(veg), n.Substring(0, n.Length - Sufijo.Length) + ".veg") : veg;
-    }
-
-    // Guarda la copia (con su transcripcion y su serie) y vuelve al proyecto original.
-    public static string Guardar(Vegas vegas)
-    {
-        string original = vegas.Project.FilePath;
-        if (String.IsNullOrEmpty(original) || Path.GetFileNameWithoutExtension(original).EndsWith(Sufijo)) return null;
-        string base_ = RutaPara(original);
-        vegas.SaveProject(base_);
-        try
-        {
-            string t = Transcripcion.RutaPara(original);
-            if (File.Exists(t))
-            {
-                Transcripcion tr = Transcripcion.Cargar(t);
-                tr.Proyecto = base_;
-                tr.Guardar(Transcripcion.RutaPara(base_));
-            }
-            string dir = Path.GetDirectoryName(original), n = Path.GetFileNameWithoutExtension(original);
-            string serie = Path.Combine(dir, n + ".vegascut-proyecto-serie.json");
-            if (File.Exists(serie)) File.Copy(serie, Path.Combine(dir, n + Sufijo + ".vegascut-proyecto-serie.json"), true);
-        }
-        finally { vegas.SaveProject(original); }
-        return base_;
     }
 }
 
@@ -8710,5 +8680,77 @@ class VentanaBase : Form
     {
         base.OnPaint(e);
         using (SolidBrush b = new SolidBrush(Tema.Acento)) e.Graphics.FillRectangle(b, Margen, 76, 36, 3);
+    }
+}
+
+// ---- src/comun/CopiaBase.cs ----
+
+// Copia "<proyecto> BASE.veg": el episodio sin silencios y transcrito, para
+// volver a partir de ahi (MomentosIA o ProducirCapitulo) sin repetir esos pasos.
+public static class CopiaBase
+{
+    public const string Sufijo = " BASE";
+
+    public static string RutaPara(string veg)
+    {
+        return Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + Sufijo + ".veg");
+    }
+
+    // El proyecto original de una copia base o de un corte de MomentosIA (o el mismo si no lo es).
+    public static string Original(string veg)
+    {
+        string n = Path.GetFileNameWithoutExtension(veg);
+        if (n.EndsWith(Sufijo)) return Path.Combine(Path.GetDirectoryName(veg), n.Substring(0, n.Length - Sufijo.Length) + ".veg");
+        System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(n, @"^(.*) MOM( \d+)?$");
+        return m.Success ? Path.Combine(Path.GetDirectoryName(veg), m.Groups[1].Value + ".veg") : veg;
+    }
+
+    public static bool EsCorte(string veg) { return !String.IsNullOrEmpty(veg) && Original(veg) != veg && !EsBase(veg); }
+
+    public static bool EsBase(string veg) { return !String.IsNullOrEmpty(veg) && Path.GetFileNameWithoutExtension(veg).EndsWith(Sufijo); }
+
+    // Copia del corte de MomentosIA cuando se trabaja sobre la BASE: "<original> MOM.veg" (o MOM 2, 3...).
+    public static string RutaCorte(string veg)
+    {
+        string o = Original(veg), dir = Path.GetDirectoryName(o), n = Path.GetFileNameWithoutExtension(o);
+        string r = Path.Combine(dir, n + " MOM.veg");
+        for (int i = 2; File.Exists(r); i++) r = Path.Combine(dir, n + " MOM " + i + ".veg");
+        return r;
+    }
+
+    // La transcripcion y el enlace a la serie del proyecto "desde" pasan a "hacia".
+    static void CopiarAnexos(string desde, string hacia)
+    {
+        string t = Transcripcion.RutaPara(desde);
+        if (File.Exists(t))
+        {
+            Transcripcion tr = Transcripcion.Cargar(t);
+            tr.Proyecto = hacia;
+            tr.Guardar(Transcripcion.RutaPara(hacia));
+        }
+        string dir = Path.GetDirectoryName(desde);
+        string serie = Path.Combine(dir, Path.GetFileNameWithoutExtension(desde) + ".vegascut-proyecto-serie.json");
+        if (File.Exists(serie))
+            File.Copy(serie, Path.Combine(Path.GetDirectoryName(hacia), Path.GetFileNameWithoutExtension(hacia) + ".vegascut-proyecto-serie.json"), true);
+    }
+
+    // Guarda el proyecto abierto como "destino" (con su transcripcion y su serie) y se queda en el.
+    public static void GuardarComo(Vegas vegas, string destino)
+    {
+        string desde = vegas.Project.FilePath;
+        vegas.SaveProject(destino);
+        CopiarAnexos(desde, destino);
+    }
+
+    // Guarda la copia (con su transcripcion y su serie) y vuelve al proyecto original.
+    public static string Guardar(Vegas vegas)
+    {
+        string original = vegas.Project.FilePath;
+        if (String.IsNullOrEmpty(original) || Path.GetFileNameWithoutExtension(original).EndsWith(Sufijo)) return null;
+        string base_ = RutaPara(original);
+        vegas.SaveProject(base_);
+        try { CopiarAnexos(original, base_); }
+        finally { vegas.SaveProject(original); }
+        return base_;
     }
 }

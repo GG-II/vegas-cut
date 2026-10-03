@@ -864,6 +864,27 @@ class VentanaMomentos : VentanaBase
                 "Los textos y momentos marcados quedan como marcadores anclados a sus clips.\n\n¿Aplicar? (Ctrl+Z lo deshace)",
                 "Aplicar corte", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
 
+        // Que el material sin cortar quede guardado: la BASE nunca se corta.
+        string copia = "";
+        string veg = vegas.Project.FilePath ?? "";
+        try
+        {
+            if (CopiaBase.EsBase(veg))
+            {
+                string destino = CopiaBase.RutaCorte(veg);
+                DialogResult d = MessageBox.Show(this, "Estás en la copia BASE (el material sin cortar).\n\n¿Guardar el corte en una copia nueva «" +
+                    Path.GetFileName(destino) + "» y dejar la BASE intacta?\n\n(«No» corta la BASE igual.)", "Aplicar corte", MessageBoxButtons.YesNoCancel);
+                if (d == DialogResult.Cancel) return;
+                if (d == DialogResult.Yes) { CopiaBase.GuardarComo(vegas, destino); copia = " Trabajas ahora en «" + Path.GetFileName(destino) + "»; la BASE quedó sin cortar."; }
+            }
+            else if (veg.Length > 0 && !Path.GetFileNameWithoutExtension(veg).EndsWith(" CAP") && !CopiaBase.EsCorte(veg) && !File.Exists(CopiaBase.RutaPara(veg)))
+            {
+                string b = CopiaBase.Guardar(vegas);
+                if (b != null) copia = " Antes de cortar guardé «" + Path.GetFileName(b) + "» (el material sin cortar).";
+            }
+        }
+        catch (Exception ex) { copia = " (No pude guardar la copia sin cortar: " + ex.Message + ")"; }
+
         Project p = vegas.Project;
         List<Track> todas = new List<Track>();
         foreach (Track t in p.Tracks) todas.Add(t);
@@ -892,7 +913,7 @@ class VentanaMomentos : VentanaBase
         btnCortar.Enabled = false;
         btnMarcar.Enabled = false;
         Estado("✔ Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " ") +
-               " Si lo deshaces (Ctrl+Z), al volver a abrir esta ventana la respuesta aparece lista otra vez.", false);
+               " Si lo deshaces (Ctrl+Z), al volver a abrir esta ventana la respuesta aparece lista otra vez." + copia, false);
     }
 
     static bool Dentro(double t, List<Rango> rangos)
