@@ -329,6 +329,53 @@ class PruebaProduccion
             Verificar(mus != null && mus.Events.Count == 2 && r.Temas == 2 && mus.Envelopes.Count == 0,
                       "Música: un tema por entrada (también el del personaje) y sin balancear");
             Verificar(Math.Abs(((AudioTrack)mus).Volume - 0.0891) < 0.001, "Música: la pista queda a -21 dB");
+
+            // ---- rellenar la musica en un capitulo ya editado
+            Project pj = new Project();
+            VideoTrack vt = new VideoTrack(0, "Video"); pj.Tracks.Add(vt);
+            vt.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(100000)).ActiveTake = new Take { Media = new Media(Path.Combine(dir, "juego.mp4")) };
+            VideoTrack kt = new VideoTrack(1, ArmarCapitulo.PistaKit); pj.Tracks.Add(kt);
+            kt.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(10000));
+            AudioTrack mt = new AudioTrack(2, LogicaRelleno.PistaMusica); pj.Tracks.Add(mt);
+            AudioEvent ya = mt.AddAudioEvent(Timecode.FromMilliseconds(20000), Timecode.FromMilliseconds(30000));
+            ya.ActiveTake = new Take { Media = new Media(Path.Combine(dir, "Ya suena.mp3")) };
+            pj.Regions.Add(new Region(Timecode.FromMilliseconds(50000), Timecode.FromMilliseconds(50000), "ACTO A"));
+            List<HuecoMusica> hm = LogicaRelleno.Huecos(pj, null, 8);
+            string relleno = Path.Combine(dir, "Calma.mp3");
+            File.WriteAllText(relleno, "x");
+            List<ArchivoMusica> cr = new List<ArchivoMusica> { new ArchivoMusica { Ruta = relleno, Titulo = "Calma", Animos = new List<string> { "calma" } } };
+            string mrel = LogicaRelleno.Mensaje(hm, cr, ms, LogicaRelleno.YaSuena(pj));
+            int lr = LogicaRelleno.Leer("{\"huecos\": [{\"n\": 1, \"silencio\": true}, {\"n\": 2, \"id\": 0, \"motivo\": \"exploración\"}]}", hm, cr, ms);
+            List<string> av = new List<string>();
+            int col = LogicaRelleno.Colocar(pj, hm, cr, ms, null, av);
+            Verificar(hm.Count == 2 && hm[0].Inicio == 10 && hm[0].Fin == 20 && hm[1].Inicio == 50 && hm[1].Fin == 100 && hm[1].Bloque == "ACTO A" &&
+                      hm[0].Antes == "" && hm[0].Despues == "Ya suena" && mrel.Contains("YA SUENA EN EL CAPÍTULO: Ya suena") && lr == 2 &&
+                      hm[0].Silencio && col == 1 && mt.Events.Count == 2 && S(mt.Events[0].Start) == 20 && S(mt.Events[0].Length) == 30 &&
+                      S(mt.Events[1].Start) == 50 && av.Count == 0,
+                      "Rellenar música: encuentra los huecos (sin el kit), la IA elige tema o silencio y se coloca sin tocar lo que ya estaba");
+
+            Project pl = new Project();
+            VideoTrack vl = new VideoTrack(0, "Video"); pl.Tracks.Add(vl);
+            vl.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(300000));
+            pl.Regions.Add(new Region(Timecode.FromMilliseconds(110000), Timecode.FromMilliseconds(50000), "ACTO B"));
+            List<HuecoMusica> hl = LogicaRelleno.Huecos(pl, null, 8);
+            Verificar(hl.Count == 3 && hl[0].Inicio == 0 && hl[0].Fin == 110 && hl[2].Fin == 300 && hl[1].Duracion <= LogicaRelleno.MaximoHueco,
+                      "Rellenar música: un hueco largo se parte en tramos de hasta 2 min (en el borde de un bloque si hay uno cerca)");
+
+            // ---- etiquetar audios que no son del anime
+            BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
+            be.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden", Album = "Minecraft - Volume Alpha" });
+            be.Archivos.Add(new ArchivoMusica { Ruta = "Fanmade/Pelea/Remix.mp3", Titulo = "Remix" });
+            int et = BibliotecaMusica.AplicarEtiquetas(be.PorEtiquetar(), "{\"temas\": [{\"id\": 0, \"animos\": [\"Calma\", \"inventado\"], \"momento\": \"exploración\", \"descripcion\": \"piano lento\"}]}");
+            BibliotecaMusica be2 = new BibliotecaMusica { Carpeta = dir };
+            be2.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden" });
+            be2.ConservarEtiquetas(be);
+            Verificar(et == 1 && be.Archivos[0].Sirve && be.Archivos[0].Animos.Count == 1 && be.Archivos[0].Animos[0] == "calma" &&
+                      be2.Archivos[0].Etiquetado && be2.Archivos[0].Descripcion == "piano lento" &&
+                      BibliotecaMusica.AnimosDeCarpeta(dir, "Fanmade/Pelea/Remix.mp3").Contains("pelea") &&
+                      BibliotecaMusica.AnimosDeCarpeta(dir, "Audios/Studio/x.mp3").Count == 0 &&
+                      BibliotecaMusica.InstruccionesEtiquetar().Contains("mejor nada que inventar"),
+                      "Biblioteca: juegos y fanmade se etiquetan con IA (o por su subcarpeta) y no se pierde al volver a indexar");
             Track narrP = pr.Tracks.Find(delegate (Track x) { return x.Name == RitmoVegas.PistaNarracion; });
             Verificar(narrP != null && narrP.Events.Count == 3 && r.Narraciones == 3, "Narración: las frases con la voz provisional");
             Track ph = pr.Tracks.Find(delegate (Track x) { return x.Name == AplicarPlan.PistaPlaceholders; });

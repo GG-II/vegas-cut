@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using System;
 using ScriptPortal.Vegas;
@@ -47,8 +48,9 @@ class VentanaPasoFinal : VentanaBase
     readonly Vegas vegas;
     Transcripcion trans;
     string narrador = "Narrador";
-    Etiqueta lbl1, lbl2, lbl3, lblEstado;
+    Etiqueta lbl1, lbl2, lbl3, lbl0, lblEstado;
     CampoNumero numDb = new CampoNumero();
+    Boton btn0 = new Boton("Rellenar la m\u00fasica\u2026", EstiloBoton.Secundario);
     Boton btn1 = new Boton("Bajar el juego", EstiloBoton.Secundario);
     Boton btn2 = new Boton("Balancear la m\u00fasica\u2026", EstiloBoton.Secundario);
     Boton btn3 = new Boton("Censurar palabrotas\u2026", EstiloBoton.Secundario);
@@ -58,18 +60,21 @@ class VentanaPasoFinal : VentanaBase
     {
         this.vegas = vegas;
         int m = Margen, w = Ancho;
-        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: balance y censura.");
+        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: m\u00fasica, balance y censura.");
         int y = 96;
-        lbl1 = Paso(1, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
+        lbl0 = Paso(1, "Rellenar la m\u00fasica", "Ya cortado y reordenado: pone OST en los huecos de la m\u00fasica seg\u00fan lo que pasa (no toca lo que ya est\u00e1).", y);
+        Pos(btn0, m + w - 210, y + 4, 210, 32);
+        y += 86;
+        lbl1 = Paso(2, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
         numDb.Sufijo = "dB"; numDb.Minimo = -30; numDb.Maximo = 0; numDb.Paso = 1;
         Pos(numDb, m + w - 330, y + 4, 110, 32);
         numDb.Valor = -10;
         Pos(btn1, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl2 = Paso(2, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
+        lbl2 = Paso(3, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
         Pos(btn2, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl3 = Paso(3, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
+        lbl3 = Paso(4, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
         Pos(btn3, m + w - 210, y + 4, 210, 32);
         y += 92;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 160, 40);
@@ -102,6 +107,11 @@ class VentanaPasoFinal : VentanaBase
             using (UndoBlock u = new UndoBlock("Bajar el juego bajo la narraci\u00f3n"))
                 n = LogicaPasoFinal.BajarJuego(vegas.Project, trans, narrador, numDb.Valor);
             Hecho(lbl1, n == 0 ? "No encontr\u00e9 narraci\u00f3n ni pistas de grabaci\u00f3n." : "\u2714 " + n + " pistas bajan " + numDb.Valor + " dB mientras narras.", n > 0);
+        };
+        btn0.Click += delegate
+        {
+            using (VentanaRelleno v = new VentanaRelleno(vegas, trans)) v.ShowDialog(this);
+            Hecho(lbl0, "Hecho (lo nuevo qued\u00f3 en la pista de m\u00fasica, sin balancear).", true);
         };
         btn2.Click += delegate
         {
@@ -165,6 +175,447 @@ public static class LogicaPasoFinal
             if (g.Name == RitmoVegas.PistaNarracion) continue;
             AplicarPlan.Bajar(g, narr, db);
             n++;
+        }
+        return n;
+    }
+}
+
+// ---- src/final/Relleno.cs ----
+
+// Rellenar los huecos de la pista de musica con temas de la biblioteca.
+class VentanaRelleno : VentanaBase
+{
+    readonly Vegas vegas;
+    readonly Transcripcion trans;
+    readonly Configuracion config = Configuracion.Cargar();
+    SerieProyecto serie;
+    MusicaSerie musica;
+    BibliotecaMusica biblioteca;
+    List<ArchivoMusica> candidatos = new List<ArchivoMusica>();
+    List<HuecoMusica> huecos = new List<HuecoMusica>();
+    bool trabajando, cargando;
+
+    Etiqueta lblInfo, lblEstado;
+    CampoNumero numMin = new CampoNumero();
+    Boton btnBuscar = new Boton("Buscar huecos", EstiloBoton.Secundario);
+    Boton btnIA = new Boton("Elegir temas con IA", EstiloBoton.Primario);
+    Lista lst = new Lista();
+    Boton btnColocar = new Boton("Colocar", EstiloBoton.Primario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+
+    public VentanaRelleno(Vegas vegas, Transcripcion trans) : base("Rellenar la m\u00fasica", 1000)
+    {
+        this.vegas = vegas; this.trans = trans;
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Rellenar la m\u00fasica", "Pone un tema en cada hueco de la pista de m\u00fasica seg\u00fan lo que pasa ah\u00ed. Lo que ya est\u00e1 no se toca.");
+        int y = 92;
+        lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 540, 40);
+        Texto("HUECOS DE AL MENOS", Tema.Pequena, Tema.TextoSuave, m + w - 530, y + 8, 130, 18);
+        numMin.Sufijo = "s"; numMin.Minimo = 2; numMin.Maximo = 120; numMin.Paso = 1;
+        Pos(numMin, m + w - 400, y, 80, 32);
+        cargando = true; numMin.Valor = 8; cargando = false;
+        Pos(btnBuscar, m + w - 310, y, 130, 32);
+        Pos(btnIA, m + w - 170, y, 170, 32);
+        y += 46;
+        int sb = SystemInformation.VerticalScrollBarWidth + 4;
+        lst.Columns.Add("Hueco", 130);
+        lst.Columns.Add("Dura", 56);
+        lst.Columns.Add("Bloque", 120);
+        lst.Columns.Add("Qu\u00e9 pasa", w - 130 - 56 - 120 - 260 - sb);
+        lst.Columns.Add("Tema", 260);
+        Pos(lst, m, y, w, 400);
+        y += 410;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 300, 40);
+        Pos(btnColocar, m + w - 290, y, 150, 40);
+        Pos(btnCerrar, m + w - 130, y, 130, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        try
+        {
+            Serie.DelProyecto(CopiaBase.Original(vegas.Project.FilePath ?? ""), out serie);
+            musica = serie != null ? serie.Musica : null;
+            if (musica != null && musica.Carpeta.Length > 0 && Directory.Exists(musica.Carpeta)) biblioteca = BibliotecaMusica.Cargar(musica.Carpeta);
+        }
+        catch { biblioteca = null; }
+        if (biblioteca != null) candidatos = MusicaSerie.Candidatos(biblioteca);
+        if (candidatos.Count > 300) candidatos = candidatos.GetRange(0, 300);
+        lblInfo.Text = biblioteca == null ? "Sin biblioteca de m\u00fasica: el\u00edgela en Series \u2192 M\u00fasica\u2026 (con la serie de este cap\u00edtulo)."
+                                          : "Biblioteca: " + candidatos.Count + " temas que sirven" + (trans == null ? " \u00b7 sin transcripci\u00f3n (la IA solo ve los bloques)" : "");
+
+        btnBuscar.Click += delegate { Buscar(); };
+        btnIA.Click += delegate { ConIA(); };
+        btnColocar.Click += delegate { Colocar(); };
+        btnCerrar.Click += delegate { Close(); };
+        lst.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando && e.Item.Tag != null) ((HuecoMusica)e.Item.Tag).Elegido = e.Item.Checked; };
+        lst.DoubleClick += delegate
+        {
+            if (lst.SelectedIndices.Count == 0) return;
+            HuecoMusica h = (HuecoMusica)lst.Items[lst.SelectedIndices[0]].Tag;
+            try
+            {
+                vegas.Transport.CursorPosition = Timecode.FromMilliseconds(h.Inicio * 1000);
+                vegas.Transport.SelectionStart = Timecode.FromMilliseconds(h.Inicio * 1000);
+                vegas.Transport.SelectionLength = Timecode.FromMilliseconds(h.Duracion * 1000);
+            }
+            catch { }
+        };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+        Buscar();
+    }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void Habilitar()
+    {
+        btnBuscar.Enabled = !trabajando;
+        btnIA.Enabled = !trabajando && huecos.Count > 0 && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
+        btnColocar.Enabled = !trabajando && huecos.Exists(delegate (HuecoMusica h) { return h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0); });
+        btnCerrar.Enabled = !trabajando;
+    }
+
+    void Buscar()
+    {
+        huecos = LogicaRelleno.Huecos(vegas.Project, trans, numMin.Valor);
+        Llenar();
+        double total = 0;
+        foreach (HuecoMusica h in huecos) total += h.Duracion;
+        Estado(huecos.Count == 0 ? "No hay huecos de " + numMin.Valor + " s o m\u00e1s en la pista de m\u00fasica." :
+               huecos.Count + " huecos (" + Formato.Tiempo(total) + " sin m\u00fasica). Desmarca los que quieras en silencio y pulsa \u00abElegir temas con IA\u00bb.", false);
+        Habilitar();
+    }
+
+    void Llenar()
+    {
+        cargando = true;
+        lst.Items.Clear();
+        foreach (HuecoMusica h in huecos)
+        {
+            ListViewItem it = new ListViewItem(Formato.Tiempo(h.Inicio) + "\u2013" + Formato.Tiempo(h.Fin));
+            it.SubItems.Add(Math.Round(h.Duracion) + " s");
+            it.SubItems.Add(h.Bloque);
+            it.SubItems.Add(h.Dicho.Length > 0 ? h.Dicho : "(nadie habla)");
+            string tema = LogicaRelleno.Nombre(h, candidatos);
+            it.SubItems.Add(tema + (h.Motivo.Length > 0 ? " \u2014 " + h.Motivo : ""));
+            it.Checked = h.Elegido;
+            if (h.Silencio) it.ForeColor = Tema.TextoSuave;
+            it.Tag = h;
+            lst.Items.Add(it);
+        }
+        cargando = false;
+    }
+
+    void ConIA()
+    {
+        List<HuecoMusica> pedir = huecos.FindAll(delegate (HuecoMusica h) { return h.Elegido; });
+        if (pedir.Count == 0) { Estado("Marca al menos un hueco.", true); return; }
+        string instr = LogicaRelleno.Instrucciones();
+        string msg = LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project));
+        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        trabajando = true;
+        Habilitar();
+        Estado("Gemini est\u00e1 eligiendo un tema para cada hueco\u2026", false);
+        Thread hilo = new Thread(delegate ()
+        {
+            string resp = null, error = null;
+            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    if (error != null) { Estado("Gemini: " + error, true); Habilitar(); return; }
+                    try
+                    {
+                        int n = LogicaRelleno.Leer(resp, pedir, candidatos, musica);
+                        Llenar();
+                        Estado("\u2714 " + n + " huecos con tema (o silencio). Revisa, desmarca lo que no quieras y pulsa \u00abColocar\u00bb.", false);
+                    }
+                    catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
+                    Habilitar();
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+
+    void Colocar()
+    {
+        List<string> avisos = new List<string>();
+        int n;
+        using (UndoBlock u = new UndoBlock("Rellenar la m\u00fasica"))
+            n = LogicaRelleno.Colocar(vegas.Project, huecos, candidatos, musica, biblioteca, avisos);
+        Estado("\u2714 " + n + " temas colocados en \u00ab" + LogicaRelleno.PistaMusica + "\u00bb (sin balancear)." +
+               (avisos.Count > 0 ? " Avisos: " + String.Join(" ", avisos.ToArray()) : ""), avisos.Count > 0);
+        foreach (HuecoMusica h in huecos) if (h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0)) h.Elegido = false;
+        Llenar();
+        Habilitar();
+    }
+}
+
+// ---- src/final/LogicaRelleno.cs ----
+
+// =====================================================================
+// Rellenar la musica: en el capitulo ya editado (cortado, reordenado),
+// busca los huecos de la pista de musica y les pone un tema de la
+// biblioteca segun lo que pasa ahi. Lo que ya esta en la pista no se toca.
+// =====================================================================
+
+public class HuecoMusica
+{
+    public int N;
+    public double Inicio, Fin;
+    public string Dicho = "", Bloque = "", Antes = "", Despues = "";
+    public int Tema = -1;              // id del candidato
+    public string Personaje = "", Motivo = "";
+    public bool Silencio;              // la IA prefiere dejarlo sin musica
+    public bool Elegido = true;
+    public double Duracion { get { return Fin - Inicio; } }
+}
+
+public static class LogicaRelleno
+{
+    public const string PistaMusica = "vegas-cut \u00b7 M\u00fasica";
+    public const double MaximoHueco = 120;   // un hueco mas largo se parte: un tema dura 1\u20133 min
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+    static Timecode TC(double s) { return Timecode.FromMilliseconds(s * 1000); }
+    static string F(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
+
+    static string Plano(string t)
+    {
+        string d = (t ?? "").ToLowerInvariant().Normalize(NormalizationForm.FormD);
+        StringBuilder sb = new StringBuilder();
+        foreach (char c in d) if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark) sb.Append(c);
+        return sb.ToString();
+    }
+
+    // Pistas de musica: la de vegas-cut y las que se llaman "musica" / "music" / "ost".
+    public static List<Track> PistasMusica(Project p)
+    {
+        List<Track> r = new List<Track>();
+        foreach (Track t in p.Tracks)
+        {
+            if (!t.IsAudio()) continue;
+            string n = Plano(t.Name);
+            if (t.Name == PistaMusica || n.Contains("musica") || n.Contains("music") || n.Contains(" ost") || n.StartsWith("ost") || n.Contains("bgm"))
+                r.Add(t);
+        }
+        return r;
+    }
+
+    static string Archivo(TrackEvent e)
+    {
+        try { return e.ActiveTake != null && e.ActiveTake.Media != null ? (e.ActiveTake.Media.FilePath ?? "") : ""; } catch { return ""; }
+    }
+
+    // Los huecos de al menos "minimo" segundos donde no suena musica ni el kit
+    // (opening, ending, eyecatch), dentro de lo que dura el video.
+    public static List<HuecoMusica> Huecos(Project p, Transcripcion t, double minimo)
+    {
+        double fin = 0;
+        foreach (Track x in p.Tracks)
+            if (!x.IsAudio()) foreach (TrackEvent e in x.Events) fin = Math.Max(fin, S(e.End));
+        List<Rango> ocupado = new List<Rango>();
+        List<TrackEvent> musica = new List<TrackEvent>();
+        foreach (Track x in PistasMusica(p))
+            foreach (TrackEvent e in x.Events) if (!e.Mute) { ocupado.Add(new Rango(S(e.Start), S(e.End))); musica.Add(e); }
+        foreach (Track x in p.Tracks)
+            if ((x.Name ?? "").Contains("Kit"))
+                foreach (TrackEvent e in x.Events) ocupado.Add(new Rango(S(e.Start), S(e.End)));
+        ocupado = Rangos.Unir(ocupado, 0.5);
+
+        List<HuecoMusica> r = new List<HuecoMusica>();
+        double desde = 0;
+        List<Rango> libres = new List<Rango>();
+        foreach (Rango o in ocupado)
+        {
+            if (o.Inicio - desde >= minimo && desde < fin) libres.Add(new Rango(desde, Math.Min(o.Inicio, fin)));
+            desde = Math.Max(desde, o.Fin);
+        }
+        if (fin - desde >= minimo) libres.Add(new Rango(desde, fin));
+        // Los huecos largos se parten (en el borde de un bloque si hay uno cerca).
+        List<Rango> partidos = new List<Rango>();
+        foreach (Rango l in libres)
+        {
+            double a = l.Inicio;
+            while (l.Fin - a > MaximoHueco)
+            {
+                int n = (int)Math.Ceiling((l.Fin - a) / MaximoHueco);
+                double corte = a + (l.Fin - a) / n;
+                foreach (Region g in p.Regions)
+                {
+                    double ini = S(g.Position);
+                    if (ini > a + minimo && ini < l.Fin - minimo && Math.Abs(ini - corte) < 25) { corte = ini; break; }
+                }
+                partidos.Add(new Rango(a, corte));
+                a = corte;
+            }
+            partidos.Add(new Rango(a, l.Fin));
+        }
+        libres = partidos;
+
+        List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
+        foreach (Rango l in libres)
+        {
+            if (l.Fin - l.Inicio < minimo) continue;
+            HuecoMusica h = new HuecoMusica();
+            h.N = r.Count + 1; h.Inicio = l.Inicio; h.Fin = l.Fin;
+            StringBuilder d = new StringBuilder();
+            foreach (Segmento s in segs)
+            {
+                if (s.Fin <= l.Inicio || s.Inicio >= l.Fin || String.IsNullOrEmpty(s.Texto)) continue;
+                string quien = s.Hablante >= 0 && s.Hablante < t.Hablantes.Count ? t.Hablantes[s.Hablante].Nombre : "?";
+                d.Append(quien + ": " + s.Texto.Trim() + " ");
+                if (d.Length > 700) { d.Append("\u2026"); break; }
+            }
+            h.Dicho = d.ToString().Trim();
+            // Bloque: la region mas corta que lo contiene (COLD OPEN, ACTO A...).
+            double medio = (l.Inicio + l.Fin) / 2, menor = double.MaxValue;
+            foreach (Region g in p.Regions)
+            {
+                double a = S(g.Position), b = a + S(g.Length);
+                if (medio >= a && medio <= b && b - a < menor) { menor = b - a; h.Bloque = g.Label ?? ""; }
+            }
+            foreach (TrackEvent e in musica)
+            {
+                if (Math.Abs(S(e.End) - l.Inicio) < 1.0) h.Antes = Path.GetFileNameWithoutExtension(Archivo(e));
+                if (Math.Abs(S(e.Start) - l.Fin) < 1.0) h.Despues = Path.GetFileNameWithoutExtension(Archivo(e));
+            }
+            r.Add(h);
+        }
+        return r;
+    }
+
+    // Lo que ya suena en el capitulo (para no repetirlo).
+    public static List<string> YaSuena(Project p)
+    {
+        List<string> r = new List<string>();
+        foreach (Track x in PistasMusica(p))
+            foreach (TrackEvent e in x.Events)
+            {
+                string n = Path.GetFileNameWithoutExtension(Archivo(e));
+                if (n.Length > 0 && !r.Contains(n)) r.Add(n);
+            }
+        return r;
+    }
+
+    public static string Instrucciones()
+    {
+        return "Eres el supervisor musical de una serie de YouTube de Minecraft editada como un anime de JoJo. El cap\u00edtulo ya est\u00e1 " +
+               "editado y su pista de m\u00fasica tiene HUECOS. Para cada hueco elige un tema de la biblioteca seg\u00fan lo que pasa ah\u00ed (lo " +
+               "que se dice), el bloque del cap\u00edtulo y lo que suena antes y despu\u00e9s.\n" +
+               "- Que siga el \u00e1nimo de la escena: calma o viaje en exploraci\u00f3n y charla, comedia en chistes, misterio y tensi\u00f3n " +
+               "cuando algo no cuadra, pelea en la acci\u00f3n, \u00e9pico o victoria en los logros, tristeza en lo emotivo.\n" +
+               "- El tema de un personaje cuando ese personaje se luce (\"personaje\": nombre).\n" +
+               "- No repitas lo que ya suena en el cap\u00edtulo ni el mismo tema en dos huecos; que no sea igual al de antes o despu\u00e9s.\n" +
+               "- Si un hueco queda mejor SIN m\u00fasica (un silencio dram\u00e1tico, el remate de un chiste, un momento muy hablado y " +
+               "corto), pon \"silencio\": true.\n- Solo ids de la lista.\n" +
+               "Responde SOLO con JSON: {\"huecos\": [{\"n\": n, \"id\": n, \"personaje\": \"\", \"silencio\": false, \"motivo\": \"...\"}]}";
+    }
+
+    public static string Mensaje(List<HuecoMusica> huecos, List<ArchivoMusica> candidatos, MusicaSerie m, List<string> yaSuena)
+    {
+        StringBuilder sb = new StringBuilder();
+        if (m != null)
+        {
+            if (!String.IsNullOrEmpty(m.Reparto)) sb.Append("REPARTO:\n" + m.Reparto.Trim() + "\n");
+            foreach (KeyValuePair<string, TemaAsignado> kv in m.Personajes)
+                sb.Append("Tema de " + kv.Key + ": " + Path.GetFileNameWithoutExtension(kv.Value.Archivo) + "\n");
+        }
+        if (yaSuena.Count > 0) sb.Append("\nYA SUENA EN EL CAP\u00cdTULO: " + String.Join("; ", yaSuena.ToArray()) + "\n");
+        sb.Append("\nHUECOS:\n");
+        foreach (HuecoMusica h in huecos)
+            sb.Append("[" + h.N + "] " + F(h.Inicio) + "\u2013" + F(h.Fin) + " s (" + Math.Round(h.Duracion) + " s)" +
+                      (h.Bloque.Length > 0 ? " \u00b7 " + h.Bloque : "") + (h.Antes.Length > 0 ? " \u00b7 antes suena: " + h.Antes : "") +
+                      (h.Despues.Length > 0 ? " \u00b7 despu\u00e9s: " + h.Despues : "") + "\n    " + (h.Dicho.Length > 0 ? h.Dicho : "(nadie habla)") + "\n");
+        sb.Append("\nBIBLIOTECA [id] t\u00edtulo (de d\u00f3nde) | \u00e1nimo | d\u00f3nde suena / c\u00f3mo suena | duraci\u00f3n\n");
+        for (int i = 0; i < candidatos.Count; i++)
+        {
+            ArchivoMusica a = candidatos[i];
+            sb.Append("[" + i + "] " + a.Titulo + " (" + (a.Parte.Length > 0 ? a.Parte : a.Fuente) + ") | " + String.Join(", ", a.Animos.ToArray()) +
+                      (a.Momento.Length > 0 ? " | " + a.Momento : "") + (!a.ConUso && a.Descripcion.Length > 0 ? " | " + a.Descripcion : "") +
+                      (a.Duracion > 0 ? " | " + Math.Round(a.Duracion) + " s" : "") + "\n");
+        }
+        return sb.ToString();
+    }
+
+    // Pone en cada hueco el tema de la respuesta (sin repetir); devuelve cuantos.
+    public static int Leer(string json, List<HuecoMusica> huecos, List<ArchivoMusica> candidatos, MusicaSerie m)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        Dictionary<int, bool> usados = new Dictionary<int, bool>();
+        int n = 0;
+        foreach (object x in Json.Lista(o, "huecos"))
+        {
+            int k = (int)Json.Numero(x, "n", -1);
+            HuecoMusica h = huecos.Find(delegate (HuecoMusica y) { return y.N == k; });
+            if (h == null) continue;
+            h.Tema = -1; h.Personaje = ""; h.Silencio = false;
+            h.Motivo = Json.Texto(x, "motivo");
+            object si = Json.Valor(x, "silencio");
+            if (si is bool && (bool)si) { h.Silencio = true; h.Elegido = false; n++; continue; }
+            string pj = Json.Texto(x, "personaje");
+            if (pj.Length > 0 && m != null && m.Personajes.ContainsKey(pj)) { h.Personaje = pj; n++; continue; }
+            int id = (int)Json.Numero(x, "id", -1);
+            if (id < 0 || id >= candidatos.Count || usados.ContainsKey(id)) continue;
+            usados[id] = true;
+            h.Tema = id;
+            n++;
+        }
+        return n;
+    }
+
+    public static string Ruta(HuecoMusica h, List<ArchivoMusica> candidatos, MusicaSerie m, BibliotecaMusica b)
+    {
+        string ruta = null;
+        if (h.Personaje.Length > 0 && m != null && m.Personajes.ContainsKey(h.Personaje)) ruta = m.Personajes[h.Personaje].Archivo;
+        else if (h.Tema >= 0 && h.Tema < candidatos.Count) ruta = candidatos[h.Tema].Ruta;
+        if (ruta != null && !Path.IsPathRooted(ruta) && b != null) ruta = b.Completa(ruta);
+        return ruta;
+    }
+
+    public static string Nombre(HuecoMusica h, List<ArchivoMusica> candidatos)
+    {
+        if (h.Silencio) return "(mejor en silencio)";
+        if (h.Personaje.Length > 0) return "Tema de " + h.Personaje;
+        if (h.Tema >= 0 && h.Tema < candidatos.Count) return candidatos[h.Tema].Titulo;
+        return "";
+    }
+
+    // Coloca los temas elegidos en la pista de musica (sin tocar lo que ya hay).
+    public static int Colocar(Project p, List<HuecoMusica> huecos, List<ArchivoMusica> candidatos, MusicaSerie m, BibliotecaMusica b,
+                              List<string> avisos)
+    {
+        AudioTrack pista = null;
+        foreach (Track x in p.Tracks) if (x.IsAudio() && x.Name == PistaMusica) { pista = (AudioTrack)x; break; }
+        if (pista == null)
+        {
+            pista = new AudioTrack(p.Tracks.Count, PistaMusica);
+            p.Tracks.Add(pista);
+            pista.Volume = MusicaSerie.Lineal(m != null ? m.VolumenDb : -21);
+        }
+        int n = 0;
+        foreach (HuecoMusica h in huecos)
+        {
+            if (!h.Elegido || h.Silencio) continue;
+            string ruta = Ruta(h, candidatos, m, b);
+            if (ruta == null) continue;
+            if (!File.Exists(ruta)) { avisos.Add("No encontr\u00e9 " + Path.GetFileName(ruta) + "."); continue; }
+            try
+            {
+                Media md = new Media(ruta);
+                MediaStream s = md.Streams.GetItemByMediaType(MediaType.Audio, 0);
+                double largo = Math.Min(h.Duracion, S(md.Length) > 1 ? S(md.Length) : h.Duracion);
+                AudioEvent e = pista.AddAudioEvent(TC(h.Inicio), TC(largo));
+                e.AddTake(s);
+                e.FadeIn.Length = TC(Math.Min(1.0, largo / 4));
+                e.FadeOut.Length = TC(Math.Min(2.0, largo / 4));
+                n++;
+            }
+            catch (Exception ex) { avisos.Add("Hueco " + h.N + ": " + ex.Message); }
         }
         return n;
     }
@@ -4582,7 +5033,7 @@ public class MusicaSerie
         Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (ArchivoMusica a in b.Archivos)
         {
-            bool sirve = a.ConUso || a.Fuente == "SBR fan";
+            bool sirve = a.Sirve;
             if (!sirve || vistos.ContainsKey(a.Ruta)) continue;
             vistos[a.Ruta] = true;
             foreach (string v in a.Variantes) vistos[v] = true;
@@ -4619,6 +5070,7 @@ public class MusicaSerie
             if (a.Animos.Count > 0) sb.Append(" | " + String.Join(", ", a.Animos.ToArray()));
             if (a.TemaDe.Count > 0) sb.Append(" | tema de " + String.Join(", ", a.TemaDe.ToArray()));
             if (a.Escenas.Count > 0) sb.Append(" | " + String.Join("; ", a.Escenas.GetRange(0, Math.Min(2, a.Escenas.Count)).ToArray()));
+            else if (a.Descripcion.Length > 0) sb.Append(" | " + a.Descripcion);
             sb.Append("\n");
         }
         return sb.ToString();
@@ -4675,7 +5127,11 @@ public class ArchivoMusica
     public int Usos, LargoTipico;
     public List<string> Animos = new List<string>(), TemaDe = new List<string>(), Escenas = new List<string>(), Variantes = new List<string>();
     public string Momento = "";     // donde suena mas: inicio, medio, final, avance, eyecatch...
+    public string Descripcion = ""; // como suena (de la IA, para lo que no es del anime)
+    public bool Etiquetado;         // animos puestos por la IA (juegos, fanmade...)
     public bool ConUso { get { return Usos > 0; } }
+    // Sirve para elegir musica: tiene datos del anime, es fanmade de SBR o ya esta etiquetado.
+    public bool Sirve { get { return ConUso || Fuente == "SBR fan" || (Etiquetado && Animos.Count > 0); } }
 }
 
 // Lo que se sabe de un archivo antes de emparejarlo (de sus etiquetas o del CSV).
@@ -4733,16 +5189,16 @@ public class BibliotecaMusica
                                            "good morning", "good night", "future", "destiny", "musik", "leicht", "stone ocean" };
 
     static readonly Dictionary<string, string> Animo = new Dictionary<string, string> {
-        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat" },
-        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase" },
-        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister" },
-        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso" },
-        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer" },
-        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run" },
-        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night" },
-        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness" },
-        { "victoria", "victory|triumph|glory|hero|pride|proud|win" },
-        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny" },
+        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat|pelea|batalla|combate|lucha|jefe" },
+        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase|tension|suspenso|peligro|persecucion" },
+        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister|villano|malvado|oscuro" },
+        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso|misterio|cueva|cave" },
+        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer|comedia|gracios|divertid" },
+        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run|viaje|aventura|explora|overworld" },
+        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night|calma|tranquil|relaj|menu|lobby|ambient" },
+        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness|triste|tristeza|melancol" },
+        { "victoria", "victory|triumph|glory|hero|pride|proud|win|victoria|triunfo" },
+        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny|epico|epic|heroic" },
     };
 
     // ------------------------------------------------------------- catalogo
@@ -4874,10 +5330,34 @@ public class BibliotecaMusica
             if (a.Animos.Count == 0)
                 foreach (KeyValuePair<string, string> kv in Animo)
                     if (Regex.IsMatch(a.Titulo, kv.Value, RegexOptions.IgnoreCase) && a.Animos.Count < 2) a.Animos.Add(kv.Key);
+            // Lo que no es del anime: la subcarpeta tambien dice el animo (\u00abJuegos/Pelea/...\u00bb).
+            if (!a.ConUso && a.Fuente != "SBR fan")
+            {
+                List<string> porCarpeta = AnimosDeCarpeta(carpeta, a.Ruta);
+                if (porCarpeta.Count > 0)
+                {
+                    a.Animos.Clear(); a.Animos.AddRange(porCarpeta);
+                    a.Etiquetado = true; a.Descripcion = "por su carpeta";
+                }
+            }
             b.Archivos.Add(a);
         }
         b.MarcarVariantes();
         return b;
+    }
+
+    // Animos que dicen las subcarpetas (dentro de la carpeta de la musica), por palabra completa.
+    public static List<string> AnimosDeCarpeta(string carpeta, string ruta)
+    {
+        List<string> r = new List<string>();
+        string dir = Path.GetDirectoryName(ruta) ?? "";
+        string raiz = (carpeta ?? "").TrimEnd('\\', '/');
+        if (raiz.Length > 0 && dir.StartsWith(raiz, StringComparison.OrdinalIgnoreCase)) dir = dir.Substring(raiz.Length);
+        else if (Path.IsPathRooted(dir)) return r;
+        dir = Norm(dir.Replace('\\', ' ').Replace('/', ' '));
+        foreach (KeyValuePair<string, string> kv in Animo)
+            if (Regex.IsMatch(dir, @"(?<![a-z])(" + kv.Value + ")", RegexOptions.IgnoreCase) && r.Count < 2) r.Add(kv.Key);
+        return r;
     }
 
     // Variantes: el mismo tema en otra version o en otro album.
@@ -5024,6 +5504,10 @@ public class BibliotecaMusica
                 x["momento"] = a.Momento; x["escenas"] = new List<object>(a.Escenas.ToArray());
                 if (a.TemaDe.Count > 0) x["tema_de"] = new List<object>(a.TemaDe.ToArray());
             }
+            else if (a.Etiquetado)
+            {
+                x["ia"] = true; x["momento"] = a.Momento; x["descripcion"] = a.Descripcion;
+            }
             if (a.Variantes.Count > 0) x["variantes"] = new List<object>(a.Variantes.ToArray());
             l.Add(x);
         }
@@ -5045,7 +5529,9 @@ public class BibliotecaMusica
             a.Duracion = Json.Numero(x, "duracion", 0); a.Fuente = Json.Texto(x, "fuente");
             a.TemaAnime = Json.Texto(x, "tema_anime"); a.Parte = Json.Texto(x, "parte");
             a.Usos = (int)Json.Numero(x, "usos", 0); a.LargoTipico = (int)Json.Numero(x, "largo_tipico", 0);
-            a.Momento = Json.Texto(x, "momento");
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            object ia = Json.Valor(x, "ia");
+            a.Etiquetado = ia is bool && (bool)ia;
             foreach (object y in Json.Lista(x, "animos")) a.Animos.Add((string)y);
             foreach (object y in Json.Lista(x, "tema_de")) a.TemaDe.Add((string)y);
             foreach (object y in Json.Lista(x, "escenas")) a.Escenas.Add((string)y);
@@ -5053,6 +5539,82 @@ public class BibliotecaMusica
             b.Archivos.Add(a);
         }
         return b;
+    }
+
+    // ------------------------------------- etiquetar con IA (juegos, fanmade)
+
+    public static readonly string[] Animos = { "calma", "viaje", "comedia", "misterio", "tension", "pelea", "villano", "epico",
+                                               "victoria", "tristeza" };
+
+    // Al volver a indexar, lo que la IA ya etiqueto se conserva.
+    public void ConservarEtiquetas(BibliotecaMusica vieja)
+    {
+        if (vieja == null) return;
+        foreach (ArchivoMusica a in Archivos)
+        {
+            if (a.ConUso) continue;
+            ArchivoMusica v = vieja.Buscar(a.Ruta);
+            if (v == null || !v.Etiquetado) continue;
+            a.Etiquetado = true; a.Momento = v.Momento; a.Descripcion = v.Descripcion;
+            a.Animos.Clear(); a.Animos.AddRange(v.Animos);
+        }
+    }
+
+    // Lo que no tiene datos del anime ni etiquetas de la IA.
+    public List<ArchivoMusica> PorEtiquetar()
+    {
+        List<ArchivoMusica> r = new List<ArchivoMusica>();
+        foreach (ArchivoMusica a in Archivos) if (!a.ConUso && !a.Etiquetado && a.Fuente != "SBR fan") r.Add(a);
+        return r;
+    }
+
+    public static string InstruccionesEtiquetar()
+    {
+        return "Eres supervisor musical de una serie de YouTube de Minecraft editada como un anime. Te paso archivos de m\u00fasica que " +
+               "no son del anime (bandas sonoras de videojuegos, fanmade, remixes...) con su t\u00edtulo, \u00e1lbum y carpeta. Por lo que " +
+               "sabes de cada tema (si lo conoces) o por su t\u00edtulo, \u00e1lbum y carpeta, di c\u00f3mo suena y para qu\u00e9 escenas sirve.\n" +
+               "- \"animos\": 1 a 3 de: " + String.Join(", ", Animos) + ".\n" +
+               "- \"momento\": d\u00f3nde queda mejor (inicio, exploraci\u00f3n, construcci\u00f3n, pelea, jefe, cliffhanger, ep\u00edlogo, men\u00fa...).\n" +
+               "- \"descripcion\": c\u00f3mo suena, en pocas palabras (instrumentos, tempo, energ\u00eda).\n" +
+               "- Si no tienes idea de c\u00f3mo suena uno, no lo pongas (mejor nada que inventar).\n" +
+               "Responde SOLO con JSON: {\"temas\": [{\"id\": n, \"animos\": [\"...\"], \"momento\": \"...\", \"descripcion\": \"...\"}]}";
+    }
+
+    public string MensajeEtiquetar(List<ArchivoMusica> lote)
+    {
+        StringBuilder sb = new StringBuilder("ARCHIVOS [id] t\u00edtulo | \u00e1lbum | carpeta | duraci\u00f3n\n");
+        for (int i = 0; i < lote.Count; i++)
+        {
+            ArchivoMusica a = lote[i];
+            string dir = Path.GetDirectoryName(a.Ruta) ?? "";
+            sb.Append("[" + i + "] " + a.Titulo + " | " + a.Album + " | " + dir + " | " + Math.Round(a.Duracion) + " s\n");
+        }
+        return sb.ToString();
+    }
+
+    // Pone las etiquetas de la respuesta; devuelve cuantos quedaron etiquetados.
+    public static int AplicarEtiquetas(List<ArchivoMusica> lote, string json)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        int n = 0;
+        foreach (object x in Json.Lista(o, "temas"))
+        {
+            int id = (int)Json.Numero(x, "id", -1);
+            if (id < 0 || id >= lote.Count) continue;
+            List<string> an = new List<string>();
+            foreach (object y in Json.Lista(x, "animos"))
+            {
+                string k = Norm(y as string).Replace(" ", "");
+                if (Array.IndexOf(Animos, k) >= 0 && !an.Contains(k)) an.Add(k);
+            }
+            if (an.Count == 0) continue;
+            ArchivoMusica a = lote[id];
+            a.Animos.Clear(); a.Animos.AddRange(an);
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            a.Etiquetado = true;
+            n++;
+        }
+        return n;
     }
 
     public ArchivoMusica Buscar(string ruta)

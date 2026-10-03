@@ -2128,7 +2128,7 @@ public class MusicaSerie
         Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (ArchivoMusica a in b.Archivos)
         {
-            bool sirve = a.ConUso || a.Fuente == "SBR fan";
+            bool sirve = a.Sirve;
             if (!sirve || vistos.ContainsKey(a.Ruta)) continue;
             vistos[a.Ruta] = true;
             foreach (string v in a.Variantes) vistos[v] = true;
@@ -2165,6 +2165,7 @@ public class MusicaSerie
             if (a.Animos.Count > 0) sb.Append(" | " + String.Join(", ", a.Animos.ToArray()));
             if (a.TemaDe.Count > 0) sb.Append(" | tema de " + String.Join(", ", a.TemaDe.ToArray()));
             if (a.Escenas.Count > 0) sb.Append(" | " + String.Join("; ", a.Escenas.GetRange(0, Math.Min(2, a.Escenas.Count)).ToArray()));
+            else if (a.Descripcion.Length > 0) sb.Append(" | " + a.Descripcion);
             sb.Append("\n");
         }
         return sb.ToString();
@@ -2221,7 +2222,11 @@ public class ArchivoMusica
     public int Usos, LargoTipico;
     public List<string> Animos = new List<string>(), TemaDe = new List<string>(), Escenas = new List<string>(), Variantes = new List<string>();
     public string Momento = "";     // donde suena mas: inicio, medio, final, avance, eyecatch...
+    public string Descripcion = ""; // como suena (de la IA, para lo que no es del anime)
+    public bool Etiquetado;         // animos puestos por la IA (juegos, fanmade...)
     public bool ConUso { get { return Usos > 0; } }
+    // Sirve para elegir musica: tiene datos del anime, es fanmade de SBR o ya esta etiquetado.
+    public bool Sirve { get { return ConUso || Fuente == "SBR fan" || (Etiquetado && Animos.Count > 0); } }
 }
 
 // Lo que se sabe de un archivo antes de emparejarlo (de sus etiquetas o del CSV).
@@ -2279,16 +2284,16 @@ public class BibliotecaMusica
                                            "good morning", "good night", "future", "destiny", "musik", "leicht", "stone ocean" };
 
     static readonly Dictionary<string, string> Animo = new Dictionary<string, string> {
-        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat" },
-        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase" },
-        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister" },
-        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso" },
-        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer" },
-        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run" },
-        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night" },
-        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness" },
-        { "victoria", "victory|triumph|glory|hero|pride|proud|win" },
-        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny" },
+        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat|pelea|batalla|combate|lucha|jefe" },
+        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase|tension|suspenso|peligro|persecucion" },
+        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister|villano|malvado|oscuro" },
+        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso|misterio|cueva|cave" },
+        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer|comedia|gracios|divertid" },
+        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run|viaje|aventura|explora|overworld" },
+        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night|calma|tranquil|relaj|menu|lobby|ambient" },
+        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness|triste|tristeza|melancol" },
+        { "victoria", "victory|triumph|glory|hero|pride|proud|win|victoria|triunfo" },
+        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny|epico|epic|heroic" },
     };
 
     // ------------------------------------------------------------- catalogo
@@ -2420,10 +2425,34 @@ public class BibliotecaMusica
             if (a.Animos.Count == 0)
                 foreach (KeyValuePair<string, string> kv in Animo)
                     if (Regex.IsMatch(a.Titulo, kv.Value, RegexOptions.IgnoreCase) && a.Animos.Count < 2) a.Animos.Add(kv.Key);
+            // Lo que no es del anime: la subcarpeta tambien dice el animo (\u00abJuegos/Pelea/...\u00bb).
+            if (!a.ConUso && a.Fuente != "SBR fan")
+            {
+                List<string> porCarpeta = AnimosDeCarpeta(carpeta, a.Ruta);
+                if (porCarpeta.Count > 0)
+                {
+                    a.Animos.Clear(); a.Animos.AddRange(porCarpeta);
+                    a.Etiquetado = true; a.Descripcion = "por su carpeta";
+                }
+            }
             b.Archivos.Add(a);
         }
         b.MarcarVariantes();
         return b;
+    }
+
+    // Animos que dicen las subcarpetas (dentro de la carpeta de la musica), por palabra completa.
+    public static List<string> AnimosDeCarpeta(string carpeta, string ruta)
+    {
+        List<string> r = new List<string>();
+        string dir = Path.GetDirectoryName(ruta) ?? "";
+        string raiz = (carpeta ?? "").TrimEnd('\\', '/');
+        if (raiz.Length > 0 && dir.StartsWith(raiz, StringComparison.OrdinalIgnoreCase)) dir = dir.Substring(raiz.Length);
+        else if (Path.IsPathRooted(dir)) return r;
+        dir = Norm(dir.Replace('\\', ' ').Replace('/', ' '));
+        foreach (KeyValuePair<string, string> kv in Animo)
+            if (Regex.IsMatch(dir, @"(?<![a-z])(" + kv.Value + ")", RegexOptions.IgnoreCase) && r.Count < 2) r.Add(kv.Key);
+        return r;
     }
 
     // Variantes: el mismo tema en otra version o en otro album.
@@ -2570,6 +2599,10 @@ public class BibliotecaMusica
                 x["momento"] = a.Momento; x["escenas"] = new List<object>(a.Escenas.ToArray());
                 if (a.TemaDe.Count > 0) x["tema_de"] = new List<object>(a.TemaDe.ToArray());
             }
+            else if (a.Etiquetado)
+            {
+                x["ia"] = true; x["momento"] = a.Momento; x["descripcion"] = a.Descripcion;
+            }
             if (a.Variantes.Count > 0) x["variantes"] = new List<object>(a.Variantes.ToArray());
             l.Add(x);
         }
@@ -2591,7 +2624,9 @@ public class BibliotecaMusica
             a.Duracion = Json.Numero(x, "duracion", 0); a.Fuente = Json.Texto(x, "fuente");
             a.TemaAnime = Json.Texto(x, "tema_anime"); a.Parte = Json.Texto(x, "parte");
             a.Usos = (int)Json.Numero(x, "usos", 0); a.LargoTipico = (int)Json.Numero(x, "largo_tipico", 0);
-            a.Momento = Json.Texto(x, "momento");
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            object ia = Json.Valor(x, "ia");
+            a.Etiquetado = ia is bool && (bool)ia;
             foreach (object y in Json.Lista(x, "animos")) a.Animos.Add((string)y);
             foreach (object y in Json.Lista(x, "tema_de")) a.TemaDe.Add((string)y);
             foreach (object y in Json.Lista(x, "escenas")) a.Escenas.Add((string)y);
@@ -2599,6 +2634,82 @@ public class BibliotecaMusica
             b.Archivos.Add(a);
         }
         return b;
+    }
+
+    // ------------------------------------- etiquetar con IA (juegos, fanmade)
+
+    public static readonly string[] Animos = { "calma", "viaje", "comedia", "misterio", "tension", "pelea", "villano", "epico",
+                                               "victoria", "tristeza" };
+
+    // Al volver a indexar, lo que la IA ya etiqueto se conserva.
+    public void ConservarEtiquetas(BibliotecaMusica vieja)
+    {
+        if (vieja == null) return;
+        foreach (ArchivoMusica a in Archivos)
+        {
+            if (a.ConUso) continue;
+            ArchivoMusica v = vieja.Buscar(a.Ruta);
+            if (v == null || !v.Etiquetado) continue;
+            a.Etiquetado = true; a.Momento = v.Momento; a.Descripcion = v.Descripcion;
+            a.Animos.Clear(); a.Animos.AddRange(v.Animos);
+        }
+    }
+
+    // Lo que no tiene datos del anime ni etiquetas de la IA.
+    public List<ArchivoMusica> PorEtiquetar()
+    {
+        List<ArchivoMusica> r = new List<ArchivoMusica>();
+        foreach (ArchivoMusica a in Archivos) if (!a.ConUso && !a.Etiquetado && a.Fuente != "SBR fan") r.Add(a);
+        return r;
+    }
+
+    public static string InstruccionesEtiquetar()
+    {
+        return "Eres supervisor musical de una serie de YouTube de Minecraft editada como un anime. Te paso archivos de m\u00fasica que " +
+               "no son del anime (bandas sonoras de videojuegos, fanmade, remixes...) con su t\u00edtulo, \u00e1lbum y carpeta. Por lo que " +
+               "sabes de cada tema (si lo conoces) o por su t\u00edtulo, \u00e1lbum y carpeta, di c\u00f3mo suena y para qu\u00e9 escenas sirve.\n" +
+               "- \"animos\": 1 a 3 de: " + String.Join(", ", Animos) + ".\n" +
+               "- \"momento\": d\u00f3nde queda mejor (inicio, exploraci\u00f3n, construcci\u00f3n, pelea, jefe, cliffhanger, ep\u00edlogo, men\u00fa...).\n" +
+               "- \"descripcion\": c\u00f3mo suena, en pocas palabras (instrumentos, tempo, energ\u00eda).\n" +
+               "- Si no tienes idea de c\u00f3mo suena uno, no lo pongas (mejor nada que inventar).\n" +
+               "Responde SOLO con JSON: {\"temas\": [{\"id\": n, \"animos\": [\"...\"], \"momento\": \"...\", \"descripcion\": \"...\"}]}";
+    }
+
+    public string MensajeEtiquetar(List<ArchivoMusica> lote)
+    {
+        StringBuilder sb = new StringBuilder("ARCHIVOS [id] t\u00edtulo | \u00e1lbum | carpeta | duraci\u00f3n\n");
+        for (int i = 0; i < lote.Count; i++)
+        {
+            ArchivoMusica a = lote[i];
+            string dir = Path.GetDirectoryName(a.Ruta) ?? "";
+            sb.Append("[" + i + "] " + a.Titulo + " | " + a.Album + " | " + dir + " | " + Math.Round(a.Duracion) + " s\n");
+        }
+        return sb.ToString();
+    }
+
+    // Pone las etiquetas de la respuesta; devuelve cuantos quedaron etiquetados.
+    public static int AplicarEtiquetas(List<ArchivoMusica> lote, string json)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        int n = 0;
+        foreach (object x in Json.Lista(o, "temas"))
+        {
+            int id = (int)Json.Numero(x, "id", -1);
+            if (id < 0 || id >= lote.Count) continue;
+            List<string> an = new List<string>();
+            foreach (object y in Json.Lista(x, "animos"))
+            {
+                string k = Norm(y as string).Replace(" ", "");
+                if (Array.IndexOf(Animos, k) >= 0 && !an.Contains(k)) an.Add(k);
+            }
+            if (an.Count == 0) continue;
+            ArchivoMusica a = lote[id];
+            a.Animos.Clear(); a.Animos.AddRange(an);
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            a.Etiquetado = true;
+            n++;
+        }
+        return n;
     }
 
     public ArchivoMusica Buscar(string ruta)
@@ -2833,6 +2944,7 @@ class VentanaMusicaSerie : VentanaBase
     Etiqueta lblCarpeta, lblIndice, lblEstado;
     Boton btnCarpeta = new Boton("Elegir carpeta\u2026", EstiloBoton.Secundario);
     Boton btnIndexar = new Boton("Indexar", EstiloBoton.Secundario);
+    Boton btnEtiquetar = new Boton("Etiquetar con IA", EstiloBoton.Secundario);
     CampoTexto txtReparto = new CampoTexto();
     CampoTexto txtPreferencias = new CampoTexto();
     Lista lst = new Lista();
@@ -2851,9 +2963,10 @@ class VentanaMusicaSerie : VentanaBase
         int x = Margen, w = Ancho;
         Encabezado("M\u00fasica de la serie", "Tu biblioteca indexada por c\u00f3mo se usa cada tema en el anime, y el tema de cada personaje.");
         int y = 92;
-        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, x, y + 6, w - 320, 20);
-        Pos(btnCarpeta, x + w - 310, y, 150, 32);
-        Pos(btnIndexar, x + w - 152, y, 152, 32);
+        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, x, y + 6, w - 490, 20);
+        Pos(btnCarpeta, x + w - 480, y, 150, 32);
+        Pos(btnIndexar, x + w - 322, y, 152, 32);
+        Pos(btnEtiquetar, x + w - 162, y, 162, 32);
         y += 38;
         lblIndice = Texto("", Tema.Pequena, Tema.TextoSuave, x, y, w, 18);
         Pos(barra, x, y + 22, w, 6);
@@ -2886,6 +2999,7 @@ class VentanaMusicaSerie : VentanaBase
         txtReparto.Text = (Resultado.Reparto ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
         btnCarpeta.Click += delegate { ElegirCarpeta(); };
         btnIndexar.Click += delegate { Indexar(); };
+        btnEtiquetar.Click += delegate { Etiquetar(); };
         btnIA.Click += delegate { ConIA(); };
         btnCambiar.Click += delegate { Cambiar(); };
         btnQuitar.Click += delegate
@@ -2917,11 +3031,14 @@ class VentanaMusicaSerie : VentanaBase
             lblIndice.Text = Resultado.Carpeta.Length > 0 ? "Sin \u00edndice todav\u00eda: pulsa \u00abIndexar\u00bb (lee las etiquetas de cada archivo; tarda un poco la primera vez)." : "";
         else
         {
-            int con = 0;
-            foreach (ArchivoMusica a in biblioteca.Archivos) if (a.ConUso) con++;
-            lblIndice.Text = biblioteca.Archivos.Count + " archivos \u00b7 " + con + " con datos de c\u00f3mo se usan en el anime.";
+            int con = 0, etiq = 0;
+            foreach (ArchivoMusica a in biblioteca.Archivos) { if (a.ConUso) con++; else if (a.Etiquetado) etiq++; }
+            int falta = biblioteca.PorEtiquetar().Count;
+            lblIndice.Text = biblioteca.Archivos.Count + " archivos \u00b7 " + con + " con datos de c\u00f3mo se usan en el anime \u00b7 " + etiq +
+                             " etiquetados (juegos, fanmade\u2026)" + (falta > 0 ? " \u00b7 " + falta + " sin etiquetar: \u00abEtiquetar con IA\u00bb" : "");
         }
         btnIA.Enabled = biblioteca != null && !String.IsNullOrEmpty(clave);
+        btnEtiquetar.Enabled = biblioteca != null && !String.IsNullOrEmpty(clave) && !trabajando && biblioteca.PorEtiquetar().Count > 0;
     }
 
     string Nombre(string ruta)
@@ -2981,7 +3098,9 @@ class VentanaMusicaSerie : VentanaBase
         {
             Action<string, double> av = delegate (string t, double f) { Estado(t, false); barra.Valor = f; Application.DoEvents(); };
             List<FilaMusica> filas = BibliotecaMusica.Escanear(Resultado.Carpeta, delegate (string t, double f) { av(t, f * 0.8); });
+            BibliotecaMusica vieja = biblioteca;
             biblioteca = BibliotecaMusica.Indexar(Resultado.Carpeta, filas, delegate (string t, double f) { av(t, 0.8 + f * 0.2); });
+            biblioteca.ConservarEtiquetas(vieja);   // lo que la IA ya etiqueto no se pierde
             biblioteca.Guardar(Path.Combine(Resultado.Carpeta, BibliotecaMusica.NombreIndice));
             Estado("\u2714 \u00cdndice guardado en " + BibliotecaMusica.NombreIndice + " (en la carpeta de la m\u00fasica).", false);
         }
@@ -2991,6 +3110,49 @@ class VentanaMusicaSerie : VentanaBase
         foreach (Control c in new Control[] { btnIndexar, btnCarpeta, btnGuardar }) c.Enabled = true;
         Mostrar();
         Llenar();
+    }
+
+    // Juegos, fanmade y demas: Gemini dice como suena cada uno (en lotes) y se guarda en el indice.
+    void Etiquetar()
+    {
+        List<ArchivoMusica> falta = biblioteca.PorEtiquetar();
+        if (falta.Count == 0) return;
+        string c = clave, mo = modelo;
+        BibliotecaMusica b = biblioteca;
+        string indice = Path.Combine(Resultado.Carpeta, BibliotecaMusica.NombreIndice);
+        trabajando = true;
+        barra.Visible = true;
+        foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar, btnEtiquetar, btnCarpeta }) x.Enabled = false;
+        Thread hilo = new Thread(delegate ()
+        {
+            int hechos = 0;
+            string error = null;
+            const int Lote = 100;
+            for (int i = 0; i < falta.Count && error == null; i += Lote)
+            {
+                List<ArchivoMusica> lote = falta.GetRange(i, Math.Min(Lote, falta.Count - i));
+                int ii = i;
+                try { BeginInvoke((MethodInvoker)delegate { Estado("Gemini est\u00e1 escuchando " + (ii + 1) + "\u2013" + (ii + lote.Count) + " de " + falta.Count + "\u2026", false); barra.Valor = (double)ii / falta.Count; }); } catch { }
+                try { hechos += BibliotecaMusica.AplicarEtiquetas(lote, Gemini.Generar(c, mo, BibliotecaMusica.InstruccionesEtiquetar(), b.MensajeEtiquetar(lote), true)); }
+                catch (Exception ex) { error = ex.Message; }
+            }
+            try { b.Guardar(indice); } catch (Exception ex) { if (error == null) error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    barra.Visible = false;
+                    foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar, btnCarpeta }) x.Enabled = true;
+                    Estado((error != null ? "Se cort\u00f3 (" + error + "). " : "\u2714 ") + hechos + " de " + falta.Count + " etiquetados y guardados en el \u00edndice" +
+                           (hechos < falta.Count ? "; los que Gemini no conoce quedan sin etiquetar (ponlos en subcarpetas como \u00abPelea\u00bb o \u00abCalma\u00bb)." : "."), error != null);
+                    Mostrar();
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
     }
 
     void ConIA()

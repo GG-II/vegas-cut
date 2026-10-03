@@ -639,7 +639,7 @@ public static class LogicaProduccion
         Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         List<ArchivoMusica> orden = new List<ArchivoMusica>();
         foreach (ArchivoMusica a in b.Archivos) if (a.Parte == "SC" || a.Parte == "GW") orden.Add(a);
-        foreach (ArchivoMusica a in b.Archivos) if (a.ConUso && a.Parte != "SC" && a.Parte != "GW") orden.Add(a);
+        foreach (ArchivoMusica a in b.Archivos) if (a.Sirve && a.Parte != "SC" && a.Parte != "GW") orden.Add(a);
         foreach (ArchivoMusica a in orden)
         {
             if (vistos.ContainsKey(a.Ruta) || a.Momento == "opening" || a.Momento == "ending") continue;
@@ -743,7 +743,8 @@ public static class LogicaProduccion
             sb.Append("\nBIBLIOTECA DE MÚSICA [id] título (parte) | ánimo | dónde suena en el anime\n");
             for (int i = 0; i < musica.Count; i++)
                 sb.Append("[" + i + "] " + musica[i].Titulo + " (" + (musica[i].Parte.Length > 0 ? musica[i].Parte : musica[i].Fuente) + ") | " +
-                          String.Join(", ", musica[i].Animos.ToArray()) + (musica[i].Momento.Length > 0 ? " | " + musica[i].Momento : "") + "\n");
+                          String.Join(", ", musica[i].Animos.ToArray()) + (musica[i].Momento.Length > 0 ? " | " + musica[i].Momento : "") +
+                          (!musica[i].ConUso && musica[i].Descripcion.Length > 0 ? " | " + musica[i].Descripcion : "") + "\n");
         }
         if (anterior != null && !String.IsNullOrEmpty(cambios))
             sb.Append("\nESCALETA ANTERIOR (JSON): rehazla aplicando los CAMBIOS PEDIDOS AHORA y manteniendo lo demás.\n" +

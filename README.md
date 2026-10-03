@@ -261,6 +261,17 @@ Para proyectos de varias partes de cualquier tipo: gameplays, video ensayos, pod
     Los que no están en el anime se clasifican por su título. El índice se guarda en
     `musica-indice.json`, dentro de la carpeta de la música; con tu biblioteca quedan 372 de
     1305 archivos con datos del anime.
+  - **Más música (juegos, fanmade, remixes).** Ponla en subcarpetas dentro de la carpeta de la
+    música (por ejemplo `Juegos/Minecraft`, `Fanmade/SBR`) y pulsa **Volver a indexar**. Después:
+    - **Etiquetar con IA**: Gemini dice el ánimo, dónde queda mejor y cómo suena cada archivo que
+      no es del anime, por lo que sabe del tema (la OST de Minecraft, Zelda, Undertale…) o por su
+      título, álbum y carpeta. Los que no conoce los deja sin etiquetar (mejor nada que
+      inventar).
+    - **Por carpeta**: si una subcarpeta se llama como un ánimo (`Pelea`, `Calma`, `Misterio`,
+      `Comedia`, `Triste`, `Épico`, `Jefe`, `Viaje`…), sus archivos toman ese ánimo sin preguntar.
+
+    Lo etiquetado se guarda en el índice y no se pierde al volver a indexar. Desde ahí, esos
+    archivos entran en la música que se elige al producir y al rellenar.
   - **Reparto**: un personaje por línea («Gerber: impulsivo, siempre pelea»).
   - **Elegir con IA**: Gemini elige el **tema principal** de la serie y **un tema para cada
     personaje**, sin repetir y con sus variantes. Usa la personalidad de cada uno, la premisa y
@@ -450,10 +461,25 @@ dejaste.
 
 Lo último antes de exportar, con la narración ya grabada:
 
-1. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
+1. **Rellenar la música**: para cuando ya cortaste, editaste y reordenaste el capítulo producido.
+
+   ![Rellenar la música](docs/img/rellenar-musica.png)
+
+   - **Buscar huecos** encuentra los tramos sin música en la pista de música, sin contar el
+     opening, el ending ni los demás bloques del kit. Por defecto busca huecos de 8 s o más; los
+     de más de 2 min se parten, en el borde de un bloque si hay uno cerca.
+   - Cada hueco muestra lo que se dice ahí (la transcripción sigue tus cortes) y su bloque.
+   - **Elegir temas con IA**: Gemini elige un tema de tu biblioteca para cada hueco según lo que
+     pasa, lo que suena antes y después, y lo que ya suena en el capítulo (sin repetir). Usa el
+     tema del personaje cuando ese personaje se luce. Si un hueco queda mejor en silencio (un
+     remate o un momento dramático), lo dice y lo desmarca.
+   - Revisa, desmarca lo que no quieras y pulsa **Colocar**: los temas van a la pista de música
+     con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
+     queda el resto libre y puedes volver a buscar.
+2. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
    que elijas mientras narras (la pista del narrador no se toca).
-2. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
-3. **Censurar palabrotas**: abre *Censurar palabrotas*.
+3. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
+4. **Censurar palabrotas**: abre *Censurar palabrotas*.
 
 ### `PulirEpisodio.cs`
 

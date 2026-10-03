@@ -217,7 +217,7 @@ public class MusicaSerie
         Dictionary<string, bool> vistos = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (ArchivoMusica a in b.Archivos)
         {
-            bool sirve = a.ConUso || a.Fuente == "SBR fan";
+            bool sirve = a.Sirve;
             if (!sirve || vistos.ContainsKey(a.Ruta)) continue;
             vistos[a.Ruta] = true;
             foreach (string v in a.Variantes) vistos[v] = true;
@@ -254,6 +254,7 @@ public class MusicaSerie
             if (a.Animos.Count > 0) sb.Append(" | " + String.Join(", ", a.Animos.ToArray()));
             if (a.TemaDe.Count > 0) sb.Append(" | tema de " + String.Join(", ", a.TemaDe.ToArray()));
             if (a.Escenas.Count > 0) sb.Append(" | " + String.Join("; ", a.Escenas.GetRange(0, Math.Min(2, a.Escenas.Count)).ToArray()));
+            else if (a.Descripcion.Length > 0) sb.Append(" | " + a.Descripcion);
             sb.Append("\n");
         }
         return sb.ToString();

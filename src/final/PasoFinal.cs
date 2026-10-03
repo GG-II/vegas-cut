@@ -26,8 +26,9 @@ class VentanaPasoFinal : VentanaBase
     readonly Vegas vegas;
     Transcripcion trans;
     string narrador = "Narrador";
-    Etiqueta lbl1, lbl2, lbl3, lblEstado;
+    Etiqueta lbl1, lbl2, lbl3, lbl0, lblEstado;
     CampoNumero numDb = new CampoNumero();
+    Boton btn0 = new Boton("Rellenar la música…", EstiloBoton.Secundario);
     Boton btn1 = new Boton("Bajar el juego", EstiloBoton.Secundario);
     Boton btn2 = new Boton("Balancear la música…", EstiloBoton.Secundario);
     Boton btn3 = new Boton("Censurar palabrotas…", EstiloBoton.Secundario);
@@ -37,18 +38,21 @@ class VentanaPasoFinal : VentanaBase
     {
         this.vegas = vegas;
         int m = Margen, w = Ancho;
-        Encabezado("Paso final", "Lo último antes de exportar, con la narración ya grabada: balance y censura.");
+        Encabezado("Paso final", "Lo último antes de exportar, con la narración ya grabada: música, balance y censura.");
         int y = 96;
-        lbl1 = Paso(1, "Bajar el juego bajo la narración", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
+        lbl0 = Paso(1, "Rellenar la música", "Ya cortado y reordenado: pone OST en los huecos de la música según lo que pasa (no toca lo que ya está).", y);
+        Pos(btn0, m + w - 210, y + 4, 210, 32);
+        y += 86;
+        lbl1 = Paso(2, "Bajar el juego bajo la narración", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
         numDb.Sufijo = "dB"; numDb.Minimo = -30; numDb.Maximo = 0; numDb.Paso = 1;
         Pos(numDb, m + w - 330, y + 4, 110, 32);
         numDb.Valor = -10;
         Pos(btn1, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl2 = Paso(2, "Balancear la música", "La música baja sola bajo las voces; incluye la pista de narración entre las voces.", y);
+        lbl2 = Paso(3, "Balancear la música", "La música baja sola bajo las voces; incluye la pista de narración entre las voces.", y);
         Pos(btn2, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl3 = Paso(3, "Censurar palabrotas", "Busca las palabrotas en la transcripción y las tapa con el efecto que elijas.", y);
+        lbl3 = Paso(4, "Censurar palabrotas", "Busca las palabrotas en la transcripción y las tapa con el efecto que elijas.", y);
         Pos(btn3, m + w - 210, y + 4, 210, 32);
         y += 92;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 160, 40);
@@ -81,6 +85,11 @@ class VentanaPasoFinal : VentanaBase
             using (UndoBlock u = new UndoBlock("Bajar el juego bajo la narración"))
                 n = LogicaPasoFinal.BajarJuego(vegas.Project, trans, narrador, numDb.Valor);
             Hecho(lbl1, n == 0 ? "No encontré narración ni pistas de grabación." : "✔ " + n + " pistas bajan " + numDb.Valor + " dB mientras narras.", n > 0);
+        };
+        btn0.Click += delegate
+        {
+            using (VentanaRelleno v = new VentanaRelleno(vegas, trans)) v.ShowDialog(this);
+            Hecho(lbl0, "Hecho (lo nuevo quedó en la pista de música, sin balancear).", true);
         };
         btn2.Click += delegate
         {

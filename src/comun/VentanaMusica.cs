@@ -155,6 +155,7 @@ class VentanaMusicaSerie : VentanaBase
     Etiqueta lblCarpeta, lblIndice, lblEstado;
     Boton btnCarpeta = new Boton("Elegir carpeta…", EstiloBoton.Secundario);
     Boton btnIndexar = new Boton("Indexar", EstiloBoton.Secundario);
+    Boton btnEtiquetar = new Boton("Etiquetar con IA", EstiloBoton.Secundario);
     CampoTexto txtReparto = new CampoTexto();
     CampoTexto txtPreferencias = new CampoTexto();
     Lista lst = new Lista();
@@ -173,9 +174,10 @@ class VentanaMusicaSerie : VentanaBase
         int x = Margen, w = Ancho;
         Encabezado("Música de la serie", "Tu biblioteca indexada por cómo se usa cada tema en el anime, y el tema de cada personaje.");
         int y = 92;
-        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, x, y + 6, w - 320, 20);
-        Pos(btnCarpeta, x + w - 310, y, 150, 32);
-        Pos(btnIndexar, x + w - 152, y, 152, 32);
+        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, x, y + 6, w - 490, 20);
+        Pos(btnCarpeta, x + w - 480, y, 150, 32);
+        Pos(btnIndexar, x + w - 322, y, 152, 32);
+        Pos(btnEtiquetar, x + w - 162, y, 162, 32);
         y += 38;
         lblIndice = Texto("", Tema.Pequena, Tema.TextoSuave, x, y, w, 18);
         Pos(barra, x, y + 22, w, 6);
@@ -208,6 +210,7 @@ class VentanaMusicaSerie : VentanaBase
         txtReparto.Text = (Resultado.Reparto ?? "").Replace("\r\n", "\n").Replace("\n", "\r\n");
         btnCarpeta.Click += delegate { ElegirCarpeta(); };
         btnIndexar.Click += delegate { Indexar(); };
+        btnEtiquetar.Click += delegate { Etiquetar(); };
         btnIA.Click += delegate { ConIA(); };
         btnCambiar.Click += delegate { Cambiar(); };
         btnQuitar.Click += delegate
@@ -239,11 +242,14 @@ class VentanaMusicaSerie : VentanaBase
             lblIndice.Text = Resultado.Carpeta.Length > 0 ? "Sin índice todavía: pulsa «Indexar» (lee las etiquetas de cada archivo; tarda un poco la primera vez)." : "";
         else
         {
-            int con = 0;
-            foreach (ArchivoMusica a in biblioteca.Archivos) if (a.ConUso) con++;
-            lblIndice.Text = biblioteca.Archivos.Count + " archivos · " + con + " con datos de cómo se usan en el anime.";
+            int con = 0, etiq = 0;
+            foreach (ArchivoMusica a in biblioteca.Archivos) { if (a.ConUso) con++; else if (a.Etiquetado) etiq++; }
+            int falta = biblioteca.PorEtiquetar().Count;
+            lblIndice.Text = biblioteca.Archivos.Count + " archivos · " + con + " con datos de cómo se usan en el anime · " + etiq +
+                             " etiquetados (juegos, fanmade…)" + (falta > 0 ? " · " + falta + " sin etiquetar: «Etiquetar con IA»" : "");
         }
         btnIA.Enabled = biblioteca != null && !String.IsNullOrEmpty(clave);
+        btnEtiquetar.Enabled = biblioteca != null && !String.IsNullOrEmpty(clave) && !trabajando && biblioteca.PorEtiquetar().Count > 0;
     }
 
     string Nombre(string ruta)
@@ -303,7 +309,9 @@ class VentanaMusicaSerie : VentanaBase
         {
             Action<string, double> av = delegate (string t, double f) { Estado(t, false); barra.Valor = f; Application.DoEvents(); };
             List<FilaMusica> filas = BibliotecaMusica.Escanear(Resultado.Carpeta, delegate (string t, double f) { av(t, f * 0.8); });
+            BibliotecaMusica vieja = biblioteca;
             biblioteca = BibliotecaMusica.Indexar(Resultado.Carpeta, filas, delegate (string t, double f) { av(t, 0.8 + f * 0.2); });
+            biblioteca.ConservarEtiquetas(vieja);   // lo que la IA ya etiqueto no se pierde
             biblioteca.Guardar(Path.Combine(Resultado.Carpeta, BibliotecaMusica.NombreIndice));
             Estado("✔ Índice guardado en " + BibliotecaMusica.NombreIndice + " (en la carpeta de la música).", false);
         }
@@ -313,6 +321,49 @@ class VentanaMusicaSerie : VentanaBase
         foreach (Control c in new Control[] { btnIndexar, btnCarpeta, btnGuardar }) c.Enabled = true;
         Mostrar();
         Llenar();
+    }
+
+    // Juegos, fanmade y demas: Gemini dice como suena cada uno (en lotes) y se guarda en el indice.
+    void Etiquetar()
+    {
+        List<ArchivoMusica> falta = biblioteca.PorEtiquetar();
+        if (falta.Count == 0) return;
+        string c = clave, mo = modelo;
+        BibliotecaMusica b = biblioteca;
+        string indice = Path.Combine(Resultado.Carpeta, BibliotecaMusica.NombreIndice);
+        trabajando = true;
+        barra.Visible = true;
+        foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar, btnEtiquetar, btnCarpeta }) x.Enabled = false;
+        Thread hilo = new Thread(delegate ()
+        {
+            int hechos = 0;
+            string error = null;
+            const int Lote = 100;
+            for (int i = 0; i < falta.Count && error == null; i += Lote)
+            {
+                List<ArchivoMusica> lote = falta.GetRange(i, Math.Min(Lote, falta.Count - i));
+                int ii = i;
+                try { BeginInvoke((MethodInvoker)delegate { Estado("Gemini está escuchando " + (ii + 1) + "–" + (ii + lote.Count) + " de " + falta.Count + "…", false); barra.Valor = (double)ii / falta.Count; }); } catch { }
+                try { hechos += BibliotecaMusica.AplicarEtiquetas(lote, Gemini.Generar(c, mo, BibliotecaMusica.InstruccionesEtiquetar(), b.MensajeEtiquetar(lote), true)); }
+                catch (Exception ex) { error = ex.Message; }
+            }
+            try { b.Guardar(indice); } catch (Exception ex) { if (error == null) error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    barra.Visible = false;
+                    foreach (Control x in new Control[] { btnIA, btnGuardar, btnIndexar, btnCarpeta }) x.Enabled = true;
+                    Estado((error != null ? "Se cortó (" + error + "). " : "✔ ") + hechos + " de " + falta.Count + " etiquetados y guardados en el índice" +
+                           (hechos < falta.Count ? "; los que Gemini no conoce quedan sin etiquetar (ponlos en subcarpetas como «Pelea» o «Calma»)." : "."), error != null);
+                    Mostrar();
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
     }
 
     void ConIA()

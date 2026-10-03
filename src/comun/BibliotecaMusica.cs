@@ -20,7 +20,11 @@ public class ArchivoMusica
     public int Usos, LargoTipico;
     public List<string> Animos = new List<string>(), TemaDe = new List<string>(), Escenas = new List<string>(), Variantes = new List<string>();
     public string Momento = "";     // donde suena mas: inicio, medio, final, avance, eyecatch...
+    public string Descripcion = ""; // como suena (de la IA, para lo que no es del anime)
+    public bool Etiquetado;         // animos puestos por la IA (juegos, fanmade...)
     public bool ConUso { get { return Usos > 0; } }
+    // Sirve para elegir musica: tiene datos del anime, es fanmade de SBR o ya esta etiquetado.
+    public bool Sirve { get { return ConUso || Fuente == "SBR fan" || (Etiquetado && Animos.Count > 0); } }
 }
 
 // Lo que se sabe de un archivo antes de emparejarlo (de sus etiquetas o del CSV).
@@ -78,16 +82,16 @@ public class BibliotecaMusica
                                            "good morning", "good night", "future", "destiny", "musik", "leicht", "stone ocean" };
 
     static readonly Dictionary<string, string> Animo = new Dictionary<string, string> {
-        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat" },
-        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase" },
-        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister" },
-        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso" },
-        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer" },
-        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run" },
-        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night" },
-        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness" },
-        { "victoria", "victory|triumph|glory|hero|pride|proud|win" },
-        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny" },
+        { "pelea", "battle|fight|clash|duel|assault|attack|vs|fist|rush|showdown|combat|pelea|batalla|combate|lucha|jefe" },
+        { "tension", "tension|imminen|crisis|danger|threat|pursuit|approach|creeping|urgency|omen|foreboding|unease|anxiety|chase|tension|suspenso|peligro|persecucion" },
+        { "villano", "dio|evil|dark|devil|villain|boss|kira|diavolo|pucci|killer|enemy|rebirth|malice|sinister|villano|malvado|oscuro" },
+        { "misterio", "myster|strange|bizarre|enigma|secret|plot|mist|unknown|question|riddle|misterioso|misterio|cueva|cave" },
+        { "comedia", "comic|funny|jolly|silly|comical|humor|playful|cheer|comedia|gracios|divertid" },
+        { "viaje", "journey|travel|departure|sightseeing|wilderness|road|desert|wind|voyage|setting off|ride|horse|run|viaje|aventura|explora|overworld" },
+        { "calma", "calm|rest|peace|gentle|repose|daily|morning|sunlight|quiet|serene|night|calma|tranquil|relaj|menu|lobby|ambient" },
+        { "tristeza", "sad|sorrow|tears|requiem|farewell|grief|lament|memory|memories|hesitation|loneliness|triste|tristeza|melancol" },
+        { "victoria", "victory|triumph|glory|hero|pride|proud|win|victoria|triunfo" },
+        { "epico", "theme|crusaders|stardust|golden|giorno|decisive|final|vento|oro|awakening|platinum|fate|destiny|epico|epic|heroic" },
     };
 
     // ------------------------------------------------------------- catalogo
@@ -219,10 +223,34 @@ public class BibliotecaMusica
             if (a.Animos.Count == 0)
                 foreach (KeyValuePair<string, string> kv in Animo)
                     if (Regex.IsMatch(a.Titulo, kv.Value, RegexOptions.IgnoreCase) && a.Animos.Count < 2) a.Animos.Add(kv.Key);
+            // Lo que no es del anime: la subcarpeta tambien dice el animo («Juegos/Pelea/...»).
+            if (!a.ConUso && a.Fuente != "SBR fan")
+            {
+                List<string> porCarpeta = AnimosDeCarpeta(carpeta, a.Ruta);
+                if (porCarpeta.Count > 0)
+                {
+                    a.Animos.Clear(); a.Animos.AddRange(porCarpeta);
+                    a.Etiquetado = true; a.Descripcion = "por su carpeta";
+                }
+            }
             b.Archivos.Add(a);
         }
         b.MarcarVariantes();
         return b;
+    }
+
+    // Animos que dicen las subcarpetas (dentro de la carpeta de la musica), por palabra completa.
+    public static List<string> AnimosDeCarpeta(string carpeta, string ruta)
+    {
+        List<string> r = new List<string>();
+        string dir = Path.GetDirectoryName(ruta) ?? "";
+        string raiz = (carpeta ?? "").TrimEnd('\\', '/');
+        if (raiz.Length > 0 && dir.StartsWith(raiz, StringComparison.OrdinalIgnoreCase)) dir = dir.Substring(raiz.Length);
+        else if (Path.IsPathRooted(dir)) return r;
+        dir = Norm(dir.Replace('\\', ' ').Replace('/', ' '));
+        foreach (KeyValuePair<string, string> kv in Animo)
+            if (Regex.IsMatch(dir, @"(?<![a-z])(" + kv.Value + ")", RegexOptions.IgnoreCase) && r.Count < 2) r.Add(kv.Key);
+        return r;
     }
 
     // Variantes: el mismo tema en otra version o en otro album.
@@ -369,6 +397,10 @@ public class BibliotecaMusica
                 x["momento"] = a.Momento; x["escenas"] = new List<object>(a.Escenas.ToArray());
                 if (a.TemaDe.Count > 0) x["tema_de"] = new List<object>(a.TemaDe.ToArray());
             }
+            else if (a.Etiquetado)
+            {
+                x["ia"] = true; x["momento"] = a.Momento; x["descripcion"] = a.Descripcion;
+            }
             if (a.Variantes.Count > 0) x["variantes"] = new List<object>(a.Variantes.ToArray());
             l.Add(x);
         }
@@ -390,7 +422,9 @@ public class BibliotecaMusica
             a.Duracion = Json.Numero(x, "duracion", 0); a.Fuente = Json.Texto(x, "fuente");
             a.TemaAnime = Json.Texto(x, "tema_anime"); a.Parte = Json.Texto(x, "parte");
             a.Usos = (int)Json.Numero(x, "usos", 0); a.LargoTipico = (int)Json.Numero(x, "largo_tipico", 0);
-            a.Momento = Json.Texto(x, "momento");
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            object ia = Json.Valor(x, "ia");
+            a.Etiquetado = ia is bool && (bool)ia;
             foreach (object y in Json.Lista(x, "animos")) a.Animos.Add((string)y);
             foreach (object y in Json.Lista(x, "tema_de")) a.TemaDe.Add((string)y);
             foreach (object y in Json.Lista(x, "escenas")) a.Escenas.Add((string)y);
@@ -398,6 +432,82 @@ public class BibliotecaMusica
             b.Archivos.Add(a);
         }
         return b;
+    }
+
+    // ------------------------------------- etiquetar con IA (juegos, fanmade)
+
+    public static readonly string[] Animos = { "calma", "viaje", "comedia", "misterio", "tension", "pelea", "villano", "epico",
+                                               "victoria", "tristeza" };
+
+    // Al volver a indexar, lo que la IA ya etiqueto se conserva.
+    public void ConservarEtiquetas(BibliotecaMusica vieja)
+    {
+        if (vieja == null) return;
+        foreach (ArchivoMusica a in Archivos)
+        {
+            if (a.ConUso) continue;
+            ArchivoMusica v = vieja.Buscar(a.Ruta);
+            if (v == null || !v.Etiquetado) continue;
+            a.Etiquetado = true; a.Momento = v.Momento; a.Descripcion = v.Descripcion;
+            a.Animos.Clear(); a.Animos.AddRange(v.Animos);
+        }
+    }
+
+    // Lo que no tiene datos del anime ni etiquetas de la IA.
+    public List<ArchivoMusica> PorEtiquetar()
+    {
+        List<ArchivoMusica> r = new List<ArchivoMusica>();
+        foreach (ArchivoMusica a in Archivos) if (!a.ConUso && !a.Etiquetado && a.Fuente != "SBR fan") r.Add(a);
+        return r;
+    }
+
+    public static string InstruccionesEtiquetar()
+    {
+        return "Eres supervisor musical de una serie de YouTube de Minecraft editada como un anime. Te paso archivos de música que " +
+               "no son del anime (bandas sonoras de videojuegos, fanmade, remixes...) con su título, álbum y carpeta. Por lo que " +
+               "sabes de cada tema (si lo conoces) o por su título, álbum y carpeta, di cómo suena y para qué escenas sirve.\n" +
+               "- \"animos\": 1 a 3 de: " + String.Join(", ", Animos) + ".\n" +
+               "- \"momento\": dónde queda mejor (inicio, exploración, construcción, pelea, jefe, cliffhanger, epílogo, menú...).\n" +
+               "- \"descripcion\": cómo suena, en pocas palabras (instrumentos, tempo, energía).\n" +
+               "- Si no tienes idea de cómo suena uno, no lo pongas (mejor nada que inventar).\n" +
+               "Responde SOLO con JSON: {\"temas\": [{\"id\": n, \"animos\": [\"...\"], \"momento\": \"...\", \"descripcion\": \"...\"}]}";
+    }
+
+    public string MensajeEtiquetar(List<ArchivoMusica> lote)
+    {
+        StringBuilder sb = new StringBuilder("ARCHIVOS [id] título | álbum | carpeta | duración\n");
+        for (int i = 0; i < lote.Count; i++)
+        {
+            ArchivoMusica a = lote[i];
+            string dir = Path.GetDirectoryName(a.Ruta) ?? "";
+            sb.Append("[" + i + "] " + a.Titulo + " | " + a.Album + " | " + dir + " | " + Math.Round(a.Duracion) + " s\n");
+        }
+        return sb.ToString();
+    }
+
+    // Pone las etiquetas de la respuesta; devuelve cuantos quedaron etiquetados.
+    public static int AplicarEtiquetas(List<ArchivoMusica> lote, string json)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        int n = 0;
+        foreach (object x in Json.Lista(o, "temas"))
+        {
+            int id = (int)Json.Numero(x, "id", -1);
+            if (id < 0 || id >= lote.Count) continue;
+            List<string> an = new List<string>();
+            foreach (object y in Json.Lista(x, "animos"))
+            {
+                string k = Norm(y as string).Replace(" ", "");
+                if (Array.IndexOf(Animos, k) >= 0 && !an.Contains(k)) an.Add(k);
+            }
+            if (an.Count == 0) continue;
+            ArchivoMusica a = lote[id];
+            a.Animos.Clear(); a.Animos.AddRange(an);
+            a.Momento = Json.Texto(x, "momento"); a.Descripcion = Json.Texto(x, "descripcion");
+            a.Etiquetado = true;
+            n++;
+        }
+        return n;
     }
 
     public ArchivoMusica Buscar(string ruta)
