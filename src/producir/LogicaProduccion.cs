@@ -413,6 +413,39 @@ public static class LogicaProduccion
                " \"papel\": {\"sugerido\": \"" + papel + "\", \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
     }
 
+    // Quien habla en cada pista (lo que pusiste en MomentosIA o en «Quién habla…»).
+    public static string QuienHabla(Transcripcion t)
+    {
+        if (t == null) return "";
+        StringBuilder sb = new StringBuilder();
+        foreach (Hablante h in t.Hablantes)
+        {
+            if (!h.Voz) continue;
+            string n = (h.Nombre ?? "").Trim();
+            sb.Append("- " + h.Etiqueta + ": " + (n.Length > 0 && n != h.Etiqueta ? n : "(sin nombre)") + "\n");
+        }
+        if (sb.Length == 0) return "";
+        return "\nQUIÉN HABLA EN CADA PISTA (si una pista tiene a varias personas, distíngelas por lo que dicen y cómo se llaman " +
+               "entre ellos):\n" + sb;
+    }
+
+    // Pasa los nombres de una transcripcion a otra (de la del proyecto original a la de la copia BASE)
+    // en las pistas que no tienen nombre. Devuelve cuantos paso.
+    public static int CopiarNombres(Transcripcion destino, Transcripcion origen)
+    {
+        if (destino == null || origen == null) return 0;
+        int n = 0;
+        foreach (Hablante h in destino.Hablantes)
+        {
+            if (!String.IsNullOrEmpty(h.Nombre) && h.Nombre != h.Etiqueta) continue;
+            Hablante o = origen.Hablantes.Find(delegate (Hablante x) { return x.Etiqueta == h.Etiqueta; });
+            if (o == null || String.IsNullOrEmpty(o.Nombre) || o.Nombre == o.Etiqueta) continue;
+            h.Nombre = o.Nombre;
+            n++;
+        }
+        return n;
+    }
+
     public static string MensajeAnalisis(Transcripcion t, double duracion, string contextoSerie, string reparto, string indicaciones)
     {
         StringBuilder sb = new StringBuilder();
@@ -420,6 +453,7 @@ public static class LogicaProduccion
         if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR (mandan):\n" + indicaciones.Trim() + "\n");
         if (!String.IsNullOrEmpty(contextoSerie)) sb.Append("\nCONTEXTO DE LA SERIE:\n" + contextoSerie.Trim() + "\n");
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
+        sb.Append(QuienHabla(t));
         sb.Append("\nTRANSCRIPCIÓN DEL MATERIAL [inicio-fin] persona: texto\n" + Material(t, 400000));
         return sb.ToString();
     }
@@ -736,6 +770,7 @@ public static class LogicaProduccion
         foreach (MomentoMaterial x in a.Momentos)
             sb.Append("[" + S(x.Inicio) + "-" + S(x.Fin) + "] " + x.Tipo + " (" + x.Fuerza + "): " + x.Texto + "\n");
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
+        sb.Append(QuienHabla(t));
         if (m != null)
         {
             if (m.Principal != null) sb.Append("Tema principal de la serie: " + Path.GetFileNameWithoutExtension(m.Principal.Archivo) + "\n");

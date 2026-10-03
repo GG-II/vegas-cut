@@ -89,6 +89,43 @@ class OpcionTriple : ControlBase
     }
 }
 
+// Quien habla en cada pista (como en MomentosIA).
+class VentanaHablantes : VentanaBase
+{
+    readonly List<KeyValuePair<Hablante, CampoTexto>> campos = new List<KeyValuePair<Hablante, CampoTexto>>();
+
+    public VentanaHablantes(Transcripcion t) : base("Qui\u00e9n habla", 620)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Qui\u00e9n habla", "Un nombre por pista; si hablan varios, escr\u00edbelos todos (\u00abDiscord: Jason, Gerber y Ronnie\u00bb).");
+        int y = 92;
+        foreach (Hablante h in t.Hablantes)
+        {
+            if (!h.Voz) continue;
+            string archivo = Path.GetFileName(h.Archivo ?? "");
+            Texto(h.Etiqueta + (archivo.Length > 0 ? " \u00b7 " + archivo : ""), Tema.Pequena, Tema.TextoSuave, m, y + 8, 200, 18);
+            CampoTexto c = new CampoTexto();
+            c.Text = h.Nombre != h.Etiqueta ? (h.Nombre ?? "") : "";
+            Pos(c, m + 210, y, w - 210, 32);
+            campos.Add(new KeyValuePair<Hablante, CampoTexto>(h, c));
+            y += 40;
+        }
+        y += 10;
+        Boton ok = new Boton("Guardar", EstiloBoton.Primario), no = new Boton("Cancelar", EstiloBoton.Secundario);
+        Pos(no, m + w - 270, y, 120, 36);
+        Pos(ok, m + w - 140, y, 140, 36);
+        ClientSize = new Size(ClientSize.Width, y + 36 + 20);
+        ok.Click += delegate
+        {
+            foreach (KeyValuePair<Hablante, CampoTexto> kv in campos)
+                kv.Key.Nombre = kv.Value.Text.Trim().Length > 0 ? kv.Value.Text.Trim() : kv.Key.Etiqueta;
+            DialogResult = DialogResult.OK; Close();
+        };
+        no.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+    }
+}
+
 // La propuesta completa, para leerla entera (la tarjeta la corta).
 static class VerTexto
 {
@@ -202,6 +239,7 @@ class VentanaProduccion : VentanaBase
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
     Combo cmbTipo = new Combo();
+    Boton btnHablan = new Boton("Qui\u00e9n habla\u2026", EstiloBoton.Secundario);
     List<OpcionTriple> chips = new List<OpcionTriple>();
     CampoNumero numMin = new CampoNumero(), numMax = new CampoNumero(), numMusica = new CampoNumero();
     OpcionesCapitulo opc = new OpcionesCapitulo();
@@ -225,7 +263,8 @@ class VentanaProduccion : VentanaBase
         int m = Margen, w = Ancho;
         Encabezado("Producir cap\u00edtulo", "Del material grabado a un cap\u00edtulo de serie: an\u00e1lisis, tres propuestas, la propuesta final y producirlo.");
         int y = 92;
-        lblContexto = Texto("", Tema.Normal, Tema.Texto, m, y, w - 420, 40);
+        lblContexto = Texto("", Tema.Normal, Tema.Texto, m, y, w - 580, 40);
+        Pos(btnHablan, m + w - 568, y, 150, 34);
         Pos(segPaso, m + w - 410, y, 410, 34);
         y += 46;
 
@@ -319,6 +358,17 @@ class VentanaProduccion : VentanaBase
             Analizar();
         };
         btnRefinar.Click += delegate { Refinar(); };
+        btnHablan.Click += delegate
+        {
+            if (trans == null) return;
+            using (VentanaHablantes v = new VentanaHablantes(trans))
+                if (v.ShowDialog(this) == DialogResult.OK)
+                {
+                    try { trans.Guardar(Transcripcion.RutaPara(veg)); } catch { }
+                    if (analisis != null) MostrarAnalisis();
+                    Estado("\u2714 Nombres guardados. Los usa todo lo que le pidas a Gemini desde ahora.", false);
+                }
+        };
         btnFinal.Click += delegate { Final(null); };
         btnAjustar.Click += delegate
         {
@@ -472,6 +522,10 @@ class VentanaProduccion : VentanaBase
         try
         {
             trans = Transcripcion.Cargar(Transcripcion.RutaPara(veg));
+            // La copia BASE se guarda antes de MomentosIA: los nombres que pusiste ahi estan en la del original.
+            string tOrig = Transcripcion.RutaPara(original);
+            if (veg != original && File.Exists(tOrig) && LogicaProduccion.CopiarNombres(trans, Transcripcion.Cargar(tOrig)) > 0)
+                try { trans.Guardar(Transcripcion.RutaPara(veg)); } catch { }
             if (trans.TieneFuentes) trans.Ubicador = PistasVegas.Ubicador(vegas.Project, trans);
         }
         catch (Exception ex) { Estado("No se pudo leer la transcripci\u00f3n: " + ex.Message, true); }
@@ -568,7 +622,7 @@ class VentanaProduccion : VentanaBase
 
     void Habilitar(bool si)
     {
-        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso, btnHablan }) c.Enabled = si;
         if (si) btnRefinar.Enabled = analisis != null;
         if (si) { btnFinal.Enabled = Elegida() != null; segPaso.Habilitar(1, final != null); }
     }
@@ -1200,6 +1254,39 @@ public static class LogicaProduccion
                " \"papel\": {\"sugerido\": \"" + papel + "\", \"motivo\": \"...\"},\n" + FormatoPropuestas + "}";
     }
 
+    // Quien habla en cada pista (lo que pusiste en MomentosIA o en \u00abQui\u00e9n habla\u2026\u00bb).
+    public static string QuienHabla(Transcripcion t)
+    {
+        if (t == null) return "";
+        StringBuilder sb = new StringBuilder();
+        foreach (Hablante h in t.Hablantes)
+        {
+            if (!h.Voz) continue;
+            string n = (h.Nombre ?? "").Trim();
+            sb.Append("- " + h.Etiqueta + ": " + (n.Length > 0 && n != h.Etiqueta ? n : "(sin nombre)") + "\n");
+        }
+        if (sb.Length == 0) return "";
+        return "\nQUI\u00c9N HABLA EN CADA PISTA (si una pista tiene a varias personas, dist\u00edngelas por lo que dicen y c\u00f3mo se llaman " +
+               "entre ellos):\n" + sb;
+    }
+
+    // Pasa los nombres de una transcripcion a otra (de la del proyecto original a la de la copia BASE)
+    // en las pistas que no tienen nombre. Devuelve cuantos paso.
+    public static int CopiarNombres(Transcripcion destino, Transcripcion origen)
+    {
+        if (destino == null || origen == null) return 0;
+        int n = 0;
+        foreach (Hablante h in destino.Hablantes)
+        {
+            if (!String.IsNullOrEmpty(h.Nombre) && h.Nombre != h.Etiqueta) continue;
+            Hablante o = origen.Hablantes.Find(delegate (Hablante x) { return x.Etiqueta == h.Etiqueta; });
+            if (o == null || String.IsNullOrEmpty(o.Nombre) || o.Nombre == o.Etiqueta) continue;
+            h.Nombre = o.Nombre;
+            n++;
+        }
+        return n;
+    }
+
     public static string MensajeAnalisis(Transcripcion t, double duracion, string contextoSerie, string reparto, string indicaciones)
     {
         StringBuilder sb = new StringBuilder();
@@ -1207,6 +1294,7 @@ public static class LogicaProduccion
         if (!String.IsNullOrEmpty(indicaciones)) sb.Append("\nINDICACIONES DEL EDITOR (mandan):\n" + indicaciones.Trim() + "\n");
         if (!String.IsNullOrEmpty(contextoSerie)) sb.Append("\nCONTEXTO DE LA SERIE:\n" + contextoSerie.Trim() + "\n");
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
+        sb.Append(QuienHabla(t));
         sb.Append("\nTRANSCRIPCI\u00d3N DEL MATERIAL [inicio-fin] persona: texto\n" + Material(t, 400000));
         return sb.ToString();
     }
@@ -1523,6 +1611,7 @@ public static class LogicaProduccion
         foreach (MomentoMaterial x in a.Momentos)
             sb.Append("[" + S(x.Inicio) + "-" + S(x.Fin) + "] " + x.Tipo + " (" + x.Fuerza + "): " + x.Texto + "\n");
         if (!String.IsNullOrEmpty(reparto)) sb.Append("\n" + reparto);
+        sb.Append(QuienHabla(t));
         if (m != null)
         {
             if (m.Principal != null) sb.Append("Tema principal de la serie: " + Path.GetFileNameWithoutExtension(m.Principal.Archivo) + "\n");

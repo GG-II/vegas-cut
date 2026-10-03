@@ -148,6 +148,19 @@ class PruebaProduccion
                   Math.Abs(rep.Repetido - 41.5) < 0.01,
                   "Escaleta: nada se repite (lo del cold open se recorta de los actos); el avance es del próximo capítulo y queda como placeholder");
 
+        // ------------------------------------------------ quien habla
+        Transcripcion tb = new Transcripcion(), to = new Transcripcion();
+        tb.Hablantes.Add(new Hablante { Etiqueta = "A2", Nombre = "A2", Voz = true });
+        tb.Hablantes.Add(new Hablante { Etiqueta = "A3", Nombre = "Jason", Voz = true });
+        tb.Hablantes.Add(new Hablante { Etiqueta = "A5", Nombre = "A5", Voz = false });
+        to.Hablantes.Add(new Hablante { Etiqueta = "A2", Nombre = "AB Fann", Voz = true });
+        to.Hablantes.Add(new Hablante { Etiqueta = "A3", Nombre = "Otro", Voz = true });
+        int cn2 = LogicaProduccion.CopiarNombres(tb, to);
+        string qh = LogicaProduccion.MensajeAnalisis(tb, 60, "", "", "");
+        Verificar(cn2 == 1 && tb.Hablantes[0].Nombre == "AB Fann" && tb.Hablantes[1].Nombre == "Jason" && qh.Contains("QUIÉN HABLA EN CADA PISTA") &&
+                  qh.Contains("- A2: AB Fann") && !qh.Contains("A5"),
+                  "Quién habla: los nombres de MomentosIA pasan a la copia BASE (sin pisar los que ya tiene) y Gemini los recibe por pista");
+
         // ------------------------------------------------ duracion pedida
         PlanFinal corta = LogicaProduccion.LeerFinal(@"{""partes"": [{""titulo"": ""X"", ""estructura"": [{""bloque"": ""acto_a"", ""tipo"": ""contenido""}],
             ""bloques"": [{""bloque"": ""acto_a"", ""clips"": [{""inicio"": 100, ""fin"": 220}, {""inicio"": 400, ""fin"": 580}]}]}]}", 3600, 0, 195);

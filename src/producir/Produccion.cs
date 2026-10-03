@@ -66,6 +66,43 @@ class OpcionTriple : ControlBase
     }
 }
 
+// Quien habla en cada pista (como en MomentosIA).
+class VentanaHablantes : VentanaBase
+{
+    readonly List<KeyValuePair<Hablante, CampoTexto>> campos = new List<KeyValuePair<Hablante, CampoTexto>>();
+
+    public VentanaHablantes(Transcripcion t) : base("Quién habla", 620)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Quién habla", "Un nombre por pista; si hablan varios, escríbelos todos («Discord: Jason, Gerber y Ronnie»).");
+        int y = 92;
+        foreach (Hablante h in t.Hablantes)
+        {
+            if (!h.Voz) continue;
+            string archivo = Path.GetFileName(h.Archivo ?? "");
+            Texto(h.Etiqueta + (archivo.Length > 0 ? " · " + archivo : ""), Tema.Pequena, Tema.TextoSuave, m, y + 8, 200, 18);
+            CampoTexto c = new CampoTexto();
+            c.Text = h.Nombre != h.Etiqueta ? (h.Nombre ?? "") : "";
+            Pos(c, m + 210, y, w - 210, 32);
+            campos.Add(new KeyValuePair<Hablante, CampoTexto>(h, c));
+            y += 40;
+        }
+        y += 10;
+        Boton ok = new Boton("Guardar", EstiloBoton.Primario), no = new Boton("Cancelar", EstiloBoton.Secundario);
+        Pos(no, m + w - 270, y, 120, 36);
+        Pos(ok, m + w - 140, y, 140, 36);
+        ClientSize = new Size(ClientSize.Width, y + 36 + 20);
+        ok.Click += delegate
+        {
+            foreach (KeyValuePair<Hablante, CampoTexto> kv in campos)
+                kv.Key.Nombre = kv.Value.Text.Trim().Length > 0 ? kv.Value.Text.Trim() : kv.Key.Etiqueta;
+            DialogResult = DialogResult.OK; Close();
+        };
+        no.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+    }
+}
+
 // La propuesta completa, para leerla entera (la tarjeta la corta).
 static class VerTexto
 {
@@ -179,6 +216,7 @@ class VentanaProduccion : VentanaBase
     Etiqueta lblContexto, lblAnalisis, lblEstado, lblFinal;
     CampoTexto txtIndicaciones = new CampoTexto();
     Combo cmbTipo = new Combo();
+    Boton btnHablan = new Boton("Quién habla…", EstiloBoton.Secundario);
     List<OpcionTriple> chips = new List<OpcionTriple>();
     CampoNumero numMin = new CampoNumero(), numMax = new CampoNumero(), numMusica = new CampoNumero();
     OpcionesCapitulo opc = new OpcionesCapitulo();
@@ -202,7 +240,8 @@ class VentanaProduccion : VentanaBase
         int m = Margen, w = Ancho;
         Encabezado("Producir capítulo", "Del material grabado a un capítulo de serie: análisis, tres propuestas, la propuesta final y producirlo.");
         int y = 92;
-        lblContexto = Texto("", Tema.Normal, Tema.Texto, m, y, w - 420, 40);
+        lblContexto = Texto("", Tema.Normal, Tema.Texto, m, y, w - 580, 40);
+        Pos(btnHablan, m + w - 568, y, 150, 34);
         Pos(segPaso, m + w - 410, y, 410, 34);
         y += 46;
 
@@ -296,6 +335,17 @@ class VentanaProduccion : VentanaBase
             Analizar();
         };
         btnRefinar.Click += delegate { Refinar(); };
+        btnHablan.Click += delegate
+        {
+            if (trans == null) return;
+            using (VentanaHablantes v = new VentanaHablantes(trans))
+                if (v.ShowDialog(this) == DialogResult.OK)
+                {
+                    try { trans.Guardar(Transcripcion.RutaPara(veg)); } catch { }
+                    if (analisis != null) MostrarAnalisis();
+                    Estado("✔ Nombres guardados. Los usa todo lo que le pidas a Gemini desde ahora.", false);
+                }
+        };
         btnFinal.Click += delegate { Final(null); };
         btnAjustar.Click += delegate
         {
@@ -449,6 +499,10 @@ class VentanaProduccion : VentanaBase
         try
         {
             trans = Transcripcion.Cargar(Transcripcion.RutaPara(veg));
+            // La copia BASE se guarda antes de MomentosIA: los nombres que pusiste ahi estan en la del original.
+            string tOrig = Transcripcion.RutaPara(original);
+            if (veg != original && File.Exists(tOrig) && LogicaProduccion.CopiarNombres(trans, Transcripcion.Cargar(tOrig)) > 0)
+                try { trans.Guardar(Transcripcion.RutaPara(veg)); } catch { }
             if (trans.TieneFuentes) trans.Ubicador = PistasVegas.Ubicador(vegas.Project, trans);
         }
         catch (Exception ex) { Estado("No se pudo leer la transcripción: " + ex.Message, true); }
@@ -545,7 +599,7 @@ class VentanaProduccion : VentanaBase
 
     void Habilitar(bool si)
     {
-        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso }) c.Enabled = si;
+        foreach (Control c in new Control[] { btnAnalizar, btnRefinar, btnFinal, btnAjustar, btnProducir, btnCerrar, segPaso, btnHablan }) c.Enabled = si;
         if (si) btnRefinar.Enabled = analisis != null;
         if (si) { btnFinal.Enabled = Elegida() != null; segPaso.Habilitar(1, final != null); }
     }

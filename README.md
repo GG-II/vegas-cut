@@ -352,6 +352,11 @@ que guarda PrepararEpisodio: sin silencios y transcrita). Usa la serie del capí
 plantilla de bloques, premisa, papel y nota del capítulo, fichas de los capítulos anteriores y
 posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
 
+**Quién habla…** (arriba) muestra el nombre de cada pista de voz. Si hablan varios por la misma,
+escríbelos todos («Discord: Jason, Gerber y Ronnie»). Los nombres que pusiste en MomentosIA pasan
+solos a la copia BASE; Gemini los recibe en cada línea de la transcripción y en una lista por
+pista.
+
 1. **Analizar y proponer.** Gemini lee todo el material con ese contexto y la estructura de
    referencia de SC y SBR (`docs/estructura-episodio-sc.md`). Devuelve:
    - los mejores momentos y los hilos con otros capítulos;
