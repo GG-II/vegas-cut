@@ -8,7 +8,8 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe, guarda la copia BASE y abre MomentosIA. |
 | `ProducirCapitulo.cs` | Del material a un capítulo de serie: análisis, 3 propuestas, propuesta final y armado. |
 | `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
-| `PasoFinal.cs` | Lo último: bajar el juego bajo la narración, balancear la música y censurar. |
+| `PasoFinal.cs` | Lo último: rellenar la música, bajar el juego bajo la narración, balancear y censurar. |
+| `LimpiarVegasCut.cs` | Manda a la Papelera lo que se junta al trabajar y ningún proyecto usa (temporales, narración provisional, renders). |
 | `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
 | `Transcribir.cs` | Texto con tiempos por palabra y nivel de sonido de cada pista, en tu PC. |
@@ -480,6 +481,31 @@ Lo último antes de exportar, con la narración ya grabada:
    que elijas mientras narras (la pista del narrador no se toca).
 3. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
 4. **Censurar palabrotas**: abre *Censurar palabrotas*.
+
+### `LimpiarVegasCut.cs`
+
+![Limpiar](docs/img/limpiar.png)
+
+Para cuando ya terminaste capítulos. Abre la carpeta de la serie del proyecto abierto (o la del
+proyecto; **Elegir carpeta…** para otra), revisa también las subcarpetas y lista lo que ya no
+hace falta:
+
+| Qué | Cuándo aparece | Marcado |
+|---|---|---|
+| **Temporales de vegas-cut** en `%TEMP%` | Audios de transcribir o carpetas de Whisper de más de un día (quedan si Vegas se cerró a mitad) | Sí |
+| **Narración provisional** (`.vegascut-narracion\N01.wav`…) | Ningún `.veg` de la carpeta la usa: la reemplazaste por la tuya o sobró de una versión anterior | Sí |
+| **Renders de Vegas** («Renderizar en nueva pista»: archivos con *render* en el nombre) | Ningún `.veg` los usa | Sí |
+| **Picos `.sfk` sueltos** | Su audio ya no existe | Sí |
+| **Proxies** (`.sfvp0`) | Siempre; Vegas los regenera, pero editar va más lento mientras | No |
+| **Autoguardados** (`.bak`) | De más de una semana | No |
+
+- Para saber qué se usa, busca el nombre de cada archivo dentro de los `.veg` de la carpeta. Los
+  medios del proyecto abierto cuentan como usados aunque no lo hayas guardado.
+- Si no puede leer las rutas de los proyectos, no ofrece nada de la carpeta, solo los
+  temporales.
+- **Nunca toca** grabaciones, proyectos, transcripciones, fichas ni archivos de serie.
+- Todo va a la **Papelera de reciclaje**: se puede recuperar mientras no la vacíes. Las carpetas
+  de narración que quedan vacías también se van.
 
 ### `PulirEpisodio.cs`
 

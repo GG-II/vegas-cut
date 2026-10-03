@@ -33,6 +33,9 @@ HERRAMIENTAS = {
     'Anteriormente': ['anteriormente/cabecera.txt', 'anteriormente/Anteriormente.cs', 'anteriormente/LogicaAnteriormente.cs',
                       'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'LimpiarVegasCut': ['limpiar/cabecera.txt', 'limpiar/Limpiar.cs', 'limpiar/LogicaLimpiar.cs', 'comun/Serie.cs', 'comun/SerieTV.cs',
+                        'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] +
+                       COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'Series': ['series/cabecera.txt', 'series/Series.cs', 'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
               ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'PrepararEpisodio': ['preparar/cabecera.txt', 'preparar/Preparar.cs', 'comun/Proceso.cs', 'momentos/Entrada.cs',

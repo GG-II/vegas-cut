@@ -1,0 +1,7 @@
+// LimpiarVegasCut.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Manda a la Papelera lo que se junta al trabajar y ya no usa ningun proyecto:
+// temporales de vegas-cut, narracion provisional y renders sin usar, picos
+// .sfk sueltos y, si quieres, proxies y autoguardados viejos.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

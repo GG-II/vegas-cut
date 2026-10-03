@@ -13,7 +13,7 @@ REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.
 # -noconfig: sin System.Core ni otras bibliotecas que Vegas no le da a los
 # scripts (HashSet, LINQ...), para que falle aqui y no en Vegas.
 VEGAS_REF="-noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -r:$T/ScriptPortal.Vegas.dll"
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs ../scripts/LimpiarVegasCut.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs
@@ -27,6 +27,7 @@ mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/pulir
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/serietv.exe" PruebaSerieTV.cs ../scripts/Series.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/produccion.exe" PruebaProduccion.cs ../scripts/ProducirCapitulo.cs ../src/final/LogicaPasoFinal.cs ../src/final/LogicaRelleno.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/preparar.exe" PruebaPreparar.cs ../scripts/PrepararEpisodio.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/limpiar.exe" PruebaLimpiar.cs ../scripts/LimpiarVegasCut.cs
 EJEMPLOS="$(cd .. && pwd)/ejemplos/jojmania"
 MUSICA="$(cd .. && pwd)/ejemplos/musica/musica.csv"
 cd "$T"
@@ -41,3 +42,4 @@ echo "== Ritmo y formato de series"; XDG_CONFIG_HOME="$T/config" mono ritmo.exe 
 echo "== Pulir: estructura y narracion"; XDG_CONFIG_HOME="$T/config" mono pulir.exe "$EJEMPLOS"
 echo "== Serie de TV y musica"; XDG_CONFIG_HOME="$T/config" mono serietv.exe "$MUSICA"
 echo "== Producir capitulo y paso final"; XDG_CONFIG_HOME="$T/config" mono produccion.exe "$EJEMPLOS" "$MUSICA"
+echo "== Limpiar"; XDG_CONFIG_HOME="$T/config" mono limpiar.exe
