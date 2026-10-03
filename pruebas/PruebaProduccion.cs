@@ -148,6 +148,18 @@ class PruebaProduccion
                   Math.Abs(rep.Repetido - 41.5) < 0.01,
                   "Escaleta: nada se repite (lo del cold open se recorta de los actos); el avance es del próximo capítulo y queda como placeholder");
 
+        // ------------------------------------------------ duracion pedida
+        PlanFinal corta = LogicaProduccion.LeerFinal(@"{""partes"": [{""titulo"": ""X"", ""estructura"": [{""bloque"": ""acto_a"", ""tipo"": ""contenido""}],
+            ""bloques"": [{""bloque"": ""acto_a"", ""clips"": [{""inicio"": 100, ""fin"": 220}, {""inicio"": 400, ""fin"": 580}]}]}]}", 3600, 0, 195);
+        string cc = LogicaProduccion.Correccion(corta, 10, 12, PlantillaTV.PorDefecto(), 3600, null);
+        PlanFinal justa = LogicaProduccion.LeerFinal(@"{""partes"": [{""titulo"": ""X"", ""estructura"": [{""bloque"": ""acto_a"", ""tipo"": ""contenido""}],
+            ""bloques"": [{""bloque"": ""acto_a"", ""clips"": [{""inicio"": 0, ""fin"": 330}, {""inicio"": 400, ""fin"": 730}]}]}]}", 3600, 0, 195);
+        Verificar(cc != null && cc.Contains("dura 5:00") && cc.Contains("FALTAN unos 6") && cc.Contains("[580.0-3600.0]") && cc.Contains("[0.0-100.0]") &&
+                  LogicaProduccion.Correccion(justa, 10, 12, PlantillaTV.PorDefecto(), 3600, null) == null &&
+                  LogicaProduccion.Correccion(justa, 3, 5, PlantillaTV.PorDefecto(), 3600, null).Contains("SOBRAN") &&
+                  LogicaProduccion.InstruccionesFinal(f, "Normal", null).Contains("segundos_totales"),
+                  "Duración: si la escaleta queda corta se pide alargarla con los tramos que no se usaron; si sobra, recortarla");
+
         // ------------------------------------------------ hueco para la narracion y charla sensible
         CapituloFinal cn = new CapituloFinal();
         cn.Estructura.Add(new BloqueTV("acto_a", "Acto A", "contenido", 0, 100, ""));

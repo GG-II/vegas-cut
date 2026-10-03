@@ -647,7 +647,10 @@ class VentanaProduccion : VentanaBase
         });
     }
 
-    void Final(string cambios)
+    void Final(string cambios) { Final(cambios, 0); }
+
+    // intento: correcciones automaticas de duracion ya hechas (hasta 2).
+    void Final(string cambios, int intento)
     {
         LeerNotas();
         Propuesta p = Elegida();
@@ -659,11 +662,20 @@ class VentanaProduccion : VentanaBase
         Pedir(instr, msg, cambios == null ? "Gemini está armando la escaleta final…" : "Gemini está ajustando la escaleta…", delegate (string r)
         {
             final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM, formato.Tv);
-            if (cambios != null) txtCambios.Text = "";
+            if (cambios != null && intento == 0) txtCambios.Text = "";
             MostrarFinal();
             segPaso.Habilitar(1, true);
             Vista(1);
-            Estado("✔ Escaleta lista. Desmarca lo que no quieras, pide cambios con «Ajustar» o produce el capítulo.", false);
+            // Si quedo corta o larga para lo que pediste, se corrige sola (hasta dos veces).
+            string corr = LogicaProduccion.Correccion(final, opc.MinutosMin, opc.MinutosMax, formato.Tv, duracion, trans);
+            if (corr != null && intento < 2)
+            {
+                Estado("La escaleta no da la duración que pediste: pidiéndole a Gemini que la ajuste (" + (intento + 1) + " de 2)…", false);
+                BeginInvoke((MethodInvoker)delegate { Final(corr, intento + 1); });
+                return;
+            }
+            Estado(corr != null ? "Escaleta lista, pero todavía no da la duración pedida: pide más con «Ajustar» («alarga el acto B con…»)." :
+                   "✔ Escaleta lista. Desmarca lo que no quieras, pide cambios con «Ajustar» o produce el capítulo.", corr != null);
         });
     }
 

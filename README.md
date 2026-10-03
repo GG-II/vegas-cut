@@ -428,7 +428,9 @@ posteriores, reparto y temas de cada personaje, y tu biblioteca de música.
    - **narración** a tu velocidad, solo en las pausas donde no habla nadie;
    - **recursos** que faltan.
 
-   Arriba ves cuánto dura cada parte contra el objetivo. Desmarca lo que no quieras, escribe
+   Arriba ves cuánto dura cada parte contra el objetivo. Si la escaleta queda **corta o larga**
+   para la duración que pediste, se corrige sola hasta dos veces: a Gemini se le dice cuánto
+   falta o sobra y qué tramos del material no usó. Desmarca lo que no quieras, escribe
    **cambios** y pulsa **Ajustar** las veces que haga falta. Doble clic en una fila lleva a ese
    momento del material.
 3. **Producir.** Guarda una copia `<capítulo> CAP.veg` y arma ahí el capítulo; la BASE no se

@@ -670,7 +670,10 @@ class VentanaProduccion : VentanaBase
         });
     }
 
-    void Final(string cambios)
+    void Final(string cambios) { Final(cambios, 0); }
+
+    // intento: correcciones automaticas de duracion ya hechas (hasta 2).
+    void Final(string cambios, int intento)
     {
         LeerNotas();
         Propuesta p = Elegida();
@@ -682,11 +685,20 @@ class VentanaProduccion : VentanaBase
         Pedir(instr, msg, cambios == null ? "Gemini est\u00e1 armando la escaleta final\u2026" : "Gemini est\u00e1 ajustando la escaleta\u2026", delegate (string r)
         {
             final = LogicaProduccion.LeerFinal(r, duracion, musica.Count, formato.Reglas.PPM, formato.Tv);
-            if (cambios != null) txtCambios.Text = "";
+            if (cambios != null && intento == 0) txtCambios.Text = "";
             MostrarFinal();
             segPaso.Habilitar(1, true);
             Vista(1);
-            Estado("\u2714 Escaleta lista. Desmarca lo que no quieras, pide cambios con \u00abAjustar\u00bb o produce el cap\u00edtulo.", false);
+            // Si quedo corta o larga para lo que pediste, se corrige sola (hasta dos veces).
+            string corr = LogicaProduccion.Correccion(final, opc.MinutosMin, opc.MinutosMax, formato.Tv, duracion, trans);
+            if (corr != null && intento < 2)
+            {
+                Estado("La escaleta no da la duraci\u00f3n que pediste: pidi\u00e9ndole a Gemini que la ajuste (" + (intento + 1) + " de 2)\u2026", false);
+                BeginInvoke((MethodInvoker)delegate { Final(corr, intento + 1); });
+                return;
+            }
+            Estado(corr != null ? "Escaleta lista, pero todav\u00eda no da la duraci\u00f3n pedida: pide m\u00e1s con \u00abAjustar\u00bb (\u00abalarga el acto B con\u2026\u00bb)." :
+                   "\u2714 Escaleta lista. Desmarca lo que no quieras, pide cambios con \u00abAjustar\u00bb o produce el cap\u00edtulo.", corr != null);
         });
     }
 
@@ -1446,7 +1458,11 @@ public static class LogicaProduccion
                "- La intro o cold open debe durar lo suficiente para entender de qu\u00e9 va (en un primer cap\u00edtulo, presentar la premisa " +
                "y a los jugadores con calma antes del opening).\n\n" + Guia + "\n" +
                "REFERENCIA de duraci\u00f3n: " + r.DuracionMin + "\u2013" + r.DuracionMax + " min por video (el doble si es doble_duracion).\n\n" +
-               "Para cada bloque de contenido da los CLIPS en el orden en que se ver\u00e1n (inicio y fin del material, de 2 a 90 s; corta " +
+               "DURACI\u00d3N: el video terminado debe durar lo que pide el editor (DURACI\u00d3N DEL VIDEO TERMINADO). Cuenta: duraci\u00f3n = " +
+               "suma de (fin \u2212 inicio) de todos los clips + los bloques fijos (opening, t\u00edtulo, ending...). Un cap\u00edtulo de 11 min " +
+               "necesita unos 600 s de clips: con clips de 20\u201360 s son 15 a 30 clips. SUMA antes de responder y pon el total en " +
+               "\"segundos_totales\" de cada parte; si no llega, agrega escenas o alarga los clips, no lo dejes corto.\n" +
+               "Para cada bloque de contenido da los CLIPS en el orden en que se ver\u00e1n (inicio y fin del material, de 3 a 150 s; corta " +
                "charla sin inter\u00e9s y repeticiones). Un momento puede usarse fuera de orden (cold open, avance).\n" +
                "RITMO: el material ya no tiene silencios, as\u00ed que sin cuidado todo queda acelerado. El ritmo debe cambiar a lo largo del " +
                "cap\u00edtulo seg\u00fan lo que pasa: r\u00e1pido en acci\u00f3n, persecuciones y humor encadenado; medio en exploraci\u00f3n y charla; lento en " +
@@ -1468,7 +1484,7 @@ public static class LogicaProduccion
                              "\"en\": segundo del material donde empieza.\n" : "") +
                "RECURSOS: im\u00e1genes, memes o efectos que faltan (\"clase\", \"descripcion\", \"duracion\" 1\u20135 s, \"en\").\n\n" +
                "Responde SOLO con JSON:\n" +
-               "{\"resumen\": \"...\", \"partes\": [{\"titulo\": \"...\", \"etapa\": \"...\",\n" +
+               "{\"resumen\": \"...\", \"partes\": [{\"titulo\": \"...\", \"etapa\": \"...\", \"segundos_totales\": n,\n" +
                "  \"estructura\": [{\"bloque\": \"cold_open\", \"nombre\": \"Cold open\", \"tipo\": \"contenido\", \"ritmo\": \"lento\"}, " +
                "{\"bloque\": \"op\", \"nombre\": \"Opening\", \"tipo\": \"kit\", \"kit\": \"op\", \"segundos\": 20}, ...],\n" +
                "  \"bloques\": [{\"bloque\": \"cold_open\", \"clips\": [{\"inicio\": s, \"fin\": s, \"respiro\": s, \"nota\": \"...\"}]}],\n" +
@@ -1709,6 +1725,57 @@ public static class LogicaProduccion
             if (b.Segundos <= 0) b.Segundos = Avance(clave) ? 12 : 20;
         }
         return quitado;
+    }
+
+    // Si la escaleta queda corta o larga para la duracion pedida, lo que hay
+    // que pedirle a Gemini para corregirla (null si esta bien). Le da los
+    // tramos del material que no se usaron, para que sepa de donde sacar.
+    public static string Correccion(PlanFinal f, int minutosMin, int minutosMax, PlantillaTV tv, double duracionMaterial, Transcripcion t)
+    {
+        if (f == null || f.Partes.Count == 0) return null;
+        StringBuilder sb = new StringBuilder();
+        bool corta = false, larga = false;
+        for (int k = 0; k < f.Partes.Count; k++)
+        {
+            double d = Duracion(f.Partes[k], tv);
+            string parte = f.Partes.Count > 1 ? "La parte " + (k + 1) : "La escaleta";
+            if (d < minutosMin * 60 * 0.92)
+            {
+                corta = true;
+                sb.Append(parte + " dura " + Formato.Tiempo(d) + " y el objetivo es " + minutosMin + "\u2013" + minutosMax + " min: FALTAN unos " +
+                          Math.Round((minutosMin + minutosMax) / 2.0 - d / 60, 1) + " min. ");
+            }
+            else if (d > minutosMax * 60 * 1.1)
+            {
+                larga = true;
+                sb.Append(parte + " dura " + Formato.Tiempo(d) + " y el objetivo es " + minutosMin + "\u2013" + minutosMax + " min: SOBRAN unos " +
+                          Math.Round(d / 60 - (minutosMin + minutosMax) / 2.0, 1) + " min. ");
+            }
+        }
+        if (!corta && !larga) return null;
+        if (corta)
+        {
+            sb.Append("Agrega escenas del material que no usaste y alarga los clips que se cortan muy pronto (sin repetir tramos, sin " +
+                      "charla t\u00e9cnica ni personal, manteniendo la estructura y lo que pidi\u00f3 el editor). Tramos sin usar:\n");
+            List<Rango> usados = new List<Rango>();
+            foreach (ItemFinal i in f.Todos()) if (i.Tipo == "clip" && i.Elegido) usados.Add(new Rango(i.Inicio, i.Fin));
+            usados = Rangos.Unir(usados, 1);
+            List<Rango> libres = new List<Rango>();
+            double desde = 0;
+            foreach (Rango u in usados) { if (u.Inicio - desde >= 20) libres.Add(new Rango(desde, u.Inicio)); desde = Math.Max(desde, u.Fin); }
+            if (duracionMaterial - desde >= 20) libres.Add(new Rango(desde, duracionMaterial));
+            libres.Sort(delegate (Rango a, Rango b) { return (b.Fin - b.Inicio).CompareTo(a.Fin - a.Inicio); });
+            List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
+            foreach (Rango l in libres.GetRange(0, Math.Min(25, libres.Count)))
+            {
+                string dicho = "";
+                foreach (Segmento s in segs)
+                    if (s.Inicio >= l.Inicio && s.Inicio < l.Fin && !String.IsNullOrEmpty(s.Texto)) { dicho += s.Texto.Trim() + " "; if (dicho.Length > 160) break; }
+                sb.Append("- [" + S(l.Inicio) + "-" + S(l.Fin) + "] (" + Math.Round(l.Fin - l.Inicio) + " s) " + dicho.Trim() + "\n");
+            }
+        }
+        else sb.Append("Quita las escenas m\u00e1s flojas o acorta clips, sin tocar los momentos clave ni lo que pidi\u00f3 el editor.");
+        return sb.ToString();
     }
 
     // Duracion estimada de una parte: clips elegidos + bloques fijos de su estructura.

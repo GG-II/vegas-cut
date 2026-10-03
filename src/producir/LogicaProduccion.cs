@@ -671,7 +671,11 @@ public static class LogicaProduccion
                "- La intro o cold open debe durar lo suficiente para entender de qué va (en un primer capítulo, presentar la premisa " +
                "y a los jugadores con calma antes del opening).\n\n" + Guia + "\n" +
                "REFERENCIA de duración: " + r.DuracionMin + "–" + r.DuracionMax + " min por video (el doble si es doble_duracion).\n\n" +
-               "Para cada bloque de contenido da los CLIPS en el orden en que se verán (inicio y fin del material, de 2 a 90 s; corta " +
+               "DURACIÓN: el video terminado debe durar lo que pide el editor (DURACIÓN DEL VIDEO TERMINADO). Cuenta: duración = " +
+               "suma de (fin − inicio) de todos los clips + los bloques fijos (opening, título, ending...). Un capítulo de 11 min " +
+               "necesita unos 600 s de clips: con clips de 20–60 s son 15 a 30 clips. SUMA antes de responder y pon el total en " +
+               "\"segundos_totales\" de cada parte; si no llega, agrega escenas o alarga los clips, no lo dejes corto.\n" +
+               "Para cada bloque de contenido da los CLIPS en el orden en que se verán (inicio y fin del material, de 3 a 150 s; corta " +
                "charla sin interés y repeticiones). Un momento puede usarse fuera de orden (cold open, avance).\n" +
                "RITMO: el material ya no tiene silencios, así que sin cuidado todo queda acelerado. El ritmo debe cambiar a lo largo del " +
                "capítulo según lo que pasa: rápido en acción, persecuciones y humor encadenado; medio en exploración y charla; lento en " +
@@ -693,7 +697,7 @@ public static class LogicaProduccion
                              "\"en\": segundo del material donde empieza.\n" : "") +
                "RECURSOS: imágenes, memes o efectos que faltan (\"clase\", \"descripcion\", \"duracion\" 1–5 s, \"en\").\n\n" +
                "Responde SOLO con JSON:\n" +
-               "{\"resumen\": \"...\", \"partes\": [{\"titulo\": \"...\", \"etapa\": \"...\",\n" +
+               "{\"resumen\": \"...\", \"partes\": [{\"titulo\": \"...\", \"etapa\": \"...\", \"segundos_totales\": n,\n" +
                "  \"estructura\": [{\"bloque\": \"cold_open\", \"nombre\": \"Cold open\", \"tipo\": \"contenido\", \"ritmo\": \"lento\"}, " +
                "{\"bloque\": \"op\", \"nombre\": \"Opening\", \"tipo\": \"kit\", \"kit\": \"op\", \"segundos\": 20}, ...],\n" +
                "  \"bloques\": [{\"bloque\": \"cold_open\", \"clips\": [{\"inicio\": s, \"fin\": s, \"respiro\": s, \"nota\": \"...\"}]}],\n" +
@@ -934,6 +938,57 @@ public static class LogicaProduccion
             if (b.Segundos <= 0) b.Segundos = Avance(clave) ? 12 : 20;
         }
         return quitado;
+    }
+
+    // Si la escaleta queda corta o larga para la duracion pedida, lo que hay
+    // que pedirle a Gemini para corregirla (null si esta bien). Le da los
+    // tramos del material que no se usaron, para que sepa de donde sacar.
+    public static string Correccion(PlanFinal f, int minutosMin, int minutosMax, PlantillaTV tv, double duracionMaterial, Transcripcion t)
+    {
+        if (f == null || f.Partes.Count == 0) return null;
+        StringBuilder sb = new StringBuilder();
+        bool corta = false, larga = false;
+        for (int k = 0; k < f.Partes.Count; k++)
+        {
+            double d = Duracion(f.Partes[k], tv);
+            string parte = f.Partes.Count > 1 ? "La parte " + (k + 1) : "La escaleta";
+            if (d < minutosMin * 60 * 0.92)
+            {
+                corta = true;
+                sb.Append(parte + " dura " + Formato.Tiempo(d) + " y el objetivo es " + minutosMin + "–" + minutosMax + " min: FALTAN unos " +
+                          Math.Round((minutosMin + minutosMax) / 2.0 - d / 60, 1) + " min. ");
+            }
+            else if (d > minutosMax * 60 * 1.1)
+            {
+                larga = true;
+                sb.Append(parte + " dura " + Formato.Tiempo(d) + " y el objetivo es " + minutosMin + "–" + minutosMax + " min: SOBRAN unos " +
+                          Math.Round(d / 60 - (minutosMin + minutosMax) / 2.0, 1) + " min. ");
+            }
+        }
+        if (!corta && !larga) return null;
+        if (corta)
+        {
+            sb.Append("Agrega escenas del material que no usaste y alarga los clips que se cortan muy pronto (sin repetir tramos, sin " +
+                      "charla técnica ni personal, manteniendo la estructura y lo que pidió el editor). Tramos sin usar:\n");
+            List<Rango> usados = new List<Rango>();
+            foreach (ItemFinal i in f.Todos()) if (i.Tipo == "clip" && i.Elegido) usados.Add(new Rango(i.Inicio, i.Fin));
+            usados = Rangos.Unir(usados, 1);
+            List<Rango> libres = new List<Rango>();
+            double desde = 0;
+            foreach (Rango u in usados) { if (u.Inicio - desde >= 20) libres.Add(new Rango(desde, u.Inicio)); desde = Math.Max(desde, u.Fin); }
+            if (duracionMaterial - desde >= 20) libres.Add(new Rango(desde, duracionMaterial));
+            libres.Sort(delegate (Rango a, Rango b) { return (b.Fin - b.Inicio).CompareTo(a.Fin - a.Inicio); });
+            List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
+            foreach (Rango l in libres.GetRange(0, Math.Min(25, libres.Count)))
+            {
+                string dicho = "";
+                foreach (Segmento s in segs)
+                    if (s.Inicio >= l.Inicio && s.Inicio < l.Fin && !String.IsNullOrEmpty(s.Texto)) { dicho += s.Texto.Trim() + " "; if (dicho.Length > 160) break; }
+                sb.Append("- [" + S(l.Inicio) + "-" + S(l.Fin) + "] (" + Math.Round(l.Fin - l.Inicio) + " s) " + dicho.Trim() + "\n");
+            }
+        }
+        else sb.Append("Quita las escenas más flojas o acorta clips, sin tocar los momentos clave ni lo que pidió el editor.");
+        return sb.ToString();
     }
 
     // Duracion estimada de una parte: clips elegidos + bloques fijos de su estructura.
