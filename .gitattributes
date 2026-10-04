@@ -3,3 +3,4 @@
 
 # Proyectos de Vegas (binarios)
 *.veg binary
+*.bat text eol=crlf
