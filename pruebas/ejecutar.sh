@@ -25,7 +25,7 @@ mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/anter
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ritmo.exe" PruebaRitmo.cs ../scripts/PulirEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/pulir.exe" PruebaPulir.cs ../scripts/PulirEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/serietv.exe" PruebaSerieTV.cs ../scripts/Series.cs
-mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/produccion.exe" PruebaProduccion.cs ../scripts/ProducirCapitulo.cs ../src/final/LogicaPasoFinal.cs ../src/final/LogicaRelleno.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/produccion.exe" PruebaProduccion.cs ../scripts/ProducirCapitulo.cs ../src/final/LogicaPasoFinal.cs ../src/final/LogicaRelleno.cs ../src/final/LogicaMemes.cs ../src/comun/Memes.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/preparar.exe" PruebaPreparar.cs ../scripts/PrepararEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/limpiar.exe" PruebaLimpiar.cs ../scripts/LimpiarVegasCut.cs
 EJEMPLOS="$(cd .. && pwd)/ejemplos/jojmania"

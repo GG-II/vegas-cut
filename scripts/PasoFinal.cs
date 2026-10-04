@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -48,9 +49,10 @@ class VentanaPasoFinal : VentanaBase
     readonly Vegas vegas;
     Transcripcion trans;
     string narrador = "Narrador";
-    Etiqueta lbl1, lbl2, lbl3, lbl0, lblEstado;
+    Etiqueta lbl1, lbl2, lbl3, lbl0, lblM, lblEstado;
     CampoNumero numDb = new CampoNumero();
     Boton btn0 = new Boton("Rellenar la m\u00fasica\u2026", EstiloBoton.Secundario);
+    Boton btnM = new Boton("Memes\u2026", EstiloBoton.Secundario);
     Boton btn1 = new Boton("Bajar el juego", EstiloBoton.Secundario);
     Boton btn2 = new Boton("Balancear la m\u00fasica\u2026", EstiloBoton.Secundario);
     Boton btn3 = new Boton("Censurar palabrotas\u2026", EstiloBoton.Secundario);
@@ -60,21 +62,24 @@ class VentanaPasoFinal : VentanaBase
     {
         this.vegas = vegas;
         int m = Margen, w = Ancho;
-        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: m\u00fasica, balance y censura.");
+        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: m\u00fasica, memes, balance y censura.");
         int y = 96;
         lbl0 = Paso(1, "Rellenar la m\u00fasica", "Ya cortado y reordenado: pone OST en los huecos de la m\u00fasica seg\u00fan lo que pasa (no toca lo que ya est\u00e1).", y);
         Pos(btn0, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl1 = Paso(2, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
+        lblM = Paso(2, "Memes", "Im\u00e1genes, gifs, videos y sonidos de tu biblioteca donde mejor quedan, por ritmo y sin repetir entre cap\u00edtulos.", y);
+        Pos(btnM, m + w - 210, y + 4, 210, 32);
+        y += 86;
+        lbl1 = Paso(3, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
         numDb.Sufijo = "dB"; numDb.Minimo = -30; numDb.Maximo = 0; numDb.Paso = 1;
         Pos(numDb, m + w - 330, y + 4, 110, 32);
         numDb.Valor = -10;
         Pos(btn1, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl2 = Paso(3, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
+        lbl2 = Paso(4, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
         Pos(btn2, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl3 = Paso(4, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
+        lbl3 = Paso(5, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
         Pos(btn3, m + w - 210, y + 4, 210, 32);
         y += 92;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 160, 40);
@@ -112,6 +117,11 @@ class VentanaPasoFinal : VentanaBase
         {
             using (VentanaRelleno v = new VentanaRelleno(vegas, trans)) v.ShowDialog(this);
             Hecho(lbl0, "Hecho (lo nuevo qued\u00f3 en la pista de m\u00fasica, sin balancear).", true);
+        };
+        btnM.Click += delegate
+        {
+            using (VentanaMemes v = new VentanaMemes(vegas, trans)) v.ShowDialog(this);
+            Hecho(lblM, "Hecho (los memes quedaron en sus pistas; los sonidos en la de audio de memes).", true);
         };
         btn2.Click += delegate
         {
@@ -642,6 +652,796 @@ public static class LogicaRelleno
             catch (Exception ex) { avisos.Add("Hueco " + h.N + ": " + ex.Message); }
         }
         return n;
+    }
+}
+
+// ---- src/final/Memes.cs ----
+
+// La biblioteca de memes: indexar la carpeta, describir con IA y corregir a mano.
+class VentanaBibliotecaMemes : VentanaBase
+{
+    readonly Configuracion config;
+    public BibliotecaMemes Biblioteca;
+    bool trabajando, cargando;
+    Meme actual;
+
+    Etiqueta lblCarpeta, lblInfo, lblEstado;
+    Boton btnCarpeta = new Boton("Elegir carpeta\u2026", EstiloBoton.Secundario);
+    Boton btnBuscar = new Boton("Buscar archivos", EstiloBoton.Secundario);
+    Boton btnIA = new Boton("Describir con IA", EstiloBoton.Primario);
+    Lista lst = new Lista();
+    CampoTexto txtDesc = new CampoTexto(), txtTags = new CampoTexto(), txtUso = new CampoTexto();
+    Boton btnGuardar = new Boton("Guardar", EstiloBoton.Primario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+
+    public VentanaBibliotecaMemes(Configuracion config) : base("Biblioteca de memes", 1060)
+    {
+        this.config = config;
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Biblioteca de memes", "Im\u00e1genes, gifs, videos y sonidos con lo que es cada uno y cu\u00e1ndo usarlo. Doble clic para verlo.");
+        int y = 92;
+        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, m, y + 6, w - 490, 20);
+        Pos(btnCarpeta, m + w - 480, y, 150, 32);
+        Pos(btnBuscar, m + w - 322, y, 150, 32);
+        Pos(btnIA, m + w - 162, y, 162, 32);
+        y += 38;
+        lblInfo = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 18);
+        y += 24;
+        int sb = SystemInformation.VerticalScrollBarWidth + 4;
+        lst.CheckBoxes = false;
+        lst.Columns.Add("Archivo", 230);
+        lst.Columns.Add("Tipo", 60);
+        lst.Columns.Add("Qu\u00e9 es", w - 230 - 60 - 200 - 60 - sb);
+        lst.Columns.Add("Tags", 200);
+        lst.Columns.Add("Usado", 60);
+        Pos(lst, m, y, w, 330);
+        y += 340;
+        int mitad = (w - 16) / 2;
+        Texto("QU\u00c9 ES", Tema.Pequena, Tema.TextoSuave, m, y, mitad, 18);
+        Texto("TAGS (separados por comas)", Tema.Pequena, Tema.TextoSuave, m + mitad + 16, y, mitad, 18);
+        Pos(txtDesc, m, y + 20, mitad, 34);
+        Pos(txtTags, m + mitad + 16, y + 20, mitad, 34);
+        y += 62;
+        Texto("CU\u00c1NDO USARLO", Tema.Pequena, Tema.TextoSuave, m, y, w, 18);
+        Pos(txtUso, m, y + 20, w, 34);
+        y += 66;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 300, 40);
+        Pos(btnGuardar, m + w - 290, y, 150, 40);
+        Pos(btnCerrar, m + w - 130, y, 130, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        if (config.CarpetaMemes.Length > 0 && Directory.Exists(config.CarpetaMemes))
+            try { Biblioteca = BibliotecaMemes.Cargar(config.CarpetaMemes); } catch { Biblioteca = null; }
+
+        btnCarpeta.Click += delegate { ElegirCarpeta(); };
+        btnBuscar.Click += delegate { Buscar(); };
+        btnIA.Click += delegate { Describir(); };
+        btnGuardar.Click += delegate { LeerEdicion(); Guardar(); };
+        btnCerrar.Click += delegate { LeerEdicion(); Close(); };
+        lst.SelectedIndexChanged += delegate
+        {
+            LeerEdicion();
+            actual = lst.SelectedIndices.Count > 0 ? (Meme)lst.Items[lst.SelectedIndices[0]].Tag : null;
+            cargando = true;
+            txtDesc.Text = actual != null ? actual.Descripcion : "";
+            txtTags.Text = actual != null ? String.Join(", ", actual.Tags.ToArray()) : "";
+            txtUso.Text = actual != null ? actual.Uso : "";
+            cargando = false;
+        };
+        lst.DoubleClick += delegate
+        {
+            if (actual == null) return;
+            try { Process.Start(Biblioteca.Completa(actual)); } catch { }
+        };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+        Mostrar();
+    }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void LeerEdicion()
+    {
+        if (cargando || actual == null) return;
+        actual.Descripcion = txtDesc.Text.Trim();
+        actual.Tags = BibliotecaMemes.LeerTags(txtTags.Text);
+        actual.Uso = txtUso.Text.Trim();
+        foreach (ListViewItem it in lst.Items)
+            if (it.Tag == actual) { it.SubItems[2].Text = actual.Descripcion; it.SubItems[3].Text = String.Join(", ", actual.Tags.ToArray()); }
+    }
+
+    void Mostrar()
+    {
+        lblCarpeta.Text = Biblioteca != null ? "Carpeta: " + Biblioteca.Carpeta : "Elige la carpeta de tus memes (se buscan tambi\u00e9n en subcarpetas).";
+        btnBuscar.Enabled = Biblioteca != null && !trabajando;
+        btnIA.Enabled = Biblioteca != null && !trabajando && !String.IsNullOrEmpty(config.GeminiClave) && Biblioteca.SinDescribir().Count > 0;
+        lst.Items.Clear();
+        if (Biblioteca == null) { lblInfo.Text = ""; return; }
+        foreach (Meme m in Biblioteca.Memes)
+        {
+            ListViewItem it = new ListViewItem(m.Ruta);
+            it.SubItems.Add(m.Tipo);
+            it.SubItems.Add(m.Descripcion);
+            it.SubItems.Add(String.Join(", ", m.Tags.ToArray()));
+            it.SubItems.Add(m.Usos.Count > 0 ? m.Usos.Count.ToString() : "");
+            if (!m.Descrito) it.ForeColor = Tema.TextoSuave;
+            it.Tag = m;
+            lst.Items.Add(it);
+        }
+        int sin = Biblioteca.SinDescribir().Count;
+        lblInfo.Text = Biblioteca.Memes.Count + " memes \u00b7 " + (Biblioteca.Memes.Count - sin) + " descritos" +
+                       (sin > 0 ? " \u00b7 " + sin + " sin describir (no se usan hasta que tengan descripci\u00f3n: \u00abDescribir con IA\u00bb o escr\u00edbela abajo)" : "");
+    }
+
+    void ElegirCarpeta()
+    {
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta de memes (im\u00e1genes, gifs, videos y sonidos; tambi\u00e9n subcarpetas)";
+            if (config.CarpetaMemes.Length > 0 && Directory.Exists(config.CarpetaMemes)) d.SelectedPath = config.CarpetaMemes;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            config.CarpetaMemes = d.SelectedPath;
+        }
+        try { config.Guardar(); } catch { }
+        try { Biblioteca = BibliotecaMemes.Cargar(config.CarpetaMemes); } catch { Biblioteca = new BibliotecaMemes { Carpeta = config.CarpetaMemes }; }
+        Buscar();
+    }
+
+    void Buscar()
+    {
+        if (Biblioteca == null) return;
+        try
+        {
+            int n = Biblioteca.Escanear();
+            Biblioteca.Guardar();
+            Estado("\u2714 " + n + " nuevos (las subcarpetas cuentan como tags). \u00cdndice en " + BibliotecaMemes.NombreIndice + ".", false);
+        }
+        catch (Exception ex) { Estado("No se pudo leer la carpeta: " + ex.Message, true); }
+        Mostrar();
+    }
+
+    void Guardar()
+    {
+        if (Biblioteca == null) return;
+        try { Biblioteca.Guardar(); Estado("\u2714 Guardado.", false); }
+        catch (Exception ex) { Estado("No se pudo guardar: " + ex.Message, true); }
+    }
+
+    // En lotes de 20: las imagenes van como miniaturas; videos y sonidos, por su nombre.
+    void Describir()
+    {
+        LeerEdicion();
+        List<Meme> falta = Biblioteca.SinDescribir();
+        if (falta.Count == 0) return;
+        BibliotecaMemes b = Biblioteca;
+        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        trabajando = true;
+        Mostrar();
+        Thread hilo = new Thread(delegate ()
+        {
+            int hechos = 0;
+            string error = null;
+            for (int i = 0; i < falta.Count && error == null; i += 20)
+            {
+                List<Meme> lote = falta.GetRange(i, Math.Min(20, falta.Count - i));
+                int ii = i;
+                try { BeginInvoke((MethodInvoker)delegate { Estado("Gemini est\u00e1 viendo " + (ii + 1) + "\u2013" + (ii + lote.Count) + " de " + falta.Count + "\u2026", false); }); } catch { }
+                try
+                {
+                    List<KeyValuePair<string, byte[]>> imgs = new List<KeyValuePair<string, byte[]>>();
+                    string msg = b.MensajeDescribir(lote, imgs);
+                    hechos += BibliotecaMemes.AplicarDescripciones(lote, Gemini.Generar(clave, modelo, BibliotecaMemes.InstruccionesDescribir(), msg, true, imgs));
+                }
+                catch (Exception ex) { error = ex.Message; }
+            }
+            try { b.Guardar(); } catch { }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    Mostrar();
+                    Estado((error != null ? "Se cort\u00f3 (" + error + "). " : "\u2714 ") + hechos + " de " + falta.Count + " descritos. Rev\u00edsalos y corrige lo que haga falta.", error != null);
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+}
+
+// Poner memes en el capitulo ya editado.
+class VentanaMemes : VentanaBase
+{
+    readonly Vegas vegas;
+    readonly Transcripcion trans;
+    readonly Configuracion config = Configuracion.Cargar();
+    readonly string capitulo;
+    BibliotecaMemes biblioteca;
+    List<Meme> candidatos = new List<Meme>();
+    List<PropuestaMeme> propuestas = new List<PropuestaMeme>();
+    bool trabajando, cargando;
+    double duracion;
+
+    Etiqueta lblInfo, lblEstado;
+    Boton btnBiblioteca = new Boton("Biblioteca\u2026", EstiloBoton.Secundario);
+    CampoNumero numCada = new CampoNumero(), numEntre = new CampoNumero(), numRecientes = new CampoNumero();
+    Boton btnIA = new Boton("Elegir con IA", EstiloBoton.Primario);
+    Lista lst = new Lista();
+    Boton btnColocar = new Boton("Colocar", EstiloBoton.Primario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+
+    public VentanaMemes(Vegas vegas, Transcripcion trans) : base("Memes", 1000)
+    {
+        this.vegas = vegas; this.trans = trans;
+        StartPosition = FormStartPosition.CenterParent;
+        string veg = vegas.Project.FilePath ?? "";
+        capitulo = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(CopiaBase.Original(veg)), @"\s+CAP$", "");
+        int m = Margen, w = Ancho;
+        Encabezado("Memes", "Gemini elige d\u00f3nde queda un meme (por ritmo, no a cada rato) y cu\u00e1l, sin repetir los de los \u00faltimos cap\u00edtulos.");
+        int y = 92;
+        lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 170, 40);
+        Pos(btnBiblioteca, m + w - 160, y, 160, 32);
+        y += 46;
+        Texto("UNO CADA ~", Tema.Pequena, Tema.TextoSuave, m, y + 8, 80, 18);
+        numCada.Sufijo = "s"; numCada.Minimo = 20; numCada.Maximo = 600; numCada.Paso = 5;
+        Pos(numCada, m + 82, y, 90, 32);
+        Texto("SEPARADOS AL MENOS", Tema.Pequena, Tema.TextoSuave, m + 196, y + 8, 130, 18);
+        numEntre.Sufijo = "s"; numEntre.Minimo = 5; numEntre.Maximo = 300; numEntre.Paso = 5;
+        Pos(numEntre, m + 330, y, 90, 32);
+        Texto("SIN REPETIR DE LOS \u00daLTIMOS", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 170, 18);
+        numRecientes.Sufijo = "cap."; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
+        Pos(numRecientes, m + 616, y, 90, 32);
+        cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numRecientes.Valor = 3; cargando = false;
+        Pos(btnIA, m + w - 160, y, 160, 32);
+        y += 44;
+        int sb = SystemInformation.VerticalScrollBarWidth + 4;
+        lst.Columns.Add("Momento", 80);
+        lst.Columns.Add("Meme", 260);
+        lst.Columns.Add("Qu\u00e9 se dice", w - 80 - 260 - 260 - sb);
+        lst.Columns.Add("Por qu\u00e9", 260);
+        Pos(lst, m, y, w, 380);
+        y += 390;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 300, 40);
+        Pos(btnColocar, m + w - 290, y, 150, 40);
+        Pos(btnCerrar, m + w - 130, y, 130, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        foreach (Track t in vegas.Project.Tracks)
+            if (!t.IsAudio()) foreach (TrackEvent e in t.Events) duracion = Math.Max(duracion, e.End.ToMilliseconds() / 1000.0);
+        Cargar();
+
+        btnBiblioteca.Click += delegate
+        {
+            using (VentanaBibliotecaMemes v = new VentanaBibliotecaMemes(config)) v.ShowDialog(this);
+            Cargar();
+        };
+        numRecientes.Cambio += delegate { if (!cargando) Cargar(); };
+        btnIA.Click += delegate { ConIA(); };
+        btnColocar.Click += delegate { Colocar(); };
+        btnCerrar.Click += delegate { Close(); };
+        lst.ItemChecked += delegate (object s, ItemCheckedEventArgs e) { if (!cargando && e.Item.Tag != null) { ((PropuestaMeme)e.Item.Tag).Elegido = e.Item.Checked; Habilitar(); } };
+        lst.DoubleClick += delegate
+        {
+            if (lst.SelectedIndices.Count == 0) return;
+            PropuestaMeme pm = (PropuestaMeme)lst.Items[lst.SelectedIndices[0]].Tag;
+            try { vegas.Transport.CursorPosition = Timecode.FromMilliseconds(pm.En * 1000); } catch { }
+        };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+    }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    void Cargar()
+    {
+        biblioteca = null;
+        if (config.CarpetaMemes.Length > 0 && Directory.Exists(config.CarpetaMemes))
+            try { biblioteca = BibliotecaMemes.Cargar(config.CarpetaMemes); } catch { biblioteca = null; }
+        candidatos = LogicaMemes.Candidatos(biblioteca, numRecientes.Valor, capitulo);
+        int descritos = biblioteca == null ? 0 : biblioteca.Memes.Count - biblioteca.SinDescribir().Count;
+        lblInfo.Text = biblioteca == null ? "Sin biblioteca de memes: pulsa \u00abBiblioteca\u2026\u00bb y elige tu carpeta." :
+            candidatos.Count + " memes disponibles de " + descritos + " descritos" + (descritos > candidatos.Count ? " (" + (descritos - candidatos.Count) +
+            " se usaron en los \u00faltimos " + numRecientes.Valor + " cap\u00edtulos)" : "") + " \u00b7 cap\u00edtulo \u00ab" + capitulo + "\u00bb";
+        Habilitar();
+    }
+
+    void Habilitar()
+    {
+        btnIA.Enabled = !trabajando && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
+        btnColocar.Enabled = !trabajando && propuestas.Exists(delegate (PropuestaMeme p) { return p.Elegido; });
+        btnCerrar.Enabled = btnBiblioteca.Enabled = !trabajando;
+    }
+
+    void Llenar()
+    {
+        cargando = true;
+        lst.Items.Clear();
+        foreach (PropuestaMeme pm in propuestas)
+        {
+            Meme mm = candidatos[pm.Id];
+            ListViewItem it = new ListViewItem(Formato.Tiempo(pm.En));
+            it.SubItems.Add(mm.Nombre + " (" + mm.Tipo + ")");
+            it.SubItems.Add(pm.Dicho);
+            it.SubItems.Add(pm.Motivo);
+            it.Checked = pm.Elegido;
+            it.Tag = pm;
+            lst.Items.Add(it);
+        }
+        cargando = false;
+    }
+
+    void ConIA()
+    {
+        string instr = LogicaMemes.Instrucciones(numCada.Valor, numEntre.Valor);
+        string msg = LogicaMemes.Mensaje(trans, vegas.Project, candidatos, duracion);
+        string clave = config.GeminiClave, modelo = config.GeminiModelo;
+        List<Rango> ocupado = LogicaMemes.Ocupado(vegas.Project);
+        trabajando = true;
+        Habilitar();
+        Estado("Gemini est\u00e1 viendo el cap\u00edtulo y tus memes\u2026", false);
+        Thread hilo = new Thread(delegate ()
+        {
+            string resp = null, error = null;
+            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    if (error != null) { Estado("Gemini: " + error, true); Habilitar(); return; }
+                    try
+                    {
+                        propuestas = LogicaMemes.Leer(resp, candidatos, duracion, numEntre.Valor, ocupado, trans);
+                        Llenar();
+                        Estado("\u2714 " + propuestas.Count + " memes propuestos (uno cada ~" + (propuestas.Count > 0 ? Math.Round(duracion / propuestas.Count) : 0) +
+                               " s). Doble clic para ir al momento; desmarca los que no quieras y pulsa \u00abColocar\u00bb.", false);
+                    }
+                    catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
+                    Habilitar();
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+
+    void Colocar()
+    {
+        List<string> avisos = new List<string>();
+        int n;
+        using (UndoBlock u = new UndoBlock("Memes"))
+            n = LogicaMemes.Colocar(vegas.Project, biblioteca, propuestas, candidatos, capitulo, avisos);
+        try { biblioteca.Guardar(); } catch (Exception ex) { avisos.Add("No se guard\u00f3 el historial: " + ex.Message); }
+        Estado("\u2714 " + n + " memes en \u00ab" + LogicaMemes.PistaVideo + "\u00bb (los sonidos en \u00ab" + LogicaMemes.PistaAudio + "\u00bb). Quedan anotados para no repetirlos." +
+               (avisos.Count > 0 ? " Avisos: " + String.Join(" ", avisos.ToArray()) : ""), avisos.Count > 0);
+        propuestas.Clear();
+        Llenar();
+        Habilitar();
+    }
+}
+
+// ---- src/final/LogicaMemes.cs ----
+
+// Memes en el capitulo ya editado: Gemini elige los momentos (por ritmo, no a
+// cada rato) y el meme de la biblioteca que mejor queda, sin repetir los de
+// los ultimos capitulos.
+public class PropuestaMeme
+{
+    public double En, Duracion;
+    public int Id = -1;
+    public string Motivo = "", Dicho = "";
+    public bool Elegido = true;
+}
+
+public static class LogicaMemes
+{
+    public const string PistaVideo = "vegas-cut \u00b7 Memes", PistaAudio = "vegas-cut \u00b7 Memes (audio)";
+
+    static double S(Timecode t) { return t.ToMilliseconds() / 1000.0; }
+    static Timecode TC(double s) { return Timecode.FromMilliseconds(s * 1000); }
+    static string F(double t) { return t.ToString("0.0", CultureInfo.InvariantCulture); }
+
+    // Los memes que se pueden usar: descritos y no usados en los ultimos capitulos.
+    public static List<Meme> Candidatos(BibliotecaMemes b, int recientes, string capitulo)
+    {
+        List<Meme> r = new List<Meme>();
+        if (b == null) return r;
+        foreach (Meme m in b.Memes) if (m.Descrito && !b.UsadoHacePoco(m, recientes, capitulo)) r.Add(m);
+        return r;
+    }
+
+    // Donde no va un meme: el kit (opening, ending...) y donde ya hay uno.
+    public static List<Rango> Ocupado(Project p)
+    {
+        List<Rango> r = new List<Rango>();
+        foreach (Track t in p.Tracks)
+        {
+            string n = t.Name ?? "";
+            if (n.Contains("Kit") || n == PistaVideo || n == PistaAudio)
+                foreach (TrackEvent e in t.Events) r.Add(new Rango(S(e.Start), S(e.End)));
+        }
+        return Rangos.Unir(r, 0.5);
+    }
+
+    public static string Instrucciones(int cadaSeg, int minimoEntre)
+    {
+        return "Eres el editor de una serie de YouTube de Minecraft con amigos, estilo anime de JoJo y con mucho humor. El cap\u00edtulo " +
+               "ya est\u00e1 editado. Pon MEMES de la biblioteca del editor (im\u00e1genes, gifs, videos cortos o sonidos) donde de verdad " +
+               "suman: el remate de un chiste, una reacci\u00f3n a un fallo o una muerte, una sorpresa, algo absurdo, una victoria.\n" +
+               "- Por RITMO, no a cada rato: en promedio uno cada ~" + cadaSeg + " s, nunca dos a menos de " + minimoEntre + " s, y " +
+               "ninguno en momentos serios, tensos o emotivos ni encima de una explicaci\u00f3n importante.\n" +
+               "- \"en\": el segundo justo DESPU\u00c9S de la frase o el momento (que no tape lo que se dice). \"duracion\" solo para " +
+               "im\u00e1genes (1.5 a 4 s).\n" +
+               "- Que el meme encaje con lo que pasa (su descripci\u00f3n, tags y \"uso\"). Var\u00eda: no repitas un meme en el cap\u00edtulo y " +
+               "prefiere los menos usados.\n" +
+               "- No pongas nada en los tramos OCUPADOS.\n- Solo ids de la lista.\n" +
+               "Responde SOLO con JSON: {\"memes\": [{\"en\": s, \"id\": n, \"duracion\": s, \"motivo\": \"...\"}]}";
+    }
+
+    public static string Mensaje(Transcripcion t, Project p, List<Meme> candidatos, double duracion)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Duraci\u00f3n del cap\u00edtulo: " + Formato.Tiempo(duracion) + " (" + F(duracion) + " s)\n");
+        List<Rango> oc = Ocupado(p);
+        if (oc.Count > 0)
+        {
+            sb.Append("OCUPADOS (sin memes): ");
+            foreach (Rango r in oc) sb.Append("[" + F(r.Inicio) + "-" + F(r.Fin) + "] ");
+            sb.Append("\n");
+        }
+        List<string> marcas = new List<string>();
+        foreach (Marker m in p.Markers) if (!(m is Region) && !String.IsNullOrEmpty(m.Label)) marcas.Add("[" + F(S(m.Position)) + "] " + m.Label);
+        if (marcas.Count > 0) sb.Append("MARCADORES:\n" + String.Join("\n", marcas.ToArray()) + "\n");
+        sb.Append("\nBIBLIOTECA [id] tipo | qu\u00e9 es | tags | cu\u00e1ndo usarlo | veces usado\n");
+        for (int i = 0; i < candidatos.Count; i++)
+        {
+            Meme m = candidatos[i];
+            sb.Append("[" + i + "] " + m.Tipo + " | " + m.Descripcion + " | " + String.Join(", ", m.Tags.ToArray()) + " | " + m.Uso +
+                      " | " + m.Usos.Count + "\n");
+        }
+        sb.Append("\nTRANSCRIPCI\u00d3N DEL CAP\u00cdTULO [inicio-fin] persona: texto\n");
+        if (t != null)
+            foreach (Segmento s in t.SegmentosActuales())
+            {
+                if (String.IsNullOrEmpty(s.Texto) || s.Inicio > duracion) continue;
+                string quien = s.Hablante >= 0 && s.Hablante < t.Hablantes.Count ? t.Hablantes[s.Hablante].Nombre : "?";
+                sb.Append("[" + F(s.Inicio) + "-" + F(s.Fin) + "] " + quien + ": " + s.Texto.Trim() + "\n");
+                if (sb.Length > 300000) break;
+            }
+        return sb.ToString();
+    }
+
+    // Lee la respuesta y aplica las reglas aunque Gemini no las cumpla: dentro del
+    // video, fuera de lo ocupado, separados y sin repetir.
+    public static List<PropuestaMeme> Leer(string json, List<Meme> candidatos, double duracion, int minimoEntre, List<Rango> ocupado,
+                                           Transcripcion t)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        List<PropuestaMeme> todas = new List<PropuestaMeme>();
+        foreach (object x in Json.Lista(o, "memes"))
+        {
+            PropuestaMeme pm = new PropuestaMeme();
+            pm.En = Json.Numero(x, "en", -1); pm.Id = (int)Json.Numero(x, "id", -1);
+            pm.Duracion = Math.Max(1.5, Math.Min(4, Json.Numero(x, "duracion", 2.5)));
+            pm.Motivo = Json.Texto(x, "motivo");
+            if (pm.En < 0 || pm.En > duracion - 1 || pm.Id < 0 || pm.Id >= candidatos.Count) continue;
+            todas.Add(pm);
+        }
+        todas.Sort(delegate (PropuestaMeme a, PropuestaMeme b) { return a.En.CompareTo(b.En); });
+        List<PropuestaMeme> r = new List<PropuestaMeme>();
+        Dictionary<int, bool> usados = new Dictionary<int, bool>();
+        List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
+        foreach (PropuestaMeme pm in todas)
+        {
+            if (usados.ContainsKey(pm.Id)) continue;
+            bool libre = true;
+            foreach (Rango z in ocupado) if (pm.En >= z.Inicio - minimoEntre / 2.0 && pm.En <= z.Fin + 1) { libre = false; break; }
+            if (!libre) continue;
+            if (r.Count > 0 && pm.En - r[r.Count - 1].En < minimoEntre) continue;
+            foreach (Segmento s in segs)
+                if (s.Fin >= pm.En - 4 && s.Inicio <= pm.En + 0.5 && !String.IsNullOrEmpty(s.Texto)) pm.Dicho = s.Texto.Trim();
+            usados[pm.Id] = true;
+            r.Add(pm);
+        }
+        return r;
+    }
+
+    static VideoTrack PistaV(Project p)
+    {
+        foreach (Track t in p.Tracks) if (!t.IsAudio() && t.Name == PistaVideo) return (VideoTrack)t;
+        VideoTrack v = new VideoTrack(0, PistaVideo);
+        p.Tracks.Add(v);
+        return v;
+    }
+
+    static AudioTrack PistaA(Project p)
+    {
+        foreach (Track t in p.Tracks) if (t.IsAudio() && t.Name == PistaAudio) return (AudioTrack)t;
+        AudioTrack a = new AudioTrack(p.Tracks.Count, PistaAudio);
+        p.Tracks.Add(a);
+        return a;
+    }
+
+    // Pone los memes elegidos y anota en la biblioteca que se usaron en este capitulo.
+    public static int Colocar(Project p, BibliotecaMemes b, List<PropuestaMeme> propuestas, List<Meme> candidatos, string capitulo,
+                              List<string> avisos)
+    {
+        int n = 0;
+        foreach (PropuestaMeme pm in propuestas)
+        {
+            if (!pm.Elegido) continue;
+            Meme m = candidatos[pm.Id];
+            string ruta = b.Completa(m);
+            if (!File.Exists(ruta)) { avisos.Add("No encontr\u00e9 " + m.Ruta + "."); continue; }
+            try
+            {
+                Media md = new Media(ruta);
+                MediaStream v = md.Streams.GetItemByMediaType(MediaType.Video, 0), a = md.Streams.GetItemByMediaType(MediaType.Audio, 0);
+                double largo = m.Tipo == "imagen" ? pm.Duracion : Math.Min(12, S(md.Length) > 0.2 ? S(md.Length) : pm.Duracion);
+                if (v != null && m.Tipo != "sonido")
+                {
+                    VideoEvent ev = PistaV(p).AddVideoEvent(TC(pm.En), TC(largo));
+                    ev.AddTake(v);
+                    try { ev.FadeIn.Length = TC(0.12); ev.FadeOut.Length = TC(0.12); } catch { }
+                }
+                if (a != null && m.Tipo != "imagen")
+                {
+                    AudioEvent ea = PistaA(p).AddAudioEvent(TC(pm.En), TC(largo));
+                    ea.AddTake(a);
+                }
+                b.RegistrarUso(m, capitulo);
+                n++;
+            }
+            catch (Exception ex) { avisos.Add(m.Nombre + ": " + ex.Message); }
+        }
+        return n;
+    }
+}
+
+// ---- src/comun/Memes.cs ----
+
+// =====================================================================
+// Memes: una carpeta de imagenes, videos y sonidos con lo que es cada uno
+// (descripcion, tags, cuando usarlo) y cuando se uso, para ponerlos en el
+// capitulo con ritmo y sin repetirlos entre videos.
+// =====================================================================
+
+public class UsoMeme
+{
+    public string Capitulo = "", Fecha = "";
+}
+
+public class Meme
+{
+    public string Ruta = "";          // relativa a la carpeta
+    public string Tipo = "imagen";    // imagen, gif, video, sonido
+    public string Descripcion = "", Uso = "";
+    public List<string> Tags = new List<string>();
+    public List<UsoMeme> Usos = new List<UsoMeme>();
+    public bool Descrito { get { return Descripcion.Trim().Length > 0; } }
+    public string Nombre { get { return Path.GetFileNameWithoutExtension(Ruta); } }
+}
+
+public class BibliotecaMemes
+{
+    public const string NombreIndice = "memes-indice.json";
+    public static readonly string[] Imagenes = { ".png", ".jpg", ".jpeg", ".webp", ".bmp" };
+    public static readonly string[] Gifs = { ".gif" };
+    public static readonly string[] Videos = { ".mp4", ".mov", ".webm", ".avi", ".mkv", ".m4v" };
+    public static readonly string[] Sonidos = { ".mp3", ".wav", ".ogg", ".m4a", ".flac" };
+
+    public string Carpeta = "";
+    public List<Meme> Memes = new List<Meme>();
+
+    public static string TipoDe(string ruta)
+    {
+        string e = Path.GetExtension(ruta).ToLowerInvariant();
+        if (Array.IndexOf(Imagenes, e) >= 0) return "imagen";
+        if (Array.IndexOf(Gifs, e) >= 0) return "gif";
+        if (Array.IndexOf(Videos, e) >= 0) return "video";
+        if (Array.IndexOf(Sonidos, e) >= 0) return "sonido";
+        return "";
+    }
+
+    public string Completa(Meme m) { return Path.Combine(Carpeta, m.Ruta); }
+
+    public Meme Buscar(string ruta)
+    {
+        foreach (Meme m in Memes) if (String.Equals(m.Ruta, ruta, StringComparison.OrdinalIgnoreCase)) return m;
+        return null;
+    }
+
+    // Lee la carpeta (y subcarpetas). Lo que ya estaba descrito se conserva; lo que ya no existe se quita.
+    // Las subcarpetas cuentan como tags (\u00abReacciones/Risa\u00bb \u2192 reacciones, risa).
+    public int Escanear()
+    {
+        List<Meme> nuevos = new List<Meme>();
+        int agregados = 0;
+        string raiz = Carpeta.TrimEnd('\\', '/');
+        foreach (string f in Directory.GetFiles(Carpeta, "*", SearchOption.AllDirectories))
+        {
+            string tipo = TipoDe(f);
+            if (tipo.Length == 0) continue;
+            string rel = f.Substring(raiz.Length).TrimStart('\\', '/');
+            Meme m = Buscar(rel);
+            if (m == null)
+            {
+                m = new Meme { Ruta = rel, Tipo = tipo };
+                string dir = Path.GetDirectoryName(rel) ?? "";
+                foreach (string parte in dir.Split('\\', '/'))
+                    if (parte.Trim().Length > 0 && !m.Tags.Contains(parte.Trim().ToLowerInvariant())) m.Tags.Add(parte.Trim().ToLowerInvariant());
+                agregados++;
+            }
+            nuevos.Add(m);
+        }
+        nuevos.Sort(delegate (Meme a, Meme b) { return String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        Memes = nuevos;
+        return agregados;
+    }
+
+    // ---------------------------------------------------------- guardar
+
+    public void Guardar()
+    {
+        Dictionary<string, object> d = new Dictionary<string, object>();
+        d["formato"] = "vegas-cut-memes";
+        List<object> l = new List<object>();
+        foreach (Meme m in Memes)
+        {
+            Dictionary<string, object> x = new Dictionary<string, object>();
+            x["ruta"] = m.Ruta; x["tipo"] = m.Tipo; x["descripcion"] = m.Descripcion; x["uso"] = m.Uso;
+            x["tags"] = new List<object>(m.Tags.ToArray());
+            List<object> us = new List<object>();
+            foreach (UsoMeme u in m.Usos)
+            {
+                Dictionary<string, object> y = new Dictionary<string, object>();
+                y["capitulo"] = u.Capitulo; y["fecha"] = u.Fecha;
+                us.Add(y);
+            }
+            x["usos"] = us;
+            l.Add(x);
+        }
+        d["memes"] = l;
+        File.WriteAllText(Path.Combine(Carpeta, NombreIndice), Json.Escribir(d), new UTF8Encoding(false));
+    }
+
+    public static BibliotecaMemes Cargar(string carpeta)
+    {
+        BibliotecaMemes b = new BibliotecaMemes { Carpeta = carpeta };
+        string ruta = Path.Combine(carpeta, NombreIndice);
+        if (!File.Exists(ruta)) return b;
+        object o = Json.Leer(File.ReadAllText(ruta, Encoding.UTF8));
+        foreach (object x in Json.Lista(o, "memes"))
+        {
+            Meme m = new Meme();
+            m.Ruta = Json.Texto(x, "ruta"); m.Tipo = Json.Texto(x, "tipo"); m.Descripcion = Json.Texto(x, "descripcion"); m.Uso = Json.Texto(x, "uso");
+            if (m.Tipo.Length == 0) m.Tipo = TipoDe(m.Ruta);
+            foreach (object y in Json.Lista(x, "tags")) if (y is string) m.Tags.Add((string)y);
+            foreach (object y in Json.Lista(x, "usos")) m.Usos.Add(new UsoMeme { Capitulo = Json.Texto(y, "capitulo"), Fecha = Json.Texto(y, "fecha") });
+            if (m.Ruta.Length > 0) b.Memes.Add(m);
+        }
+        return b;
+    }
+
+    public static List<string> LeerTags(string texto)
+    {
+        List<string> r = new List<string>();
+        foreach (string t in (texto ?? "").Split(',', ';', '#'))
+        {
+            string x = t.Trim().ToLowerInvariant();
+            if (x.Length > 0 && !r.Contains(x)) r.Add(x);
+        }
+        return r;
+    }
+
+    // ------------------------------------------------ describir con IA
+
+    // Miniatura JPEG para mandarla a Gemini (null si no se pudo leer).
+    public static byte[] Miniatura(string ruta, int lado)
+    {
+        try
+        {
+            using (Image im = Image.FromFile(ruta))
+            {
+                double f = Math.Min(1.0, (double)lado / Math.Max(im.Width, im.Height));
+                int w = Math.Max(1, (int)(im.Width * f)), h = Math.Max(1, (int)(im.Height * f));
+                using (Bitmap b = new Bitmap(w, h))
+                {
+                    using (Graphics g = Graphics.FromImage(b)) { g.Clear(Color.White); g.DrawImage(im, 0, 0, w, h); }
+                    using (MemoryStream ms = new MemoryStream()) { b.Save(ms, ImageFormat.Jpeg); return ms.ToArray(); }
+                }
+            }
+        }
+        catch { return null; }
+    }
+
+    public List<Meme> SinDescribir()
+    {
+        return Memes.FindAll(delegate (Meme m) { return !m.Descrito; });
+    }
+
+    public static string InstruccionesDescribir()
+    {
+        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso memes de " +
+               "la carpeta del editor: las im\u00e1genes van adjuntas en el mismo orden que la lista; de los videos y sonidos solo tienes " +
+               "el nombre del archivo y su carpeta. Para cada uno di:\n" +
+               "- \"descripcion\": qu\u00e9 es y qu\u00e9 se ve/oye, en una frase (si es un meme conocido, cu\u00e1l).\n" +
+               "- \"tags\": 3 a 6 palabras (emoci\u00f3n, reacci\u00f3n, tipo de chiste\u2026).\n" +
+               "- \"uso\": en qu\u00e9 momento de un gameplay queda bien (tras un fallo, una muerte, una sorpresa, un chiste, una victoria...).\n" +
+               "Si de un video o sonido no sabes qu\u00e9 es por su nombre, no lo pongas (mejor nada que inventar).\n" +
+               "Responde SOLO con JSON: {\"memes\": [{\"id\": n, \"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}]}";
+    }
+
+    // Mensaje para un lote; "imagenes" recibe las miniaturas en el orden de la lista.
+    public string MensajeDescribir(List<Meme> lote, List<KeyValuePair<string, byte[]>> imagenes)
+    {
+        StringBuilder sb = new StringBuilder("MEMES [id] tipo | archivo | carpeta | (imagen adjunta n)\n");
+        int n = 0;
+        for (int i = 0; i < lote.Count; i++)
+        {
+            Meme m = lote[i];
+            string adj = "";
+            if (m.Tipo == "imagen" || m.Tipo == "gif")
+            {
+                byte[] b = Miniatura(Completa(m), 384);
+                if (b != null) { imagenes.Add(new KeyValuePair<string, byte[]>("image/jpeg", b)); adj = " | imagen adjunta " + (++n); }
+            }
+            sb.Append("[" + i + "] " + m.Tipo + " | " + m.Nombre + " | " + (Path.GetDirectoryName(m.Ruta) ?? "") + adj + "\n");
+        }
+        return sb.ToString();
+    }
+
+    public static int AplicarDescripciones(List<Meme> lote, string json)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        int n = 0;
+        foreach (object x in Json.Lista(o, "memes"))
+        {
+            int id = (int)Json.Numero(x, "id", -1);
+            if (id < 0 || id >= lote.Count) continue;
+            string d = Json.Texto(x, "descripcion").Trim();
+            if (d.Length == 0) continue;
+            Meme m = lote[id];
+            m.Descripcion = d;
+            m.Uso = Json.Texto(x, "uso").Trim();
+            foreach (object t in Json.Lista(x, "tags"))
+            {
+                string k = (t as string ?? "").Trim().ToLowerInvariant();
+                if (k.Length > 0 && !m.Tags.Contains(k)) m.Tags.Add(k);
+            }
+            n++;
+        }
+        return n;
+    }
+
+    // ------------------------------------------------ historial de uso
+
+    public void RegistrarUso(Meme m, string capitulo)
+    {
+        m.Usos.Add(new UsoMeme { Capitulo = capitulo, Fecha = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) });
+    }
+
+    // Capitulos distintos en los que se uso algo, del mas reciente al mas viejo.
+    public List<string> CapitulosRecientes()
+    {
+        List<UsoMeme> todos = new List<UsoMeme>();
+        foreach (Meme m in Memes) todos.AddRange(m.Usos);
+        todos.Sort(delegate (UsoMeme a, UsoMeme b) { return String.Compare(b.Fecha, a.Fecha, StringComparison.Ordinal); });
+        List<string> r = new List<string>();
+        foreach (UsoMeme u in todos) if (!r.Contains(u.Capitulo)) r.Add(u.Capitulo);
+        return r;
+    }
+
+    // Usado en alguno de los ultimos "n" capitulos (sin contar el actual).
+    public bool UsadoHacePoco(Meme m, int n, string actual)
+    {
+        List<string> rec = CapitulosRecientes();
+        rec.Remove(actual);
+        if (rec.Count > n) rec = rec.GetRange(0, n);
+        foreach (UsoMeme u in m.Usos) if (rec.Contains(u.Capitulo)) return true;
+        return false;
     }
 }
 
@@ -7797,6 +8597,7 @@ public class Configuracion
     public string Idioma = "es";
     public string WhisperExtra = "";             // opciones extra para el .exe
     public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
+    public string CarpetaMemes = "";             // carpeta de memes (imagenes, videos, sonidos) con su indice
 
     public static string Carpeta
     {
@@ -7825,6 +8626,7 @@ public class Configuracion
             c.Idioma = Valor(Json.Texto(o, "idioma"), c.Idioma);
             c.WhisperExtra = Json.Texto(o, "whisperExtra");
             c.ReglasCanal = Json.Texto(o, "reglasCanal");
+            c.CarpetaMemes = Json.Texto(o, "carpetaMemes");
         }
         catch { }
         return c;
@@ -7845,6 +8647,7 @@ public class Configuracion
         d["idioma"] = Idioma;
         d["whisperExtra"] = WhisperExtra;
         d["reglasCanal"] = ReglasCanal;
+        d["carpetaMemes"] = CarpetaMemes;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 
@@ -7991,10 +8794,27 @@ public static class Gemini
     // Pide una respuesta. Con "json" se exige que conteste solo JSON.
     public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json)
     {
+        return Generar(clave, modelo, instrucciones, mensaje, json, null);
+    }
+
+    // Con imagenes (tipo MIME y bytes), por ejemplo para describir memes.
+    public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
+                                 List<KeyValuePair<string, byte[]>> imagenes)
+    {
         Dictionary<string, object> cuerpo = new Dictionary<string, object>();
         if (!String.IsNullOrEmpty(instrucciones))
             cuerpo["systemInstruction"] = Partes(instrucciones, null);
-        cuerpo["contents"] = new List<object> { Partes(mensaje, "user") };
+        Dictionary<string, object> usuario = Partes(mensaje, "user");
+        if (imagenes != null)
+            foreach (KeyValuePair<string, byte[]> im in imagenes)
+            {
+                Dictionary<string, object> dato = new Dictionary<string, object>();
+                dato["mime_type"] = im.Key; dato["data"] = Convert.ToBase64String(im.Value);
+                Dictionary<string, object> parte = new Dictionary<string, object>();
+                parte["inline_data"] = dato;
+                ((List<object>)usuario["parts"]).Add(parte);
+            }
+        cuerpo["contents"] = new List<object> { usuario };
         Dictionary<string, object> config = new Dictionary<string, object>();
         config["temperature"] = 0.4;
         if (json) config["responseMimeType"] = "application/json";

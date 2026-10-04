@@ -492,10 +492,27 @@ Lo último antes de exportar, con la narración ya grabada:
    - Revisa, desmarca lo que no quieras y pulsa **Colocar**: los temas van a la pista de música
      con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
      queda el resto libre y puedes volver a buscar.
-2. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
+2. **Memes**: imágenes, gifs, videos cortos y sonidos de tu carpeta de memes, donde mejor quedan.
+   - **Biblioteca…**: eliges la carpeta una vez (se recuerda para todas las series) y **Buscar
+     archivos** la indexa. Las subcarpetas cuentan como tags (`Reacciones/Risa`).
+     - **Describir con IA**: Gemini *ve* las imágenes y los gifs (se le mandan miniaturas) y dice
+       qué son, sus tags y cuándo usarlos. De los videos y sonidos solo tiene el nombre: si no
+       sabe qué son, los deja sin describir.
+     - Corriges o escribes a mano qué es cada uno, sus tags y cuándo usarlo. Doble clic lo abre.
+       Un meme sin descripción no se usa.
+     - El índice queda en `memes-indice.json`, dentro de la carpeta.
+   - **Elegir con IA**: Gemini lee el capítulo (transcripción y marcadores) y propone memes **por
+     ritmo**. Eliges cada cuánto en promedio (~75 s), la separación mínima (25 s) y cuántos
+     capítulos atrás no se repiten (3). Va en remates, fallos, sorpresas o victorias, nunca en
+     momentos serios ni encima del opening o el ending. Las reglas se aplican aunque Gemini no las
+     cumpla.
+   - **Colocar**: las imágenes y videos van a la pista «vegas-cut · Memes», arriba de todo, y los
+     sonidos (y el audio de los videos) a «vegas-cut · Memes (audio)». Cada meme usado queda
+     anotado con su capítulo para no repetirlo en los siguientes.
+3. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
    que elijas mientras narras (la pista del narrador no se toca).
-3. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
-4. **Censurar palabrotas**: abre *Censurar palabrotas*.
+4. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
+5. **Censurar palabrotas**: abre *Censurar palabrotas*.
 
 ### `LimpiarVegasCut.cs`
 

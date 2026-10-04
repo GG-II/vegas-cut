@@ -81,10 +81,27 @@ public static class Gemini
     // Pide una respuesta. Con "json" se exige que conteste solo JSON.
     public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json)
     {
+        return Generar(clave, modelo, instrucciones, mensaje, json, null);
+    }
+
+    // Con imagenes (tipo MIME y bytes), por ejemplo para describir memes.
+    public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
+                                 List<KeyValuePair<string, byte[]>> imagenes)
+    {
         Dictionary<string, object> cuerpo = new Dictionary<string, object>();
         if (!String.IsNullOrEmpty(instrucciones))
             cuerpo["systemInstruction"] = Partes(instrucciones, null);
-        cuerpo["contents"] = new List<object> { Partes(mensaje, "user") };
+        Dictionary<string, object> usuario = Partes(mensaje, "user");
+        if (imagenes != null)
+            foreach (KeyValuePair<string, byte[]> im in imagenes)
+            {
+                Dictionary<string, object> dato = new Dictionary<string, object>();
+                dato["mime_type"] = im.Key; dato["data"] = Convert.ToBase64String(im.Value);
+                Dictionary<string, object> parte = new Dictionary<string, object>();
+                parte["inline_data"] = dato;
+                ((List<object>)usuario["parts"]).Add(parte);
+            }
+        cuerpo["contents"] = new List<object> { usuario };
         Dictionary<string, object> config = new Dictionary<string, object>();
         config["temperature"] = 0.4;
         if (json) config["responseMimeType"] = "application/json";

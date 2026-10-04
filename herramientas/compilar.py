@@ -56,7 +56,7 @@ HERRAMIENTAS = {
                          'comun/Rtf.cs', 'musica/LogicaMusica.cs', 'comun/Proceso.cs', 'comun/Ritmo.cs', 'comun/Serie.cs', 'comun/SerieTV.cs',
                          'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs',
                          'silencios/Deteccion.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
-    'PasoFinal': ['final/cabecera.txt', 'final/PasoFinal.cs', 'final/LogicaPasoFinal.cs', 'final/Relleno.cs', 'final/LogicaRelleno.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'censura/Censura.cs',
+    'PasoFinal': ['final/cabecera.txt', 'final/PasoFinal.cs', 'final/LogicaPasoFinal.cs', 'final/Relleno.cs', 'final/LogicaRelleno.cs', 'final/Memes.cs', 'final/LogicaMemes.cs', 'comun/Memes.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'censura/Censura.cs',
                   'censura/LogicaCensura.cs', 'pulir/AplicarPlan.cs', 'pulir/LogicaPlan.cs', 'pulir/LogicaPulir.cs', 'pulir/Voz.cs',
                   'textos/Generador.cs', 'comun/Rtf.cs', 'comun/Ritmo.cs', 'comun/Serie.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs',
                   'comun/CatalogoAnime.cs', 'comun/Proceso.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs', 'silencios/Deteccion.cs'] +

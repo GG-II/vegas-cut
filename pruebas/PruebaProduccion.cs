@@ -411,6 +411,49 @@ class PruebaProduccion
             Verificar(sinBib == 1 && hmo.Count == 1 && hmo[0].Inicio == 40,
                       "Rellenar música en un video de MomentosIA: la pista con temas de la biblioteca cuenta como música aunque se llame «Audio 5»");
 
+            // ---- memes
+            string mdir = Path.Combine(dir, "memes");
+            Directory.CreateDirectory(Path.Combine(mdir, "Reacciones", "Risa"));
+            File.WriteAllText(Path.Combine(mdir, "Reacciones", "Risa", "jaja.png"), "x");
+            File.WriteAllText(Path.Combine(mdir, "bruh.mp4"), "x");
+            File.WriteAllText(Path.Combine(mdir, "vine boom.mp3"), "x");
+            File.WriteAllText(Path.Combine(mdir, "notas.txt"), "x");
+            BibliotecaMemes bm = new BibliotecaMemes { Carpeta = mdir };
+            int nuevos = bm.Escanear();
+            Meme jaja = bm.Memes.Find(delegate (Meme x) { return x.Nombre == "jaja"; });
+            List<KeyValuePair<string, byte[]>> imgs = new List<KeyValuePair<string, byte[]>>();
+            string md = bm.MensajeDescribir(bm.SinDescribir(), imgs);
+            int des = BibliotecaMemes.AplicarDescripciones(bm.SinDescribir(), "{\"memes\": [{\"id\": 0, \"descripcion\": \"Bruh\", \"tags\": [\"Decepción\"], \"uso\": \"tras un fallo tonto\"}, " +
+                "{\"id\": 1, \"descripcion\": \"Risa exagerada\", \"tags\": [\"risa\"], \"uso\": \"tras un chiste\"}, {\"id\": 2, \"descripcion\": \"\"}]}");
+            bm.Guardar();
+            BibliotecaMemes bm2 = BibliotecaMemes.Cargar(mdir);
+            int otra = bm2.Escanear();
+            Verificar(nuevos == 3 && jaja != null && jaja.Tipo == "imagen" && jaja.Tags.Contains("reacciones") && jaja.Tags.Contains("risa") &&
+                      md.Contains("bruh") && des == 2 && bm2.Memes.Count == 3 && otra == 0 && bm2.Buscar("bruh.mp4").Descripcion == "Bruh" &&
+                      bm2.Buscar("bruh.mp4").Tags.Contains("decepción") && !bm2.Buscar("vine boom.mp3").Descrito,
+                      "Memes: se indexa la carpeta (subcarpetas como tags), Gemini describe y se conserva al volver a buscar");
+
+            bm2.RegistrarUso(bm2.Buscar("bruh.mp4"), "S01E01 SCR");
+            List<Meme> cmem = LogicaMemes.Candidatos(bm2, 3, "S01E02 SCR");
+            List<Meme> cmem0 = LogicaMemes.Candidatos(bm2, 0, "S01E02 SCR");
+            Project pm2 = new Project();
+            VideoTrack vm2 = new VideoTrack(0, "Video"); pm2.Tracks.Add(vm2);
+            vm2.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(300000));
+            VideoTrack km2 = new VideoTrack(1, ArmarCapitulo.PistaKit); pm2.Tracks.Add(km2);
+            km2.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(20000));
+            string mm = LogicaMemes.Mensaje(null, pm2, cmem0, 300);
+            List<PropuestaMeme> pr2 = LogicaMemes.Leer("{\"memes\": [{\"en\": 10, \"id\": 0}, {\"en\": 60, \"id\": 0, \"duracion\": 9}, {\"en\": 70, \"id\": 1}, " +
+                "{\"en\": 120, \"id\": 0}, {\"en\": 400, \"id\": 1}]}", cmem0, 300, 25, LogicaMemes.Ocupado(pm2), null);
+            List<string> avm = new List<string>();
+            int colm = LogicaMemes.Colocar(pm2, bm2, pr2, cmem0, "S01E02 SCR", avm);
+            Track tvm = pm2.Tracks.Find(delegate (Track x) { return x.Name == LogicaMemes.PistaVideo; });
+            Track tam = pm2.Tracks.Find(delegate (Track x) { return x.Name == LogicaMemes.PistaAudio; });
+            Verificar(cmem.Count == 1 && cmem0.Count == 2 && mm.Contains("OCUPADOS") && mm.Contains("[0.0-20.0]") &&
+                      pr2.Count == 1 && pr2[0].En == 60 && pr2[0].Duracion == 4 && colm == 1 && avm.Count == 0 && tvm != null && tvm.Events.Count == 1 &&
+                      S(tvm.Events[0].Start) == 60 && (cmem0[pr2[0].Id].Tipo == "imagen" ? tam == null : tam != null) &&
+                      bm2.Buscar(cmem0[pr2[0].Id].Ruta).Usos.Count >= 1,
+                      "Memes: sin repetir los de los últimos capítulos, fuera del kit, separados, sin repetir en el capítulo, y queda anotado");
+
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
             be.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden", Album = "Minecraft - Volume Alpha" });
