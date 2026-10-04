@@ -232,11 +232,12 @@ public class BibliotecaMemes
 
     public static string InstruccionesUno(List<string> tagsExistentes)
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso UN archivo " +
+        return "Ayudas a un editor de videos de YouTube a ordenar su biblioteca de memes. La usa en videos de todo tipo (gameplays, " +
+               "videos ensayo, vlogs, explicaciones, reacciones...), así que describe el meme EN SÍ, no lo ates a un juego ni a un tema. Te paso UN archivo " +
                "que el editor marcó como meme (adjunto: imagen, video o sonido; si no va adjunto, solo tienes su nombre). Di:\n" +
                "- \"descripcion\": qué es y qué se ve/oye, en una frase (si es un meme conocido, cuál).\n" +
-               "- \"tags\": 2 a 5. USA PRIMERO los que ya existen si alguno sirve: " + String.Join(", ", tagsExistentes.ToArray()) + ".\n" +
-               "- \"uso\": en qué momento de un gameplay queda bien.\n" +
+               "- \"tags\": 2 a 5 (emoción, reacción, tipo de chiste, de dónde sale…), generales y no de un juego. USA PRIMERO los que ya existen si alguno sirve: " + String.Join(", ", tagsExistentes.ToArray()) + ".\n" +
+               "- \"uso\": en qué situación de CUALQUIER video queda bien (la emoción o el momento, no un juego concreto).\n" +
                "Si no sabes qué es, deja la descripción vacía (mejor nada que inventar).\n" +
                "Responde SOLO con JSON: {\"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}";
     }
@@ -291,12 +292,14 @@ public class BibliotecaMemes
 
     public static string InstruccionesDescribir()
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso memes de " +
+        return "Ayudas a un editor de videos de YouTube a ordenar su biblioteca de memes. La usa en videos de todo tipo (gameplays, " +
+               "videos ensayo, vlogs, explicaciones, reacciones...), así que describe el meme EN SÍ, no lo ates a un juego ni a un tema. Te paso memes de " +
                "la carpeta del editor: van adjuntos en el mismo orden que la lista (las imágenes como miniatura; los videos y sonidos " +
                "cortos enteros); de los que no tienen adjunto solo tienes el nombre y la carpeta. Para cada uno di:\n" +
                "- \"descripcion\": qué es y qué se ve/oye, en una frase (si es un meme conocido, cuál).\n" +
-               "- \"tags\": 3 a 6 palabras (emoción, reacción, tipo de chiste…).\n" +
-               "- \"uso\": en qué momento de un gameplay queda bien (tras un fallo, una muerte, una sorpresa, un chiste, una victoria...).\n" +
+               "- \"tags\": 3 a 6 palabras (emoción, reacción, tipo de chiste, de dónde sale…), generales y no de un juego.\n" +
+               "- \"uso\": en qué situación de CUALQUIER video queda bien (tras un fallo, una sorpresa, un chiste, algo obvio, una " +
+               "contradicción, un dato absurdo, una victoria...), no atado a un juego concreto.\n" +
                "Si de uno sin adjunto no sabes qué es por su nombre, no lo pongas (mejor nada que inventar).\n" +
                "Responde SOLO con JSON: {\"memes\": [{\"id\": n, \"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}]}";
     }

@@ -48,14 +48,17 @@ public static class LogicaMemes
 
     public static string Instrucciones(int cadaSeg, int minimoEntre)
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos, estilo anime de JoJo y con mucho humor. El capítulo " +
-               "ya está editado. Pon MEMES de la biblioteca del editor (imágenes, gifs, videos cortos o sonidos) donde de verdad " +
-               "suman: el remate de un chiste, una reacción a un fallo o una muerte, una sorpresa, algo absurdo, una victoria.\n" +
+        return "Eres el editor de un video de YouTube. Puede ser de cualquier tipo (un gameplay con amigos, un video ensayo, un " +
+               "vlog, una explicación...): por la transcripción ves de qué va y cuál es su tono. El video ya está editado. Pon MEMES " +
+               "de la biblioteca del editor (imágenes, gifs, videos cortos o sonidos) donde de verdad suman: el remate de un chiste, " +
+               "una reacción a un fallo, una sorpresa, algo absurdo u obvio, una contradicción, una victoria.\n" +
+               "- Adáptate al tono: en un video ensayo o una explicación, menos y solo para aliviar o subrayar un punto; en un " +
+               "video de humor, más.\n" +
                "- Por RITMO, no a cada rato: en promedio uno cada ~" + cadaSeg + " s, nunca dos a menos de " + minimoEntre + " s, y " +
                "ninguno en momentos serios, tensos o emotivos ni encima de una explicación importante.\n" +
                "- \"en\": el segundo justo DESPUÉS de la frase o el momento (que no tape lo que se dice). \"duracion\" solo para " +
                "imágenes (1.5 a 4 s).\n" +
-               "- Que el meme encaje con lo que pasa (su descripción, tags y \"uso\"). Varía: no repitas un meme en el capítulo y " +
+               "- Que el meme encaje con lo que pasa (su descripción, tags y \"uso\"). Varía: no repitas un meme en el video y " +
                "prefiere los menos usados.\n" +
                "- No pongas nada en los tramos OCUPADOS.\n- Solo ids de la lista.\n" +
                "Responde SOLO con JSON: {\"memes\": [{\"en\": s, \"id\": n, \"duracion\": s, \"motivo\": \"...\"}]}";
@@ -64,7 +67,7 @@ public static class LogicaMemes
     public static string Mensaje(Transcripcion t, Project p, List<Meme> candidatos, double duracion)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("Duración del capítulo: " + Formato.Tiempo(duracion) + " (" + F(duracion) + " s)\n");
+        sb.Append("Duración del video: " + Formato.Tiempo(duracion) + " (" + F(duracion) + " s)\n");
         List<Rango> oc = Ocupado(p);
         if (oc.Count > 0)
         {
@@ -82,7 +85,7 @@ public static class LogicaMemes
             sb.Append("[" + i + "] " + m.Tipo + " | " + m.Descripcion + " | " + String.Join(", ", m.Tags.ToArray()) + " | " + m.Uso +
                       " | " + m.Usos.Count + "\n");
         }
-        sb.Append("\nTRANSCRIPCIÓN DEL CAPÍTULO [inicio-fin] persona: texto\n");
+        sb.Append("\nTRANSCRIPCIÓN DEL VIDEO [inicio-fin] persona: texto\n");
         if (t != null)
             foreach (Segmento s in t.SegmentosActuales())
             {

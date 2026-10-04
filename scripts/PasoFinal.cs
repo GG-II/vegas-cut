@@ -879,7 +879,7 @@ class VentanaMemes : VentanaBase
         string veg = vegas.Project.FilePath ?? "";
         capitulo = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(CopiaBase.Original(veg)), @"\s+CAP$", "");
         int m = Margen, w = Ancho;
-        Encabezado("Memes", "Gemini elige d\u00f3nde queda un meme (por ritmo, no a cada rato) y cu\u00e1l, sin repetir los de los \u00faltimos cap\u00edtulos.");
+        Encabezado("Memes", "Gemini elige d\u00f3nde queda un meme (por ritmo, no a cada rato) y cu\u00e1l, sin repetir los de tus \u00faltimos videos. Sirve para cualquier video, no solo para gameplays.");
         int y = 92;
         lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 170, 40);
         Pos(btnBiblioteca, m + w - 160, y, 160, 32);
@@ -891,7 +891,7 @@ class VentanaMemes : VentanaBase
         numEntre.Sufijo = "s"; numEntre.Minimo = 5; numEntre.Maximo = 300; numEntre.Paso = 5;
         Pos(numEntre, m + 330, y, 90, 32);
         Texto("SIN REPETIR DE LOS \u00daLTIMOS", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 170, 18);
-        numRecientes.Sufijo = "cap."; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
+        numRecientes.Sufijo = "videos"; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
         Pos(numRecientes, m + 616, y, 90, 32);
         cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numRecientes.Valor = 3; cargando = false;
         Pos(btnIA, m + w - 160, y, 160, 32);
@@ -942,7 +942,7 @@ class VentanaMemes : VentanaBase
         int descritos = biblioteca == null ? 0 : biblioteca.Memes.Count - biblioteca.SinDescribir().Count;
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de memes: pulsa \u00abBiblioteca\u2026\u00bb y elige tu carpeta." :
             candidatos.Count + " memes disponibles de " + descritos + " descritos" + (descritos > candidatos.Count ? " (" + (descritos - candidatos.Count) +
-            " se usaron en los \u00faltimos " + numRecientes.Valor + " cap\u00edtulos)" : "") + " \u00b7 cap\u00edtulo \u00ab" + capitulo + "\u00bb";
+            " se usaron en los \u00faltimos " + numRecientes.Valor + " videos)" : "") + " \u00b7 video \u00ab" + capitulo + "\u00bb";
         Habilitar();
     }
 
@@ -979,7 +979,7 @@ class VentanaMemes : VentanaBase
         List<Rango> ocupado = LogicaMemes.Ocupado(vegas.Project);
         trabajando = true;
         Habilitar();
-        Estado("Gemini est\u00e1 viendo el cap\u00edtulo y tus memes\u2026", false);
+        Estado("Gemini est\u00e1 viendo el video y tus memes\u2026", false);
         Thread hilo = new Thread(delegate ()
         {
             string resp = null, error = null;
@@ -1067,14 +1067,17 @@ public static class LogicaMemes
 
     public static string Instrucciones(int cadaSeg, int minimoEntre)
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos, estilo anime de JoJo y con mucho humor. El cap\u00edtulo " +
-               "ya est\u00e1 editado. Pon MEMES de la biblioteca del editor (im\u00e1genes, gifs, videos cortos o sonidos) donde de verdad " +
-               "suman: el remate de un chiste, una reacci\u00f3n a un fallo o una muerte, una sorpresa, algo absurdo, una victoria.\n" +
+        return "Eres el editor de un video de YouTube. Puede ser de cualquier tipo (un gameplay con amigos, un video ensayo, un " +
+               "vlog, una explicaci\u00f3n...): por la transcripci\u00f3n ves de qu\u00e9 va y cu\u00e1l es su tono. El video ya est\u00e1 editado. Pon MEMES " +
+               "de la biblioteca del editor (im\u00e1genes, gifs, videos cortos o sonidos) donde de verdad suman: el remate de un chiste, " +
+               "una reacci\u00f3n a un fallo, una sorpresa, algo absurdo u obvio, una contradicci\u00f3n, una victoria.\n" +
+               "- Ad\u00e1ptate al tono: en un video ensayo o una explicaci\u00f3n, menos y solo para aliviar o subrayar un punto; en un " +
+               "video de humor, m\u00e1s.\n" +
                "- Por RITMO, no a cada rato: en promedio uno cada ~" + cadaSeg + " s, nunca dos a menos de " + minimoEntre + " s, y " +
                "ninguno en momentos serios, tensos o emotivos ni encima de una explicaci\u00f3n importante.\n" +
                "- \"en\": el segundo justo DESPU\u00c9S de la frase o el momento (que no tape lo que se dice). \"duracion\" solo para " +
                "im\u00e1genes (1.5 a 4 s).\n" +
-               "- Que el meme encaje con lo que pasa (su descripci\u00f3n, tags y \"uso\"). Var\u00eda: no repitas un meme en el cap\u00edtulo y " +
+               "- Que el meme encaje con lo que pasa (su descripci\u00f3n, tags y \"uso\"). Var\u00eda: no repitas un meme en el video y " +
                "prefiere los menos usados.\n" +
                "- No pongas nada en los tramos OCUPADOS.\n- Solo ids de la lista.\n" +
                "Responde SOLO con JSON: {\"memes\": [{\"en\": s, \"id\": n, \"duracion\": s, \"motivo\": \"...\"}]}";
@@ -1083,7 +1086,7 @@ public static class LogicaMemes
     public static string Mensaje(Transcripcion t, Project p, List<Meme> candidatos, double duracion)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("Duraci\u00f3n del cap\u00edtulo: " + Formato.Tiempo(duracion) + " (" + F(duracion) + " s)\n");
+        sb.Append("Duraci\u00f3n del video: " + Formato.Tiempo(duracion) + " (" + F(duracion) + " s)\n");
         List<Rango> oc = Ocupado(p);
         if (oc.Count > 0)
         {
@@ -1101,7 +1104,7 @@ public static class LogicaMemes
             sb.Append("[" + i + "] " + m.Tipo + " | " + m.Descripcion + " | " + String.Join(", ", m.Tags.ToArray()) + " | " + m.Uso +
                       " | " + m.Usos.Count + "\n");
         }
-        sb.Append("\nTRANSCRIPCI\u00d3N DEL CAP\u00cdTULO [inicio-fin] persona: texto\n");
+        sb.Append("\nTRANSCRIPCI\u00d3N DEL VIDEO [inicio-fin] persona: texto\n");
         if (t != null)
             foreach (Segmento s in t.SegmentosActuales())
             {
@@ -1428,11 +1431,12 @@ public class BibliotecaMemes
 
     public static string InstruccionesUno(List<string> tagsExistentes)
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso UN archivo " +
+        return "Ayudas a un editor de videos de YouTube a ordenar su biblioteca de memes. La usa en videos de todo tipo (gameplays, " +
+               "videos ensayo, vlogs, explicaciones, reacciones...), as\u00ed que describe el meme EN S\u00cd, no lo ates a un juego ni a un tema. Te paso UN archivo " +
                "que el editor marc\u00f3 como meme (adjunto: imagen, video o sonido; si no va adjunto, solo tienes su nombre). Di:\n" +
                "- \"descripcion\": qu\u00e9 es y qu\u00e9 se ve/oye, en una frase (si es un meme conocido, cu\u00e1l).\n" +
-               "- \"tags\": 2 a 5. USA PRIMERO los que ya existen si alguno sirve: " + String.Join(", ", tagsExistentes.ToArray()) + ".\n" +
-               "- \"uso\": en qu\u00e9 momento de un gameplay queda bien.\n" +
+               "- \"tags\": 2 a 5 (emoci\u00f3n, reacci\u00f3n, tipo de chiste, de d\u00f3nde sale\u2026), generales y no de un juego. USA PRIMERO los que ya existen si alguno sirve: " + String.Join(", ", tagsExistentes.ToArray()) + ".\n" +
+               "- \"uso\": en qu\u00e9 situaci\u00f3n de CUALQUIER video queda bien (la emoci\u00f3n o el momento, no un juego concreto).\n" +
                "Si no sabes qu\u00e9 es, deja la descripci\u00f3n vac\u00eda (mejor nada que inventar).\n" +
                "Responde SOLO con JSON: {\"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}";
     }
@@ -1487,12 +1491,14 @@ public class BibliotecaMemes
 
     public static string InstruccionesDescribir()
     {
-        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso memes de " +
+        return "Ayudas a un editor de videos de YouTube a ordenar su biblioteca de memes. La usa en videos de todo tipo (gameplays, " +
+               "videos ensayo, vlogs, explicaciones, reacciones...), as\u00ed que describe el meme EN S\u00cd, no lo ates a un juego ni a un tema. Te paso memes de " +
                "la carpeta del editor: van adjuntos en el mismo orden que la lista (las im\u00e1genes como miniatura; los videos y sonidos " +
                "cortos enteros); de los que no tienen adjunto solo tienes el nombre y la carpeta. Para cada uno di:\n" +
                "- \"descripcion\": qu\u00e9 es y qu\u00e9 se ve/oye, en una frase (si es un meme conocido, cu\u00e1l).\n" +
-               "- \"tags\": 3 a 6 palabras (emoci\u00f3n, reacci\u00f3n, tipo de chiste\u2026).\n" +
-               "- \"uso\": en qu\u00e9 momento de un gameplay queda bien (tras un fallo, una muerte, una sorpresa, un chiste, una victoria...).\n" +
+               "- \"tags\": 3 a 6 palabras (emoci\u00f3n, reacci\u00f3n, tipo de chiste, de d\u00f3nde sale\u2026), generales y no de un juego.\n" +
+               "- \"uso\": en qu\u00e9 situaci\u00f3n de CUALQUIER video queda bien (tras un fallo, una sorpresa, un chiste, algo obvio, una " +
+               "contradicci\u00f3n, un dato absurdo, una victoria...), no atado a un juego concreto.\n" +
                "Si de uno sin adjunto no sabes qu\u00e9 es por su nombre, no lo pongas (mejor nada que inventar).\n" +
                "Responde SOLO con JSON: {\"memes\": [{\"id\": n, \"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}]}";
     }

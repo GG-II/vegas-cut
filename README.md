@@ -495,6 +495,8 @@ Lo último antes de exportar, con la narración ya grabada:
      con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
      queda el resto libre y puedes volver a buscar.
 2. **Memes**: imágenes, gifs, videos cortos y sonidos de tu carpeta de memes, donde mejor quedan.
+   Sirve para **cualquier video**, no solo gameplays: un video ensayo, un vlog, una explicación.
+   Los memes se describen por lo que son y la emoción o situación en que quedan, no por un juego.
 
    ![Memes](docs/img/memes.png)
 
@@ -510,14 +512,15 @@ Lo último antes de exportar, con la narración ya grabada:
      - El índice queda en `memes-indice.json`, dentro de la carpeta.
 
      ![Biblioteca de memes](docs/img/memes-biblioteca.png)
-   - **Elegir con IA**: Gemini lee el capítulo (transcripción y marcadores) y propone memes **por
+   - **Elegir con IA**: Gemini lee el video (transcripción y marcadores) y propone memes **por
      ritmo**. Eliges cada cuánto en promedio (~75 s), la separación mínima (25 s) y cuántos
-     capítulos atrás no se repiten (3). Va en remates, fallos, sorpresas o victorias, nunca en
-     momentos serios ni encima del opening o el ending. Las reglas se aplican aunque Gemini no las
+     videos atrás no se repiten (3). Va en remates, fallos, sorpresas, contradicciones o
+     victorias, nunca en momentos serios ni encima del opening o el ending, y se adapta al tono:
+     en un video ensayo pone menos que en uno de humor. Las reglas se aplican aunque Gemini no las
      cumpla.
    - **Colocar**: las imágenes y videos van a la pista «vegas-cut · Memes», arriba de todo, y los
      sonidos (y el audio de los videos) a «vegas-cut · Memes (audio)». Cada meme usado queda
-     anotado con su capítulo para no repetirlo en los siguientes.
+     anotado con su video para no repetirlo en los siguientes.
 3. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
    que elijas mientras narras (la pista del narrador no se toca).
 4. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.

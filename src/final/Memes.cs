@@ -229,7 +229,7 @@ class VentanaMemes : VentanaBase
         string veg = vegas.Project.FilePath ?? "";
         capitulo = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(CopiaBase.Original(veg)), @"\s+CAP$", "");
         int m = Margen, w = Ancho;
-        Encabezado("Memes", "Gemini elige dónde queda un meme (por ritmo, no a cada rato) y cuál, sin repetir los de los últimos capítulos.");
+        Encabezado("Memes", "Gemini elige dónde queda un meme (por ritmo, no a cada rato) y cuál, sin repetir los de tus últimos videos. Sirve para cualquier video, no solo para gameplays.");
         int y = 92;
         lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 170, 40);
         Pos(btnBiblioteca, m + w - 160, y, 160, 32);
@@ -241,7 +241,7 @@ class VentanaMemes : VentanaBase
         numEntre.Sufijo = "s"; numEntre.Minimo = 5; numEntre.Maximo = 300; numEntre.Paso = 5;
         Pos(numEntre, m + 330, y, 90, 32);
         Texto("SIN REPETIR DE LOS ÚLTIMOS", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 170, 18);
-        numRecientes.Sufijo = "cap."; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
+        numRecientes.Sufijo = "videos"; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
         Pos(numRecientes, m + 616, y, 90, 32);
         cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numRecientes.Valor = 3; cargando = false;
         Pos(btnIA, m + w - 160, y, 160, 32);
@@ -292,7 +292,7 @@ class VentanaMemes : VentanaBase
         int descritos = biblioteca == null ? 0 : biblioteca.Memes.Count - biblioteca.SinDescribir().Count;
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de memes: pulsa «Biblioteca…» y elige tu carpeta." :
             candidatos.Count + " memes disponibles de " + descritos + " descritos" + (descritos > candidatos.Count ? " (" + (descritos - candidatos.Count) +
-            " se usaron en los últimos " + numRecientes.Valor + " capítulos)" : "") + " · capítulo «" + capitulo + "»";
+            " se usaron en los últimos " + numRecientes.Valor + " videos)" : "") + " · video «" + capitulo + "»";
         Habilitar();
     }
 
@@ -329,7 +329,7 @@ class VentanaMemes : VentanaBase
         List<Rango> ocupado = LogicaMemes.Ocupado(vegas.Project);
         trabajando = true;
         Habilitar();
-        Estado("Gemini está viendo el capítulo y tus memes…", false);
+        Estado("Gemini está viendo el video y tus memes…", false);
         Thread hilo = new Thread(delegate ()
         {
             string resp = null, error = null;
