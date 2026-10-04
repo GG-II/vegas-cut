@@ -387,6 +387,16 @@ class PruebaProduccion
             Verificar(hl.Count == 3 && hl[0].Inicio == 0 && hl[0].Fin == 110 && hl[2].Fin == 300 && hl[1].Duracion <= LogicaRelleno.MaximoHueco,
                       "Rellenar música: un hueco largo se parte en tramos de hasta 2 min (en el borde de un bloque si hay uno cerca)");
 
+            Project pk = new Project();
+            VideoTrack vk = new VideoTrack(0, "Video"); pk.Tracks.Add(vk);
+            vk.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(300000));
+            pk.Markers.Add(new Marker(Timecode.FromMilliseconds(80000), "★8 Jason cae a la lava"));
+            List<HuecoMusica> hk = LogicaRelleno.Huecos(pk, null, 8);
+            Verificar(hk.Count == 3 && hk[0].Fin == 80 && hk[1].Marcas.Contains("Jason cae") && hk[0].Marcas == "" &&
+                      LogicaRelleno.Mensaje(hk, new List<ArchivoMusica>(), null, new List<string>()).Contains("(nadie habla)") &&
+                      LogicaRelleno.Huecos(pk, null, 8).Exists(delegate (HuecoMusica h) { return h.Inicio == 80; }),
+                      "Rellenar música: los marcadores de MomentosIA marcan dónde cambiar de tema");
+
             // Video de MomentosIA: la musica esta en una pista con otro nombre, pero sus temas son de la biblioteca.
             Project pmo = new Project();
             VideoTrack vmo = new VideoTrack(0, "Video"); pmo.Tracks.Add(vmo);

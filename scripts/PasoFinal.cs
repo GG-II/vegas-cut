@@ -368,7 +368,7 @@ public class HuecoMusica
 {
     public int N;
     public double Inicio, Fin;
-    public string Dicho = "", Bloque = "", Antes = "", Despues = "";
+    public string Dicho = "", Bloque = "", Antes = "", Despues = "", Marcas = "";
     public int Tema = -1;              // id del candidato
     public string Personaje = "", Motivo = "";
     public bool Silencio;              // la IA prefiere dejarlo sin musica
@@ -450,6 +450,10 @@ public static class LogicaRelleno
         }
         if (fin - desde >= minimo) libres.Add(new Rango(desde, fin));
         // Los huecos largos se parten (en el borde de un bloque si hay uno cerca).
+        // Donde conviene cambiar de tema: inicio de bloques y marcadores (los \u2605 y TEXTO de MomentosIA).
+        List<double> cortes = new List<double>();
+        foreach (Region g in p.Regions) cortes.Add(S(g.Position));
+        foreach (Marker mk in p.Markers) if (!(mk is Region)) cortes.Add(S(mk.Position));
         List<Rango> partidos = new List<Rango>();
         foreach (Rango l in libres)
         {
@@ -458,11 +462,10 @@ public static class LogicaRelleno
             {
                 int n = (int)Math.Ceiling((l.Fin - a) / MaximoHueco);
                 double corte = a + (l.Fin - a) / n;
-                foreach (Region g in p.Regions)
-                {
-                    double ini = S(g.Position);
-                    if (ini > a + minimo && ini < l.Fin - minimo && Math.Abs(ini - corte) < 25) { corte = ini; break; }
-                }
+                double mejor = double.MaxValue, elegido = corte;
+                foreach (double ini in cortes)
+                    if (ini > a + minimo && ini < l.Fin - minimo && Math.Abs(ini - corte) < 30 && Math.Abs(ini - corte) < mejor) { mejor = Math.Abs(ini - corte); elegido = ini; }
+                corte = elegido;
                 partidos.Add(new Rango(a, corte));
                 a = corte;
             }
@@ -492,6 +495,14 @@ public static class LogicaRelleno
                 double a = S(g.Position), b = a + S(g.Length);
                 if (medio >= a && medio <= b && b - a < menor) { menor = b - a; h.Bloque = g.Label ?? ""; }
             }
+            List<string> marcas = new List<string>();
+            foreach (Marker mk in p.Markers)
+            {
+                if (mk is Region) continue;
+                double x = S(mk.Position);
+                if (x >= l.Inicio && x < l.Fin && !String.IsNullOrEmpty(mk.Label)) marcas.Add(mk.Label);
+            }
+            h.Marcas = String.Join(" | ", marcas.ToArray());
             foreach (TrackEvent e in musica)
             {
                 if (Math.Abs(S(e.End) - l.Inicio) < 1.0) h.Antes = Path.GetFileNameWithoutExtension(Archivo(e));
@@ -543,7 +554,7 @@ public static class LogicaRelleno
         foreach (HuecoMusica h in huecos)
             sb.Append("[" + h.N + "] " + F(h.Inicio) + "\u2013" + F(h.Fin) + " s (" + Math.Round(h.Duracion) + " s)" +
                       (h.Bloque.Length > 0 ? " \u00b7 " + h.Bloque : "") + (h.Antes.Length > 0 ? " \u00b7 antes suena: " + h.Antes : "") +
-                      (h.Despues.Length > 0 ? " \u00b7 despu\u00e9s: " + h.Despues : "") + "\n    " + (h.Dicho.Length > 0 ? h.Dicho : "(nadie habla)") + "\n");
+                      (h.Despues.Length > 0 ? " \u00b7 despu\u00e9s: " + h.Despues : "") + (h.Marcas.Length > 0 ? "\n    marcas: " + h.Marcas : "") + "\n    " + (h.Dicho.Length > 0 ? h.Dicho : "(nadie habla)") + "\n");
         sb.Append("\nBIBLIOTECA [id] t\u00edtulo (de d\u00f3nde) | \u00e1nimo | d\u00f3nde suena / c\u00f3mo suena | duraci\u00f3n\n");
         for (int i = 0; i < candidatos.Count; i++)
         {
