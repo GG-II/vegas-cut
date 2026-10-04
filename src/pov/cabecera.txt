@@ -1,0 +1,6 @@
+// VariosPOV.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// El video de otro jugador grabado al mismo tiempo: sincronizarlo con el tuyo
+// por el audio (antes de quitar silencios) y mostrarlo en los mejores momentos.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

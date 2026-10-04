@@ -9,6 +9,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `ProducirCapitulo.cs` | Del material a un capítulo de serie: análisis, 3 propuestas, propuesta final y armado. |
 | `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
 | `PasoFinal.cs` | Lo último: rellenar la música, bajar el juego bajo la narración, balancear y censurar. |
+| `VariosPOV.cs` | El video de otro jugador: sincronizarlo por el audio y mostrarlo en los mejores momentos. |
 | `LimpiarVegasCut.cs` | Manda a la Papelera lo que se junta al trabajar y ningún proyecto usa (temporales, narración provisional, renders). |
 | `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
@@ -493,6 +494,9 @@ Lo último antes de exportar, con la narración ya grabada:
      con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
      queda el resto libre y puedes volver a buscar.
 2. **Memes**: imágenes, gifs, videos cortos y sonidos de tu carpeta de memes, donde mejor quedan.
+
+   ![Memes](docs/img/memes.png)
+
    - **Biblioteca…**: eliges la carpeta una vez (se recuerda para todas las series) y **Buscar
      archivos** la indexa. Las subcarpetas cuentan como tags (`Reacciones/Risa`).
      - **Describir con IA**: Gemini *ve* las imágenes y los gifs (se le mandan miniaturas) y dice
@@ -501,6 +505,8 @@ Lo último antes de exportar, con la narración ya grabada:
      - Corriges o escribes a mano qué es cada uno, sus tags y cuándo usarlo. Doble clic lo abre.
        Un meme sin descripción no se usa.
      - El índice queda en `memes-indice.json`, dentro de la carpeta.
+
+     ![Biblioteca de memes](docs/img/memes-biblioteca.png)
    - **Elegir con IA**: Gemini lee el capítulo (transcripción y marcadores) y propone memes **por
      ritmo**. Eliges cada cuánto en promedio (~75 s), la separación mínima (25 s) y cuántos
      capítulos atrás no se repiten (3). Va en remates, fallos, sorpresas o victorias, nunca en
@@ -513,6 +519,49 @@ Lo último antes de exportar, con la narración ya grabada:
    que elijas mientras narras (la pista del narrador no se toca).
 4. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
 5. **Censurar palabrotas**: abre *Censurar palabrotas*.
+
+### `VariosPOV.cs`
+
+Para cuando otro jugador también grabó su pantalla. Dos pasos:
+
+**1. Sincronizar** (antes de quitar silencios).
+
+![Varios POV: sincronizar](docs/img/pov-sincronizar.png)
+
+1. Importa su video en pistas nuevas (su video y sus audios), donde sea.
+2. Elige una pista tuya y una suya que suenen igual. Lo ideal: **tu micrófono** contra **su
+   llamada**, porque en su llamada se oye tu voz.
+3. Las pistas de su archivo se marcan solas como «del otro POV».
+4. **Sincronizar** escucha las dos pistas, compara el ritmo de las voces y encuentra cuánto
+   está corrido (al centésimo de segundo). Busca hasta ±10 min; el número se cambia. Te dice el
+   desfase y una **confianza**:
+   - alta: es seguro;
+   - baja: probablemente las pistas no tienen voces en común.
+5. Si aceptas, mueve juntas todas sus pistas. Ctrl+Z lo deshace.
+
+Sincronízalo **antes** de quitar silencios, como pensabas: cada grabación tiene sus propios
+silencios, y si se cortaran por separado se desfasarían. Después *QuitarSilencios* o
+*PrepararEpisodio* cortan **todas las pistas a la vez**, así que sigue sincronizado.
+- Incluye **su micrófono entre las voces**, para que no se corte cuando él habla.
+- Transcríbelo también: así el paso 2 sabe qué dice.
+
+**2. Cambios de POV** (ya cortado y transcrito).
+
+![Varios POV: cambios](docs/img/pov-cambios.png)
+
+- Eliges el video principal (tu POV, el que manda), el del otro y, si quieres, el sonido de su
+  juego. Se preseleccionan solos.
+- **Elegir con IA**: Gemini lee la transcripción y los marcadores y elige los pocos momentos en
+  que conviene ver su pantalla:
+  - cuando pide que miren («mira», «miren», «ven a ver»);
+  - cuando le pasa algo (muere, cae, encuentra algo, lo atacan);
+  - cuando él hace lo importante y tu POV no lo ve.
+- Tramos de 4 a 20 s, que empiezan un poco antes de lo que pasa. Como mucho el 12 % del video y
+  separados al menos 45 s; los dos números se cambian. Las reglas se aplican aunque Gemini no las
+  cumpla.
+- **Aplicar**: parte los eventos en esos tramos. Ahí se ve su POV (y suena su juego, si lo
+  elegiste) y tu video se silencia; en el resto, al revés. No se borra nada: son eventos
+  silenciados que puedes ajustar a mano. **Quitar cambios** vuelve a dejar solo tu POV.
 
 ### `LimpiarVegasCut.cs`
 

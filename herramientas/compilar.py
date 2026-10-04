@@ -33,6 +33,8 @@ HERRAMIENTAS = {
     'Anteriormente': ['anteriormente/cabecera.txt', 'anteriormente/Anteriormente.cs', 'anteriormente/LogicaAnteriormente.cs',
                       'comun/Serie.cs', 'comun/VentanaSerie.cs', 'comun/VentanaFormato.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/VentanaMusica.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
                      ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'VariosPOV': ['pov/cabecera.txt', 'pov/Pov.cs', 'pov/LogicaPov.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs', 'comun/CopiaBase.cs'] +
+                 COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
     'LimpiarVegasCut': ['limpiar/cabecera.txt', 'limpiar/Limpiar.cs', 'limpiar/LogicaLimpiar.cs', 'comun/Serie.cs', 'comun/SerieTV.cs',
                         'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs', 'comun/Ritmo.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] +
                        COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
