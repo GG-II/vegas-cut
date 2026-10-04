@@ -456,6 +456,17 @@ class PruebaProduccion
                       BibliotecaMemes.Adjunto(Path.Combine(mdir, "bruh (2).mp4"), 18).Value.Key == "video/mp4" && BibliotecaMemes.Adjunto(Path.Combine(mdir, "bruh (2).mp4"), 0) == null,
                       "Clasificar: pendientes sin lo descartado, el meme se mueve (con otro nombre si ya existe) con sus tags; los tags más usados primero");
 
+            // Deshacer (swipe al reves) y buscar en la biblioteca.
+            string gato = Path.Combine(entrada, "sub", "gato.gif");
+            Meme mg = bc2.Agregar(gato, "", new List<string> { "baile" }, "");
+            bool movido = !File.Exists(gato) && File.Exists(bc2.Completa(mg));
+            bc2.DeshacerAgregar(mg, gato);
+            bc2.QuitarDescartado(Path.Combine(entrada, "partida larga.mp4"));
+            Verificar(movido && File.Exists(gato) && bc2.Buscar(mg.Ruta) == null && bc2.Descartados.Count == 0 &&
+                      bc2.Pendientes(entrada).Count == 2 && bc2.Filtrar("decepción", "").Count == 2 && bc2.Filtrar("", "otra vez").Count == 1 &&
+                      bc2.Filtrar("decepción", "otra vez").Count == 1 && bc2.Filtrar("risa", "").Count == 1 && bc2.Filtrar("no existe", "").Count == 0,
+                      "Memes (programa): deshacer un «es meme» devuelve el archivo; deshacer un «no» lo vuelve a mostrar; buscar por tag y texto");
+
             bm2.RegistrarUso(bm2.Buscar("bruh.mp4"), "S01E01 SCR");
             List<Meme> cmem = LogicaMemes.Candidatos(bm2, 3, "S01E02 SCR");
             List<Meme> cmem0 = LogicaMemes.Candidatos(bm2, 0, "S01E02 SCR");

@@ -77,8 +77,8 @@ for _partes in HERRAMIENTAS.values():
 
 # Programas aparte (fuera de Vegas): se compilan con el csc de Windows (ver programas/*.bat).
 PROGRAMAS = {
-    'ClasificarMemes': ['clasificar/cabecera.txt', 'clasificar/Clasificar.cs', 'comun/Memes.cs', 'comun/Json.cs',
-                        'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'Memes': ['memes/cabecera.txt', 'memes/MemesApp.cs', 'comun/Memes.cs', 'comun/Json.cs',
+              'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
 }
 
 def separar_usings(texto):

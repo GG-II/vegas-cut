@@ -1361,6 +1361,35 @@ public class BibliotecaMemes
         return m;
     }
 
+    // Deshacer un \u00abes meme\u00bb: el archivo vuelve a donde estaba y sale del indice.
+    public void DeshacerAgregar(Meme m, string original)
+    {
+        string actual = Completa(m);
+        if (File.Exists(actual) && !File.Exists(original))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(original));
+            File.Move(actual, original);
+        }
+        Memes.Remove(m);
+    }
+
+    public void QuitarDescartado(string archivo)
+    {
+        Descartados.RemoveAll(delegate (string x) { return String.Equals(x, archivo, StringComparison.OrdinalIgnoreCase); });
+    }
+
+    // Lo que tiene un tag (o todos si es ""), filtrado por texto en nombre, descripcion, uso y tags.
+    public List<Meme> Filtrar(string tag, string texto)
+    {
+        string q = (texto ?? "").Trim().ToLowerInvariant();
+        return Memes.FindAll(delegate (Meme m)
+        {
+            if (!String.IsNullOrEmpty(tag) && !m.Tags.Contains(tag)) return false;
+            if (q.Length == 0) return true;
+            return (m.Ruta + " " + m.Descripcion + " " + m.Uso + " " + String.Join(" ", m.Tags.ToArray())).ToLowerInvariant().Contains(q);
+        });
+    }
+
     public void Descartar(string archivo)
     {
         if (!Descartados.Exists(delegate (string x) { return String.Equals(x, archivo, StringComparison.OrdinalIgnoreCase); })) Descartados.Add(archivo);

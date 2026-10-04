@@ -10,7 +10,7 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
 | `PasoFinal.cs` | Lo último: rellenar la música, bajar el juego bajo la narración, balancear y censurar. |
 | `VariosPOV.cs` | El video de otro jugador: sincronizarlo por el audio y mostrarlo en los mejores momentos. |
-| `programas/ClasificarMemes.bat` | Programa aparte (fuera de Vegas): revisar una carpeta de videos uno por uno y guardar los memes con sus tags. |
+| `programas/Memes.exe` | Programa aparte (fuera de Vegas) para tu biblioteca de memes: clasificar una carpeta deslizando como en Tinder y corregir lo que ya tienes. |
 | `LimpiarVegasCut.cs` | Manda a la Papelera lo que se junta al trabajar y ningún proyecto usa (temporales, narración provisional, renders). |
 | `QuitarSilencios.cs` | Quita las pausas de una o varias pistas de voz. |
 | `ConfigurarVegasCut.cs` | Clave de Gemini y ruta de Faster-Whisper-XXL (una sola vez). |
@@ -504,7 +504,7 @@ Lo último antes de exportar, con la narración ya grabada:
        videos y sonidos cortos (enteros, hasta ~15 MB por pedido), y dice qué son, sus tags y
        cuándo usarlos. Lo que no puede ver y no sabe qué es por su nombre, lo deja sin describir.
      - Para revisar una carpeta grande donde no todo es meme, usa el programa aparte
-       `programas/ClasificarMemes.bat` (más abajo).
+       `programas/Memes.exe` (más abajo).
      - Corriges o escribes a mano qué es cada uno, sus tags y cuándo usarlo. Doble clic lo abre.
        Un meme sin descripción no se usa.
      - El índice queda en `memes-indice.json`, dentro de la carpeta.
@@ -566,34 +566,50 @@ silencios, y si se cortaran por separado se desfasarían. Después *QuitarSilenc
   elegiste) y tu video se silencia; en el resto, al revés. No se borra nada: son eventos
   silenciados que puedes ajustar a mano. **Quitar cambios** vuelve a dejar solo tu POV.
 
-### `programas/ClasificarMemes.bat` (programa aparte)
+### `programas/Memes.exe` (programa aparte)
 
-No es un script de Vegas: es un programita para ordenar una carpeta llena de videos e imágenes
-donde no todo es meme. Doble clic en `ClasificarMemes.bat`: lo compila con el compilador de C#
-que ya trae Windows (no hay que instalar nada) y lo abre. Usa la misma configuración que los
-scripts, así que ya tiene tu clave de Gemini.
+No es un script de Vegas: es un programa normal de Windows para trabajar tu biblioteca de memes
+sin abrir Vegas. Doble clic en `Memes.exe`. Si Windows avisa «Windows protegió su PC» (el
+programa no está firmado), **Más información → Ejecutar de todas formas**. También puedes
+compilarlo tú: `Memes.bat` lo compila desde `Memes.cs` con el compilador de C# que ya trae
+Windows y lo abre. Usa la misma configuración que los scripts, así que ya tiene tu clave de
+Gemini y tu carpeta de memes.
 
-![Clasificar memes: ¿es meme?](docs/img/clasificar-1.png)
+Arriba eliges la carpeta **A** (tu carpeta de memes, la misma que usa *PasoFinal*) y cambias
+entre las dos vistas.
 
-1. Elige una vez la carpeta **DE** (lo que hay que revisar) y la carpeta **A** (tu carpeta de
-   memes, la misma que usa *PasoFinal*). Se recuerdan.
-2. Va mostrando cada archivo: las imágenes, y los videos, gifs y sonidos reproduciéndose en
-   bucle. Si un formato no se ve (`.webm`, `.mkv`), está **Abrir aparte**.
-3. **¿Es meme?**
-   - **✔ Es meme (S)** pasa a los tags.
-   - **✖ No es, siguiente (N)**: el archivo no se mueve ni se borra, solo no se vuelve a mostrar.
-   - **Saltar** lo deja para después y **Anterior** vuelve.
+**Clasificar (swipe)**: para una carpeta llena de videos e imágenes donde no todo es meme.
 
-   ![Clasificar memes: tags](docs/img/clasificar-2.png)
-4. **Tags**: tus tags aparecen como botones, de los más usados a los menos; clic para elegir.
-   Escribe uno nuevo y Enter para crearlo. Queda guardado para los siguientes.
-5. **Qué es** y **cuándo usarlo**. **Describir con IA** lo llena por ti:
-   - de las imágenes y los gifs, Gemini ve una miniatura;
-   - de los videos y sonidos de hasta 18 MB, el archivo entero;
-   - usa primero tus tags existentes.
+![Memes: deslizar la tarjeta](docs/img/memes-app-arrastre.png)
+
+1. Elige una vez la carpeta **DE** (lo que hay que revisar). Se recuerda.
+2. Sale una tarjeta por archivo: las imágenes, y los videos, gifs y sonidos en bucle. Si un
+   formato no se ve (`.webm`, `.mkv`), está **Abrir aparte**.
+3. Arrastra la tarjeta con el mouse (o usa las flechas del teclado):
+   - **→ derecha: es meme.** Pasa a los tags.
+   - **← izquierda: no es.** El archivo no se mueve ni se borra; solo no se vuelve a mostrar.
+   - **↑ arriba: saltar.** Vuelve al final de la fila.
+   - **Ctrl+Z** (o **Deshacer**) deshace la última, aunque ya lo hayas guardado: el archivo
+     vuelve a su carpeta.
+
+   ![Memes: tags del meme](docs/img/memes-app-etiquetar.png)
+4. **Tags**: tus tags salen como botones, de los más usados a los menos; clic para elegir.
+   Escribe uno nuevo y Enter para crearlo.
+5. **Qué es** y **cuándo usarlo** (puedes dejarlos vacíos y describirlos luego).
+   **Describir con IA** los llena: de imágenes y gifs Gemini ve una miniatura; de videos y
+   sonidos de hasta 18 MB, el archivo entero; usa primero tus tags.
 6. **Guardar y siguiente (Ctrl+Enter)**: el archivo **se mueve** a tu carpeta de memes (con
-   otro nombre si ya hay uno igual) y queda en `memes-indice.json` con sus tags. Desde ahí lo usa
-   **Memes** del *PasoFinal*.
+   otro nombre si ya hay uno igual) y queda en `memes-indice.json`. **No era meme** lo descarta.
+
+**Biblioteca**: todo lo que ya tienes.
+
+![Memes: biblioteca](docs/img/memes-app-biblioteca.png)
+
+- Busca por texto y filtra por tag. Los que no tienen descripción salen en gris: vegas-cut no
+  los usa hasta que la tengan. **Describir con IA los que faltan** los hace de una vez.
+- Al elegir uno se ve y se reproduce; corriges sus tags, qué es y cuándo usarlo, y
+  **Guardar cambios**. La columna *Usado* dice en cuántos capítulos ya salió.
+- **Quitar** lo manda a la Papelera y lo saca del índice.
 
 ### `LimpiarVegasCut.cs`
 

@@ -1,0 +1,5 @@
+// Memes.cs
+// Programa aparte (no es un script de Vegas) para la biblioteca de memes de
+// vegas-cut: clasificar una carpeta deslizando tarjetas (como Tinder) y
+// trabajar la biblioteca (buscar por tags, corregir, describir con IA).
+// Lo compila Memes.bat (o usa Memes.exe ya compilado).
