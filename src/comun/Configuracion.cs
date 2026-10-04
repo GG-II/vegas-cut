@@ -22,6 +22,7 @@ public class Configuracion
     public string WhisperExtra = "";             // opciones extra para el .exe
     public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
     public string CarpetaMemes = "";             // carpeta de memes (imagenes, videos, sonidos) con su indice
+    public string CarpetaMemesEntrada = "";      // carpeta con los archivos por revisar (ClasificarMemes)
 
     public static string Carpeta
     {
@@ -51,6 +52,7 @@ public class Configuracion
             c.WhisperExtra = Json.Texto(o, "whisperExtra");
             c.ReglasCanal = Json.Texto(o, "reglasCanal");
             c.CarpetaMemes = Json.Texto(o, "carpetaMemes");
+            c.CarpetaMemesEntrada = Json.Texto(o, "carpetaMemesEntrada");
         }
         catch { }
         return c;
@@ -72,6 +74,7 @@ public class Configuracion
         d["whisperExtra"] = WhisperExtra;
         d["reglasCanal"] = ReglasCanal;
         d["carpetaMemes"] = CarpetaMemes;
+        d["carpetaMemesEntrada"] = CarpetaMemesEntrada;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

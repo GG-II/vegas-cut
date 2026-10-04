@@ -1,0 +1,4 @@
+// ClasificarMemes.cs
+// Programa aparte (no es un script de Vegas): revisa una carpeta de videos e
+// imagenes uno por uno, marcas si es meme, le pones tags, que es y cuando
+// usarlo, y se mueve a tu carpeta de memes. Lo compila ClasificarMemes.bat.

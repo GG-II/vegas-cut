@@ -16,6 +16,8 @@ VEGAS_REF="-noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:Syst
 for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs ../scripts/LimpiarVegasCut.cs ../scripts/VariosPOV.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
+# El programa aparte se compila igual que en Windows (csc de .NET Framework 4, C# 5).
+mcs -langversion:5 -nowarn:414,169,649,219 -target:winexe -noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -out:"$T/ClasificarMemes.exe" ../programas/ClasificarMemes.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ia.exe" PruebaIA.cs ../scripts/MomentosIA.cs ../src/comun/Whisper.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/textos.exe" PruebaTextos.cs ../scripts/TextosDesdeMarcadores.cs

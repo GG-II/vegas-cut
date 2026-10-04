@@ -75,6 +75,12 @@ for _partes in HERRAMIENTAS.values():
     if 'comun/Serie.cs' in _partes and 'comun/TiposCapitulo.cs' not in _partes:
         _partes.insert(_partes.index('comun/Serie.cs') + 1, 'comun/TiposCapitulo.cs')
 
+# Programas aparte (fuera de Vegas): se compilan con el csc de Windows (ver programas/*.bat).
+PROGRAMAS = {
+    'ClasificarMemes': ['clasificar/cabecera.txt', 'clasificar/Clasificar.cs', 'comun/Memes.cs', 'comun/Json.cs',
+                        'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+}
+
 def separar_usings(texto):
     usings, cuerpo, en_cabeza = [], [], True
     for linea in texto.split('\n'):
@@ -95,7 +101,7 @@ def orden_using(u):
 def ascii(texto):
     return ''.join(c if ord(c) < 128 else '\\u%04x' % ord(c) for c in texto)
 
-def compilar(nombre, partes):
+def compilar(nombre, partes, carpeta='scripts'):
     cabecera = ''
     usings, cuerpos = set(), []
     for parte in partes:
@@ -111,7 +117,8 @@ def compilar(nombre, partes):
               '//\n// GENERADO desde src/ con herramientas/compilar.py: no editar este archivo a mano.\n\n' +
               '\n'.join(sorted(usings, key=orden_using)) + '\n\n' +
               '\n'.join(cuerpos))
-    destino = os.path.join(RAIZ, 'scripts', nombre + '.cs')
+    os.makedirs(os.path.join(RAIZ, carpeta), exist_ok=True)
+    destino = os.path.join(RAIZ, carpeta, nombre + '.cs')
     with open(destino, 'w', encoding='ascii', newline='\n') as f:
         f.write(ascii(salida))
     return destino
@@ -119,3 +126,5 @@ def compilar(nombre, partes):
 if __name__ == '__main__':
     for nombre, partes in HERRAMIENTAS.items():
         print('compilado', os.path.relpath(compilar(nombre, partes), RAIZ))
+    for nombre, partes in PROGRAMAS.items():
+        print('compilado', os.path.relpath(compilar(nombre, partes, 'programas'), RAIZ))

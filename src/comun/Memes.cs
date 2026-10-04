@@ -38,6 +38,8 @@ public class BibliotecaMemes
 
     public string Carpeta = "";
     public List<Meme> Memes = new List<Meme>();
+    // Archivos que se revisaron y no son memes (rutas completas), para no volver a mostrarlos.
+    public List<string> Descartados = new List<string>();
 
     public static string TipoDe(string ruta)
     {
@@ -108,6 +110,7 @@ public class BibliotecaMemes
             l.Add(x);
         }
         d["memes"] = l;
+        d["descartados"] = new List<object>(Descartados.ToArray());
         File.WriteAllText(Path.Combine(Carpeta, NombreIndice), Json.Escribir(d), new UTF8Encoding(false));
     }
 
@@ -126,7 +129,98 @@ public class BibliotecaMemes
             foreach (object y in Json.Lista(x, "usos")) m.Usos.Add(new UsoMeme { Capitulo = Json.Texto(y, "capitulo"), Fecha = Json.Texto(y, "fecha") });
             if (m.Ruta.Length > 0) b.Memes.Add(m);
         }
+        foreach (object y in Json.Lista(o, "descartados")) if (y is string) b.Descartados.Add((string)y);
         return b;
+    }
+
+    // ------------------------------------------- clasificar (programa aparte)
+
+    // Archivos de "origen" que faltan revisar: los que son de un tipo que sirve y no se descartaron.
+    public List<string> Pendientes(string origen)
+    {
+        List<string> r = new List<string>();
+        if (String.IsNullOrEmpty(origen) || !Directory.Exists(origen)) return r;
+        foreach (string f in Directory.GetFiles(origen, "*", SearchOption.AllDirectories))
+        {
+            if (TipoDe(f).Length == 0) continue;
+            if (Descartados.Exists(delegate (string x) { return String.Equals(x, f, StringComparison.OrdinalIgnoreCase); })) continue;
+            if (Carpeta.Length > 0 && f.StartsWith(Carpeta.TrimEnd('\\', '/') + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
+            r.Add(f);
+        }
+        r.Sort(StringComparer.OrdinalIgnoreCase);
+        return r;
+    }
+
+    // Lleva el archivo a la carpeta de memes (con otro nombre si ya hay uno igual) y lo agrega al indice.
+    public Meme Agregar(string archivo, string descripcion, List<string> tags, string uso)
+    {
+        Directory.CreateDirectory(Carpeta);
+        string nombre = Path.GetFileNameWithoutExtension(archivo), ext = Path.GetExtension(archivo);
+        string destino = Path.Combine(Carpeta, nombre + ext);
+        for (int i = 2; File.Exists(destino); i++) destino = Path.Combine(Carpeta, nombre + " (" + i + ")" + ext);
+        File.Move(archivo, destino);
+        Meme m = new Meme { Ruta = Path.GetFileName(destino), Tipo = TipoDe(destino), Descripcion = (descripcion ?? "").Trim(), Uso = (uso ?? "").Trim() };
+        foreach (string t in tags) { string k = t.Trim().ToLowerInvariant(); if (k.Length > 0 && !m.Tags.Contains(k)) m.Tags.Add(k); }
+        Memes.Add(m);
+        return m;
+    }
+
+    public void Descartar(string archivo)
+    {
+        if (!Descartados.Exists(delegate (string x) { return String.Equals(x, archivo, StringComparison.OrdinalIgnoreCase); })) Descartados.Add(archivo);
+    }
+
+    // Tags de la biblioteca, de los mas usados a los menos.
+    public List<string> TagsUsados()
+    {
+        Dictionary<string, int> n = new Dictionary<string, int>();
+        foreach (Meme m in Memes) foreach (string t in m.Tags) { int c; n.TryGetValue(t, out c); n[t] = c + 1; }
+        List<string> r = new List<string>(n.Keys);
+        r.Sort(delegate (string a, string b) { int c = n[b].CompareTo(n[a]); return c != 0 ? c : String.Compare(a, b, StringComparison.CurrentCultureIgnoreCase); });
+        return r;
+    }
+
+    // Lo que se le manda a Gemini de un archivo: miniatura (imagenes y gifs) o el archivo
+    // entero (videos y sonidos de hasta "maxMb"). null si no se puede.
+    public static KeyValuePair<string, byte[]>? Adjunto(string ruta, double maxMb)
+    {
+        string tipo = TipoDe(ruta), ext = Path.GetExtension(ruta).ToLowerInvariant();
+        if (tipo == "imagen" || tipo == "gif")
+        {
+            byte[] b = Miniatura(ruta, 384);
+            return b != null ? new KeyValuePair<string, byte[]>("image/jpeg", b) : (KeyValuePair<string, byte[]>?)null;
+        }
+        string mime = ext == ".mp4" || ext == ".m4v" ? "video/mp4" : ext == ".webm" ? "video/webm" : ext == ".mov" ? "video/quicktime" :
+                      ext == ".avi" ? "video/x-msvideo" : ext == ".mkv" ? "video/x-matroska" : ext == ".mp3" ? "audio/mpeg" : ext == ".wav" ? "audio/wav" :
+                      ext == ".ogg" ? "audio/ogg" : ext == ".m4a" ? "audio/mp4" : ext == ".flac" ? "audio/flac" : "";
+        try
+        {
+            if (mime.Length == 0 || new FileInfo(ruta).Length > maxMb * 1024 * 1024) return null;
+            return new KeyValuePair<string, byte[]>(mime, File.ReadAllBytes(ruta));
+        }
+        catch { return null; }
+    }
+
+    public static string InstruccionesUno(List<string> tagsExistentes)
+    {
+        return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso UN archivo " +
+               "que el editor marcó como meme (adjunto: imagen, video o sonido; si no va adjunto, solo tienes su nombre). Di:\n" +
+               "- \"descripcion\": qué es y qué se ve/oye, en una frase (si es un meme conocido, cuál).\n" +
+               "- \"tags\": 2 a 5. USA PRIMERO los que ya existen si alguno sirve: " + String.Join(", ", tagsExistentes.ToArray()) + ".\n" +
+               "- \"uso\": en qué momento de un gameplay queda bien.\n" +
+               "Si no sabes qué es, deja la descripción vacía (mejor nada que inventar).\n" +
+               "Responde SOLO con JSON: {\"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}";
+    }
+
+    // La respuesta para un archivo: descripcion, uso y los tags separados por comas.
+    public static string RespuestaUno(string json, out string descripcion, out string uso)
+    {
+        object o = Json.Leer(Gemini.QuitarCercas(json));
+        descripcion = Json.Texto(o, "descripcion").Trim();
+        uso = Json.Texto(o, "uso").Trim();
+        List<string> t = new List<string>();
+        foreach (object x in Json.Lista(o, "tags")) { string k = (x as string ?? "").Trim().ToLowerInvariant(); if (k.Length > 0 && !t.Contains(k)) t.Add(k); }
+        return String.Join(", ", t.ToArray());
     }
 
     public static List<string> LeerTags(string texto)
@@ -169,29 +263,29 @@ public class BibliotecaMemes
     public static string InstruccionesDescribir()
     {
         return "Eres el editor de una serie de YouTube de Minecraft con amigos (estilo anime de JoJo, mucho humor). Te paso memes de " +
-               "la carpeta del editor: las imágenes van adjuntas en el mismo orden que la lista; de los videos y sonidos solo tienes " +
-               "el nombre del archivo y su carpeta. Para cada uno di:\n" +
+               "la carpeta del editor: van adjuntos en el mismo orden que la lista (las imágenes como miniatura; los videos y sonidos " +
+               "cortos enteros); de los que no tienen adjunto solo tienes el nombre y la carpeta. Para cada uno di:\n" +
                "- \"descripcion\": qué es y qué se ve/oye, en una frase (si es un meme conocido, cuál).\n" +
                "- \"tags\": 3 a 6 palabras (emoción, reacción, tipo de chiste…).\n" +
                "- \"uso\": en qué momento de un gameplay queda bien (tras un fallo, una muerte, una sorpresa, un chiste, una victoria...).\n" +
-               "Si de un video o sonido no sabes qué es por su nombre, no lo pongas (mejor nada que inventar).\n" +
+               "Si de uno sin adjunto no sabes qué es por su nombre, no lo pongas (mejor nada que inventar).\n" +
                "Responde SOLO con JSON: {\"memes\": [{\"id\": n, \"descripcion\": \"...\", \"tags\": [\"...\"], \"uso\": \"...\"}]}";
     }
 
     // Mensaje para un lote; "imagenes" recibe las miniaturas en el orden de la lista.
     public string MensajeDescribir(List<Meme> lote, List<KeyValuePair<string, byte[]>> imagenes)
     {
-        StringBuilder sb = new StringBuilder("MEMES [id] tipo | archivo | carpeta | (imagen adjunta n)\n");
+        StringBuilder sb = new StringBuilder("MEMES [id] tipo | archivo | carpeta | (adjunto n)\n");
         int n = 0;
         for (int i = 0; i < lote.Count; i++)
         {
             Meme m = lote[i];
             string adj = "";
-            if (m.Tipo == "imagen" || m.Tipo == "gif")
-            {
-                byte[] b = Miniatura(Completa(m), 384);
-                if (b != null) { imagenes.Add(new KeyValuePair<string, byte[]>("image/jpeg", b)); adj = " | imagen adjunta " + (++n); }
-            }
+            // Imagenes como miniatura; videos y sonidos cortos enteros (sin pasar ~15 MB por pedido).
+            long total = 0;
+            foreach (KeyValuePair<string, byte[]> x in imagenes) total += x.Value.Length;
+            KeyValuePair<string, byte[]>? a = Adjunto(Completa(m), Math.Max(0, 15 - total / 1048576.0));
+            if (a != null) { imagenes.Add(a.Value); adj = " | adjunto " + (++n); }
             sb.Append("[" + i + "] " + m.Tipo + " | " + m.Nombre + " | " + (Path.GetDirectoryName(m.Ruta) ?? "") + adj + "\n");
         }
         return sb.ToString();

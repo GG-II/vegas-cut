@@ -433,6 +433,29 @@ class PruebaProduccion
                       bm2.Buscar("bruh.mp4").Tags.Contains("decepción") && !bm2.Buscar("vine boom.mp3").Descrito,
                       "Memes: se indexa la carpeta (subcarpetas como tags), Gemini describe y se conserva al volver a buscar");
 
+            // ---- clasificar (programa aparte): revisar una carpeta uno por uno
+            string entrada = Path.Combine(dir, "por revisar");
+            Directory.CreateDirectory(Path.Combine(entrada, "sub"));
+            File.WriteAllText(Path.Combine(entrada, "bruh.mp4"), "nuevo");
+            File.WriteAllText(Path.Combine(entrada, "partida larga.mp4"), "x");
+            File.WriteAllText(Path.Combine(entrada, "sub", "gato.gif"), "x");
+            File.WriteAllText(Path.Combine(entrada, "leeme.txt"), "x");
+            BibliotecaMemes bc = BibliotecaMemes.Cargar(mdir);
+            List<string> pend = bc.Pendientes(entrada);
+            bc.Descartar(Path.Combine(entrada, "partida larga.mp4"));
+            Meme agregado = bc.Agregar(Path.Combine(entrada, "bruh.mp4"), "Bruh otra vez", new List<string> { "Decepción", "nuevo tag" }, "tras otro fallo");
+            bc.Guardar();
+            BibliotecaMemes bc2 = BibliotecaMemes.Cargar(mdir);
+            List<string> pend2 = bc2.Pendientes(entrada);
+            string ddesc, duso;
+            string tresp = BibliotecaMemes.RespuestaUno("{\"descripcion\": \"Gato bailando\", \"tags\": [\"Baile\", \"gato\"], \"uso\": \"celebración\"}", out ddesc, out duso);
+            Verificar(pend.Count == 3 && agregado.Ruta == "bruh (2).mp4" && File.Exists(Path.Combine(mdir, "bruh (2).mp4")) && !File.Exists(Path.Combine(entrada, "bruh.mp4")) &&
+                      pend2.Count == 1 && pend2[0].EndsWith("gato.gif") && bc2.Descartados.Count == 1 && bc2.TagsUsados()[0] == "decepción" &&
+                      bc2.TagsUsados().Contains("nuevo tag") && ddesc == "Gato bailando" && tresp == "baile, gato" && duso == "celebración" &&
+                      BibliotecaMemes.InstruccionesUno(bc2.TagsUsados()).Contains("decepción") &&
+                      BibliotecaMemes.Adjunto(Path.Combine(mdir, "bruh (2).mp4"), 18).Value.Key == "video/mp4" && BibliotecaMemes.Adjunto(Path.Combine(mdir, "bruh (2).mp4"), 0) == null,
+                      "Clasificar: pendientes sin lo descartado, el meme se mueve (con otro nombre si ya existe) con sus tags; los tags más usados primero");
+
             bm2.RegistrarUso(bm2.Buscar("bruh.mp4"), "S01E01 SCR");
             List<Meme> cmem = LogicaMemes.Candidatos(bm2, 3, "S01E02 SCR");
             List<Meme> cmem0 = LogicaMemes.Candidatos(bm2, 0, "S01E02 SCR");
