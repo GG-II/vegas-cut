@@ -531,11 +531,18 @@ Lo último antes de exportar, con la narración ya grabada:
 
      ![Biblioteca de memes](docs/img/memes-biblioteca.png)
    - **Elegir con IA**: Gemini lee el video (transcripción y marcadores) y propone memes **por
-     ritmo**. Eliges cada cuánto en promedio (~75 s), la separación mínima (25 s) y cuántos
-     videos atrás no se repiten (3). Va en remates, fallos, sorpresas, contradicciones o
-     victorias, nunca en momentos serios ni encima del opening o el ending, y se adapta al tono:
-     en un video ensayo pone menos que en uno de humor. Las reglas se aplican aunque Gemini no las
-     cumpla.
+     ritmo**, en remates, fallos, sorpresas, contradicciones o victorias; nunca en momentos serios
+     ni encima del opening o el ending. Se adapta al tono: en un video ensayo pone menos que en uno
+     de humor. Lo que eliges (las reglas se cumplen aunque Gemini no las respete):
+
+     | Opción | Por defecto | Qué hace |
+     |---|---|---|
+     | **Uno cada ~** | 75 s | El promedio que se busca. |
+     | **Separados al menos** | 25 s | Dos memes nunca quedan más cerca que esto. |
+     | **Nunca más de … sin memes** | 180 s | Si queda un tramo más largo vacío, se le pide a Gemini una segunda vuelta solo para esos tramos. Si los ve serios o no hay un meme que encaje, los deja vacíos y te dice cuáles (0 = sin límite). |
+     | **No repetir los usados en tus últimos** | 3 videos | Un meme que salió en alguno de tus últimos 3 videos ni se ofrece. Dentro del mismo video nunca se repite, y entre los disponibles se prefieren los menos usados. |
+
+     Solo se usan los memes **con descripción** (arriba dice cuántos no la tienen).
    - **Colocar**: las imágenes y videos van a la pista «vegas-cut · Memes», arriba de todo, y los
      sonidos (y el audio de los videos) a «vegas-cut · Memes (audio)». Cada meme usado queda
      anotado con su video para no repetirlo en los siguientes.
@@ -603,7 +610,9 @@ entre las dos vistas.
 
 ![Memes: deslizar la tarjeta](docs/img/memes-app-arrastre.png)
 
-1. Elige una vez la carpeta **DE** (lo que hay que revisar). Se recuerda.
+1. Elige una vez la carpeta **DE** (lo que hay que revisar). Se recuerda. Revisa también sus
+   subcarpetas, y puedes verla con **lo más reciente primero** (lo último que descargaste) o
+   **por nombre**.
 2. Sale una tarjeta por archivo: las imágenes, y los videos, gifs y sonidos en bucle. Si un
    formato no se ve (`.webm`, `.mkv`), está **Abrir aparte**.
 3. Arrastra la tarjeta con el mouse (o usa las flechas del teclado):
@@ -619,17 +628,22 @@ entre las dos vistas.
 5. **Qué es** y **cuándo usarlo** (puedes dejarlos vacíos y describirlos luego).
    **Describir con IA** los llena: de imágenes y gifs Gemini ve una miniatura; de videos y
    sonidos de hasta 18 MB, el archivo entero; usa primero tus tags.
-6. **Guardar y siguiente (Ctrl+Enter)**: el archivo **se mueve** a tu carpeta de memes (con
-   otro nombre si ya hay uno igual) y queda en `memes-indice.json`. **No era meme** lo descarta.
+6. **Guardar en subcarpeta**: vacía = la carpeta de memes; elige una de las que ya tienes o
+   escribe una nueva (`Reacciones`, `Sonidos`, `Anime/JoJo`…) y se crea. Se recuerda la última.
+7. **Guardar y siguiente (Ctrl+Enter)**: el archivo **se mueve** de la carpeta de descargas a tu
+   carpeta de memes (o a esa subcarpeta, con otro nombre si ya hay uno igual) y queda en
+   `memes-indice.json`. Así lo que no es meme se queda en descargas y lo que sí, separado.
+   **No era meme** lo descarta.
 
 **Biblioteca**: todo lo que ya tienes.
 
 ![Memes: biblioteca](docs/img/memes-app-biblioteca.png)
 
-- Busca por texto y filtra por tag. Los que no tienen descripción salen en gris: vegas-cut no
-  los usa hasta que la tengan. **Describir con IA los que faltan** los hace de una vez.
+- Busca por texto, filtra por tag y ordena por **más recientes**, **nombre** o **más usados**.
+  Los que no tienen descripción salen en gris: vegas-cut no los usa hasta que la tengan. **Describir con IA los que faltan** los hace de una vez.
 - Al elegir uno se ve y se reproduce; corriges sus tags, qué es y cuándo usarlo, y
-  **Guardar cambios**. La columna *Usado* dice en cuántos capítulos ya salió.
+  **Guardar cambios**. Si le cambias la **subcarpeta**, el archivo se mueve ahí (sus tags y su
+  historial se quedan). La columna *Usado* dice en cuántos videos ya salió.
 - **Quitar** lo manda a la Papelera y lo saca del índice.
 
 ### `LimpiarVegasCut.cs`

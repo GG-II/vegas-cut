@@ -383,8 +383,8 @@ class PruebaProduccion
             VideoTrack vl = new VideoTrack(0, "Video"); pl.Tracks.Add(vl);
             vl.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(300000));
             pl.Regions.Add(new Region(Timecode.FromMilliseconds(110000), Timecode.FromMilliseconds(50000), "ACTO B"));
-            List<HuecoMusica> hl = LogicaRelleno.Huecos(pl, null, 8);
-            Verificar(hl.Count == 3 && hl[0].Inicio == 0 && hl[0].Fin == 110 && hl[2].Fin == 300 && hl[1].Duracion <= LogicaRelleno.MaximoHueco,
+            List<HuecoMusica> hlm = LogicaRelleno.Huecos(pl, null, 8);
+            Verificar(hlm.Count == 3 && hlm[0].Inicio == 0 && hlm[0].Fin == 110 && hlm[2].Fin == 300 && hlm[1].Duracion <= LogicaRelleno.MaximoHueco,
                       "Rellenar música: un hueco largo se parte en tramos de hasta 2 min (en el borde de un bloque si hay uno cerca)");
 
             Project pk = new Project();
@@ -467,6 +467,26 @@ class PruebaProduccion
                       bc2.Filtrar("decepción", "otra vez").Count == 1 && bc2.Filtrar("risa", "").Count == 1 && bc2.Filtrar("no existe", "").Count == 0,
                       "Memes (programa): deshacer un «es meme» devuelve el archivo; deshacer un «no» lo vuelve a mostrar; buscar por tag y texto");
 
+            // Subcarpetas: guardar en una nueva, moverlo despues y ordenar la lista.
+            string gato2 = Path.Combine(entrada, "sub", "gato.gif");
+            Meme mgs = bc2.Agregar(gato2, "Gato bailando", new List<string> { "baile" }, "", " Videos/../Gatos: ");
+            string subIni = BibliotecaMemes.SubcarpetaDe(mgs);
+            bool enSub = File.Exists(bc2.Completa(mgs)) && subIni == Path.Combine("Videos", "Gatos");
+            bc2.Mover(mgs, "Bailes");
+            bool movido2 = File.Exists(bc2.Completa(mgs)) && BibliotecaMemes.SubcarpetaDe(mgs) == "Bailes" && !File.Exists(Path.Combine(bc2.Carpeta, "Videos", "Gatos", "gato.gif"));
+            List<string> subs = bc2.Subcarpetas();
+            mgs.Usos.Add(new UsoMeme { Capitulo = "a" }); mgs.Usos.Add(new UsoMeme { Capitulo = "b" });
+            List<Meme> ord = new List<Meme>(bc2.Memes);
+            bc2.Ordenar(ord, "usados");
+            List<Meme> ordN = new List<Meme>(bc2.Memes);
+            bc2.Ordenar(ordN, "nombre");
+            List<Meme> ordR = new List<Meme>(bc2.Memes);
+            bc2.Ordenar(ordR, "recientes");
+            Verificar(enSub && movido2 && subs.Contains("Bailes") && subs.Contains(Path.Combine("Videos", "Gatos")) && ord[0] == mgs &&
+                      String.Compare(ordN[0].Ruta, ordN[1].Ruta, StringComparison.OrdinalIgnoreCase) <= 0 && ordR.Count == bc2.Memes.Count &&
+                      bc2.Pendientes(entrada, true).Count == 1 && BibliotecaMemes.LimpiarSubcarpeta("..") == "",
+                      "Memes (programa): guardar en una subcarpeta (nueva o existente), moverlo después y ordenar por fecha, nombre o uso");
+
             bm2.RegistrarUso(bm2.Buscar("bruh.mp4"), "S01E01 SCR");
             List<Meme> cmem = LogicaMemes.Candidatos(bm2, 3, "S01E02 SCR");
             List<Meme> cmem0 = LogicaMemes.Candidatos(bm2, 0, "S01E02 SCR");
@@ -487,6 +507,19 @@ class PruebaProduccion
                       S(tvm.Events[0].Start) == 60 && (cmem0[pr2[0].Id].Tipo == "imagen" ? tam == null : tam != null) &&
                       bm2.Buscar(cmem0[pr2[0].Id].Ruta).Usos.Count >= 1,
                       "Memes: sin repetir los de los últimos capítulos, fuera del kit, separados, sin repetir en el capítulo, y queda anotado");
+
+            // Maximo sin memes: tramos largos vacios (el kit y el meme ya puesto en 60 cortan el tramo) y segunda vuelta solo ahi.
+            List<Rango> ocm = LogicaMemes.Ocupado(pm2);
+            List<PropuestaMeme> pr3 = LogicaMemes.Leer("{\"memes\": [{\"en\": 100, \"id\": 0}]}", cmem0, 300, 25, ocm, null);
+            List<Rango> vacio = LogicaMemes.HuecosLargos(pr3, 300, 180, ocm);
+            List<Rango> vacio2 = LogicaMemes.HuecosLargos(pr3, 300, 0, ocm);
+            List<PropuestaMeme> pr4 = LogicaMemes.LeerHuecos("{\"memes\": [{\"en\": 110, \"id\": 1}, {\"en\": 200, \"id\": 0}, {\"en\": 250, \"id\": 1}]}",
+                                                             pr3, vacio, cmem0, 300, 25, ocm, null);
+            string ins = LogicaMemes.Instrucciones(75, 25, 180);
+            Verificar(vacio.Count == 1 && vacio[0].Inicio == 100 && vacio[0].Fin == 300 && vacio2.Count == 0 && pr4.Count == 2 && pr4[0].En == 100 && pr4[1].En == 250 &&
+                      LogicaMemes.HuecosLargos(pr4, 300, 180, ocm).Count == 0 && ins.Contains("más de 180 s seguidos sin ninguno") &&
+                      !LogicaMemes.Instrucciones(75, 25, 0).Contains("seguidos sin ninguno"),
+                      "Memes: avisa los tramos de más de 3 min sin memes y la segunda vuelta solo pone ahí, sin repetir ni juntar");
 
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };

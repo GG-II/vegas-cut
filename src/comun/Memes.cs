@@ -136,7 +136,10 @@ public class BibliotecaMemes
     // ------------------------------------------- clasificar (programa aparte)
 
     // Archivos de "origen" que faltan revisar: los que son de un tipo que sirve y no se descartaron.
-    public List<string> Pendientes(string origen)
+    public List<string> Pendientes(string origen) { return Pendientes(origen, false); }
+
+    // Lo que falta revisar; "recientes": lo ultimo descargado primero (si no, por nombre).
+    public List<string> Pendientes(string origen, bool recientes)
     {
         List<string> r = new List<string>();
         if (String.IsNullOrEmpty(origen) || !Directory.Exists(origen)) return r;
@@ -147,22 +150,113 @@ public class BibliotecaMemes
             if (Carpeta.Length > 0 && f.StartsWith(Carpeta.TrimEnd('\\', '/') + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
             r.Add(f);
         }
+        if (recientes)
+        {
+            Dictionary<string, DateTime> fechas = new Dictionary<string, DateTime>();
+            foreach (string f in r) fechas[f] = Fecha(f);
+            r.Sort(delegate (string a, string b) { int c = fechas[b].CompareTo(fechas[a]); return c != 0 ? c : String.Compare(a, b, StringComparison.OrdinalIgnoreCase); });
+        }
+        else r.Sort(StringComparer.OrdinalIgnoreCase);
+        return r;
+    }
+
+    // Cuando llego el archivo: al descargarlo o copiarlo cambia la de creacion; al editarlo, la de modificacion.
+    public static DateTime Fecha(string ruta)
+    {
+        try
+        {
+            DateTime c = File.GetCreationTime(ruta), w = File.GetLastWriteTime(ruta);
+            return c > w ? c : w;
+        }
+        catch { return DateTime.MinValue; }
+    }
+
+    // Ordena la lista de la biblioteca: "recientes", "usados" (los mas usados primero) o por nombre.
+    public void Ordenar(List<Meme> l, string orden)
+    {
+        if (orden == "recientes")
+        {
+            Dictionary<Meme, DateTime> f = new Dictionary<Meme, DateTime>();
+            foreach (Meme m in l) f[m] = Fecha(Completa(m));
+            l.Sort(delegate (Meme a, Meme b) { int c = f[b].CompareTo(f[a]); return c != 0 ? c : String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        }
+        else if (orden == "usados")
+            l.Sort(delegate (Meme a, Meme b) { int c = b.Usos.Count.CompareTo(a.Usos.Count); return c != 0 ? c : String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        else l.Sort(delegate (Meme a, Meme b) { return String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+    }
+
+    // Subcarpetas de la carpeta de memes (relativas, con "\\" entre niveles).
+    public List<string> Subcarpetas()
+    {
+        List<string> r = new List<string>();
+        if (!Directory.Exists(Carpeta)) return r;
+        string raiz = Carpeta.TrimEnd('\\', '/');
+        foreach (string d in Directory.GetDirectories(Carpeta, "*", SearchOption.AllDirectories))
+        {
+            string rel = d.Substring(raiz.Length).TrimStart('\\', '/');
+            if (rel.Length > 0 && !rel.StartsWith(".")) r.Add(rel);
+        }
         r.Sort(StringComparer.OrdinalIgnoreCase);
         return r;
     }
 
+    // Nombre de subcarpeta seguro: sin caracteres raros ni "..", sin barras al inicio o al final.
+    public static string LimpiarSubcarpeta(string s)
+    {
+        List<string> partes = new List<string>();
+        foreach (string p in (s ?? "").Split('\\', '/'))
+        {
+            string t = p.Trim();
+            foreach (char c in Path.GetInvalidFileNameChars()) t = t.Replace(c.ToString(), "");
+            foreach (char c in "<>:\"|?*") t = t.Replace(c.ToString(), "");
+            t = t.Trim().TrimEnd('.');
+            if (t.Length > 0 && t != "." && t != "..") partes.Add(t);
+        }
+        return String.Join(Path.DirectorySeparatorChar.ToString(), partes.ToArray());
+    }
+
+    static string Destino(string dir, string archivo)
+    {
+        string nombre = Path.GetFileNameWithoutExtension(archivo), ext = Path.GetExtension(archivo);
+        string destino = Path.Combine(dir, nombre + ext);
+        for (int i = 2; File.Exists(destino); i++) destino = Path.Combine(dir, nombre + " (" + i + ")" + ext);
+        return destino;
+    }
+
+    string Relativa(string completa) { return completa.Substring(Carpeta.TrimEnd('\\', '/').Length).TrimStart('\\', '/'); }
+
     // Lleva el archivo a la carpeta de memes (con otro nombre si ya hay uno igual) y lo agrega al indice.
     public Meme Agregar(string archivo, string descripcion, List<string> tags, string uso)
     {
-        Directory.CreateDirectory(Carpeta);
-        string nombre = Path.GetFileNameWithoutExtension(archivo), ext = Path.GetExtension(archivo);
-        string destino = Path.Combine(Carpeta, nombre + ext);
-        for (int i = 2; File.Exists(destino); i++) destino = Path.Combine(Carpeta, nombre + " (" + i + ")" + ext);
+        return Agregar(archivo, descripcion, tags, uso, "");
+    }
+
+    // "subcarpeta": dentro de la carpeta de memes (se crea si no existe); vacia = la principal.
+    public Meme Agregar(string archivo, string descripcion, List<string> tags, string uso, string subcarpeta)
+    {
+        string dir = Path.Combine(Carpeta, LimpiarSubcarpeta(subcarpeta));
+        Directory.CreateDirectory(dir);
+        string destino = Destino(dir, archivo);
         File.Move(archivo, destino);
-        Meme m = new Meme { Ruta = Path.GetFileName(destino), Tipo = TipoDe(destino), Descripcion = (descripcion ?? "").Trim(), Uso = (uso ?? "").Trim() };
+        Meme m = new Meme { Ruta = Relativa(destino), Tipo = TipoDe(destino), Descripcion = (descripcion ?? "").Trim(), Uso = (uso ?? "").Trim() };
         foreach (string t in tags) { string k = t.Trim().ToLowerInvariant(); if (k.Length > 0 && !m.Tags.Contains(k)) m.Tags.Add(k); }
         Memes.Add(m);
         return m;
+    }
+
+    // Subcarpeta en la que esta un meme ("" = la principal).
+    public static string SubcarpetaDe(Meme m) { return Path.GetDirectoryName(m.Ruta) ?? ""; }
+
+    // Pasa un meme a otra subcarpeta; su historial y tags se quedan.
+    public void Mover(Meme m, string subcarpeta)
+    {
+        string sub = LimpiarSubcarpeta(subcarpeta);
+        if (String.Equals(sub, SubcarpetaDe(m), StringComparison.OrdinalIgnoreCase)) return;
+        string dir = Path.Combine(Carpeta, sub);
+        Directory.CreateDirectory(dir);
+        string destino = Destino(dir, Completa(m));
+        File.Move(Completa(m), destino);
+        m.Ruta = Relativa(destino);
     }
 
     // Deshacer un «es meme»: el archivo vuelve a donde estaba y sale del indice.

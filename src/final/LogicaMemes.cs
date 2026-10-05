@@ -46,7 +46,7 @@ public static class LogicaMemes
         return Rangos.Unir(r, 0.5);
     }
 
-    public static string Instrucciones(int cadaSeg, int minimoEntre)
+    public static string Instrucciones(int cadaSeg, int minimoEntre, int maximoSin)
     {
         return "Eres el editor de un video de YouTube. Puede ser de cualquier tipo (un gameplay con amigos, un video ensayo, un " +
                "vlog, una explicación...): por la transcripción ves de qué va y cuál es su tono. El video ya está editado. Pon MEMES " +
@@ -56,6 +56,8 @@ public static class LogicaMemes
                "video de humor, más.\n" +
                "- Por RITMO, no a cada rato: en promedio uno cada ~" + cadaSeg + " s, nunca dos a menos de " + minimoEntre + " s, y " +
                "ninguno en momentos serios, tensos o emotivos ni encima de una explicación importante.\n" +
+               (maximoSin > 0 ? "- Que no pasen más de " + maximoSin + " s seguidos sin ninguno, salvo en los tramos serios, tensos o " +
+                                "emotivos (ahí mejor nada) y en los OCUPADOS. Repártelos por todo el video, no los juntes en una parte.\n" : "") +
                "- \"en\": el segundo justo DESPUÉS de la frase o el momento (que no tape lo que se dice). \"duracion\" solo para " +
                "imágenes (1.5 a 4 s).\n" +
                "- Que el meme encaje con lo que pasa (su descripción, tags y \"uso\"). Varía: no repitas un meme en el video y " +
@@ -102,6 +104,11 @@ public static class LogicaMemes
     public static List<PropuestaMeme> Leer(string json, List<Meme> candidatos, double duracion, int minimoEntre, List<Rango> ocupado,
                                            Transcripcion t)
     {
+        return Agregar(new List<PropuestaMeme>(), Parsear(json, candidatos, duracion), minimoEntre, ocupado, t);
+    }
+
+    static List<PropuestaMeme> Parsear(string json, List<Meme> candidatos, double duracion)
+    {
         object o = Json.Leer(Gemini.QuitarCercas(json));
         List<PropuestaMeme> todas = new List<PropuestaMeme>();
         foreach (object x in Json.Lista(o, "memes"))
@@ -114,22 +121,84 @@ public static class LogicaMemes
             todas.Add(pm);
         }
         todas.Sort(delegate (PropuestaMeme a, PropuestaMeme b) { return a.En.CompareTo(b.En); });
-        List<PropuestaMeme> r = new List<PropuestaMeme>();
+        return todas;
+    }
+
+    // Suma las nuevas a las que ya estaban (que tienen prioridad) cumpliendo las reglas.
+    static List<PropuestaMeme> Agregar(List<PropuestaMeme> previas, List<PropuestaMeme> nuevas, int minimoEntre, List<Rango> ocupado,
+                                       Transcripcion t)
+    {
+        List<PropuestaMeme> r = new List<PropuestaMeme>(previas);
         Dictionary<int, bool> usados = new Dictionary<int, bool>();
+        foreach (PropuestaMeme pm in r) usados[pm.Id] = true;
         List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
-        foreach (PropuestaMeme pm in todas)
+        foreach (PropuestaMeme pm in nuevas)
         {
             if (usados.ContainsKey(pm.Id)) continue;
             bool libre = true;
             foreach (Rango z in ocupado) if (pm.En >= z.Inicio - minimoEntre / 2.0 && pm.En <= z.Fin + 1) { libre = false; break; }
+            foreach (PropuestaMeme otra in r) if (Math.Abs(pm.En - otra.En) < minimoEntre) { libre = false; break; }
             if (!libre) continue;
-            if (r.Count > 0 && pm.En - r[r.Count - 1].En < minimoEntre) continue;
             foreach (Segmento s in segs)
                 if (s.Fin >= pm.En - 4 && s.Inicio <= pm.En + 0.5 && !String.IsNullOrEmpty(s.Texto)) pm.Dicho = s.Texto.Trim();
             usados[pm.Id] = true;
             r.Add(pm);
         }
+        r.Sort(delegate (PropuestaMeme a, PropuestaMeme b) { return a.En.CompareTo(b.En); });
         return r;
+    }
+
+    // Tramos de mas de "maximo" segundos sin memes (lo ocupado, como el opening, corta el tramo).
+    public static List<Rango> HuecosLargos(List<PropuestaMeme> propuestas, double duracion, int maximo, List<Rango> ocupado)
+    {
+        List<Rango> r = new List<Rango>();
+        if (maximo <= 0) return r;
+        List<double> puntos = new List<double> { 0 };
+        foreach (PropuestaMeme pm in propuestas) puntos.Add(pm.En);
+        puntos.Add(duracion);
+        puntos.Sort();
+        for (int i = 0; i + 1 < puntos.Count; i++)
+        {
+            double a = puntos[i];
+            foreach (Rango z in ocupado)
+            {
+                if (z.Fin <= a || z.Inicio >= puntos[i + 1]) continue;
+                if (z.Inicio - a > maximo) r.Add(new Rango(a, z.Inicio));
+                a = Math.Max(a, z.Fin);
+            }
+            if (puntos[i + 1] - a > maximo) r.Add(new Rango(a, puntos[i + 1]));
+        }
+        return r;
+    }
+
+    // Segunda vuelta: Gemini pone memes solo en los tramos que quedaron vacios.
+    public static string InstruccionesHuecos(int minimoEntre)
+    {
+        return "\nSEGUNDA VUELTA: ya elegiste los memes de YA PUESTOS, pero quedaron TRAMOS SIN MEMES demasiado largos. Propón memes " +
+               "SOLO dentro de esos tramos: uno por tramo (dos si es muy largo), a " + minimoEntre + " s o más de los ya puestos y sin " +
+               "repetir sus ids. Si un tramo es serio, tenso o emotivo, déjalo sin meme (mejor nada que forzarlo). Devuelve solo los nuevos.";
+    }
+
+    public static string MensajeHuecos(string mensaje, List<PropuestaMeme> previas, List<Rango> huecos)
+    {
+        StringBuilder sb = new StringBuilder(mensaje);
+        sb.Append("\nYA PUESTOS: ");
+        foreach (PropuestaMeme pm in previas) sb.Append("[" + F(pm.En) + "] id " + pm.Id + "; ");
+        sb.Append("\nTRAMOS SIN MEMES: ");
+        foreach (Rango h in huecos) sb.Append("[" + F(h.Inicio) + "-" + F(h.Fin) + "] ");
+        sb.Append("\n");
+        return sb.ToString();
+    }
+
+    public static List<PropuestaMeme> LeerHuecos(string json, List<PropuestaMeme> previas, List<Rango> huecos, List<Meme> candidatos,
+                                                 double duracion, int minimoEntre, List<Rango> ocupado, Transcripcion t)
+    {
+        List<PropuestaMeme> nuevas = Parsear(json, candidatos, duracion).FindAll(delegate (PropuestaMeme pm)
+        {
+            foreach (Rango h in huecos) if (pm.En >= h.Inicio && pm.En <= h.Fin) return true;
+            return false;
+        });
+        return Agregar(previas, nuevas, minimoEntre, ocupado, t);
     }
 
     static VideoTrack PistaV(Project p)

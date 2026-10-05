@@ -4529,7 +4529,10 @@ public class Configuracion
     public string WhisperExtra = "";             // opciones extra para el .exe
     public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
     public string CarpetaMemes = "";             // carpeta de memes (imagenes, videos, sonidos) con su indice
-    public string CarpetaMemesEntrada = "";      // carpeta con los archivos por revisar (ClasificarMemes)
+    public string CarpetaMemesEntrada = "";      // carpeta con los archivos por revisar (programa Memes)
+    public string MemesOrden = "recientes";      // orden de lo que falta revisar: "recientes" o "nombre"
+    public string MemesOrdenLista = "recientes"; // orden de la biblioteca: "recientes", "nombre" o "usados"
+    public string MemesSubcarpeta = "";          // subcarpeta donde se guardo el ultimo meme
 
     public static string Carpeta
     {
@@ -4560,6 +4563,9 @@ public class Configuracion
             c.ReglasCanal = Json.Texto(o, "reglasCanal");
             c.CarpetaMemes = Json.Texto(o, "carpetaMemes");
             c.CarpetaMemesEntrada = Json.Texto(o, "carpetaMemesEntrada");
+            c.MemesOrden = Valor(Json.Texto(o, "memesOrden"), c.MemesOrden);
+            c.MemesOrdenLista = Valor(Json.Texto(o, "memesOrdenLista"), c.MemesOrdenLista);
+            c.MemesSubcarpeta = Json.Texto(o, "memesSubcarpeta");
         }
         catch { }
         return c;
@@ -4582,6 +4588,9 @@ public class Configuracion
         d["reglasCanal"] = ReglasCanal;
         d["carpetaMemes"] = CarpetaMemes;
         d["carpetaMemesEntrada"] = CarpetaMemesEntrada;
+        d["memesOrden"] = MemesOrden;
+        d["memesOrdenLista"] = MemesOrdenLista;
+        d["memesSubcarpeta"] = MemesSubcarpeta;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

@@ -286,6 +286,9 @@ class VentanaMemesApp : VentanaBase
     // ---- biblioteca
     CampoTexto txtBuscar = new CampoTexto();
     Combo cmbTag = new Combo();
+    // Orden de lo que falta revisar y de la biblioteca; subcarpeta donde se guarda (se puede escribir una nueva).
+    Combo cmbOrden1 = new Combo(), cmbOrden2 = new Combo(), cmbCarpeta1 = new Combo(true), cmbCarpeta2 = new Combo(true);
+    static readonly string[] Ordenes1 = { "recientes", "nombre" }, Ordenes2 = { "recientes", "nombre", "usados" };
     Lista lst = new Lista();
     Etiqueta lblInfo;
     Visor visor2 = new Visor(true);
@@ -310,8 +313,10 @@ class VentanaMemesApp : VentanaBase
         // ================= clasificar
         int y1 = y;
         vista1.Add(Texto("DE (por revisar)", Tema.Pequena, Tema.TextoSuave, m, y1 + 8, 110, 18));
-        lblOrigen = Texto("", Tema.Normal, Tema.Texto, m + 112, y1 + 6, 560, 20);
+        lblOrigen = Texto("", Tema.Normal, Tema.Texto, m + 112, y1 + 6, 360, 20);
         vista1.Add(lblOrigen);
+        cmbOrden1.Items.AddRange(new object[] { "Lo más reciente primero", "Por nombre" });
+        vista1.Add(Pos(cmbOrden1, m + 480, y1 + 1, 190, 30));
         vista1.Add(Pos(btnOrigen, m + 680, y1, 80, 30));
         y1 += 38;
         lblCuenta = Texto("", Tema.Pequena, Tema.TextoSuave, m, y1, 760, 18);
@@ -347,17 +352,21 @@ class VentanaMemesApp : VentanaBase
         panelTags1.Add(Pos(txtDesc1, x2, yt + 258, w2, 32));
         panelTags1.Add(Texto("CUÁNDO USARLO", Tema.Pequena, Tema.TextoSuave, x2, yt + 298, w2, 18));
         panelTags1.Add(Pos(txtUso1, x2, yt + 318, w2, 32));
-        panelTags1.Add(Pos(btnIA1, x2, yt + 360, w2, 32));
-        panelTags1.Add(Pos(btnNoEra, x2, yt + 402, 110, 44));
-        panelTags1.Add(Pos(btnGuardar1, x2 + 118, yt + 402, w2 - 118, 44));
+        panelTags1.Add(Texto("GUARDAR EN SUBCARPETA (vacía = la principal; escribe una nueva)", Tema.Pequena, Tema.TextoSuave, x2, yt + 358, w2, 18));
+        panelTags1.Add(Pos(cmbCarpeta1, x2, yt + 378, w2, 30));
+        panelTags1.Add(Pos(btnIA1, x2, yt + 418, w2, 32));
+        panelTags1.Add(Pos(btnNoEra, x2, yt + 460, 110, 44));
+        panelTags1.Add(Pos(btnGuardar1, x2 + 118, yt + 460, w2 - 118, 44));
         vista1.AddRange(panelTags1);
 
         // ================= biblioteca
         int y2 = y;
         int lw = 560;
         vista2.Add(Texto("BUSCAR", Tema.Pequena, Tema.TextoSuave, m, y2 + 8, 56, 18));
-        vista2.Add(Pos(txtBuscar, m + 58, y2, lw - 288, 32));
-        vista2.Add(Pos(cmbTag, m + lw - 220, y2 + 1, 220, 30));
+        vista2.Add(Pos(txtBuscar, m + 58, y2, lw - 58 - 316, 32));
+        vista2.Add(Pos(cmbTag, m + lw - 308, y2 + 1, 150, 30));
+        cmbOrden2.Items.AddRange(new object[] { "Más recientes", "Por nombre", "Más usados" });
+        vista2.Add(Pos(cmbOrden2, m + lw - 150, y2 + 1, 150, 30));
         y2 += 40;
         int sb = SystemInformation.VerticalScrollBarWidth + 4;
         lst.CheckBoxes = false;
@@ -379,12 +388,14 @@ class VentanaMemesApp : VentanaBase
         vista2.Add(Pos(txtDesc2, x3, y3 + 178, w3, 30));
         vista2.Add(Texto("CUÁNDO USARLO", Tema.Pequena, Tema.TextoSuave, x3, y3 + 214, w3, 18));
         vista2.Add(Pos(txtUso2, x3, y3 + 232, w3, 30));
+        vista2.Add(Texto("SUBCARPETA (cámbiala para moverlo; vacío = la principal)", Tema.Pequena, Tema.TextoSuave, x3, y3 + 268, w3, 18));
+        vista2.Add(Pos(cmbCarpeta2, x3, y3 + 286, w3, 30));
         int b3 = (w3 - 24) / 3;
-        vista2.Add(Pos(btnQuitar, x3, y3 + 276, b3, 36));
-        vista2.Add(Pos(btnIA2, x3 + b3 + 12, y3 + 276, b3, 36));
-        vista2.Add(Pos(btnGuardar2, x3 + 2 * (b3 + 12), y3 + 276, b3, 36));
+        vista2.Add(Pos(btnQuitar, x3, y3 + 326, b3, 36));
+        vista2.Add(Pos(btnIA2, x3 + b3 + 12, y3 + 326, b3, 36));
+        vista2.Add(Pos(btnGuardar2, x3 + 2 * (b3 + 12), y3 + 326, b3, 36));
 
-        int yb = Math.Max(y1, y + 640);
+        int yb = Math.Max(y1, y + 680);
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, yb, w, 36);
         ClientSize = new Size(ClientSize.Width, yb + 36 + 12);
 
@@ -416,6 +427,23 @@ class VentanaMemesApp : VentanaBase
         };
         txtBuscar.Caja.TextChanged += delegate { if (!cargando) LlenarLista(); };
         cmbTag.SelectedIndexChanged += delegate { if (!cargando) LlenarLista(); };
+        cmbOrden1.SelectedIndexChanged += delegate
+        {
+            if (cargando || cmbOrden1.SelectedIndex < 0) return;
+            config.MemesOrden = Ordenes1[cmbOrden1.SelectedIndex];
+            try { config.Guardar(); } catch { }
+            if (biblioteca == null || etiquetando) return;
+            try { pendientes = biblioteca.Pendientes(config.CarpetaMemesEntrada, config.MemesOrden == "recientes"); } catch { }
+            indice = 0;
+            MostrarTarjeta();
+        };
+        cmbOrden2.SelectedIndexChanged += delegate
+        {
+            if (cargando || cmbOrden2.SelectedIndex < 0) return;
+            config.MemesOrdenLista = Ordenes2[cmbOrden2.SelectedIndex];
+            try { config.Guardar(); } catch { }
+            LlenarLista();
+        };
         lst.SelectedIndexChanged += delegate { Seleccionar(); };
         lst.DoubleClick += delegate { if (actual2 != null) try { Process.Start(biblioteca.Completa(actual2)); } catch { } };
         btnGuardar2.Click += delegate { GuardarEdicion(); };
@@ -488,7 +516,7 @@ class VentanaMemesApp : VentanaBase
         {
             try { if (biblioteca.Escanear() > 0) biblioteca.Guardar(); } catch { }
             if (Directory.Exists(config.CarpetaMemesEntrada))
-                try { pendientes = biblioteca.Pendientes(config.CarpetaMemesEntrada); } catch (Exception ex) { Estado("No se pudo leer la carpeta: " + ex.Message, true); }
+                try { pendientes = biblioteca.Pendientes(config.CarpetaMemesEntrada, config.MemesOrden == "recientes"); } catch (Exception ex) { Estado("No se pudo leer la carpeta: " + ex.Message, true); }
         }
         indice = 0;
         cargando = true;
@@ -497,7 +525,20 @@ class VentanaMemesApp : VentanaBase
         if (biblioteca != null)
             foreach (string t in biblioteca.TagsUsados()) cmbTag.Items.Add(t + " (" + biblioteca.Filtrar(t, "").Count + ")");
         cmbTag.SelectedIndex = 0;
+        cmbOrden1.SelectedIndex = Math.Max(0, Array.IndexOf(Ordenes1, config.MemesOrden));
+        cmbOrden2.SelectedIndex = Math.Max(0, Array.IndexOf(Ordenes2, config.MemesOrdenLista));
+        LlenarCarpetas();
+        cmbCarpeta1.Text = config.MemesSubcarpeta;
         cargando = false;
+    }
+
+    void LlenarCarpetas()
+    {
+        string t1 = cmbCarpeta1.Text, t2 = cmbCarpeta2.Text;
+        cmbCarpeta1.Items.Clear(); cmbCarpeta2.Items.Clear();
+        if (biblioteca != null)
+            foreach (string d in biblioteca.Subcarpetas()) { cmbCarpeta1.Items.Add(d); cmbCarpeta2.Items.Add(d); }
+        cmbCarpeta1.Text = t1; cmbCarpeta2.Text = t2;
     }
 
     // ================================================== clasificar
@@ -576,8 +617,12 @@ class VentanaMemesApp : VentanaBase
         tarjeta.Visor.Detener();   // que el visor suelte el archivo antes de moverlo
         try
         {
-            Meme mm = biblioteca.Agregar(f, txtDesc1.Text, tags1.Elegidos, txtUso1.Text);
+            string sub = BibliotecaMemes.LimpiarSubcarpeta(cmbCarpeta1.Text);
+            Meme mm = biblioteca.Agregar(f, txtDesc1.Text, tags1.Elegidos, txtUso1.Text, sub);
             biblioteca.Guardar();
+            if (sub != config.MemesSubcarpeta) { config.MemesSubcarpeta = sub; try { config.Guardar(); } catch { } }
+            if (sub.Length > 0 && !cmbCarpeta1.Items.Contains(sub)) LlenarCarpetas();
+            cmbCarpeta1.Text = sub;
             hechas.Add(new Accion { Tipo = "si", Archivo = f, Indice = indice, Meme = mm });
             pendientes.RemoveAt(indice);
             if (indice >= pendientes.Count) indice = 0;
@@ -615,6 +660,7 @@ class VentanaMemesApp : VentanaBase
         if (biblioteca == null) { lblInfo.Text = "Elige tu carpeta de memes (arriba a la derecha)."; return; }
         string tag = cmbTag.SelectedIndex > 0 ? ((string)cmbTag.SelectedItem).Substring(0, ((string)cmbTag.SelectedItem).LastIndexOf(" (")) : "";
         List<Meme> l = biblioteca.Filtrar(tag, txtBuscar.Text);
+        biblioteca.Ordenar(l, config.MemesOrdenLista);
         foreach (Meme mm in l)
         {
             ListViewItem it = new ListViewItem(mm.Ruta);
@@ -641,6 +687,8 @@ class VentanaMemesApp : VentanaBase
         tags2.Llenar(Tags());
         txtDesc2.Text = actual2 != null ? actual2.Descripcion : "";
         txtUso2.Text = actual2 != null ? actual2.Uso : "";
+        cmbCarpeta2.Text = actual2 != null ? BibliotecaMemes.SubcarpetaDe(actual2) : "";
+        cmbCarpeta2.Enabled = actual2 != null;
         visor2.Mostrar(actual2 != null ? biblioteca.Completa(actual2) : null);
     }
 
@@ -651,7 +699,14 @@ class VentanaMemesApp : VentanaBase
         actual2.Tags = new List<string>(tags2.Elegidos);
         actual2.Descripcion = txtDesc2.Text.Trim();
         actual2.Uso = txtUso2.Text.Trim();
-        try { biblioteca.Guardar(); Estado("✔ Guardado.", false); } catch (Exception ex) { Estado("No se pudo guardar: " + ex.Message, true); }
+        string movido = "";
+        if (!String.Equals(BibliotecaMemes.LimpiarSubcarpeta(cmbCarpeta2.Text), BibliotecaMemes.SubcarpetaDe(actual2), StringComparison.OrdinalIgnoreCase))
+        {
+            visor2.Detener();   // que el visor suelte el archivo antes de moverlo
+            try { biblioteca.Mover(actual2, cmbCarpeta2.Text); movido = " Movido a «" + actual2.Ruta + "»."; LlenarCarpetas(); }
+            catch (Exception ex) { movido = " No se pudo mover: " + ex.Message + " (¿está abierto en otro programa?)"; }
+        }
+        try { biblioteca.Guardar(); Estado("✔ Guardado." + movido, movido.Contains("No se pudo")); } catch (Exception ex) { Estado("No se pudo guardar: " + ex.Message, true); }
         Meme sel = actual2;
         LlenarLista();
         foreach (ListViewItem it in lst.Items) if (it.Tag == sel) { it.Selected = true; it.EnsureVisible(); }

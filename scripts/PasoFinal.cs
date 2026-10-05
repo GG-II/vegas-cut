@@ -866,7 +866,7 @@ class VentanaMemes : VentanaBase
 
     Etiqueta lblInfo, lblEstado;
     Boton btnBiblioteca = new Boton("Biblioteca\u2026", EstiloBoton.Secundario);
-    CampoNumero numCada = new CampoNumero(), numEntre = new CampoNumero(), numRecientes = new CampoNumero();
+    CampoNumero numCada = new CampoNumero(), numEntre = new CampoNumero(), numMaxSin = new CampoNumero(), numRecientes = new CampoNumero();
     Boton btnIA = new Boton("Elegir con IA", EstiloBoton.Primario);
     Lista lst = new Lista();
     Boton btnColocar = new Boton("Colocar", EstiloBoton.Primario);
@@ -879,7 +879,7 @@ class VentanaMemes : VentanaBase
         string veg = vegas.Project.FilePath ?? "";
         capitulo = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(CopiaBase.Original(veg)), @"\s+CAP$", "");
         int m = Margen, w = Ancho;
-        Encabezado("Memes", "Gemini elige d\u00f3nde queda un meme (por ritmo, no a cada rato) y cu\u00e1l, sin repetir los de tus \u00faltimos videos. Sirve para cualquier video, no solo para gameplays.");
+        Encabezado("Memes", "Gemini elige d\u00f3nde queda un meme y cu\u00e1l: por ritmo, repartidos y sin repetir. Para cualquier video, no solo gameplays.");
         int y = 92;
         lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 170, 40);
         Pos(btnBiblioteca, m + w - 160, y, 160, 32);
@@ -890,11 +890,17 @@ class VentanaMemes : VentanaBase
         Texto("SEPARADOS AL MENOS", Tema.Pequena, Tema.TextoSuave, m + 196, y + 8, 130, 18);
         numEntre.Sufijo = "s"; numEntre.Minimo = 5; numEntre.Maximo = 300; numEntre.Paso = 5;
         Pos(numEntre, m + 330, y, 90, 32);
-        Texto("SIN REPETIR DE LOS \u00daLTIMOS", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 170, 18);
-        numRecientes.Sufijo = "videos"; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
-        Pos(numRecientes, m + 616, y, 90, 32);
-        cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numRecientes.Valor = 3; cargando = false;
+        Texto("NUNCA M\u00c1S DE", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 84, 18);
+        numMaxSin.Sufijo = "s"; numMaxSin.Minimo = 0; numMaxSin.Maximo = 900; numMaxSin.Paso = 15;
+        Pos(numMaxSin, m + 530, y, 90, 32);
+        Texto("SIN MEMES", Tema.Pequena, Tema.TextoSuave, m + 626, y + 8, 70, 18);
         Pos(btnIA, m + w - 160, y, 160, 32);
+        y += 42;
+        Texto("NO REPETIR LOS USADOS EN TUS \u00daLTIMOS", Tema.Pequena, Tema.TextoSuave, m, y + 8, 240, 18);
+        numRecientes.Sufijo = ""; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
+        Pos(numRecientes, m + 244, y, 90, 32);
+        Texto("VIDEOS", Tema.Pequena, Tema.TextoSuave, m + 340, y + 8, 60, 18);
+        cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numMaxSin.Valor = 180; numRecientes.Valor = 3; cargando = false;
         y += 44;
         int sb = SystemInformation.VerticalScrollBarWidth + 4;
         lst.Columns.Add("Momento", 80);
@@ -942,7 +948,8 @@ class VentanaMemes : VentanaBase
         int descritos = biblioteca == null ? 0 : biblioteca.Memes.Count - biblioteca.SinDescribir().Count;
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de memes: pulsa \u00abBiblioteca\u2026\u00bb y elige tu carpeta." :
             candidatos.Count + " memes disponibles de " + descritos + " descritos" + (descritos > candidatos.Count ? " (" + (descritos - candidatos.Count) +
-            " se usaron en los \u00faltimos " + numRecientes.Valor + " videos)" : "") + " \u00b7 video \u00ab" + capitulo + "\u00bb";
+            " se usaron en tus \u00faltimos " + numRecientes.Valor + " videos)" : "") + " \u00b7 video \u00ab" + capitulo + "\u00bb" +
+            (biblioteca.Memes.Count > descritos ? "\n" + (biblioteca.Memes.Count - descritos) + " sin descripci\u00f3n no se usan: descr\u00edbelos en \u00abBiblioteca\u2026\u00bb." : "");
         Habilitar();
     }
 
@@ -973,31 +980,65 @@ class VentanaMemes : VentanaBase
 
     void ConIA()
     {
-        string instr = LogicaMemes.Instrucciones(numCada.Valor, numEntre.Valor);
+        string instr = LogicaMemes.Instrucciones(numCada.Valor, numEntre.Valor, numMaxSin.Valor);
         string msg = LogicaMemes.Mensaje(trans, vegas.Project, candidatos, duracion);
         string clave = config.GeminiClave, modelo = config.GeminiModelo;
         List<Rango> ocupado = LogicaMemes.Ocupado(vegas.Project);
+        int entre = numEntre.Valor, maxSin = numMaxSin.Valor;
         trabajando = true;
         Habilitar();
         Estado("Gemini est\u00e1 viendo el video y tus memes\u2026", false);
         Thread hilo = new Thread(delegate ()
         {
-            string resp = null, error = null;
-            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            string error = null;
+            List<PropuestaMeme> r = null;
+            List<Rango> huecos = new List<Rango>();
+            int primera = 0;
+            try
+            {
+                r = LogicaMemes.Leer(Gemini.Generar(clave, modelo, instr, msg, true), candidatos, duracion, entre, ocupado, trans);
+                primera = r.Count;
+                huecos = LogicaMemes.HuecosLargos(r, duracion, maxSin, ocupado);
+                // Quedaron tramos largos sin nada: una segunda vuelta solo para esos tramos.
+                if (huecos.Count > 0)
+                {
+                    int n = huecos.Count;
+                    try { BeginInvoke((MethodInvoker)delegate { Estado("Quedaron " + n + " tramos de m\u00e1s de " + maxSin + " s sin memes: Gemini los est\u00e1 mirando\u2026", false); }); } catch { }
+                    try
+                    {
+                        string resp2 = Gemini.Generar(clave, modelo, instr + LogicaMemes.InstruccionesHuecos(entre),
+                                                      LogicaMemes.MensajeHuecos(msg, r, huecos), true);
+                        r = LogicaMemes.LeerHuecos(resp2, r, huecos, candidatos, duracion, entre, ocupado, trans);
+                        huecos = LogicaMemes.HuecosLargos(r, duracion, maxSin, ocupado);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Si falla la segunda vuelta quedan los de la primera (salvo que se cancele).
+                        ErrorGemini eg = ex as ErrorGemini;
+                        if (eg != null && eg.Cancelado) throw;
+                    }
+                }
+            }
+            catch (ErrorGemini ex) { error = ex.Message; }
+            catch (Exception ex) { error = "La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo."; }
             try
             {
                 BeginInvoke((MethodInvoker)delegate
                 {
                     trabajando = false;
-                    if (error != null) { Estado("Gemini: " + error, true); Habilitar(); return; }
-                    try
+                    if (error != null) { Estado(error, true); Habilitar(); return; }
+                    propuestas = r;
+                    Llenar();
+                    string extra = r.Count > primera ? " (" + (r.Count - primera) + " en la segunda vuelta)" : "";
+                    string quedan = "";
+                    if (huecos.Count > 0)
                     {
-                        propuestas = LogicaMemes.Leer(resp, candidatos, duracion, numEntre.Valor, ocupado, trans);
-                        Llenar();
-                        Estado("\u2714 " + propuestas.Count + " memes propuestos (uno cada ~" + (propuestas.Count > 0 ? Math.Round(duracion / propuestas.Count) : 0) +
-                               " s). Doble clic para ir al momento; desmarca los que no quieras y pulsa \u00abColocar\u00bb.", false);
+                        List<string> l = new List<string>();
+                        foreach (Rango h in huecos) l.Add(Formato.Tiempo(h.Inicio) + "\u2013" + Formato.Tiempo(h.Fin));
+                        quedan = " Sin memes a prop\u00f3sito (serio o sin uno que encaje): " + String.Join(", ", l.ToArray()) + ".";
                     }
-                    catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
+                    Estado("\u2714 " + r.Count + " memes propuestos" + extra + ", uno cada ~" + (r.Count > 0 ? Math.Round(duracion / r.Count) : 0) +
+                           " s. Doble clic para ir al momento; desmarca los que no quieras y pulsa \u00abColocar\u00bb." + quedan, false);
                     Habilitar();
                 });
             }
@@ -1065,7 +1106,7 @@ public static class LogicaMemes
         return Rangos.Unir(r, 0.5);
     }
 
-    public static string Instrucciones(int cadaSeg, int minimoEntre)
+    public static string Instrucciones(int cadaSeg, int minimoEntre, int maximoSin)
     {
         return "Eres el editor de un video de YouTube. Puede ser de cualquier tipo (un gameplay con amigos, un video ensayo, un " +
                "vlog, una explicaci\u00f3n...): por la transcripci\u00f3n ves de qu\u00e9 va y cu\u00e1l es su tono. El video ya est\u00e1 editado. Pon MEMES " +
@@ -1075,6 +1116,8 @@ public static class LogicaMemes
                "video de humor, m\u00e1s.\n" +
                "- Por RITMO, no a cada rato: en promedio uno cada ~" + cadaSeg + " s, nunca dos a menos de " + minimoEntre + " s, y " +
                "ninguno en momentos serios, tensos o emotivos ni encima de una explicaci\u00f3n importante.\n" +
+               (maximoSin > 0 ? "- Que no pasen m\u00e1s de " + maximoSin + " s seguidos sin ninguno, salvo en los tramos serios, tensos o " +
+                                "emotivos (ah\u00ed mejor nada) y en los OCUPADOS. Rep\u00e1rtelos por todo el video, no los juntes en una parte.\n" : "") +
                "- \"en\": el segundo justo DESPU\u00c9S de la frase o el momento (que no tape lo que se dice). \"duracion\" solo para " +
                "im\u00e1genes (1.5 a 4 s).\n" +
                "- Que el meme encaje con lo que pasa (su descripci\u00f3n, tags y \"uso\"). Var\u00eda: no repitas un meme en el video y " +
@@ -1121,6 +1164,11 @@ public static class LogicaMemes
     public static List<PropuestaMeme> Leer(string json, List<Meme> candidatos, double duracion, int minimoEntre, List<Rango> ocupado,
                                            Transcripcion t)
     {
+        return Agregar(new List<PropuestaMeme>(), Parsear(json, candidatos, duracion), minimoEntre, ocupado, t);
+    }
+
+    static List<PropuestaMeme> Parsear(string json, List<Meme> candidatos, double duracion)
+    {
         object o = Json.Leer(Gemini.QuitarCercas(json));
         List<PropuestaMeme> todas = new List<PropuestaMeme>();
         foreach (object x in Json.Lista(o, "memes"))
@@ -1133,22 +1181,84 @@ public static class LogicaMemes
             todas.Add(pm);
         }
         todas.Sort(delegate (PropuestaMeme a, PropuestaMeme b) { return a.En.CompareTo(b.En); });
-        List<PropuestaMeme> r = new List<PropuestaMeme>();
+        return todas;
+    }
+
+    // Suma las nuevas a las que ya estaban (que tienen prioridad) cumpliendo las reglas.
+    static List<PropuestaMeme> Agregar(List<PropuestaMeme> previas, List<PropuestaMeme> nuevas, int minimoEntre, List<Rango> ocupado,
+                                       Transcripcion t)
+    {
+        List<PropuestaMeme> r = new List<PropuestaMeme>(previas);
         Dictionary<int, bool> usados = new Dictionary<int, bool>();
+        foreach (PropuestaMeme pm in r) usados[pm.Id] = true;
         List<Segmento> segs = t != null ? t.SegmentosActuales() : new List<Segmento>();
-        foreach (PropuestaMeme pm in todas)
+        foreach (PropuestaMeme pm in nuevas)
         {
             if (usados.ContainsKey(pm.Id)) continue;
             bool libre = true;
             foreach (Rango z in ocupado) if (pm.En >= z.Inicio - minimoEntre / 2.0 && pm.En <= z.Fin + 1) { libre = false; break; }
+            foreach (PropuestaMeme otra in r) if (Math.Abs(pm.En - otra.En) < minimoEntre) { libre = false; break; }
             if (!libre) continue;
-            if (r.Count > 0 && pm.En - r[r.Count - 1].En < minimoEntre) continue;
             foreach (Segmento s in segs)
                 if (s.Fin >= pm.En - 4 && s.Inicio <= pm.En + 0.5 && !String.IsNullOrEmpty(s.Texto)) pm.Dicho = s.Texto.Trim();
             usados[pm.Id] = true;
             r.Add(pm);
         }
+        r.Sort(delegate (PropuestaMeme a, PropuestaMeme b) { return a.En.CompareTo(b.En); });
         return r;
+    }
+
+    // Tramos de mas de "maximo" segundos sin memes (lo ocupado, como el opening, corta el tramo).
+    public static List<Rango> HuecosLargos(List<PropuestaMeme> propuestas, double duracion, int maximo, List<Rango> ocupado)
+    {
+        List<Rango> r = new List<Rango>();
+        if (maximo <= 0) return r;
+        List<double> puntos = new List<double> { 0 };
+        foreach (PropuestaMeme pm in propuestas) puntos.Add(pm.En);
+        puntos.Add(duracion);
+        puntos.Sort();
+        for (int i = 0; i + 1 < puntos.Count; i++)
+        {
+            double a = puntos[i];
+            foreach (Rango z in ocupado)
+            {
+                if (z.Fin <= a || z.Inicio >= puntos[i + 1]) continue;
+                if (z.Inicio - a > maximo) r.Add(new Rango(a, z.Inicio));
+                a = Math.Max(a, z.Fin);
+            }
+            if (puntos[i + 1] - a > maximo) r.Add(new Rango(a, puntos[i + 1]));
+        }
+        return r;
+    }
+
+    // Segunda vuelta: Gemini pone memes solo en los tramos que quedaron vacios.
+    public static string InstruccionesHuecos(int minimoEntre)
+    {
+        return "\nSEGUNDA VUELTA: ya elegiste los memes de YA PUESTOS, pero quedaron TRAMOS SIN MEMES demasiado largos. Prop\u00f3n memes " +
+               "SOLO dentro de esos tramos: uno por tramo (dos si es muy largo), a " + minimoEntre + " s o m\u00e1s de los ya puestos y sin " +
+               "repetir sus ids. Si un tramo es serio, tenso o emotivo, d\u00e9jalo sin meme (mejor nada que forzarlo). Devuelve solo los nuevos.";
+    }
+
+    public static string MensajeHuecos(string mensaje, List<PropuestaMeme> previas, List<Rango> huecos)
+    {
+        StringBuilder sb = new StringBuilder(mensaje);
+        sb.Append("\nYA PUESTOS: ");
+        foreach (PropuestaMeme pm in previas) sb.Append("[" + F(pm.En) + "] id " + pm.Id + "; ");
+        sb.Append("\nTRAMOS SIN MEMES: ");
+        foreach (Rango h in huecos) sb.Append("[" + F(h.Inicio) + "-" + F(h.Fin) + "] ");
+        sb.Append("\n");
+        return sb.ToString();
+    }
+
+    public static List<PropuestaMeme> LeerHuecos(string json, List<PropuestaMeme> previas, List<Rango> huecos, List<Meme> candidatos,
+                                                 double duracion, int minimoEntre, List<Rango> ocupado, Transcripcion t)
+    {
+        List<PropuestaMeme> nuevas = Parsear(json, candidatos, duracion).FindAll(delegate (PropuestaMeme pm)
+        {
+            foreach (Rango h in huecos) if (pm.En >= h.Inicio && pm.En <= h.Fin) return true;
+            return false;
+        });
+        return Agregar(previas, nuevas, minimoEntre, ocupado, t);
     }
 
     static VideoTrack PistaV(Project p)
@@ -1335,7 +1445,10 @@ public class BibliotecaMemes
     // ------------------------------------------- clasificar (programa aparte)
 
     // Archivos de "origen" que faltan revisar: los que son de un tipo que sirve y no se descartaron.
-    public List<string> Pendientes(string origen)
+    public List<string> Pendientes(string origen) { return Pendientes(origen, false); }
+
+    // Lo que falta revisar; "recientes": lo ultimo descargado primero (si no, por nombre).
+    public List<string> Pendientes(string origen, bool recientes)
     {
         List<string> r = new List<string>();
         if (String.IsNullOrEmpty(origen) || !Directory.Exists(origen)) return r;
@@ -1346,22 +1459,113 @@ public class BibliotecaMemes
             if (Carpeta.Length > 0 && f.StartsWith(Carpeta.TrimEnd('\\', '/') + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
             r.Add(f);
         }
+        if (recientes)
+        {
+            Dictionary<string, DateTime> fechas = new Dictionary<string, DateTime>();
+            foreach (string f in r) fechas[f] = Fecha(f);
+            r.Sort(delegate (string a, string b) { int c = fechas[b].CompareTo(fechas[a]); return c != 0 ? c : String.Compare(a, b, StringComparison.OrdinalIgnoreCase); });
+        }
+        else r.Sort(StringComparer.OrdinalIgnoreCase);
+        return r;
+    }
+
+    // Cuando llego el archivo: al descargarlo o copiarlo cambia la de creacion; al editarlo, la de modificacion.
+    public static DateTime Fecha(string ruta)
+    {
+        try
+        {
+            DateTime c = File.GetCreationTime(ruta), w = File.GetLastWriteTime(ruta);
+            return c > w ? c : w;
+        }
+        catch { return DateTime.MinValue; }
+    }
+
+    // Ordena la lista de la biblioteca: "recientes", "usados" (los mas usados primero) o por nombre.
+    public void Ordenar(List<Meme> l, string orden)
+    {
+        if (orden == "recientes")
+        {
+            Dictionary<Meme, DateTime> f = new Dictionary<Meme, DateTime>();
+            foreach (Meme m in l) f[m] = Fecha(Completa(m));
+            l.Sort(delegate (Meme a, Meme b) { int c = f[b].CompareTo(f[a]); return c != 0 ? c : String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        }
+        else if (orden == "usados")
+            l.Sort(delegate (Meme a, Meme b) { int c = b.Usos.Count.CompareTo(a.Usos.Count); return c != 0 ? c : String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        else l.Sort(delegate (Meme a, Meme b) { return String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+    }
+
+    // Subcarpetas de la carpeta de memes (relativas, con "\\" entre niveles).
+    public List<string> Subcarpetas()
+    {
+        List<string> r = new List<string>();
+        if (!Directory.Exists(Carpeta)) return r;
+        string raiz = Carpeta.TrimEnd('\\', '/');
+        foreach (string d in Directory.GetDirectories(Carpeta, "*", SearchOption.AllDirectories))
+        {
+            string rel = d.Substring(raiz.Length).TrimStart('\\', '/');
+            if (rel.Length > 0 && !rel.StartsWith(".")) r.Add(rel);
+        }
         r.Sort(StringComparer.OrdinalIgnoreCase);
         return r;
     }
 
+    // Nombre de subcarpeta seguro: sin caracteres raros ni "..", sin barras al inicio o al final.
+    public static string LimpiarSubcarpeta(string s)
+    {
+        List<string> partes = new List<string>();
+        foreach (string p in (s ?? "").Split('\\', '/'))
+        {
+            string t = p.Trim();
+            foreach (char c in Path.GetInvalidFileNameChars()) t = t.Replace(c.ToString(), "");
+            foreach (char c in "<>:\"|?*") t = t.Replace(c.ToString(), "");
+            t = t.Trim().TrimEnd('.');
+            if (t.Length > 0 && t != "." && t != "..") partes.Add(t);
+        }
+        return String.Join(Path.DirectorySeparatorChar.ToString(), partes.ToArray());
+    }
+
+    static string Destino(string dir, string archivo)
+    {
+        string nombre = Path.GetFileNameWithoutExtension(archivo), ext = Path.GetExtension(archivo);
+        string destino = Path.Combine(dir, nombre + ext);
+        for (int i = 2; File.Exists(destino); i++) destino = Path.Combine(dir, nombre + " (" + i + ")" + ext);
+        return destino;
+    }
+
+    string Relativa(string completa) { return completa.Substring(Carpeta.TrimEnd('\\', '/').Length).TrimStart('\\', '/'); }
+
     // Lleva el archivo a la carpeta de memes (con otro nombre si ya hay uno igual) y lo agrega al indice.
     public Meme Agregar(string archivo, string descripcion, List<string> tags, string uso)
     {
-        Directory.CreateDirectory(Carpeta);
-        string nombre = Path.GetFileNameWithoutExtension(archivo), ext = Path.GetExtension(archivo);
-        string destino = Path.Combine(Carpeta, nombre + ext);
-        for (int i = 2; File.Exists(destino); i++) destino = Path.Combine(Carpeta, nombre + " (" + i + ")" + ext);
+        return Agregar(archivo, descripcion, tags, uso, "");
+    }
+
+    // "subcarpeta": dentro de la carpeta de memes (se crea si no existe); vacia = la principal.
+    public Meme Agregar(string archivo, string descripcion, List<string> tags, string uso, string subcarpeta)
+    {
+        string dir = Path.Combine(Carpeta, LimpiarSubcarpeta(subcarpeta));
+        Directory.CreateDirectory(dir);
+        string destino = Destino(dir, archivo);
         File.Move(archivo, destino);
-        Meme m = new Meme { Ruta = Path.GetFileName(destino), Tipo = TipoDe(destino), Descripcion = (descripcion ?? "").Trim(), Uso = (uso ?? "").Trim() };
+        Meme m = new Meme { Ruta = Relativa(destino), Tipo = TipoDe(destino), Descripcion = (descripcion ?? "").Trim(), Uso = (uso ?? "").Trim() };
         foreach (string t in tags) { string k = t.Trim().ToLowerInvariant(); if (k.Length > 0 && !m.Tags.Contains(k)) m.Tags.Add(k); }
         Memes.Add(m);
         return m;
+    }
+
+    // Subcarpeta en la que esta un meme ("" = la principal).
+    public static string SubcarpetaDe(Meme m) { return Path.GetDirectoryName(m.Ruta) ?? ""; }
+
+    // Pasa un meme a otra subcarpeta; su historial y tags se quedan.
+    public void Mover(Meme m, string subcarpeta)
+    {
+        string sub = LimpiarSubcarpeta(subcarpeta);
+        if (String.Equals(sub, SubcarpetaDe(m), StringComparison.OrdinalIgnoreCase)) return;
+        string dir = Path.Combine(Carpeta, sub);
+        Directory.CreateDirectory(dir);
+        string destino = Destino(dir, Completa(m));
+        File.Move(Completa(m), destino);
+        m.Ruta = Relativa(destino);
     }
 
     // Deshacer un \u00abes meme\u00bb: el archivo vuelve a donde estaba y sale del indice.
@@ -8727,7 +8931,10 @@ public class Configuracion
     public string WhisperExtra = "";             // opciones extra para el .exe
     public string ReglasCanal = "";              // reglas fijas de MomentosIA ("" = las de siempre)
     public string CarpetaMemes = "";             // carpeta de memes (imagenes, videos, sonidos) con su indice
-    public string CarpetaMemesEntrada = "";      // carpeta con los archivos por revisar (ClasificarMemes)
+    public string CarpetaMemesEntrada = "";      // carpeta con los archivos por revisar (programa Memes)
+    public string MemesOrden = "recientes";      // orden de lo que falta revisar: "recientes" o "nombre"
+    public string MemesOrdenLista = "recientes"; // orden de la biblioteca: "recientes", "nombre" o "usados"
+    public string MemesSubcarpeta = "";          // subcarpeta donde se guardo el ultimo meme
 
     public static string Carpeta
     {
@@ -8758,6 +8965,9 @@ public class Configuracion
             c.ReglasCanal = Json.Texto(o, "reglasCanal");
             c.CarpetaMemes = Json.Texto(o, "carpetaMemes");
             c.CarpetaMemesEntrada = Json.Texto(o, "carpetaMemesEntrada");
+            c.MemesOrden = Valor(Json.Texto(o, "memesOrden"), c.MemesOrden);
+            c.MemesOrdenLista = Valor(Json.Texto(o, "memesOrdenLista"), c.MemesOrdenLista);
+            c.MemesSubcarpeta = Json.Texto(o, "memesSubcarpeta");
         }
         catch { }
         return c;
@@ -8780,6 +8990,9 @@ public class Configuracion
         d["reglasCanal"] = ReglasCanal;
         d["carpetaMemes"] = CarpetaMemes;
         d["carpetaMemesEntrada"] = CarpetaMemesEntrada;
+        d["memesOrden"] = MemesOrden;
+        d["memesOrdenLista"] = MemesOrdenLista;
+        d["memesSubcarpeta"] = MemesSubcarpeta;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

@@ -216,7 +216,7 @@ class VentanaMemes : VentanaBase
 
     Etiqueta lblInfo, lblEstado;
     Boton btnBiblioteca = new Boton("Biblioteca…", EstiloBoton.Secundario);
-    CampoNumero numCada = new CampoNumero(), numEntre = new CampoNumero(), numRecientes = new CampoNumero();
+    CampoNumero numCada = new CampoNumero(), numEntre = new CampoNumero(), numMaxSin = new CampoNumero(), numRecientes = new CampoNumero();
     Boton btnIA = new Boton("Elegir con IA", EstiloBoton.Primario);
     Lista lst = new Lista();
     Boton btnColocar = new Boton("Colocar", EstiloBoton.Primario);
@@ -229,7 +229,7 @@ class VentanaMemes : VentanaBase
         string veg = vegas.Project.FilePath ?? "";
         capitulo = System.Text.RegularExpressions.Regex.Replace(Path.GetFileNameWithoutExtension(CopiaBase.Original(veg)), @"\s+CAP$", "");
         int m = Margen, w = Ancho;
-        Encabezado("Memes", "Gemini elige dónde queda un meme (por ritmo, no a cada rato) y cuál, sin repetir los de tus últimos videos. Sirve para cualquier video, no solo para gameplays.");
+        Encabezado("Memes", "Gemini elige dónde queda un meme y cuál: por ritmo, repartidos y sin repetir. Para cualquier video, no solo gameplays.");
         int y = 92;
         lblInfo = Texto("", Tema.Normal, Tema.Texto, m, y, w - 170, 40);
         Pos(btnBiblioteca, m + w - 160, y, 160, 32);
@@ -240,11 +240,17 @@ class VentanaMemes : VentanaBase
         Texto("SEPARADOS AL MENOS", Tema.Pequena, Tema.TextoSuave, m + 196, y + 8, 130, 18);
         numEntre.Sufijo = "s"; numEntre.Minimo = 5; numEntre.Maximo = 300; numEntre.Paso = 5;
         Pos(numEntre, m + 330, y, 90, 32);
-        Texto("SIN REPETIR DE LOS ÚLTIMOS", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 170, 18);
-        numRecientes.Sufijo = "videos"; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
-        Pos(numRecientes, m + 616, y, 90, 32);
-        cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numRecientes.Valor = 3; cargando = false;
+        Texto("NUNCA MÁS DE", Tema.Pequena, Tema.TextoSuave, m + 444, y + 8, 84, 18);
+        numMaxSin.Sufijo = "s"; numMaxSin.Minimo = 0; numMaxSin.Maximo = 900; numMaxSin.Paso = 15;
+        Pos(numMaxSin, m + 530, y, 90, 32);
+        Texto("SIN MEMES", Tema.Pequena, Tema.TextoSuave, m + 626, y + 8, 70, 18);
         Pos(btnIA, m + w - 160, y, 160, 32);
+        y += 42;
+        Texto("NO REPETIR LOS USADOS EN TUS ÚLTIMOS", Tema.Pequena, Tema.TextoSuave, m, y + 8, 240, 18);
+        numRecientes.Sufijo = ""; numRecientes.Minimo = 0; numRecientes.Maximo = 50; numRecientes.Paso = 1;
+        Pos(numRecientes, m + 244, y, 90, 32);
+        Texto("VIDEOS", Tema.Pequena, Tema.TextoSuave, m + 340, y + 8, 60, 18);
+        cargando = true; numCada.Valor = 75; numEntre.Valor = 25; numMaxSin.Valor = 180; numRecientes.Valor = 3; cargando = false;
         y += 44;
         int sb = SystemInformation.VerticalScrollBarWidth + 4;
         lst.Columns.Add("Momento", 80);
@@ -292,7 +298,8 @@ class VentanaMemes : VentanaBase
         int descritos = biblioteca == null ? 0 : biblioteca.Memes.Count - biblioteca.SinDescribir().Count;
         lblInfo.Text = biblioteca == null ? "Sin biblioteca de memes: pulsa «Biblioteca…» y elige tu carpeta." :
             candidatos.Count + " memes disponibles de " + descritos + " descritos" + (descritos > candidatos.Count ? " (" + (descritos - candidatos.Count) +
-            " se usaron en los últimos " + numRecientes.Valor + " videos)" : "") + " · video «" + capitulo + "»";
+            " se usaron en tus últimos " + numRecientes.Valor + " videos)" : "") + " · video «" + capitulo + "»" +
+            (biblioteca.Memes.Count > descritos ? "\n" + (biblioteca.Memes.Count - descritos) + " sin descripción no se usan: descríbelos en «Biblioteca…»." : "");
         Habilitar();
     }
 
@@ -323,31 +330,65 @@ class VentanaMemes : VentanaBase
 
     void ConIA()
     {
-        string instr = LogicaMemes.Instrucciones(numCada.Valor, numEntre.Valor);
+        string instr = LogicaMemes.Instrucciones(numCada.Valor, numEntre.Valor, numMaxSin.Valor);
         string msg = LogicaMemes.Mensaje(trans, vegas.Project, candidatos, duracion);
         string clave = config.GeminiClave, modelo = config.GeminiModelo;
         List<Rango> ocupado = LogicaMemes.Ocupado(vegas.Project);
+        int entre = numEntre.Valor, maxSin = numMaxSin.Valor;
         trabajando = true;
         Habilitar();
         Estado("Gemini está viendo el video y tus memes…", false);
         Thread hilo = new Thread(delegate ()
         {
-            string resp = null, error = null;
-            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            string error = null;
+            List<PropuestaMeme> r = null;
+            List<Rango> huecos = new List<Rango>();
+            int primera = 0;
+            try
+            {
+                r = LogicaMemes.Leer(Gemini.Generar(clave, modelo, instr, msg, true), candidatos, duracion, entre, ocupado, trans);
+                primera = r.Count;
+                huecos = LogicaMemes.HuecosLargos(r, duracion, maxSin, ocupado);
+                // Quedaron tramos largos sin nada: una segunda vuelta solo para esos tramos.
+                if (huecos.Count > 0)
+                {
+                    int n = huecos.Count;
+                    try { BeginInvoke((MethodInvoker)delegate { Estado("Quedaron " + n + " tramos de más de " + maxSin + " s sin memes: Gemini los está mirando…", false); }); } catch { }
+                    try
+                    {
+                        string resp2 = Gemini.Generar(clave, modelo, instr + LogicaMemes.InstruccionesHuecos(entre),
+                                                      LogicaMemes.MensajeHuecos(msg, r, huecos), true);
+                        r = LogicaMemes.LeerHuecos(resp2, r, huecos, candidatos, duracion, entre, ocupado, trans);
+                        huecos = LogicaMemes.HuecosLargos(r, duracion, maxSin, ocupado);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Si falla la segunda vuelta quedan los de la primera (salvo que se cancele).
+                        ErrorGemini eg = ex as ErrorGemini;
+                        if (eg != null && eg.Cancelado) throw;
+                    }
+                }
+            }
+            catch (ErrorGemini ex) { error = ex.Message; }
+            catch (Exception ex) { error = "La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo."; }
             try
             {
                 BeginInvoke((MethodInvoker)delegate
                 {
                     trabajando = false;
-                    if (error != null) { Estado("Gemini: " + error, true); Habilitar(); return; }
-                    try
+                    if (error != null) { Estado(error, true); Habilitar(); return; }
+                    propuestas = r;
+                    Llenar();
+                    string extra = r.Count > primera ? " (" + (r.Count - primera) + " en la segunda vuelta)" : "";
+                    string quedan = "";
+                    if (huecos.Count > 0)
                     {
-                        propuestas = LogicaMemes.Leer(resp, candidatos, duracion, numEntre.Valor, ocupado, trans);
-                        Llenar();
-                        Estado("✔ " + propuestas.Count + " memes propuestos (uno cada ~" + (propuestas.Count > 0 ? Math.Round(duracion / propuestas.Count) : 0) +
-                               " s). Doble clic para ir al momento; desmarca los que no quieras y pulsa «Colocar».", false);
+                        List<string> l = new List<string>();
+                        foreach (Rango h in huecos) l.Add(Formato.Tiempo(h.Inicio) + "–" + Formato.Tiempo(h.Fin));
+                        quedan = " Sin memes a propósito (serio o sin uno que encaje): " + String.Join(", ", l.ToArray()) + ".";
                     }
-                    catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
+                    Estado("✔ " + r.Count + " memes propuestos" + extra + ", uno cada ~" + (r.Count > 0 ? Math.Round(duracion / r.Count) : 0) +
+                           " s. Doble clic para ir al momento; desmarca los que no quieras y pulsa «Colocar»." + quedan, false);
                     Habilitar();
                 });
             }
