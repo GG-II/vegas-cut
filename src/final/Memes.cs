@@ -19,6 +19,7 @@ class VentanaBibliotecaMemes : VentanaBase
     Boton btnCarpeta = new Boton("Elegir carpeta…", EstiloBoton.Secundario);
     Boton btnBuscar = new Boton("Buscar archivos", EstiloBoton.Secundario);
     Boton btnIA = new Boton("Describir con IA", EstiloBoton.Primario);
+    Boton btnMover = new Boton("Mover etiquetados…", EstiloBoton.Secundario);
     Lista lst = new Lista();
     CampoTexto txtDesc = new CampoTexto(), txtTags = new CampoTexto(), txtUso = new CampoTexto();
     Boton btnGuardar = new Boton("Guardar", EstiloBoton.Primario);
@@ -31,7 +32,8 @@ class VentanaBibliotecaMemes : VentanaBase
         int m = Margen, w = Ancho;
         Encabezado("Biblioteca de memes", "Imágenes, gifs, videos y sonidos con lo que es cada uno y cuándo usarlo. Doble clic para verlo.");
         int y = 92;
-        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, m, y + 6, w - 490, 20);
+        lblCarpeta = Texto("", Tema.Normal, Tema.Texto, m, y + 6, w - 650, 20);
+        Pos(btnMover, m + w - 638, y, 150, 32);
         Pos(btnCarpeta, m + w - 480, y, 150, 32);
         Pos(btnBuscar, m + w - 322, y, 150, 32);
         Pos(btnIA, m + w - 162, y, 162, 32);
@@ -67,6 +69,7 @@ class VentanaBibliotecaMemes : VentanaBase
         btnCarpeta.Click += delegate { ElegirCarpeta(); };
         btnBuscar.Click += delegate { Buscar(); };
         btnIA.Click += delegate { Describir(); };
+        btnMover.Click += delegate { LeerEdicion(); Mover(); };
         btnGuardar.Click += delegate { LeerEdicion(); Guardar(); };
         btnCerrar.Click += delegate { LeerEdicion(); Close(); };
         lst.SelectedIndexChanged += delegate
@@ -104,6 +107,7 @@ class VentanaBibliotecaMemes : VentanaBase
     {
         lblCarpeta.Text = Biblioteca != null ? "Carpeta: " + Biblioteca.Carpeta : "Elige la carpeta de tus memes (se buscan también en subcarpetas).";
         btnBuscar.Enabled = Biblioteca != null && !trabajando;
+        btnMover.Enabled = Biblioteca != null && !trabajando && Biblioteca.Etiquetados().Count > 0;
         btnIA.Enabled = Biblioteca != null && !trabajando && !String.IsNullOrEmpty(config.GeminiClave) && Biblioteca.SinDescribir().Count > 0;
         lst.Items.Clear();
         if (Biblioteca == null) { lblInfo.Text = ""; return; }
@@ -121,6 +125,50 @@ class VentanaBibliotecaMemes : VentanaBase
         int sin = Biblioteca.SinDescribir().Count;
         lblInfo.Text = Biblioteca.Memes.Count + " memes · " + (Biblioteca.Memes.Count - sin) + " descritos" +
                        (sin > 0 ? " · " + sin + " sin describir (no se usan hasta que tengan descripción: «Describir con IA» o escríbela abajo)" : "");
+    }
+
+    // Los que tienen tags o descripcion se van a otra carpeta, que pasa a ser la de memes;
+    // los que no, se quedan para revisarlos (por ejemplo con el programa Memes.exe).
+    void Mover()
+    {
+        int n = Biblioteca.Etiquetados().Count;
+        string destino;
+        using (FolderBrowserDialog d = new FolderBrowserDialog())
+        {
+            d.Description = "Carpeta donde quedarán tus memes etiquetados (puedes crear una nueva)";
+            d.ShowNewFolderButton = true;
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            destino = d.SelectedPath;
+        }
+        string problema = Biblioteca.ProblemaDestino(destino);
+        if (problema.Length > 0) { Estado("No se puede: " + problema, true); return; }
+        string origen = Biblioteca.Carpeta;
+        if (MessageBox.Show(this, "Se moverán " + n + " archivos con tags o descripción a:\n" + destino + "\n\nLos " + (Biblioteca.Memes.Count - n) +
+                            " sin etiquetar se quedan en:\n" + origen + "\n\nvegas-cut usará la carpeta nueva. ¿Seguir?", "Memes",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+        List<string> errores = new List<string>();
+        int movidos = 0;
+        try
+        {
+            Guardar();
+            BibliotecaMemes nueva = BibliotecaMemes.Cargar(destino);
+            try { nueva.Escanear(); } catch { }
+            movidos = Biblioteca.Trasladar(nueva, errores);
+            nueva.Guardar();
+            Biblioteca.Guardar();
+            if (movidos > 0)
+            {
+                Biblioteca = nueva;
+                config.CarpetaMemes = destino;
+                config.CarpetaMemesEntrada = origen;
+                config.Guardar();
+            }
+        }
+        catch (Exception ex) { errores.Add(ex.Message); }
+        actual = null;
+        Mostrar();
+        Estado("✔ " + movidos + " memes en la carpeta nueva. Los que quedaron en la anterior puedes revisarlos con Memes.exe." +
+               (errores.Count > 0 ? " No se pudo: " + String.Join("; ", errores.ToArray()) : ""), errores.Count > 0);
     }
 
     void ElegirCarpeta()

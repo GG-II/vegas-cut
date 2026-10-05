@@ -244,6 +244,62 @@ public class BibliotecaMemes
         return m;
     }
 
+    // Ya trabajado: tiene descripcion, cuando usarlo o algun tag puesto a mano
+    // (los tags que salen solos de las subcarpetas no cuentan).
+    public static bool Etiquetado(Meme m)
+    {
+        if (m.Descrito || m.Uso.Trim().Length > 0) return true;
+        List<string> deCarpeta = new List<string>();
+        foreach (string parte in SubcarpetaDe(m).Split('\\', '/'))
+            if (parte.Trim().Length > 0) deCarpeta.Add(parte.Trim().ToLowerInvariant());
+        foreach (string t in m.Tags) if (!deCarpeta.Contains(t)) return true;
+        return false;
+    }
+
+    public List<Meme> Etiquetados() { return Memes.FindAll(delegate (Meme m) { return Etiquetado(m); }); }
+
+    static string Normal(string dir) { return Path.GetFullPath(dir).TrimEnd('\\', '/') + Path.DirectorySeparatorChar; }
+
+    // Por que no se puede mudar a "destino" (vacio si se puede): no puede ser la misma ni una dentro de la otra.
+    public string ProblemaDestino(string destino)
+    {
+        if (String.IsNullOrEmpty(destino)) return "Elige una carpeta.";
+        string a = Normal(Carpeta), b = Normal(destino);
+        if (String.Equals(a, b, StringComparison.OrdinalIgnoreCase)) return "Es la misma carpeta.";
+        if (b.StartsWith(a, StringComparison.OrdinalIgnoreCase)) return "No puede estar dentro de la carpeta actual.";
+        if (a.StartsWith(b, StringComparison.OrdinalIgnoreCase)) return "La carpeta actual no puede estar dentro de esa.";
+        return "";
+    }
+
+    // Lleva los memes etiquetados (con sus subcarpetas, tags e historial) a otra
+    // carpeta de memes; los que no tienen nada se quedan aqui para seguir revisandolos.
+    // Lo descartado tambien pasa al indice nuevo para que no vuelva a aparecer.
+    public int Trasladar(BibliotecaMemes destino, List<string> errores)
+    {
+        int n = 0;
+        Directory.CreateDirectory(destino.Carpeta);
+        foreach (Meme m in Etiquetados())
+        {
+            string origen = Completa(m);
+            try
+            {
+                if (!File.Exists(origen)) { errores.Add("No está: " + m.Ruta); continue; }
+                string dir = Path.Combine(destino.Carpeta, SubcarpetaDe(m));
+                Directory.CreateDirectory(dir);
+                string final = Destino(dir, origen);
+                File.Move(origen, final);
+                Memes.Remove(m);
+                m.Ruta = destino.Relativa(final);
+                destino.Memes.Add(m);
+                n++;
+            }
+            catch (Exception ex) { errores.Add(m.Ruta + ": " + ex.Message); }
+        }
+        foreach (string d in Descartados) destino.Descartar(d);
+        destino.Memes.Sort(delegate (Meme a, Meme b) { return String.Compare(a.Ruta, b.Ruta, StringComparison.OrdinalIgnoreCase); });
+        return n;
+    }
+
     // Subcarpeta en la que esta un meme ("" = la principal).
     public static string SubcarpetaDe(Meme m) { return Path.GetDirectoryName(m.Ruta) ?? ""; }
 

@@ -635,6 +635,11 @@ entre las dos vistas.
    `memes-indice.json`. Así lo que no es meme se queda en descargas y lo que sí, separado.
    **No era meme** lo descarta.
 
+Cuando no queda nada por revisar, el botón grande **Seguir con otra carpeta por revisar…** te
+deja elegir la siguiente. Si todavía no elegiste tu carpeta de memes, ese botón te la pide.
+
+![Memes: no queda nada por revisar](docs/img/memes-app-vacia.png)
+
 **Biblioteca**: todo lo que ya tienes.
 
 ![Memes: biblioteca](docs/img/memes-app-biblioteca.png)
@@ -645,6 +650,13 @@ entre las dos vistas.
   **Guardar cambios**. Si le cambias la **subcarpeta**, el archivo se mueve ahí (sus tags y su
   historial se quedan). La columna *Usado* dice en cuántos videos ya salió.
 - **Quitar** lo manda a la Papelera y lo saca del índice.
+- **Mover los etiquetados a otra carpeta…**: útil si tu carpeta de memes era la de descargas y
+  etiquetaste ahí mismo. Eliges (o creas) otra carpeta y se mueven **solo los que tienen tags,
+  descripción o «cuándo usarlo»**, con sus subcarpetas, tags e historial. Los tags que salen solos
+  de las subcarpetas no cuentan. Lo que no tiene nada se queda donde estaba. La carpeta nueva
+  pasa a ser tu carpeta de memes y la de antes queda como **DE**, para seguir revisando en
+  *Clasificar* lo que faltó. Lo mismo está en *PasoFinal → Memes → Biblioteca…* (**Mover
+  etiquetados…**).
 
 ### `LimpiarVegasCut.cs`
 

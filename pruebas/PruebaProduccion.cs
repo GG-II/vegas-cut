@@ -521,6 +521,39 @@ class PruebaProduccion
                       !LogicaMemes.Instrucciones(75, 25, 0).Contains("seguidos sin ninguno"),
                       "Memes: avisa los tramos de más de 3 min sin memes y la segunda vuelta solo pone ahí, sin repetir ni juntar");
 
+            // Mover los etiquetados a otra carpeta: los sin nada se quedan para seguir revisando.
+            string mvA = Path.Combine(Path.GetTempPath(), "vc-mover-" + Guid.NewGuid().ToString("N")), mvB = mvA + "-memes";
+            Directory.CreateDirectory(Path.Combine(mvA, "Reacciones"));
+            foreach (string nfm in new string[] { "uno.png", "dos.mp4", "tres.gif", Path.Combine("Reacciones", "cuatro.png"), Path.Combine("Reacciones", "cinco.png") })
+                File.WriteAllBytes(Path.Combine(mvA, nfm), new byte[] { 1, 2, 3 });
+            Directory.CreateDirectory(mvB);
+            File.WriteAllBytes(Path.Combine(mvB, "uno.png"), new byte[] { 9 });   // ya hay uno con ese nombre
+            BibliotecaMemes bmv = new BibliotecaMemes { Carpeta = mvA };
+            bmv.Escanear();
+            bmv.Buscar("uno.png").Tags.Add("risa");
+            bmv.Buscar("dos.mp4").Descripcion = "Explosión";
+            bmv.Buscar("tres.gif").Uso = "cuando algo sale mal";
+            Meme cuatro = bmv.Buscar(Path.Combine("Reacciones", "cuatro.png"));
+            cuatro.Tags.Add("sorpresa"); cuatro.Usos.Add(new UsoMeme { Capitulo = "S01E01" });
+            // "cinco" solo tiene el tag de su carpeta: no cuenta como etiquetado.
+            bmv.Descartar(Path.Combine(mvA, "no-meme.mp4"));
+            BibliotecaMemes bnv = BibliotecaMemes.Cargar(mvB);
+            bnv.Escanear();
+            List<string> errMv = new List<string>();
+            string prob1 = bmv.ProblemaDestino(mvA), prob2 = bmv.ProblemaDestino(Path.Combine(mvA, "x")), prob3 = bmv.ProblemaDestino(mvB);
+            int nmv = bmv.Trasladar(bnv, errMv);
+            bnv.Guardar(); bmv.Guardar();
+            BibliotecaMemes bnv2 = BibliotecaMemes.Cargar(mvB);
+            Meme cuatro2 = bnv2.Buscar(Path.Combine("Reacciones", "cuatro.png"));
+            Verificar(nmv == 4 && errMv.Count == 0 && prob1.Length > 0 && prob2.Length > 0 && prob3.Length == 0 &&
+                      bmv.Memes.Count == 1 && File.Exists(Path.Combine(mvA, "Reacciones", "cinco.png")) && !File.Exists(Path.Combine(mvA, "uno.png")) &&
+                      bnv2.Buscar("uno (2).png") != null && bnv2.Buscar("uno (2).png").Tags.Contains("risa") && bnv2.Buscar("uno.png") != null &&
+                      bnv2.Buscar("dos.mp4").Descripcion == "Explosión" && cuatro2 != null && cuatro2.Usos.Count == 1 &&
+                      File.Exists(Path.Combine(mvB, "Reacciones", "cuatro.png")) && bnv2.Descartados.Count == 1 &&
+                      bnv2.Pendientes(mvA).Count == 1,
+                      "Memes: mover los etiquetados a otra carpeta (con subcarpetas, tags e historial); los sin etiquetar se quedan para revisar");
+            try { Directory.Delete(mvA, true); Directory.Delete(mvB, true); } catch { }
+
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
             be.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden", Album = "Minecraft - Volume Alpha" });
