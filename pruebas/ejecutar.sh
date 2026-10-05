@@ -12,12 +12,17 @@ REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.
 # usa partes de la API que la version falsa no imita).
 # -noconfig: sin System.Core ni otras bibliotecas que Vegas no le da a los
 # scripts (HashSet, LINQ...), para que falle aqui y no en Vegas.
-VEGAS_REF="-noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -r:$T/ScriptPortal.Vegas.dll"
+# Contra las referencias de .NET Framework 4.8 (lo que tienen Vegas 20 y Windows),
+# no contra las de mono: mono trae metodos mas nuevos (p. ej. TrimEnd(char)) que en
+# Windows dan "Metodo no encontrado" al ejecutar.
+NET48=/usr/lib/mono/4.8-api
+NET48_REF="-nostdlib -noconfig -r:$NET48/mscorlib.dll -r:$NET48/System.dll -r:$NET48/System.Drawing.dll -r:$NET48/System.Windows.Forms.dll"
+VEGAS_REF="$NET48_REF -r:$T/ScriptPortal.Vegas.dll"
 for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs ../scripts/LimpiarVegasCut.cs ../scripts/VariosPOV.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 # El programa aparte se compila igual que en Windows (csc de .NET Framework 4, C# 5).
-mcs -langversion:5 -nowarn:414,169,649,219 -target:winexe -noconfig -r:mscorlib.dll -r:System.dll -r:System.Drawing.dll -r:System.Windows.Forms.dll -out:"$T/Memes.exe" ../programas/Memes.cs
+mcs -langversion:5 -nowarn:414,169,649,219 -target:winexe $NET48_REF -out:"$T/Memes.exe" ../programas/Memes.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/silencios.exe" PruebaSilencios.cs ../scripts/QuitarSilencios.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/ia.exe" PruebaIA.cs ../scripts/MomentosIA.cs ../src/comun/Whisper.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/textos.exe" PruebaTextos.cs ../scripts/TextosDesdeMarcadores.cs

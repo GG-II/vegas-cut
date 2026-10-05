@@ -1506,7 +1506,9 @@ class AvisoGemini : ControlBase
                 }
                 a.SetBounds(v.ClientSize.Width - 24 - 420, 10, 420, 52);
                 a.BringToFront();
-                a.texto = Texto(Gemini.Segundos, out a.lento);
+                bool lento;
+                a.texto = Texto(Gemini.Segundos, out lento);
+                a.lento = lento;
                 a.detalle = Gemini.Detalle;
                 if (a.detalle.Length == 0)
                     a.detalle = a.lento ? "Tarda m\u00e1s de lo normal: puedes cancelar y pedirlo otra vez." : "Puede tardar uno o dos minutos.";

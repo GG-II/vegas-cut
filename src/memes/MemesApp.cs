@@ -358,7 +358,7 @@ class VentanaMemesApp : VentanaBase
         panelTags1.Add(Pos(txtDesc1, x2, yt + 258, w2, 32));
         panelTags1.Add(Texto("CUÁNDO USARLO", Tema.Pequena, Tema.TextoSuave, x2, yt + 298, w2, 18));
         panelTags1.Add(Pos(txtUso1, x2, yt + 318, w2, 32));
-        panelTags1.Add(Texto("GUARDAR EN SUBCARPETA (vacía = la principal; escribe una nueva)", Tema.Pequena, Tema.TextoSuave, x2, yt + 358, w2, 18));
+        panelTags1.Add(Texto("SUBCARPETA (opcional: vacía = tu carpeta de memes)", Tema.Pequena, Tema.TextoSuave, x2, yt + 358, w2, 18));
         panelTags1.Add(Pos(cmbCarpeta1, x2, yt + 378, w2, 30));
         panelTags1.Add(Pos(btnIA1, x2, yt + 418, w2, 32));
         panelTags1.Add(Pos(btnNoEra, x2, yt + 460, 110, 44));
@@ -396,7 +396,7 @@ class VentanaMemesApp : VentanaBase
         vista2.Add(Pos(txtDesc2, x3, y3 + 178, w3, 30));
         vista2.Add(Texto("CUÁNDO USARLO", Tema.Pequena, Tema.TextoSuave, x3, y3 + 214, w3, 18));
         vista2.Add(Pos(txtUso2, x3, y3 + 232, w3, 30));
-        vista2.Add(Texto("SUBCARPETA (cámbiala para moverlo; vacío = la principal)", Tema.Pequena, Tema.TextoSuave, x3, y3 + 268, w3, 18));
+        vista2.Add(Texto("SUBCARPETA (opcional: cámbiala solo si quieres moverlo)", Tema.Pequena, Tema.TextoSuave, x3, y3 + 268, w3, 18));
         vista2.Add(Pos(cmbCarpeta2, x3, y3 + 286, w3, 30));
         int b3 = (w3 - 24) / 3;
         vista2.Add(Pos(btnQuitar, x3, y3 + 326, b3, 36));

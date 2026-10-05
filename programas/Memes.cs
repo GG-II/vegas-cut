@@ -373,7 +373,7 @@ class VentanaMemesApp : VentanaBase
         panelTags1.Add(Pos(txtDesc1, x2, yt + 258, w2, 32));
         panelTags1.Add(Texto("CU\u00c1NDO USARLO", Tema.Pequena, Tema.TextoSuave, x2, yt + 298, w2, 18));
         panelTags1.Add(Pos(txtUso1, x2, yt + 318, w2, 32));
-        panelTags1.Add(Texto("GUARDAR EN SUBCARPETA (vac\u00eda = la principal; escribe una nueva)", Tema.Pequena, Tema.TextoSuave, x2, yt + 358, w2, 18));
+        panelTags1.Add(Texto("SUBCARPETA (opcional: vac\u00eda = tu carpeta de memes)", Tema.Pequena, Tema.TextoSuave, x2, yt + 358, w2, 18));
         panelTags1.Add(Pos(cmbCarpeta1, x2, yt + 378, w2, 30));
         panelTags1.Add(Pos(btnIA1, x2, yt + 418, w2, 32));
         panelTags1.Add(Pos(btnNoEra, x2, yt + 460, 110, 44));
@@ -411,7 +411,7 @@ class VentanaMemesApp : VentanaBase
         vista2.Add(Pos(txtDesc2, x3, y3 + 178, w3, 30));
         vista2.Add(Texto("CU\u00c1NDO USARLO", Tema.Pequena, Tema.TextoSuave, x3, y3 + 214, w3, 18));
         vista2.Add(Pos(txtUso2, x3, y3 + 232, w3, 30));
-        vista2.Add(Texto("SUBCARPETA (c\u00e1mbiala para moverlo; vac\u00edo = la principal)", Tema.Pequena, Tema.TextoSuave, x3, y3 + 268, w3, 18));
+        vista2.Add(Texto("SUBCARPETA (opcional: c\u00e1mbiala solo si quieres moverlo)", Tema.Pequena, Tema.TextoSuave, x3, y3 + 268, w3, 18));
         vista2.Add(Pos(cmbCarpeta2, x3, y3 + 286, w3, 30));
         int b3 = (w3 - 24) / 3;
         vista2.Add(Pos(btnQuitar, x3, y3 + 326, b3, 36));
@@ -2681,7 +2681,9 @@ class AvisoGemini : ControlBase
                 }
                 a.SetBounds(v.ClientSize.Width - 24 - 420, 10, 420, 52);
                 a.BringToFront();
-                a.texto = Texto(Gemini.Segundos, out a.lento);
+                bool lento;
+                a.texto = Texto(Gemini.Segundos, out lento);
+                a.lento = lento;
                 a.detalle = Gemini.Detalle;
                 if (a.detalle.Length == 0)
                     a.detalle = a.lento ? "Tarda m\u00e1s de lo normal: puedes cancelar y pedirlo otra vez." : "Puede tardar uno o dos minutos.";
