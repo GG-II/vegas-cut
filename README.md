@@ -28,11 +28,13 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 **Flujo para una serie de TV (como SCR):** *PrepararEpisodio* → *ProducirCapitulo* (desde la copia
 BASE) → grabar la narración con el guion → *Reemplazar placeholders* (PulirEpisodio) → *PasoFinal*.
 
-**Flujo sugerido para un gameplay:** *PrepararEpisodio* (o *Quitar silencios* → *Transcribir*) →
-*Momentos con IA* → revisar → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores*
-→ música → *Música que baja sola* → *Censurar palabrotas*. La transcripción sigue los cortes que hacen estas
-herramientas, incluso si los deshaces con Ctrl+Z. Si después editas a mano no hace falta volver a
-transcribir: los textos usan los marcadores anclados y la música mide las voces en el momento.
+**Flujo sugerido para un gameplay (o cualquier video):** (*VariosPOV* si hay otro POV, antes de
+quitar silencios) → *PrepararEpisodio* (quita silencios, transcribe, guarda la BASE y abre
+*MomentosIA*) → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores* (opcional) →
+*PasoFinal*: rellenar música, memes, balancear la música y censurar → exportar →
+*LimpiarVegasCut* cuando ya no lo vayas a tocar. La transcripción sigue los cortes, también los
+que haces a mano, así que **no hace falta volver a transcribir** (solo si agregas audio nuevo,
+como una narración). Los memes se preparan aparte con `programas/Memes.exe`.
 
 ## Estructura
 
