@@ -183,6 +183,85 @@ class PruebaIA
                   "Gemini: pide JSON, manda instrucciones y transcripción");
         Verificar(respuesta.StartsWith("{") && !respuesta.Contains("pensando"), "Gemini: quita el razonamiento y las cercas ```json");
 
+        // ------------------------------- Gemini: reintentos, limite y cancelar
+        HttpListener srv2 = new HttpListener();
+        string url2 = "http://localhost:" + (19000 + new Random().Next(1000)) + "/v1beta/";
+        srv2.Prefixes.Add(url2);
+        srv2.Start();
+        int pedidos = 0;
+        string modo = "saturado";
+        Thread hilo2 = new Thread(delegate ()
+        {
+            while (true)
+            {
+                HttpListenerContext ctx;
+                try { ctx = srv2.GetContext(); } catch { return; }
+                HttpListenerContext cx = ctx;
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    int n = Interlocked.Increment(ref pedidos);
+                    try
+                    {
+                        using (StreamReader sr = new StreamReader(cx.Request.InputStream)) sr.ReadToEnd();
+                        string salida;
+                        if (modo == "saturado" && n == 1)
+                        {
+                            cx.Response.StatusCode = 503;
+                            salida = "{\"error\":{\"message\":\"The model is overloaded.\"}}";
+                        }
+                        else if (modo == "colgado") { Thread.Sleep(2500); salida = "{}"; }
+                        else salida = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"ok\\\":1}\"}]}}]}";
+                        byte[] b = Encoding.UTF8.GetBytes(salida);
+                        cx.Response.OutputStream.Write(b, 0, b.Length);
+                        cx.Response.Close();
+                    }
+                    catch { }
+                });
+            }
+        });
+        hilo2.IsBackground = true;
+        hilo2.Start();
+        Gemini.Base = url2;
+        Gemini.Pausas = new int[] { 0, 0 };
+        string r2 = null;
+        try { r2 = Gemini.Generar("k", "m", "x", "y", true); } catch (Exception ex) { r2 = ex.Message; }
+        Verificar(r2 == "{\"ok\":1}" && pedidos == 2 && !Gemini.Ocupado, "Gemini: si está saturado (503) lo vuelve a pedir solo (" + r2 + ", " + pedidos + " pedidos)");
+
+        modo = "colgado"; pedidos = 0;
+        Gemini.LimiteSegundos = 1; Gemini.Pausas = new int[] { 0 };
+        string e2 = "";
+        DateTime t0 = DateTime.Now;
+        try { Gemini.Generar("k", "m", "x", "y", true); } catch (ErrorGemini ex) { e2 = ex.Message + (ex.Reintentable ? " [r]" : ""); }
+        Verificar(e2.Contains("no respondió") && pedidos == 2 && (DateTime.Now - t0).TotalSeconds < 5,
+                  "Gemini: si no responde a tiempo, corta, reintenta una vez y avisa (" + e2 + ", " + pedidos + " pedidos)");
+
+        Gemini.LimiteSegundos = 60; Gemini.Pausas = new int[] { 0, 0 };
+        Thread.Sleep(2600); // que terminen los pedidos colgados
+        bool vioOcupado = false, cancelado = false;
+        double tardo = 0;
+        Thread cliente = new Thread(delegate ()
+        {
+            DateTime t1 = DateTime.Now;
+            try { Gemini.Generar("k", "m", "x", "y", true); } catch (ErrorGemini ex) { cancelado = ex.Cancelado; }
+            tardo = (DateTime.Now - t1).TotalSeconds;
+        });
+        cliente.Start();
+        for (int i = 0; i < 40 && !Gemini.Ocupado; i++) Thread.Sleep(25);
+        Thread.Sleep(300);
+        vioOcupado = Gemini.Ocupado && Gemini.Segundos >= 0.2;
+        Gemini.Cancelar();
+        cliente.Join(5000);
+        bool otroCancelado = false;
+        try { Gemini.Generar("k", "m", "x", "y", true); } catch (ErrorGemini ex) { otroCancelado = ex.Cancelado; }
+        Verificar(vioOcupado && cancelado && tardo < 1.5 && !Gemini.Ocupado && otroCancelado,
+                  "Gemini: «Cancelar» corta la consulta al momento (y los lotes que siguen del mismo trabajo)");
+        bool lento;
+        string aviso = AvisoGemini.Texto(125, out lento);
+        Verificar(aviso == "Gemini pensando · 2:05" && lento && AvisoGemini.Texto(42, out lento) == "Gemini pensando · 0:42" && !lento,
+                  "aviso de espera: reloj y aviso de que tarda más de lo normal");
+        srv2.Stop();
+        Gemini.Pausas = new int[] { 5, 15, 30 }; Gemini.LimiteSegundos = 240;
+
         // --------------------------------------------------- Respuesta IA
         ResultadoIA res = ResultadoIA.Leer(respuesta, 26.7);
         Verificar(res.Resumen == "Construyen una base." && res.Momentos[0].Titulo == "A" && res.Titulos.Count == 2 &&

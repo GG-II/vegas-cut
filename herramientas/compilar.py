@@ -75,11 +75,20 @@ for _partes in HERRAMIENTAS.values():
     if 'comun/Serie.cs' in _partes and 'comun/TiposCapitulo.cs' not in _partes:
         _partes.insert(_partes.index('comun/Serie.cs') + 1, 'comun/TiposCapitulo.cs')
 
+# Donde se habla con Gemini, las ventanas muestran el aviso de espera con «Cancelar».
+def _aviso(partes):
+    if 'comun/Gemini.cs' in partes and 'comun/Ui.cs' in partes and 'comun/AvisoGemini.cs' not in partes:
+        partes.insert(partes.index('comun/Ui.cs') + 1, 'comun/AvisoGemini.cs')
+for _partes in HERRAMIENTAS.values():
+    _aviso(_partes)
+
 # Programas aparte (fuera de Vegas): se compilan con el csc de Windows (ver programas/*.bat).
 PROGRAMAS = {
     'Memes': ['memes/cabecera.txt', 'memes/MemesApp.cs', 'comun/Memes.cs', 'comun/Json.cs',
               'comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
 }
+for _partes in PROGRAMAS.values():
+    _aviso(_partes)
 
 def separar_usings(texto):
     usings, cuerpo, en_cabeza = [], [], True

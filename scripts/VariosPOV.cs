@@ -2437,6 +2437,40 @@ public static class Gemini
     // Se puede cambiar solo para pruebas (servidor local que imita la API).
     public static string Base = "https://generativelanguage.googleapis.com/v1beta/";
 
+    // Cuanto se espera cada intento y las pausas antes de reintentar (segundos).
+    // Gemini a veces se queda colgado o contesta "saturado" (503/429): en vez de
+    // esperar sin fin, se corta y se vuelve a pedir solo.
+    public static int LimiteSegundos = 240;
+    public static int[] Pausas = { 5, 15, 30 };
+
+    // Estado de la consulta en curso, para el aviso con el reloj y \u00abCancelar\u00bb.
+    static readonly object candado = new object();
+    static readonly List<HttpWebRequest> enCurso = new List<HttpWebRequest>();
+    static int activas;
+    static DateTime inicio, cancelada = DateTime.MinValue;
+    static string detalle = "";
+
+    public static bool Ocupado { get { lock (candado) return activas > 0; } }
+    public static double Segundos { get { lock (candado) return activas > 0 ? (DateTime.Now - inicio).TotalSeconds : 0; } }
+    public static string Detalle { get { lock (candado) return detalle; } }
+
+    // Corta lo que se este pidiendo. Las consultas que se pidan en los
+    // segundos siguientes (lotes de un mismo trabajo) tambien se cancelan.
+    public static void Cancelar()
+    {
+        lock (candado)
+        {
+            cancelada = DateTime.Now;
+            foreach (HttpWebRequest r in enCurso) try { r.Abort(); } catch { }
+        }
+    }
+
+    static bool Cancelada(DateTime desde) { lock (candado) return cancelada >= desde || (DateTime.Now - cancelada).TotalSeconds < 3; }
+
+    static void Empezar() { lock (candado) { if (activas == 0) inicio = DateTime.Now; activas++; detalle = ""; } }
+    static void Terminar() { lock (candado) { activas = Math.Max(0, activas - 1); if (activas == 0) detalle = ""; } }
+    static void Anotar(string d) { lock (candado) detalle = d; }
+
     static HttpWebRequest Peticion(string url, string clave, string metodo)
     {
         // Vegas corre en .NET Framework: hay que activar TLS 1.2 a mano.
@@ -2444,8 +2478,8 @@ public static class Gemini
         HttpWebRequest r = (HttpWebRequest)WebRequest.Create(url);
         r.Method = metodo;
         r.Headers.Add("x-goog-api-key", clave);
-        r.Timeout = 10 * 60 * 1000;
-        r.ReadWriteTimeout = 10 * 60 * 1000;
+        r.Timeout = LimiteSegundos * 1000;
+        r.ReadWriteTimeout = LimiteSegundos * 1000;
         return r;
     }
 
@@ -2457,24 +2491,35 @@ public static class Gemini
             using (StreamReader sr = new StreamReader(resp.GetResponseStream(), Encoding.UTF8))
                 return sr.ReadToEnd();
         }
-        catch (WebException ex)
+        catch (WebException ex) { throw Error(ex); }
+    }
+
+    static ErrorGemini Error(WebException ex)
+    {
+        if (ex.Status == WebExceptionStatus.RequestCanceled) return new ErrorGemini("cancelaste la consulta.", false, true);
+        if (ex.Status == WebExceptionStatus.Timeout)
+            return new ErrorGemini("no respondi\u00f3 en " + (LimiteSegundos >= 60 ? LimiteSegundos / 60 + " min." : LimiteSegundos + " s."), true, false);
+        string detalle = ex.Message;
+        int codigo = 0;
+        HttpWebResponse h = ex.Response as HttpWebResponse;
+        if (h != null)
         {
-            string detalle = ex.Message;
-            if (ex.Response != null)
+            codigo = (int)h.StatusCode;
+            try
             {
-                try
+                using (StreamReader sr = new StreamReader(h.GetResponseStream(), Encoding.UTF8))
                 {
-                    using (StreamReader sr = new StreamReader(ex.Response.GetResponseStream(), Encoding.UTF8))
-                    {
-                        string cuerpo = sr.ReadToEnd();
-                        string msg = Json.Texto(Json.Obj(Json.Leer(cuerpo), "error"), "message");
-                        if (msg.Length > 0) detalle = msg;
-                    }
+                    string msg = Json.Texto(Json.Obj(Json.Leer(sr.ReadToEnd()), "error"), "message");
+                    if (msg.Length > 0) detalle = msg;
                 }
-                catch { }
             }
-            throw new Exception("Gemini: " + detalle);
+            catch { }
         }
+        // Saturado, limite por minuto, error del servidor o la conexion se cayo: vale reintentar.
+        bool reintentar = codigo == 429 || codigo == 500 || codigo == 502 || codigo == 503 || codigo == 504 ||
+                          (h == null && ex.Status != WebExceptionStatus.TrustFailure);
+        if (codigo == 503) detalle = "est\u00e1 saturado (" + detalle + ")";
+        return new ErrorGemini(detalle, reintentar, false);
     }
 
     // Modelos disponibles para esta clave que sirven para generar texto.
@@ -2530,13 +2575,9 @@ public static class Gemini
         if (json) config["responseMimeType"] = "application/json";
         cuerpo["generationConfig"] = config;
 
-        HttpWebRequest r = Peticion(Base + "models/" + Uri.EscapeDataString(modelo) + ":generateContent", clave, "POST");
-        r.ContentType = "application/json; charset=utf-8";
         byte[] datos = Encoding.UTF8.GetBytes(Json.Escribir(cuerpo, false));
-        r.ContentLength = datos.Length;
-        using (Stream s = r.GetRequestStream()) s.Write(datos, 0, datos.Length);
-
-        object resp = Json.Leer(Responder(r));
+        string url = Base + "models/" + Uri.EscapeDataString(modelo) + ":generateContent";
+        object resp = Json.Leer(Pedir(url, clave, datos));
         List<object> candidatos = Json.Lista(resp, "candidates");
         if (candidatos.Count == 0)
         {
@@ -2557,6 +2598,44 @@ public static class Gemini
         if (texto.Length == 0)
             throw new Exception("Gemini devolvi\u00f3 una respuesta vac\u00eda (" + Json.Texto(candidatos[0], "finishReason") + ").");
         return QuitarCercas(texto.ToString());
+    }
+
+    // Hace la peticion con reintentos; se puede cortar con Cancelar().
+    static string Pedir(string url, string clave, byte[] datos)
+    {
+        DateTime desde = DateTime.Now;
+        Empezar();
+        try
+        {
+            for (int intento = 0; ; intento++)
+            {
+                if (Cancelada(desde)) throw new ErrorGemini("cancelaste la consulta.", false, true);
+                HttpWebRequest r = Peticion(url, clave, "POST");
+                r.ContentType = "application/json; charset=utf-8";
+                r.ContentLength = datos.Length;
+                lock (candado) enCurso.Add(r);
+                try
+                {
+                    try { using (Stream s = r.GetRequestStream()) s.Write(datos, 0, datos.Length); }
+                    catch (WebException ex) { throw Error(ex); }
+                    return Responder(r);
+                }
+                catch (ErrorGemini e)
+                {
+                    if (e.Cancelado || Cancelada(desde)) throw new ErrorGemini("cancelaste la consulta.", false, true);
+                    if (!e.Reintentable || intento >= Pausas.Length) throw;
+                    int espera = Pausas[intento];
+                    for (int t = espera; t > 0; t--)
+                    {
+                        Anotar(e.Motivo + " Reintento " + (intento + 1) + " de " + Pausas.Length + " en " + t + " s\u2026");
+                        for (int k = 0; k < 10; k++) { if (Cancelada(desde)) break; Thread.Sleep(100); }
+                    }
+                    Anotar("Reintento " + (intento + 1) + " de " + Pausas.Length + " (" + e.Motivo + ")");
+                }
+                finally { lock (candado) enCurso.Remove(r); }
+            }
+        }
+        finally { Terminar(); }
     }
 
     static Dictionary<string, object> Partes(string texto, string rol)
@@ -2580,6 +2659,17 @@ public static class Gemini
             if (salto > 0 && fin > salto) s = s.Substring(salto + 1, fin - salto - 1).Trim();
         }
         return s;
+    }
+}
+
+// Error de la API. "Reintentable": saturado, sin respuesta a tiempo o sin conexion.
+public class ErrorGemini : Exception
+{
+    public readonly bool Reintentable, Cancelado;
+    public readonly string Motivo;
+    public ErrorGemini(string motivo, bool reintentable, bool cancelado) : base("Gemini: " + motivo)
+    {
+        Motivo = motivo; Reintentable = reintentable; Cancelado = cancelado;
     }
 }
 
@@ -3057,7 +3147,9 @@ class BarraProgreso : ControlBase
 }
 
 // Ventana base con el tema oscuro y la linea de acento bajo el titulo.
-class VentanaBase : Form
+// Es "partial" para que los scripts que hablan con Gemini le agreguen el aviso
+// de espera (comun/AvisoGemini.cs); los demas no lo llevan.
+partial class VentanaBase : Form
 {
     protected const int Margen = 24;
 
@@ -3074,7 +3166,10 @@ class VentanaBase : Form
         KeyPreview = true;
         ClientSize = new Size(ancho, 400);
         KeyDown += delegate (object s, KeyEventArgs e) { if (e.KeyCode == Keys.Escape) { DialogResult = DialogResult.Cancel; Close(); } };
+        Extras();
     }
+
+    partial void Extras();
 
     protected int Ancho { get { return ClientSize.Width - Margen * 2; } }
 
@@ -3098,5 +3193,125 @@ class VentanaBase : Form
     {
         base.OnPaint(e);
         using (SolidBrush b = new SolidBrush(Tema.Acento)) e.Graphics.FillRectangle(b, Margen, 76, 36, 3);
+    }
+}
+
+// ---- src/comun/AvisoGemini.cs ----
+
+// =====================================================================
+// Mientras Gemini responde, cada ventana muestra arriba a la derecha cuanto
+// lleva, si esta reintentando y un boton \u00abCancelar\u00bb. Cerrar la ventana a
+// mitad pregunta si cancelar la consulta (antes habia que esperar o matar Vegas).
+// =====================================================================
+
+partial class VentanaBase
+{
+    partial void Extras() { AvisoGemini.Enganchar(this); }
+}
+
+class AvisoGemini : ControlBase
+{
+    // A partir de aqui se avisa que esta tardando mas de lo normal.
+    public const int Normal = 90;
+
+    readonly Boton btn = new Boton("Cancelar", EstiloBoton.Secundario);
+    string texto = "", detalle = "";
+    bool lento;
+
+    AvisoGemini()
+    {
+        Visible = false;
+        Controls.Add(btn);
+        btn.Click += delegate { Gemini.Cancelar(); btn.Enabled = false; btn.Text = "Cancelando\u2026"; };
+    }
+
+    public static string Tiempo(double s)
+    {
+        int t = (int)s;
+        return (t / 60) + ":" + (t % 60).ToString("00");
+    }
+
+    // Texto del aviso (aparte para probarlo).
+    public static string Texto(double segundos, out bool lento)
+    {
+        lento = segundos >= Normal;
+        return "Gemini pensando \u00b7 " + Tiempo(segundos);
+    }
+
+    public static void Enganchar(VentanaBase v)
+    {
+        AvisoGemini a = new AvisoGemini();
+        v.Controls.Add(a);
+        bool cerrar = false;
+        int intentosCerrar = 0;
+        System.Windows.Forms.Timer reloj = new System.Windows.Forms.Timer();
+        reloj.Interval = 500;
+        reloj.Tick += delegate
+        {
+            bool ocupado = Gemini.Ocupado;
+            if (ocupado)
+            {
+                if (!a.Visible)
+                {
+                    a.btn.Enabled = true; a.btn.Text = "Cancelar";
+                    a.Visible = true;
+                }
+                a.SetBounds(v.ClientSize.Width - 24 - 420, 10, 420, 52);
+                a.BringToFront();
+                a.texto = Texto(Gemini.Segundos, out a.lento);
+                a.detalle = Gemini.Detalle;
+                if (a.detalle.Length == 0)
+                    a.detalle = a.lento ? "Tarda m\u00e1s de lo normal: puedes cancelar y pedirlo otra vez." : "Puede tardar uno o dos minutos.";
+                a.Invalidate();
+            }
+            else if (a.Visible) a.Visible = false;
+
+            // Se pidio cerrar a mitad: se cierra cuando la consulta ya se corto.
+            if (cerrar && !ocupado)
+            {
+                if (++intentosCerrar > 20) { cerrar = false; return; }
+                v.Close();
+            }
+        };
+        v.FormClosing += delegate (object s, FormClosingEventArgs e)
+        {
+            if (!Gemini.Ocupado || e.CloseReason != CloseReason.UserClosing) return;
+            e.Cancel = true;
+            if (cerrar) return;
+            if (MessageBox.Show(v, "Gemini todav\u00eda est\u00e1 respondiendo.\n\n\u00bfCancelar la consulta y cerrar?", "vegas-cut",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                Gemini.Cancelar();
+                cerrar = true; intentosCerrar = 0;
+            }
+        };
+        v.FormClosed += delegate { reloj.Stop(); reloj.Dispose(); };
+        reloj.Start();
+    }
+
+    protected override void OnLayout(LayoutEventArgs e)
+    {
+        btn.SetBounds(Width - 100, (Height - 30) / 2, 90, 30);
+        base.OnLayout(e);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        RectangleF r = new RectangleF(0.5f, 0.5f, Width - 1.5f, Height - 1.5f);
+        using (GraphicsPath p = Tema.Redondeado(r, 8))
+        {
+            using (SolidBrush b = new SolidBrush(Tema.Panel)) g.FillPath(b, p);
+            using (Pen pen = new Pen(lento ? Tema.Silencio : Tema.Acento)) g.DrawPath(pen, p);
+        }
+        // Puntito que late para que se note que sigue vivo.
+        int fase = (int)(DateTime.Now.Millisecond / 500);
+        using (SolidBrush b = new SolidBrush(fase == 0 ? Tema.Acento : Color.FromArgb(120, Tema.Acento))) g.FillEllipse(b, 12, 13, 9, 9);
+        int ancho = Width - 130;
+        TextRenderer.DrawText(g, texto, Tema.Negrita, new Rectangle(28, 6, ancho, 20), lento ? Tema.Silencio : Tema.Texto,
+                              TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+        TextRenderer.DrawText(g, detalle, Tema.Pequena, new Rectangle(28, 26, ancho, 20), Tema.TextoSuave,
+                              TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
     }
 }

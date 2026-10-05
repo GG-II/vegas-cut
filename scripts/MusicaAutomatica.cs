@@ -2520,7 +2520,9 @@ class BarraProgreso : ControlBase
 }
 
 // Ventana base con el tema oscuro y la linea de acento bajo el titulo.
-class VentanaBase : Form
+// Es "partial" para que los scripts que hablan con Gemini le agreguen el aviso
+// de espera (comun/AvisoGemini.cs); los demas no lo llevan.
+partial class VentanaBase : Form
 {
     protected const int Margen = 24;
 
@@ -2537,7 +2539,10 @@ class VentanaBase : Form
         KeyPreview = true;
         ClientSize = new Size(ancho, 400);
         KeyDown += delegate (object s, KeyEventArgs e) { if (e.KeyCode == Keys.Escape) { DialogResult = DialogResult.Cancel; Close(); } };
+        Extras();
     }
+
+    partial void Extras();
 
     protected int Ancho { get { return ClientSize.Width - Margen * 2; } }
 

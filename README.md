@@ -74,6 +74,24 @@ Se ejecuta una vez (y cuando quieras cambiar algo). Guarda en `%APPDATA%\vegas-c
 - **Faster-Whisper-XXL**: ruta del `.exe`, modelo, tarjeta o procesador y precisión.
   Guía: [`docs/instalar-whisper.md`](docs/instalar-whisper.md).
 
+#### Cuando Gemini tarda
+
+![Esperando a Gemini](docs/img/aviso-gemini.png)
+
+En cualquier ventana que le pide algo a Gemini sale arriba a la derecha **cuánto lleva** y un
+botón **Cancelar**. No hace falta cerrar Vegas:
+
+- **Se reintenta solo**: si Gemini contesta que está saturado (503), que pediste demasiado en
+  poco tiempo (429) o se cae la conexión, espera 5, 15 y 30 s y lo vuelve a pedir (lo ves en el
+  aviso). Si en 4 minutos no contesta nada, corta y lo pide una vez más.
+- **Cancelar** corta la consulta al momento; la ventana queda como estaba y puedes volver a
+  pedirlo (con otras notas o con otro modelo). Si cierras la ventana a mitad, pregunta si
+  cancelar.
+- Pasado minuto y medio el aviso se pone rojo: es más de lo normal. Lo que más tarda es lo que
+  manda mucho material (analizar un capítulo largo en *Producir*, *Momentos* en un video
+  largo). Los modelos *Pro* piensan más y tardan más que los *Flash*; si te pasa seguido, prueba
+  `gemini-flash-latest` en la configuración.
+
 ### `Transcribir.cs`
 
 ![Transcribir](docs/img/transcribir.png)
