@@ -111,7 +111,8 @@ quién habla y el nivel de sonido por segundo de cada pista. El audio no sale de
 
 ![Momentos con IA](docs/img/momentos-ia.png)
 
-Necesita la transcripción y la clave de Gemini.
+Necesita la transcripción y, para **Pedir a Gemini**, la clave. Sin clave (o si prefieres otra IA)
+está el modo por chat, más abajo.
 
 1. Elige el **tipo de video**, la **duración mínima y máxima**, los **nombres** de las personas
    y, si quieres, **indicaciones de este episodio** ("es el episodio 3, que se entienda la historia").
@@ -136,6 +137,21 @@ Necesita la transcripción y la clave de Gemini.
    - **Duración garantizada:** si el corte pasa del máximo, se desmarcan los tramos de menor
      importancia (nunca el primero ni el último); si no llega al mínimo, se agregan los mejores
      candidatos que no se usaron. Todo queda visible y lo puedes cambiar.
+   - **Con otra IA, por chat (sin API):** en vez de *Pedir a Gemini*:
+     1. **Archivo para otra IA…** guarda `<proyecto>.vegascut-pedido-ia.txt` con todo (instrucciones,
+        reglas, tus indicaciones, transcripción con tiempos), lo copia al portapapeles y abre la
+        carpeta. Va el video completo de una vez (sin partes ni revisión automática).
+     2. Adjúntalo (o pégalo) en el chat de ChatGPT, Claude, Gemini web… Puedes conversar con ella
+        antes («que dure 12 min», «quita lo del inicio»), pero al final tiene que mandar el JSON.
+     3. **Importar respuesta…**: pega lo que respondió (aunque traiga texto alrededor) o abre el
+        `.json` que te dio. Si viene cortado o mal, te dice qué falla y **Copiar mensaje para que la
+        corrija** te da el texto para pedírselo.
+
+        ![Importar respuesta](docs/img/momentos-importar.png)
+
+     Desde ahí es igual que con Gemini: los mismos ajustes de duración y de palabras, el historial
+     y *Aplicar corte*. Puedes cerrar Vegas entre medio. Si cambias el proyecto entre generar el
+     archivo e importar, te avisa: genera el archivo otra vez.
 3. Revisa las pestañas y desmarca lo que no quieras:
    - **Corte**: tramos a conservar, en orden, cerca de la duración objetivo. Los bordes se
      ajustan para no partir palabras. La columna **Velocidad** dice si un tramo va normal o

@@ -262,6 +262,22 @@ class PruebaIA
         srv2.Stop();
         Gemini.Pausas = new int[] { 5, 15, 30 }; Gemini.LimiteSegundos = 240;
 
+        // ------------------------------------- Otra IA por chat (sin API)
+        string archivoChat = PeticionIA.ArchivoChat(t4, 26.7, op);
+        string charla = "¡Claro! Aquí está el corte:\n\n```json\n{\"resumen\": \"x\", \"corte\": [{\"inicio\": 11, \"fin\": 20, \"titulo\": \"A\"}]}\n```\n\nEspero que te sirva.";
+        string limpio = PeticionIA.ExtraerJson(charla);
+        string sinCercas = PeticionIA.ExtraerJson("Respuesta: {\"corte\": [{\"inicio\": 1, \"fin\": 2}]} fin");
+        string ec1 = "", ec2 = "", ec3 = "";
+        try { PeticionIA.ExtraerJson("No puedo ayudarte con eso."); } catch (FormatException ex) { ec1 = ex.Message; }
+        try { PeticionIA.ExtraerJson("```json\n{\"corte\": [{\"inicio\": 1, \"fin\": \n```"); } catch (FormatException ex) { ec2 = ex.Message; }
+        try { PeticionIA.ExtraerJson("{\"resumen\": \"solo esto\"}"); } catch (FormatException ex) { ec3 = ex.Message; }
+        Verificar(archivoChat.Contains("INSTRUCCIONES") && archivoChat.Contains("DATOS") && archivoChat.Contains("Gerbert: Hola a todos.") &&
+                  archivoChat.Contains("Conserva lo gracioso") && archivoChat.Contains("respuesta.json") &&
+                  limpio.StartsWith("{") && limpio.EndsWith("}") && ResultadoIA.Leer(limpio, 26.7).Corte.Count == 1 &&
+                  sinCercas.StartsWith("{\"corte\"") && ec1.Contains("no trae") && ec2.Contains("cortada") && ec3.Contains("corte") &&
+                  PeticionIA.MensajeCorreccion("La respuesta " + ec3).Contains("JSON"),
+                  "otra IA por chat: un archivo con instrucciones y transcripción; la respuesta se importa aunque traiga texto alrededor, y si viene mal dice qué corregir");
+
         // --------------------------------------------------- Respuesta IA
         ResultadoIA res = ResultadoIA.Leer(respuesta, 26.7);
         Verificar(res.Resumen == "Construyen una base." && res.Momentos[0].Titulo == "A" && res.Titulos.Count == 2 &&

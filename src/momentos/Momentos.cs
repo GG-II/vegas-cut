@@ -105,7 +105,7 @@ class VentanaMomentos : VentanaBase
 {
     readonly Vegas vegas;
     readonly Transcripcion transcripcion;
-    readonly string rutaTranscripcion, rutaIA, rutaInforme, rutaHistorial;
+    readonly string rutaTranscripcion, rutaIA, rutaInforme, rutaHistorial, rutaPedido, rutaPedidoInfo;
     readonly Configuracion config = Configuracion.Cargar();
     readonly double total;
     ResultadoIA resultado;
@@ -128,6 +128,9 @@ class VentanaMomentos : VentanaBase
     Combo comboModelo = new Combo(true);
     Etiqueta lblModelo;
     Boton btnPedir = new Boton("Pedir a Gemini", EstiloBoton.Primario);
+    // Sin API: un archivo con todo para el chat de otra IA, y luego pegar o abrir su respuesta.
+    Boton btnExportar = new Boton("Archivo para otra IA…", EstiloBoton.Secundario);
+    Boton btnImportar = new Boton("Importar respuesta…", EstiloBoton.Secundario);
     Etiqueta lblEstado;
 
     Combo comboHistorial = new Combo();
@@ -157,10 +160,12 @@ class VentanaMomentos : VentanaBase
         rutaIA = baseNombre + ".vegascut-ia.json";
         rutaInforme = baseNombre + ".vegascut-informe.md";
         rutaHistorial = baseNombre + ".vegascut-ia-historial";
+        rutaPedido = baseNombre + ".vegascut-pedido-ia.txt";
+        rutaPedidoInfo = baseNombre + ".vegascut-pedido-ia.json";
         total = vegas.Project.Length.ToMilliseconds() / 1000.0;
 
         int m = Margen, w = Ancho;
-        Encabezado("Momentos con IA", "Gemini lee la transcripción y la intensidad del sonido, y sugiere qué conservar.");
+        Encabezado("Momentos con IA", "Gemini (o la IA que uses en su chat) lee la transcripción y la intensidad del sonido, y sugiere qué conservar.");
 
         // Estado de la transcripcion
         string aviso = t.Sincronizar(total);
@@ -223,8 +228,10 @@ class VentanaMomentos : VentanaBase
         lblModelo = Texto("", Tema.Pequena, Tema.AcentoHover, m, y + 36, ci, 32);
         y += 72;
         Pos(btnPedir, m, y, ci, 42);
-        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 48, ci, 48);
-        int fondoIzq = y + 100;
+        Pos(btnExportar, m, y + 48, (ci - 8) / 2, 32);
+        Pos(btnImportar, m + (ci - 8) / 2 + 8, y + 48, ci - (ci - 8) / 2 - 8, 32);
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y + 86, ci, 48);
+        int fondoIzq = y + 138;
 
         // ---------------- Columna derecha: resultado
         int dx = m + ci + 24, dw = w - ci - 24, dy = 130;
@@ -259,6 +266,8 @@ class VentanaMomentos : VentanaBase
         // Eventos
         pestanas.Cambio += delegate { MostrarPestana(); };
         btnPedir.Click += delegate { Pedir(); };
+        btnExportar.Click += delegate { ExportarPedido(); };
+        btnImportar.Click += delegate { ImportarRespuesta(); };
         btnInforme.Click += delegate { GuardarInforme(); };
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnFijar.Click += delegate { Fijar(); };
@@ -301,7 +310,7 @@ class VentanaMomentos : VentanaBase
         if (!config.TieneGemini)
         {
             btnPedir.Enabled = false;
-            Estado("Falta la clave de Gemini: ejecuta “ConfigurarVegasCut”.", true);
+            Estado("Sin clave de Gemini: usa «Archivo para otra IA…» y luego «Importar respuesta…» (o pon la clave con “ConfigurarVegasCut”).", true);
         }
         MostrarResultado();
         Shown += delegate { if (PedirAlAbrir && btnPedir.Enabled) Pedir(); };
@@ -558,7 +567,7 @@ class VentanaMomentos : VentanaBase
         }
         catch (Exception ex)
         {
-            Estado("La respuesta de Gemini no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true);
+            Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true);
             return;
         }
 
@@ -567,6 +576,20 @@ class VentanaMomentos : VentanaBase
         guardar["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         guardar["modelo"] = modelo;
         guardar["duracionProyecto"] = total;
+        guardar["opciones"] = OpcionesGuardadas();
+        guardar["respuesta"] = respuesta;
+        guardar["revision"] = revision;
+        GuardarRespuesta(guardar);
+
+        aplicado = false;
+        vigente = true;
+        Estado("✔ Listo. Revisa las pestañas; desmarca lo que no quieras." +
+               (nota.Length > 0 ? " Ajustes automáticos: " + nota + "." : ""), false);
+        MostrarResultado();
+    }
+
+    Dictionary<string, object> OpcionesGuardadas()
+    {
         Dictionary<string, object> op = new Dictionary<string, object>();
         op["tipo"] = opciones.Tipo;
         op["minutosMin"] = opciones.MinutosMin;
@@ -578,9 +601,12 @@ class VentanaMomentos : VentanaBase
         List<object> ctx = new List<object>();
         foreach (CapSerie c in capitulos) if (c.Elegido && c.Relacion != 0 && c.TieneFicha) ctx.Add(c.Nombre);
         op["contexto"] = ctx;
-        guardar["opciones"] = op;
-        guardar["respuesta"] = respuesta;
-        guardar["revision"] = revision;
+        return op;
+    }
+
+    // Cada respuesta va al historial, y la ultima aparte.
+    void GuardarRespuesta(Dictionary<string, object> guardar)
+    {
         string texto = Json.Escribir(guardar);
         try
         {
@@ -592,12 +618,52 @@ class VentanaMomentos : VentanaBase
         cargando = true;
         LlenarHistorial();
         cargando = false;
+    }
 
-        aplicado = false;
-        vigente = true;
-        Estado("✔ Listo. Revisa las pestañas; desmarca lo que no quieras." +
-               (nota.Length > 0 ? " Ajustes automáticos: " + nota + "." : ""), false);
-        MostrarResultado();
+    // ------------------------------------------------------- otra IA (chat)
+
+    void ExportarPedido()
+    {
+        LeerOpciones();
+        try { transcripcion.Guardar(rutaTranscripcion); } catch { }
+        string texto = PeticionIA.ArchivoChat(transcripcion, total, opciones);
+        try
+        {
+            File.WriteAllText(rutaPedido, texto, new UTF8Encoding(false));
+            Dictionary<string, object> info = new Dictionary<string, object>();
+            info["fecha"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            info["duracionProyecto"] = total;
+            info["opciones"] = OpcionesGuardadas();
+            File.WriteAllText(rutaPedidoInfo, Json.Escribir(info), new UTF8Encoding(false));
+        }
+        catch (Exception ex) { Estado("No se pudo guardar el archivo: " + ex.Message, true); return; }
+        bool copiado = false;
+        try { Clipboard.SetText(texto); copiado = true; } catch { }
+        try { System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + rutaPedido + "\""); } catch { }
+        Estado("✔ «" + Path.GetFileName(rutaPedido) + "» (" + Math.Max(1, texto.Length / 1024) + " KB)" + (copiado ? ", también copiado" : "") +
+               ". Adjúntalo (o pégalo) en el chat de tu IA y luego «Importar respuesta…».", false);
+    }
+
+    void ImportarRespuesta()
+    {
+        string json;
+        using (DialogoRespuestaIA d = new DialogoRespuestaIA(Path.GetDirectoryName(rutaPedido)))
+        {
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            json = d.Json;
+        }
+        // El pedido se hizo con el proyecto de ese momento: si cambio, los tiempos ya no cuadran.
+        double duracionPedido = total;
+        try { if (File.Exists(rutaPedidoInfo)) duracionPedido = Json.Numero(Json.Leer(File.ReadAllText(rutaPedidoInfo, Encoding.UTF8)), "duracionProyecto", total); }
+        catch { }
+        if (Math.Abs(duracionPedido - total) > 0.5)
+        {
+            Estado("El proyecto cambió desde que generaste el archivo (duraba " + Formato.Tiempo(duracionPedido) + ", ahora " +
+                   Formato.Tiempo(total) + "): los tiempos no cuadrarían. Genera el archivo otra vez.", true);
+            return;
+        }
+        LeerOpciones();
+        Recibir(json, "", "otra IA (chat)");
     }
 
     // ------------------------------------------------------- mostrar
@@ -920,5 +986,74 @@ class VentanaMomentos : VentanaBase
     {
         foreach (Rango r in rangos) if (t > r.Inicio && t < r.Fin) return true;
         return false;
+    }
+}
+
+// Pegar (o abrir) la respuesta que dio otra IA en su chat.
+class DialogoRespuestaIA : VentanaBase
+{
+    public string Json = "";
+    readonly CampoTexto txt = new CampoTexto();
+    readonly Etiqueta lblError;
+    readonly Boton btnAbrir = new Boton("Abrir archivo…", EstiloBoton.Secundario);
+    readonly Boton btnCorregir = new Boton("Copiar mensaje para que la corrija", EstiloBoton.Secundario);
+    readonly Boton btnImportar = new Boton("Importar", EstiloBoton.Primario);
+    readonly Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
+    string problema = "";
+
+    public DialogoRespuestaIA(string carpeta) : base("Importar respuesta", 760)
+    {
+        StartPosition = FormStartPosition.CenterParent;
+        int m = Margen, w = Ancho;
+        Encabezado("Importar respuesta", "Pega lo que respondió la IA (puede traer texto alrededor) o abre el archivo que te dio.");
+        int y = 92;
+        txt.Multilinea = true;
+        Pos(txt, m, y, w, 330);
+        y += 340;
+        lblError = Texto("", Tema.Pequena, Tema.Silencio, m, y, w, 36);
+        y += 42;
+        Pos(btnAbrir, m, y, 150, 40);
+        Pos(btnCorregir, m + 160, y, 260, 40);
+        btnCorregir.Visible = false;
+        Pos(btnCancelar, m + w - 270, y, 120, 40);
+        Pos(btnImportar, m + w - 140, y, 140, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        btnAbrir.Click += delegate
+        {
+            using (OpenFileDialog d = new OpenFileDialog())
+            {
+                d.Filter = "Respuesta (*.json;*.txt;*.md)|*.json;*.txt;*.md|Todos|*.*";
+                if (Directory.Exists(carpeta)) d.InitialDirectory = carpeta;
+                if (d.ShowDialog(this) != DialogResult.OK) return;
+                try { txt.Text = File.ReadAllText(d.FileName, Encoding.UTF8); } catch (Exception ex) { Error("No se pudo leer: " + ex.Message); return; }
+            }
+            Importar();
+        };
+        btnCorregir.Click += delegate
+        {
+            try { Clipboard.SetText(PeticionIA.MensajeCorreccion(problema)); lblError.Text = "Copiado: pégalo en el chat y luego pega aquí la respuesta nueva."; }
+            catch { }
+        };
+        btnImportar.Click += delegate { Importar(); };
+        btnCancelar.Click += delegate { DialogResult = DialogResult.Cancel; Close(); };
+    }
+
+    void Error(string t) { lblError.Text = t; }
+
+    void Importar()
+    {
+        try
+        {
+            Json = PeticionIA.ExtraerJson(txt.Text);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        catch (FormatException ex)
+        {
+            problema = "La respuesta " + ex.Message;
+            Error(problema + " Pídele a la IA que la corrija:");
+            btnCorregir.Visible = true;
+        }
     }
 }

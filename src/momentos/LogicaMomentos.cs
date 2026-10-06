@@ -647,6 +647,60 @@ public static class PeticionIA
     }
 
     // Mensaje con la transcripcion e intensidad en la linea de tiempo actual.
+    // ------------------------------------------- otra IA (por chat, sin API)
+
+    // Todo en un solo archivo para pegarlo o adjuntarlo en el chat de cualquier IA
+    // (ChatGPT, Claude, Gemini web...). Va el video completo de una vez: esas IAs
+    // aguantan textos largos y asi es una sola ida y vuelta.
+    public static string ArchivoChat(Transcripcion t, double duracionActual, OpcionesIA op)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("PEDIDO DE vegas-cut (MomentosIA)\n");
+        sb.Append("Lee TODO este archivo y responde con lo que piden las INSTRUCCIONES, usando los DATOS del final.\n");
+        sb.Append("Tu respuesta se importa automáticamente: entrega SOLO el JSON (en un bloque ```json, o como archivo " +
+                  "respuesta.json si puedes crear archivos), sin texto antes ni después. Si el video es largo, no resumas " +
+                  "de más: cubre todo el video.\n\n");
+        sb.Append("==================== INSTRUCCIONES ====================\n\n");
+        sb.Append(Instrucciones(op).Trim());
+        sb.Append("\n\n==================== DATOS ====================\n\n");
+        sb.Append(Mensaje(t, duracionActual, op).Trim());
+        sb.Append("\n\n==================== RECUERDA ====================\n");
+        sb.Append("Responde SOLO con el objeto JSON con las claves indicadas (resumen, secciones, momentos, corte, textos, " +
+                  "shorts, titulos). Tiempos en segundos de la transcripción. Suma las duraciones del corte y corrige " +
+                  "antes de responder si no queda entre " + op.MinutosMin + " y " + op.MinutosMax + " minutos.\n");
+        return sb.ToString();
+    }
+
+    // Saca el JSON de lo que devolvio el chat: tolera texto alrededor y bloques ```json.
+    public static string ExtraerJson(string texto)
+    {
+        string s = (texto ?? "").Trim();
+        if (s.Length == 0) throw new FormatException("está vacía.");
+        int bloque = s.IndexOf("```");
+        if (bloque >= 0)
+        {
+            int salto = s.IndexOf('\n', bloque);
+            int fin = salto > 0 ? s.IndexOf("```", salto) : -1;
+            if (salto > 0 && fin > salto) s = s.Substring(salto + 1, fin - salto - 1).Trim();
+        }
+        int a = s.IndexOf('{'), b = s.LastIndexOf('}');
+        if (a < 0) throw new FormatException("no trae un objeto JSON ({ … }).");
+        if (b <= a) throw new FormatException("está cortada: el JSON no termina (quizá se quedó sin espacio).");
+        s = s.Substring(a, b - a + 1);
+        object o;
+        try { o = Json.Leer(s); }
+        catch (Exception ex) { throw new FormatException("el JSON está mal formado o cortado (" + ex.Message + ")."); }
+        if (Json.Lista(o, "corte").Count == 0) throw new FormatException("no trae la lista \"corte\" con los tramos a conservar.");
+        return s;
+    }
+
+    // Lo que hay que decirle al chat para que corrija.
+    public static string MensajeCorreccion(string problema)
+    {
+        return "Tu respuesta no se pudo importar: " + problema + " Mándala otra vez completa, SOLO como el objeto JSON " +
+               "con el mismo formato que pedían las instrucciones (en un bloque ```json), sin texto antes ni después.";
+    }
+
     public static string Mensaje(Transcripcion t, double duracionActual, OpcionesIA op)
     {
         StringBuilder sb = new StringBuilder();
