@@ -65,6 +65,12 @@ HERRAMIENTAS = {
                  COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
 }
 
+# MomentosIA arma montajes en orden libre con tarjetas de texto.
+for _nombre in ('MomentosIA', 'PrepararEpisodio'):
+    for _parte in ('textos/Generador.cs', 'comun/Rtf.cs'):
+        if _parte not in HERRAMIENTAS[_nombre]:
+            HERRAMIENTAS[_nombre].append(_parte)
+
 # La copia base va con el proceso (y con MomentosIA, que la guarda antes de cortar).
 for _nombre, _partes in HERRAMIENTAS.items():
     if ('comun/Proceso.cs' in _partes or _nombre == 'MomentosIA') and 'comun/CopiaBase.cs' not in _partes:

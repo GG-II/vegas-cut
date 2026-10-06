@@ -374,6 +374,36 @@ static class Editor
         marcas.Sort(delegate (Marker a, Marker b) { return b.Position.ToMilliseconds().CompareTo(a.Position.ToMilliseconds()); });
         foreach (Marker m in marcas) try { m.Position = Timecode.FromMilliseconds(m.Position.ToMilliseconds() + segundos * 1000); } catch { }
     }
+
+    // Copia lo que hay entre a y b (todas las pistas) a "destino". Los
+    // pedazos que estaban agrupados quedan agrupados entre si.
+    public static int CopiarTramo(Project p, double a, double b, double destino)
+    {
+        List<TrackEvent> origen = new List<TrackEvent>();
+        foreach (Track t in p.Tracks)
+            foreach (TrackEvent e in t.Events)
+                if (S(e.Start) < b - 0.001 && S(e.End) > a + 0.001) origen.Add(e);
+        Dictionary<TrackEventGroup, TrackEventGroup> grupos = new Dictionary<TrackEventGroup, TrackEventGroup>();
+        int n = 0;
+        foreach (TrackEvent e in origen)
+        {
+            double ini = Math.Max(a, S(e.Start)), fin = Math.Min(b, S(e.End));
+            double recorte = ini - S(e.Start);
+            double offset = e.ActiveTake != null ? S(e.ActiveTake.Offset) : 0;
+            TrackEvent c = e.Copy(e.Track, TC(destino + ini - a));
+            c.Length = TC(fin - ini);
+            if (c.ActiveTake != null && recorte > 0) c.ActiveTake.Offset = TC(offset + recorte * e.PlaybackRate);
+            try { c.FadeIn.Length = TC(0); c.FadeOut.Length = TC(0); } catch { }
+            n++;
+            if (e.IsGrouped)
+            {
+                TrackEventGroup g;
+                if (!grupos.TryGetValue(e.Group, out g)) { g = Editor.NuevoGrupo(p); grupos[e.Group] = g; }
+                if (!c.IsGrouped) g.Add(c);
+            }
+        }
+        return n;
+    }
 }
 
 // ---- src/comun/Audio.cs ----

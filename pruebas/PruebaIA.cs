@@ -3,6 +3,7 @@
 // un servidor local.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -277,6 +278,69 @@ class PruebaIA
                   sinCercas.StartsWith("{\"corte\"") && ec1.Contains("no trae") && ec2.Contains("cortada") && ec3.Contains("corte") &&
                   PeticionIA.MensajeCorreccion("La respuesta " + ec3).Contains("JSON"),
                   "otra IA por chat: un archivo con instrucciones y transcripción; la respuesta se importa aunque traiga texto alrededor, y si viene mal dice qué corregir");
+
+        // ------------------------------------- Montaje en orden libre
+        string teaser = "{\"corte\": [{\"inicio\": 50, \"fin\": 55, \"importancia\": 8, \"titulo\": \"Caos\", \"silenciar\": [\"Discord\"]}," +
+            "{\"tipo\": \"tarjeta\", \"texto\": \"STEEL\", \"duracion\": 1}," +
+            "{\"inicio\": 10, \"fin\": 20, \"accion\": \"acelerar\", \"velocidad\": 2, \"importancia\": 5}," +
+            "{\"tipo\": \"negro\", \"duracion\": 1}, {\"tipo\": \"nota\", \"texto\": \"música western\"}," +
+            "{\"inicio\": 50, \"fin\": 55, \"importancia\": 9, \"titulo\": \"Caos otra vez\"}]," +
+            "\"momentos\": [{\"inicio\": 12, \"fin\": 13, \"puntuacion\": 9, \"titulo\": \"Grito\"}]}";
+        ResultadoIA rm = ResultadoIA.Leer(teaser, 100);
+        ResultadoIA rnm = ResultadoIA.Leer("{\"corte\": [{\"inicio\": 0, \"fin\": 10}, {\"inicio\": 9, \"fin\": 20}]}", 100);
+        Verificar(rm.Montaje && !rnm.Montaje && rm.Corte.Count == 6 && rm.Corte[1].Tipo == "tarjeta" && rm.Corte[1].Texto == "STEEL" &&
+                  rm.Corte[2].Inicio == 10 && rm.Corte[5].Inicio == 50 && rm.Corte[0].Silenciar.Count == 1 && rm.Corte[4].Tipo == "nota" &&
+                  Cerca(rm.DuracionCorte, 5 + 1 + 5 + 1 + 0 + 5) && rnm.Corte.Count == 1 &&
+                  PeticionIA.Instrucciones(new OpcionesIA()).Contains("ORDEN LIBRE"),
+                  "montaje: el corte puede saltar, repetir clips y llevar tarjetas, negros y notas; lo encimado por poco sigue siendo un corte normal");
+        rm.AjustarDuracion(0, 12);
+        Verificar(rm.Corte[1].Elegido && rm.Corte[3].Elegido && rm.Corte[4].Elegido && rm.Corte[0].Elegido && rm.Corte[5].Elegido &&
+                  !rm.Corte[2].Elegido && rm.Corte[0].Inicio == 50 && rm.Corte[2].Inicio == 10,
+                  "montaje: el ajuste de duración nunca quita tarjetas ni el primero ni el último, y no reordena");
+        rm.Corte[2].Elegido = true;
+
+        Vegas vmt = new Vegas();
+        vmt.Generators.Hijos.Add(new PlugInNode { Name = "VEGAS Títulos y texto", UniqueID = "{Svfx:com.vegascreativesoftware:titlesandtext}" });
+        Project pmo = new Project();
+        pmo.Video.FrameRate = 25;
+        pmo.FilePath = Path.Combine(Path.GetTempPath(), "vc-montaje-" + Guid.NewGuid().ToString("N") + ".veg");
+        vmt.Project = pmo;
+        VideoTrack vmo = new VideoTrack(0, "Video"); pmo.Tracks.Add(vmo);
+        AudioTrack voces = new AudioTrack(1, "Voces"), discord = new AudioTrack(2, "Discord");
+        pmo.Tracks.Add(voces); pmo.Tracks.Add(discord);
+        vmo.AddVideoEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(100000)).ActiveTake = new Take { Media = new Media("juego.mp4") };
+        voces.AddAudioEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(100000)).ActiveTake = new Take { Media = new Media("voces.wav") };
+        discord.AddAudioEvent(Timecode.FromMilliseconds(0), Timecode.FromMilliseconds(100000)).ActiveTake = new Take { Media = new Media("discord.wav") };
+        pmo.Markers.Add(new Marker(Timecode.FromMilliseconds(52000), "mío"));
+        Transcripcion tmo = new Transcripcion();
+        tmo.Hablantes.Add(new Hablante { Etiqueta = "A2", Nombre = "Gerbert", Voz = true });
+        List<string> avm = new List<string>();
+        List<Ancla> anm;
+        double durm;
+        int npm = ArmarMontaje.Armar(vmt, rm, tmo, true, avm, out anm, out durm);
+        List<double> iniV = new List<double>();
+        foreach (TrackEvent e in vmo.Events) iniV.Add(Math.Round(e.Start.ToMilliseconds() / 100.0) / 10);
+        iniV.Sort();
+        bool discordMudo = false, discordSuena = false, vocesSuenan = false;
+        foreach (TrackEvent e in discord.Events)
+        {
+            double ini = e.Start.ToMilliseconds() / 1000.0;
+            if (Math.Abs(ini) < 0.05) discordMudo = e.Mute;
+            if (Math.Abs(ini - 12) < 0.05) discordSuena = !e.Mute;
+        }
+        foreach (TrackEvent e in voces.Events) if (e.Start.ToMilliseconds() < 50) vocesSuenan = !e.Mute;
+        Track pmontaje = pmo.Tracks.Find(delegate (Track x) { return x.Name == ArmarMontaje.PistaMontaje; });
+        Marker nota = pmo.Markers.Find(delegate (Marker x) { return x.Label == "NOTA: música western"; });
+        Marker grito = pmo.Markers.Find(delegate (Marker x) { return x.Label.StartsWith("★9"); });
+        Marker mio = pmo.Markers.Find(delegate (Marker x) { return x.Label == "mío"; });
+        Console.WriteLine("    montaje: " + String.Join(" ", iniV.ConvertAll(delegate (double dd) { return dd.ToString(CultureInfo.InvariantCulture); }).ToArray()) +
+                          " · dura " + durm + (avm.Count > 0 ? " · " + String.Join("; ", avm.ToArray()) : ""));
+        Verificar(npm == 5 && Cerca(durm, 17) && iniV.Count == 3 && Cerca(iniV[0], 0) && Cerca(iniV[1], 6) && Cerca(iniV[2], 12) &&
+                  discordMudo && discordSuena && vocesSuenan && pmontaje != null && pmontaje.Events.Count == 1 &&
+                  Cerca(pmontaje.Events[0].Start.ToMilliseconds() / 1000.0, 5) &&
+                  nota != null && Cerca(nota.Position.ToMilliseconds() / 1000.0, 12) && grito != null && Cerca(grito.Position.ToMilliseconds() / 1000.0, 7) &&
+                  mio != null && Cerca(mio.Position.ToMilliseconds() / 1000.0, 2) && avm.Count == 0,
+                  "montaje armado: clips en su orden (repetidos), tarjeta sobre negro, negro, nota como marcador, Discord silenciado solo donde se pidió, acelerado y marcadores reubicados");
 
         // --------------------------------------------------- Respuesta IA
         ResultadoIA res = ResultadoIA.Leer(respuesta, 26.7);

@@ -25,11 +25,22 @@ public class Tramo
     public bool Acelerar;          // en el corte: se conserva pero mas rapido
     public double Velocidad = 1;   // 2 = el doble de rapido
     public bool Fijo;              // lo elegiste tu: ni la IA ni los ajustes lo quitan
+    // Montaje en orden libre: ademas de clips puede haber piezas sin material.
+    public string Tipo = "";       // "" = clip; "tarjeta" (texto sobre negro), "negro" o "nota" (marcador)
+    public string Texto = "";      // de la tarjeta o la nota
+    public double Segundos;        // lo que dura una tarjeta o el negro
+    public List<string> Silenciar = new List<string>(); // pistas o personas que no suenan en este clip
 
+    public bool EsClip { get { return Tipo.Length == 0; } }
     public double Duracion { get { return Fin - Inicio; } }
-    public object MemberwiseCopia() { return MemberwiseClone(); }
+    public object MemberwiseCopia()
+    {
+        Tramo t = (Tramo)MemberwiseClone();
+        t.Silenciar = new List<string>(Silenciar);
+        return t;
+    }
     // Lo que dura en el video final.
-    public double DuracionFinal { get { return Acelerar ? Duracion / Velocidad : Duracion; } }
+    public double DuracionFinal { get { return !EsClip ? Segundos : Acelerar ? Duracion / Velocidad : Duracion; } }
 }
 
 public class TextoResumen
@@ -67,6 +78,9 @@ public class ResultadoIA
     public List<Tramo> Candidatos = new List<Tramo>();
 
     public bool FijosCuentan = true;
+    // El corte no va en el orden del video (teaser, flashback, clips repetidos,
+    // tarjetas): se arma copiando cada pieza en su lugar en vez de quitar lo demas.
+    public bool Montaje;
 
     public double DuracionFijos
     {
@@ -128,7 +142,14 @@ public class ResultadoIA
         r.Momentos = Tramos(o, "momentos", total);
         r.Momentos.Sort(delegate (Tramo a, Tramo b) { return b.Puntuacion.CompareTo(a.Puntuacion); });
         r.Shorts = Tramos(o, "shorts", total);
-        r.Corte = UnirSolapados(Tramos(o, "corte", total));
+        List<Tramo> piezas = Piezas(o, total);
+        r.Montaje = EsMontaje(piezas);
+        if (r.Montaje) r.Corte = piezas;
+        else
+        {
+            piezas.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+            r.Corte = UnirSolapados(piezas);
+        }
         r.Candidatos = Tramos(o, "candidatos", total);
         foreach (object x in Json.Lista(o, "textos"))
         {
@@ -142,6 +163,64 @@ public class ResultadoIA
         foreach (object x in Json.Lista(o, "titulos"))
             if (x is string && ((string)x).Length > 0) r.Titulos.Add((string)x);
         return r;
+    }
+
+    // El corte tal como viene (sin ordenar), con tarjetas, negros y notas.
+    static List<Tramo> Piezas(object o, double total)
+    {
+        List<Tramo> r = new List<Tramo>();
+        foreach (object x in Json.Lista(o, "corte"))
+        {
+            string tipo = Json.Texto(x, "tipo").Trim().ToLowerInvariant();
+            if (tipo == "clip" || tipo == "tramo") tipo = "";
+            if (tipo == "texto" || tipo == "cartel" || tipo == "titulo") tipo = "tarjeta";
+            if (tipo == "pausa" || tipo == "silencio") tipo = "negro";
+            if (tipo == "marcador") tipo = "nota";
+            Tramo t = new Tramo();
+            t.Titulo = Json.Texto(x, "titulo");
+            t.Motivo = Json.Texto(x, "motivo");
+            t.Puntuacion = Json.Numero(x, "importancia", Json.Numero(x, "puntuacion", 0));
+            if (tipo.Length > 0)
+            {
+                if (tipo != "tarjeta" && tipo != "negro" && tipo != "nota") continue;
+                t.Tipo = tipo;
+                t.Texto = Json.Texto(x, "texto");
+                if (t.Texto.Length == 0) t.Texto = t.Titulo;
+                double porDefecto = tipo == "tarjeta" ? 1 : tipo == "negro" ? 1 : 0;
+                t.Segundos = tipo == "nota" ? 0 : Math.Max(0.2, Math.Min(10, Json.Numero(x, "duracion", porDefecto)));
+                if (tipo != "negro" && t.Texto.Length == 0) continue;
+                if (t.Titulo.Length == 0) t.Titulo = tipo == "negro" ? "Negro" : t.Texto;
+                t.Puntuacion = 10;
+                r.Add(t);
+                continue;
+            }
+            t.Inicio = Math.Max(0, Json.Numero(x, "inicio", 0));
+            t.Fin = Math.Min(total, Json.Numero(x, "fin", 0));
+            if (t.Motivo.Length == 0) t.Motivo = Json.Texto(x, "descripcion");
+            t.Acelerar = Json.Texto(x, "accion").ToLowerInvariant().StartsWith("aceler");
+            t.Velocidad = t.Acelerar ? LimitarVelocidad(Json.Numero(x, "velocidad", 3)) : 1;
+            foreach (object n in Json.Lista(x, "silenciar"))
+                if (n is string && ((string)n).Trim().Length > 0) t.Silenciar.Add(((string)n).Trim());
+            if (t.Fin - t.Inicio >= 0.2) r.Add(t);
+        }
+        return r;
+    }
+
+    // Hay que armarlo (no basta con quitar): piezas sin material, clips fuera
+    // de orden, repetidos o con pistas silenciadas.
+    static bool EsMontaje(List<Tramo> piezas)
+    {
+        // Un poco encimado con el anterior no cuenta (imprecision de la IA: se une);
+        // volver atras o repetir algo que ya salio, si.
+        double inicio = -1, fin = -1;
+        foreach (Tramo t in piezas)
+        {
+            if (!t.EsClip || t.Silenciar.Count > 0) return true;
+            if (t.Inicio < inicio - 0.05 || t.Fin <= fin + 0.05) return true;
+            inicio = t.Inicio;
+            fin = Math.Max(fin, t.Fin);
+        }
+        return false;
     }
 
     // Une tramos que se tocan con la misma accion; si se enciman con distinta
@@ -174,13 +253,14 @@ public class ResultadoIA
     {
         int cambios = 0;
         List<Tramo> nuevos = new List<Tramo>();
+        Dictionary<Tramo, Tramo> despuesDe = new Dictionary<Tramo, Tramo>();
         object o = Json.Leer(Gemini.QuitarCercas(json));
         foreach (object x in Json.Lista(o, "tramos"))
         {
             int i = (int)Json.Numero(x, "indice", -1);
             if (i < 0 || i >= Corte.Count) continue;
             Tramo t = Corte[i];
-            if (t.Fijo) continue;
+            if (t.Fijo || !t.EsClip) continue;
             string motivo = Json.Texto(x, "motivo");
             object quitar;
             Dictionary<string, object> d = x as Dictionary<string, object>;
@@ -204,6 +284,7 @@ public class ResultadoIA
                             Tramo resto = Pedazo(t, qb, t.Fin);
                             resto.Nota = nota;
                             nuevos.Add(resto);
+                            despuesDe[resto] = t;
                             t.Fin = qa;
                         }
                         t.Nota = nota;
@@ -226,7 +307,9 @@ public class ResultadoIA
                 cambios++;
             }
         }
-        if (nuevos.Count > 0)
+        if (nuevos.Count > 0 && Montaje)
+            foreach (Tramo n in nuevos) Corte.Insert(Corte.IndexOf(despuesDe[n]) + 1, n);
+        else if (nuevos.Count > 0)
         {
             Corte.AddRange(nuevos);
             Corte.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
@@ -244,16 +327,32 @@ public class ResultadoIA
         n.Titulo = titulo;
         n.Motivo = "Lo elegiste t\u00fa: se conserva completo.";
         List<Tramo> r = new List<Tramo>();
+        int lugar = -1;   // en el montaje: donde estaba lo que el fijo absorbe
         foreach (Tramo t in Corte)
         {
-            if (t.Fin <= a + 0.05 || t.Inicio >= b - 0.05) { r.Add(t); continue; }
+            if (!t.EsClip || t.Fin <= a + 0.05 || t.Inicio >= b - 0.05) { r.Add(t); continue; }
+            if (lugar < 0) lugar = r.Count;
             if (t.Fijo) { n.Inicio = Math.Min(n.Inicio, t.Inicio); n.Fin = Math.Max(n.Fin, t.Fin); continue; }
-            if (t.Inicio < a - 0.5) r.Add(Pedazo(t, t.Inicio, a));
+            if (t.Inicio < a - 0.5) { r.Add(Pedazo(t, t.Inicio, a)); lugar = r.Count; }
             if (t.Fin > b + 0.5) r.Add(Pedazo(t, b, t.Fin));
         }
-        r.Add(n);
-        r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        if (!Montaje)
+        {
+            r.Add(n);
+            r.Sort(delegate (Tramo x, Tramo y) { return x.Inicio.CompareTo(y.Inicio); });
+        }
+        else r.Insert(lugar >= 0 ? lugar : Lugar(r, n), n);
         Corte = r;
+    }
+
+    // En el montaje, donde va un clip nuevo: despues del ultimo clip (buscando desde
+    // el final, donde va el cuerpo en orden) que termina antes de que empiece.
+    static int Lugar(List<Tramo> l, Tramo c)
+    {
+        for (int i = l.Count - 1; i >= 0; i--)
+            if (l[i].EsClip && l[i].Fin <= c.Inicio + 0.05) return i + 1;
+        for (int i = 0; i < l.Count; i++) if (l[i].EsClip) return i;
+        return l.Count;
     }
 
     static Tramo Pedazo(Tramo t, double a, double b)
@@ -266,7 +365,7 @@ public class ResultadoIA
     bool SeEncima(Tramo c)
     {
         foreach (Tramo t in Corte)
-            if (t != c && t.Elegido && c.Inicio < t.Fin - 0.05 && c.Fin > t.Inicio + 0.05) return true;
+            if (t != c && t.Elegido && t.EsClip && c.Inicio < t.Fin - 0.05 && c.Fin > t.Inicio + 0.05) return true;
         return false;
     }
 
@@ -284,7 +383,7 @@ public class ResultadoIA
             for (int i = 1; i < elegidos.Count - 1; i++)
             {
                 Tramo t = elegidos[i];
-                if (t.Fijo) continue;
+                if (t.Fijo || !t.EsClip) continue;
                 if (peor == null || t.Puntuacion < peor.Puntuacion ||
                     (t.Puntuacion == peor.Puntuacion && t.DuracionFinal > peor.DuracionFinal)) peor = t;
             }
@@ -298,7 +397,7 @@ public class ResultadoIA
             Tramo mejor = null;
             bool nuevo = false;
             foreach (Tramo t in Corte)
-                if (!t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionAjustable + t.DuracionFinal <= maximo + 0.5 &&
+                if (t.EsClip && !t.Elegido && !t.PorRevision && !SeEncima(t) && DuracionAjustable + t.DuracionFinal <= maximo + 0.5 &&
                     (mejor == null || t.Puntuacion > mejor.Puntuacion)) mejor = t;
             if (mejor == null)
                 foreach (Tramo c in Candidatos)
@@ -307,7 +406,8 @@ public class ResultadoIA
             if (mejor == null) break;
             mejor.Elegido = true;
             mejor.Nota = "Agregado para llegar al m\u00ednimo";
-            if (nuevo)
+            if (nuevo && Montaje) Corte.Insert(Lugar(Corte, mejor), mejor);
+            else if (nuevo)
             {
                 Corte.Add(mejor);
                 Corte.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
@@ -328,13 +428,14 @@ public class ResultadoIA
         foreach (Segmento s in segmentos) palabras.AddRange(s.Palabras);
         foreach (Tramo t in Corte)
         {
+            if (!t.EsClip) continue;
             foreach (Palabra p in palabras)
             {
                 if (t.Inicio > p.Inicio && t.Inicio < p.Fin) t.Inicio = p.Inicio;
                 if (t.Fin > p.Inicio && t.Fin < p.Fin) t.Fin = p.Fin;
             }
         }
-        Corte = UnirSolapados(Corte);
+        if (!Montaje) Corte = UnirSolapados(Corte);
     }
 
     // Lo que se quita para quedarse solo con los tramos elegidos del corte.
@@ -374,6 +475,35 @@ public class ResultadoIA
         return r;
     }
 
+    // ------------------------------------------------------------ montaje
+
+    // Donde cae cada pieza elegida en el video armado (desde 0), en orden.
+    public List<double> Posiciones()
+    {
+        List<double> r = new List<double>();
+        double cursor = 0;
+        foreach (Tramo t in Corte)
+        {
+            r.Add(cursor);
+            if (t.Elegido) cursor += t.DuracionFinal;
+        }
+        return r;
+    }
+
+    // Un instante del material en el video armado: la primera vez que sale
+    // (NaN si no quedo en ningun clip).
+    public double EnMontaje(double s)
+    {
+        List<double> pos = Posiciones();
+        for (int i = 0; i < Corte.Count; i++)
+        {
+            Tramo t = Corte[i];
+            if (!t.Elegido || !t.EsClip || s < t.Inicio || s > t.Fin) continue;
+            return pos[i] + (s - t.Inicio) / (t.Acelerar ? t.Velocidad : 1);
+        }
+        return double.NaN;
+    }
+
     // ------------------------------------------------------------ informe
 
     public string Informe(string proyecto, OpcionesIA op, double total)
@@ -392,7 +522,12 @@ public class ResultadoIA
             sb.Append("\n");
         }
         sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
+        if (Montaje) sb.Append("_Montaje en orden libre: las piezas van en este orden._\n\n");
         foreach (Tramo t in Corte)
+            if (!t.EsClip)
+                sb.Append("- [" + (t.Elegido ? "x" : " ") + "] **" + t.Tipo.ToUpperInvariant() + "**" + (t.Texto.Length > 0 ? " «" + t.Texto + "»" : "") +
+                          (t.Segundos > 0 ? " (" + t.Segundos.ToString("0.#", CultureInfo.InvariantCulture) + " s)" : "") + "\n");
+            else
             sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "–" + Formato.Tiempo(t.Fin) +
                       " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado ×" + t.Velocidad + " → " + Formato.Tiempo(t.DuracionFinal) : "") +
                       ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
@@ -529,7 +664,8 @@ public static class PeticionIA
         "línea de tiempo y una tabla de intensidad de sonido. Tu trabajo es ayudar a editarlo.\n\n";
 
     const string ReglasCorte =
-        "- \"corte\": tramos a CONSERVAR, en orden, sin solaparse. Deben contar la historia completa sin omitir " +
+        "- \"corte\": tramos a CONSERVAR en el ORDEN EN QUE SE VERÁN. Normalmente van en el orden del video y sin " +
+        "solaparse. Deben contar la historia completa sin omitir " +
         "partes importantes (objetivos, decisiones, resultados, momentos graciosos o intensos). Empieza y termina " +
         "cada tramo en límites de frase, nunca a mitad de una palabra. Prefiere tramos de 10 s a 3 min.\n" +
         "- Cada tramo del corte lleva \"importancia\" de 1 a 10 (10 = imprescindible para la historia; 1 = relleno). " +
@@ -540,7 +676,16 @@ public static class PeticionIA
         "construcción puede haber acción con poca voz. Fíjate en la intensidad de ambiente y en las indicaciones; " +
         "si piden mostrar una actividad completa, consérvala completa aunque hablen poco.\n" +
         "- Los TRAMOS FIJOS ya los eligió el editor: van completos en el corte (inclúyelos tal cual). Si dicen " +
-        "que cuentan para la duración, el resto tiene que caber en lo que queda.\n";
+        "que cuentan para la duración, el resto tiene que caber en lo que queda.\n" +
+        "- ORDEN LIBRE (solo si sirve a la historia o lo piden las indicaciones: teaser o cold open, flashback, " +
+        "montaje): el \"corte\" puede saltar adelante y atrás en el video y repetir un clip (por ejemplo, un " +
+        "teaser al inicio con momentos de después, que luego vuelven a salir en su lugar). Si no hace falta, " +
+        "respeta el orden del video. En la misma lista puedes poner piezas sin material:\n" +
+        "  {\"tipo\": \"tarjeta\", \"texto\": \"STEEL\", \"duracion\": s} (texto sobre negro), " +
+        "{\"tipo\": \"negro\", \"duracion\": s} (pantalla negra en silencio) y {\"tipo\": \"nota\", \"texto\": " +
+        "\"música western\"} (indicación para el editor en ese punto: música, efecto, bip...). Un clip puede llevar " +
+        "\"silenciar\": [\"nombre de la persona o pista\"] para que esa pista no suene en ese clip. Todo cuenta " +
+        "para la duración.\n";
 
     const string ReglasAcelerar =
         "- Cada tramo del corte lleva \"accion\": \"conservar\" (velocidad normal) o \"acelerar\" (se ve más rápido, " +
@@ -597,6 +742,11 @@ public static class PeticionIA
         sb.Append("\nPersonas (cada una es una pista de audio):\n");
         foreach (Hablante h in t.Hablantes)
             if (h.Voz) sb.Append("- " + h.Nombre + (h.Nombre != h.Etiqueta ? " (" + h.Etiqueta + ")" : "") + "\n");
+        List<string> otras = new List<string>();
+        foreach (Hablante h in t.Hablantes)
+            if (!h.Voz) otras.Add(h.Etiqueta + (h.Nombre != h.Etiqueta ? " " + h.Nombre : "") +
+                                  (!String.IsNullOrEmpty(h.Archivo) ? " (" + Path.GetFileName(h.Archivo) + ")" : ""));
+        if (otras.Count > 0) sb.Append("Otras pistas de audio (sin voz transcrita): " + String.Join("; ", otras.ToArray()) + "\n");
     }
 
     static void Fijos_(StringBuilder sb, OpcionesIA op)
@@ -666,7 +816,9 @@ public static class PeticionIA
         sb.Append(Mensaje(t, duracionActual, op).Trim());
         sb.Append("\n\n==================== RECUERDA ====================\n");
         sb.Append("Responde SOLO con el objeto JSON con las claves indicadas (resumen, secciones, momentos, corte, textos, " +
-                  "shorts, titulos). Tiempos en segundos de la transcripción. Suma las duraciones del corte y corrige " +
+                  "shorts, titulos). Tiempos en segundos de la transcripción. El \"corte\" va en el orden en que se verá: si " +
+                  "quieres un teaser, saltos o clips repetidos, ponlos así en la lista (con tarjetas, negros y notas si hacen " +
+                  "falta), no aparte. Suma las duraciones del corte y corrige " +
                   "antes de responder si no queda entre " + op.MinutosMin + " y " + op.MinutosMax + " minutos.\n");
         return sb.ToString();
     }

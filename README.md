@@ -152,6 +152,21 @@ está el modo por chat, más abajo.
      Desde ahí es igual que con Gemini: los mismos ajustes de duración y de palabras, el historial
      y *Aplicar corte*. Puedes cerrar Vegas entre medio. Si cambias el proyecto entre generar el
      archivo e importar, te avisa: genera el archivo otra vez.
+   - **Orden libre (teaser, cold open, flashback):** el corte puede saltar adelante y atrás y repetir
+     clips (un teaser con momentos de después que luego salen en su lugar). En la misma lista la IA
+     puede poner **tarjetas** (texto sobre negro: «STEEL», «CRAFT», «RUN»), **negro** (pantalla negra
+     en silencio), **notas** («música western», «bip») y, en un clip, **silenciar** una pista
+     («Discord»). Si la lista no va en orden, *Aplicar corte* lo **arma** copiando cada pieza en su
+     lugar (todas las pistas juntas, como *ProducirCapitulo*) en vez de quitar lo que sobra:
+     - las tarjetas van en la pista «vegas-cut · Montaje», con el estilo del texto que ya uses;
+     - las notas, los momentos, los textos y tus marcadores quedan como marcadores donde salen por
+       primera vez;
+     - antes guarda la BASE (o la copia `… MOM.veg`), como siempre.
+
+     ![Montaje en orden libre](docs/img/momentos-montaje.png)
+
+     En la pestaña *Corte*, **Alt+↑/↓** mueve la pieza elegida. Si la lista va en orden y sin
+     repetir, todo funciona como antes.
 3. Revisa las pestañas y desmarca lo que no quieras:
    - **Corte**: tramos a conservar, en orden, cerca de la duración objetivo. Los bordes se
      ajustan para no partir palabras. La columna **Velocidad** dice si un tramo va normal o
