@@ -1,0 +1,7 @@
+// Subtitulos.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Arma subtitulos .srt desde la transcripcion (en los tiempos actuales, siguen
+// los cortes), Gemini corrige lo que se oyo mal y pregunta lo dudoso. Tus
+// indicaciones y un glosario se recuerdan por serie o para todos tus videos.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

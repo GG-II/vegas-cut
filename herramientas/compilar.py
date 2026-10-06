@@ -60,7 +60,11 @@ HERRAMIENTAS = {
                          'silencios/Deteccion.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Whisper.cs', 'comun/Ui.cs'],
     'LimpiarVoces': ['voces/cabecera.txt', 'voces/EntryPoint.cs', 'voces/Voces.cs', 'voces/LogicaVoces.cs', 'comun/PistasVegas.cs',
                      'comun/Editor.cs'] + COMUN_BASE + ['comun/Configuracion.cs', 'comun/Ui.cs'],
-    'PasoFinal': ['final/cabecera.txt', 'final/PasoFinal.cs', 'voces/Voces.cs', 'voces/LogicaVoces.cs', 'final/LogicaPasoFinal.cs', 'final/Relleno.cs', 'final/LogicaRelleno.cs', 'final/Memes.cs', 'final/LogicaMemes.cs', 'comun/Memes.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'censura/Censura.cs',
+    'Subtitulos': ['subtitulos/cabecera.txt', 'subtitulos/EntryPoint.cs', 'subtitulos/Subtitulos.cs', 'subtitulos/LogicaSubtitulos.cs',
+                   'censura/LogicaCensura.cs', 'comun/Serie.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs', 'comun/CatalogoAnime.cs',
+                   'comun/Ritmo.cs', 'comun/CopiaBase.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs'] + COMUN_BASE +
+                  ['comun/Configuracion.cs', 'comun/Gemini.cs', 'comun/Ui.cs'],
+    'PasoFinal': ['final/cabecera.txt', 'final/PasoFinal.cs', 'voces/Voces.cs', 'voces/LogicaVoces.cs', 'subtitulos/Subtitulos.cs', 'subtitulos/LogicaSubtitulos.cs', 'final/LogicaPasoFinal.cs', 'final/Relleno.cs', 'final/LogicaRelleno.cs', 'final/Memes.cs', 'final/LogicaMemes.cs', 'comun/Memes.cs', 'musica/Musica.cs', 'musica/LogicaMusica.cs', 'censura/Censura.cs',
                   'censura/LogicaCensura.cs', 'pulir/AplicarPlan.cs', 'pulir/LogicaPlan.cs', 'pulir/LogicaPulir.cs', 'pulir/Voz.cs',
                   'textos/Generador.cs', 'comun/Rtf.cs', 'comun/Ritmo.cs', 'comun/Serie.cs', 'comun/SerieTV.cs', 'comun/BibliotecaMusica.cs',
                   'comun/CatalogoAnime.cs', 'comun/Proceso.cs', 'comun/PistasVegas.cs', 'comun/Editor.cs', 'silencios/Deteccion.cs'] +

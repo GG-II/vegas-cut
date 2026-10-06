@@ -26,7 +26,7 @@ class VentanaPasoFinal : VentanaBase
     readonly Vegas vegas;
     Transcripcion trans;
     string narrador = "Narrador";
-    Etiqueta lblV, lbl1, lbl2, lbl3, lbl0, lblM, lblEstado;
+    Etiqueta lblS, lblV, lbl1, lbl2, lbl3, lbl0, lblM, lblEstado;
     CampoNumero numDb = new CampoNumero();
     Boton btnV = new Boton("Limpiar voces…", EstiloBoton.Secundario);
     Boton btn0 = new Boton("Rellenar la música…", EstiloBoton.Secundario);
@@ -34,13 +34,14 @@ class VentanaPasoFinal : VentanaBase
     Boton btn1 = new Boton("Bajar el juego", EstiloBoton.Secundario);
     Boton btn2 = new Boton("Balancear la música…", EstiloBoton.Secundario);
     Boton btn3 = new Boton("Censurar palabrotas…", EstiloBoton.Secundario);
+    Boton btnS = new Boton("Subtítulos…", EstiloBoton.Secundario);
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Primario);
 
     public VentanaPasoFinal(Vegas vegas) : base("Paso final", 760)
     {
         this.vegas = vegas;
         int m = Margen, w = Ancho;
-        Encabezado("Paso final", "Lo último antes de exportar, con la narración ya grabada: voces, música, memes, balance y censura.");
+        Encabezado("Paso final", "Lo último antes de exportar, con la narración ya grabada: voces, música, memes, balance, censura y subtítulos.");
         int y = 96;
         lblV = Paso(1, "Limpiar voces", "Quita el ruido y deja todas las voces al mismo volumen, solo en lo que quedó del video.", y);
         Pos(btnV, m + w - 210, y + 4, 210, 32);
@@ -62,6 +63,9 @@ class VentanaPasoFinal : VentanaBase
         y += 86;
         lbl3 = Paso(6, "Censurar palabrotas", "Busca las palabrotas en la transcripción y las tapa con el efecto que elijas.", y);
         Pos(btn3, m + w - 210, y + 4, 210, 32);
+        y += 86;
+        lblS = Paso(7, "Subtítulos (.srt)", "De la transcripción a un .srt; Gemini corrige lo que se oyó mal y te pregunta lo dudoso.", y);
+        Pos(btnS, m + w - 210, y + 4, 210, 32);
         y += 92;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 160, 40);
         Pos(btnCerrar, m + w - 140, y, 140, 40);
@@ -85,6 +89,7 @@ class VentanaPasoFinal : VentanaBase
         }
         catch { }
         btn3.Enabled = trans != null;
+        btnS.Enabled = trans != null;
         if (trans == null) Hecho(lbl3, "Sin transcripción: ejecuta Transcribir primero.", false);
 
         btn1.Click += delegate
@@ -120,6 +125,11 @@ class VentanaPasoFinal : VentanaBase
         {
             using (VentanaCensura v = new VentanaCensura(vegas, trans)) v.ShowDialog(this);
             Hecho(lbl3, "Hecho.", true);
+        };
+        btnS.Click += delegate
+        {
+            using (VentanaSubtitulos v = new VentanaSubtitulos(vegas, trans)) v.ShowDialog(this);
+            Hecho(lblS, "Hecho (el .srt queda junto al proyecto).", true);
         };
         btnCerrar.Click += delegate { Close(); };
     }

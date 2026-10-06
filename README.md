@@ -8,7 +8,8 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe, guarda la copia BASE y abre MomentosIA. |
 | `ProducirCapitulo.cs` | Del material a un capítulo de serie: análisis, 3 propuestas, propuesta final y armado. |
 | `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
-| `PasoFinal.cs` | Lo último: limpiar voces, rellenar la música, memes, bajar el juego bajo la narración, balancear y censurar. |
+| `PasoFinal.cs` | Lo último: limpiar voces, rellenar la música, memes, bajar el juego bajo la narración, balancear, censurar y subtítulos. |
+| `Subtitulos.cs` | Subtítulos `.srt` desde la transcripción; Gemini corrige lo que se oyó mal y pregunta lo dudoso (también es el paso 7 de *PasoFinal*). |
 | `LimpiarVoces.cs` | Quita el ruido de las voces y las deja todas al mismo volumen, solo en lo que quedó (también es el paso 1 de *PasoFinal*). |
 | `VariosPOV.cs` | El video de otro jugador: sincronizarlo por el audio y mostrarlo en los mejores momentos. |
 | `programas/Memes.exe` | Programa aparte (fuera de Vegas) para tu biblioteca de memes: clasificar una carpeta deslizando como en Tinder y corregir lo que ya tienes. |
@@ -32,7 +33,8 @@ BASE) → grabar la narración con el guion → *Reemplazar placeholders* (Pulir
 **Flujo sugerido para un gameplay (o cualquier video):** (*VariosPOV* si hay otro POV, antes de
 quitar silencios) → *PrepararEpisodio* (quita silencios, transcribe, guarda la BASE y abre
 *MomentosIA*) → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores* (opcional) →
-*PasoFinal*: limpiar voces, rellenar música, memes, balancear la música y censurar → exportar →
+*PasoFinal*: limpiar voces (y volver a transcribir), rellenar música, memes, balancear la música,
+censurar y subtítulos → exportar →
 *LimpiarVegasCut* cuando ya no lo vayas a tocar. La transcripción sigue los cortes, también los
 que haces a mano, así que **no hace falta volver a transcribir** (solo si agregas audio nuevo,
 como una narración). Los memes se preparan aparte con `programas/Memes.exe`.
@@ -587,6 +589,39 @@ Lo último antes de exportar, con la narración ya grabada:
    que elijas mientras narras (la pista del narrador no se toca).
 5. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
 6. **Censurar palabrotas**: abre *Censurar palabrotas*.
+7. **Subtítulos (.srt)**: abre *Subtítulos* (ver [`Subtitulos.cs`](#subtituloscs)).
+
+### `Subtitulos.cs`
+
+![Subtítulos](docs/img/subtitulos.png)
+
+Subtítulos `.srt` para subir a YouTube, desde la transcripción (en los tiempos actuales: siguen tus
+cortes). Va al final; si limpiaste las voces, vuelve a transcribir antes. También es el paso 7 de
+*PasoFinal*.
+
+1. **Indicaciones**: lo que Gemini tiene que saber siempre («los jugadores son Gerbert, Jason y
+   David», «el servidor se llama SteelCraft», «no pongas punto al final»). Se guardan para **esta
+   serie** o para **todos tus videos** (las dos se usan juntas).
+2. **Glosario**: correcciones que se aplican solas, antes de Gemini (`Steb => Steve`). Se llena con
+   tus respuestas; **Glosario…** lo edita (uno por línea).
+3. Se arman los subtítulos: uno por frase y por persona, de hasta 2 líneas de 42 letras y 6 s, al
+   menos 1 s en pantalla y sin encimarse. En naranja los que tienen palabras que Whisper no oyó
+   bien.
+4. **Corregir con Gemini**: corrige solo lo que se oyó mal, la ortografía, los acentos, los signos
+   (¿? ¡!) y las mayúsculas; no reescribe, no resume ni censura (si un cambio se aleja demasiado de
+   lo dicho, se ignora). En azul lo que cambió; la columna *Cambio* dice cómo era. Lo que se repite
+   lo agrega al glosario.
+5. **Preguntas**: lo que Gemini no sabe no lo adivina, te lo pregunta con opciones. Elige o escribe
+   la respuesta; con **Recordar** queda en el glosario para los próximos videos.
+
+   ![Preguntas de Gemini](docs/img/subtitulos-preguntas.png)
+6. Revisa: un clic muestra el subtítulo abajo para cambiarlo a mano; doble clic lleva el cursor de
+   Vegas ahí.
+7. **Guardar .srt**: `<proyecto>.srt` junto al proyecto. Opciones: **Nombre de quien habla**
+   («Jason: …» cuando cambia) y **Tapar palabrotas** (`p***`, con la lista de *Censurar
+   palabrotas*; solo en el archivo, la lista no cambia).
+
+La memoria queda en `%APPDATA%\vegas-cut\subtitulos.json`.
 
 ### `LimpiarVoces.cs`
 
