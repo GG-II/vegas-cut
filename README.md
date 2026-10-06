@@ -530,8 +530,8 @@ dejaste.
 Lo último antes de exportar, con la narración ya grabada:
 
 1. **Limpiar voces**: quita el ruido y deja todas las voces al mismo volumen, solo en lo que quedó
-   (ver [`LimpiarVoces.cs`](#limpiarvocescs)). Va primero para que el balance de la música y la
-   censura trabajen con las voces ya limpias.
+   (ver [`LimpiarVoces.cs`](#limpiarvocescs)). Después **vuelve a transcribir**, para que el
+   balance de la música y la censura trabajen con las voces ya limpias.
 2. **Rellenar la música**: para cuando ya cortaste, editaste y reordenaste el capítulo producido.
 
    ![Rellenar la música](docs/img/rellenar-musica.png)
@@ -592,29 +592,34 @@ Lo último antes de exportar, con la narración ya grabada:
 
 ![Limpiar voces](docs/img/limpiar-voces.png)
 
-Va **al final**, ya cortado y reordenado, antes de balancear la música y de censurar: así solo se
-limpia lo que se va a ver. También es el paso 1 de *PasoFinal*. Necesita **DeepFilterNet** para
-quitar el ruido y **ffmpeg** para el volumen: [`docs/instalar-deepfilter.md`](docs/instalar-deepfilter.md).
+Va **al final**, ya cortado y reordenado: solo se limpia lo que se va a ver. También es el paso 1
+de *PasoFinal*. Necesita **DeepFilterNet** para quitar el ruido y **ffmpeg** para el volumen:
+[`docs/instalar-deepfilter.md`](docs/instalar-deepfilter.md).
 
-1. Elige las **pistas de voz** (tu micrófono, Discord, la de cada amigo). Se recuerdan.
-2. **Ruido**: *Suave* (solo lo más molesto), *Medio* (recomendado), *Fuerte* (todo lo que no es
+**Flujo:** cortar y editar → *LimpiarVoces* → **volver a transcribir** (sobre lo limpio) →
+balancear la música → *Censurar*.
+
+1. Elige las **pistas de voz** (tu micrófono, Discord, la de cada amigo). Se recuerdan. Si varias
+   pistas salen del mismo archivo de OBS, cada una usa su propia pista de audio del archivo.
+2. **Resultado**:
+   - **Una pista limpia** (recomendado): un solo archivo limpio por pista de voz, en un evento en
+     esa misma pista, alineado con todo. Los clips originales quedan **silenciados debajo** (no se
+     borran). Si después vuelves a cortar o mover, esa pista no te sigue: límpiala otra vez.
+   - **Por clip**: cada clip recibe lo limpio como toma nueva; el original queda como toma
+     alternativa (tecla **T**). Sigue los cortes que hagas después.
+3. **Ruido**: *Suave* (solo lo más molesto), *Medio* (recomendado), *Fuerte* (todo lo que no es
    voz; puede comerse respiraciones o risas bajitas) o *No quitar* (solo volumen).
-3. **Volumen**: todas las pistas elegidas quedan al mismo nivel (-16 LUFS, lo de YouTube), con un
-   tope para que los gritos no saturen. **Emparejar frase por frase** corrige lo que se grabó bajo
-   o alto en distintos momentos (o un amigo que en Discord se oye más que otro) sin aplastar gritos
-   ni susurros.
-4. **Limpiar voces**: por cada archivo saca solo los pedazos que usan los eventos (con un segundo de
-   margen), les quita el ruido, empareja el volumen y los pone como **toma nueva** de cada evento,
-   en el mismo lugar. Nada se mueve; fundidos y envolventes se quedan. Al final dice cuánto subió o
-   bajó cada pista (si una sube mucho, ese micrófono graba bajo).
-   - Los archivos de OBS con varias pistas de audio funcionan: usa la pista que usa cada evento.
-   - Los eventos silenciados (como lo acelerado) no se tocan.
-5. **Escuchar originales / limpias** cambia todas de una vez; en un evento suelto, la tecla **T**
-   de Vegas cambia de toma. Ctrl+Z lo deshace.
+4. **Volumen**: cada pista elegida queda a **-20 LUFS** y **ningún pico pasa de -6 dB** (deja
+   espacio para el juego y la música). **Emparejar frase por frase** sube lo que se grabó bajo y
+   baja lo que se grabó alto (o un amigo que en Discord se oye más que otro) sin aplastar gritos ni
+   susurros. Una pista sube como mucho 20 dB.
+5. **Limpiar voces** hace todo de una pasada por cada pedazo usado (con un segundo de margen):
+   quita el ruido, empareja y deja el volumen final. Al final dice cuánto subió o bajó cada pista
+   (si una sube mucho, ese micrófono graba bajo). Lo acelerado y lo que silenciaste no se toca.
+6. **Escuchar originales / limpias** compara todo de una vez. Volver a limpiar reemplaza lo
+   anterior. Ctrl+Z lo deshace.
 
-Lo limpio queda en `<proyecto>.vegascut-voces\`, junto al proyecto. Los tiempos no cambian, así que
-la transcripción sigue sirviendo; si el ruido tapaba palabras, vuelve a transcribir para que la
-censura encuentre más.
+Lo limpio queda en `<proyecto>.vegascut-voces\`, junto al proyecto.
 
 ### `VariosPOV.cs`
 

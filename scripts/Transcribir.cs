@@ -1611,7 +1611,9 @@ public class Configuracion
     public string VocesPistas = "";              // etiquetas de las pistas de voz a limpiar ("A2,A3")
     public string VocesRuido = "24";             // dB que puede bajar el ruido (0, 12, 24, 100)
     public string VocesNivelar = "si";
-    public string VocesObjetivo = "-16";         // LUFS
+    public string VocesObjetivo = "-20";         // LUFS
+    public string VocesPico = "";                // dBFS ("" = aun sin elegir: -6)
+    public string VocesModo = "pista";           // "pista": un archivo limpio por pista; "clip": toma nueva en cada clip
 
     public static string Carpeta
     {
@@ -1651,6 +1653,8 @@ public class Configuracion
             c.VocesRuido = Valor(Json.Texto(o, "vocesRuido"), c.VocesRuido);
             c.VocesNivelar = Valor(Json.Texto(o, "vocesNivelar"), c.VocesNivelar);
             c.VocesObjetivo = Valor(Json.Texto(o, "vocesObjetivo"), c.VocesObjetivo);
+            c.VocesPico = Json.Texto(o, "vocesPico");
+            c.VocesModo = Valor(Json.Texto(o, "vocesModo"), c.VocesModo);
         }
         catch { }
         return c;
@@ -1682,6 +1686,8 @@ public class Configuracion
         d["vocesRuido"] = VocesRuido;
         d["vocesNivelar"] = VocesNivelar;
         d["vocesObjetivo"] = VocesObjetivo;
+        d["vocesPico"] = VocesPico;
+        d["vocesModo"] = VocesModo;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 
