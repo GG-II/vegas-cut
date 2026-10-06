@@ -823,35 +823,10 @@ public static class PeticionIA
         return sb.ToString();
     }
 
-    // Saca el JSON de lo que devolvio el chat: tolera texto alrededor y bloques ```json.
-    public static string ExtraerJson(string texto)
-    {
-        string s = (texto ?? "").Trim();
-        if (s.Length == 0) throw new FormatException("está vacía.");
-        int bloque = s.IndexOf("```");
-        if (bloque >= 0)
-        {
-            int salto = s.IndexOf('\n', bloque);
-            int fin = salto > 0 ? s.IndexOf("```", salto) : -1;
-            if (salto > 0 && fin > salto) s = s.Substring(salto + 1, fin - salto - 1).Trim();
-        }
-        int a = s.IndexOf('{'), b = s.LastIndexOf('}');
-        if (a < 0) throw new FormatException("no trae un objeto JSON ({ … }).");
-        if (b <= a) throw new FormatException("está cortada: el JSON no termina (quizá se quedó sin espacio).");
-        s = s.Substring(a, b - a + 1);
-        object o;
-        try { o = Json.Leer(s); }
-        catch (Exception ex) { throw new FormatException("el JSON está mal formado o cortado (" + ex.Message + ")."); }
-        if (Json.Lista(o, "corte").Count == 0) throw new FormatException("no trae la lista \"corte\" con los tramos a conservar.");
-        return s;
-    }
+    // Lo que devolvio el chat: el JSON con la lista "corte" (ver ChatIA).
+    public static string ExtraerJson(string texto) { return ChatIA.ExtraerJson(texto, "corte"); }
 
-    // Lo que hay que decirle al chat para que corrija.
-    public static string MensajeCorreccion(string problema)
-    {
-        return "Tu respuesta no se pudo importar: " + problema + " Mándala otra vez completa, SOLO como el objeto JSON " +
-               "con el mismo formato que pedían las instrucciones (en un bloque ```json), sin texto antes ni después.";
-    }
+    public static string MensajeCorreccion(string problema) { return ChatIA.MensajeCorreccion(problema); }
 
     public static string Mensaje(Transcripcion t, double duracionActual, OpcionesIA op)
     {

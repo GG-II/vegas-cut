@@ -548,6 +548,11 @@ Lo último antes de exportar, con la narración ya grabada:
      pasa, lo que suena antes y después, y lo que ya suena en el capítulo (sin repetir). Usa el
      tema del personaje cuando ese personaje se luce. Si un hueco queda mejor en silencio (un
      remate o un momento dramático), lo dice y lo desmarca.
+   - **Con otra IA, por chat (sin API)**, como en MomentosIA: **Archivo para otra IA…** guarda
+     `<proyecto>.vegascut-pedido-musica.txt` (instrucciones, los huecos marcados con lo que se dice
+     y tu biblioteca), lo copia y abre la carpeta; lo adjuntas en ChatGPT, Claude, Gemini web… y
+     **Importar respuesta…** pega o abre lo que responda (aunque traiga texto alrededor). Si el
+     proyecto cambió entre medio, avisa: genera el archivo otra vez.
    - Revisa, desmarca lo que no quieras y pulsa **Colocar**: los temas van a la pista de música
      con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
      queda el resto libre y puedes volver a buscar.

@@ -279,6 +279,15 @@ class PruebaIA
                   PeticionIA.MensajeCorreccion("La respuesta " + ec3).Contains("JSON"),
                   "otra IA por chat: un archivo con instrucciones y transcripción; la respuesta se importa aunque traiga texto alrededor, y si viene mal dice qué corregir");
 
+        // Lo mismo sirve para la musica (lista "huecos").
+        string hu = ChatIA.ExtraerJson("Te propongo esto:\n```json\n{\"huecos\": [{\"n\": 1, \"id\": 3, \"motivo\": \"calma\"}]}\n```", "huecos");
+        string eh = "";
+        try { ChatIA.ExtraerJson("{\"corte\": [{\"inicio\": 1}]}", "huecos"); } catch (FormatException ex) { eh = ex.Message; }
+        string arch = ChatIA.Archivo("Rellenar la música", "INSTR", "DATOS X", "SOLO JSON");
+        Verificar(hu.StartsWith("{\"huecos\"") && eh.Contains("\"huecos\"") && arch.Contains("(Rellenar la música)") && arch.IndexOf("INSTR") < arch.IndexOf("DATOS X") &&
+                  arch.TrimEnd().EndsWith("SOLO JSON"),
+                  "otra IA por chat también para la música: archivo con instrucciones y datos, y la respuesta con su lista «huecos»");
+
         // ------------------------------------- Montaje en orden libre
         string teaser = "{\"corte\": [{\"inicio\": 50, \"fin\": 55, \"importancia\": 8, \"titulo\": \"Caos\", \"silenciar\": [\"Discord\"]}," +
             "{\"tipo\": \"tarjeta\", \"texto\": \"STEEL\", \"duracion\": 1}," +

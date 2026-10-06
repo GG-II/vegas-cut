@@ -91,6 +91,8 @@ for _partes in HERRAMIENTAS.values():
 def _aviso(partes):
     if 'comun/Gemini.cs' in partes and 'comun/Ui.cs' in partes and 'comun/AvisoGemini.cs' not in partes:
         partes.insert(partes.index('comun/Ui.cs') + 1, 'comun/AvisoGemini.cs')
+    if 'comun/Gemini.cs' in partes and 'comun/Ui.cs' in partes and 'comun/ChatIA.cs' not in partes:
+        partes.insert(partes.index('comun/Ui.cs') + 1, 'comun/ChatIA.cs')
 for _partes in HERRAMIENTAS.values():
     _aviso(_partes)
 
