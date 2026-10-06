@@ -9,8 +9,8 @@ using ScriptPortal.Vegas;
 
 // Ventana de Limpiar voces (tambien es el primer paso de PasoFinal).
 // Dos formas de dejar lo limpio:
-//  - Una pista limpia (por defecto): un archivo por pista de voz, en un solo
-//    evento en esa misma pista; los clips originales quedan silenciados debajo.
+//  - Una pista limpia (por defecto): un archivo por pista de voz, en una pista
+//    nueva «… · limpia» justo debajo; la pista original queda silenciada.
 //  - Por clip: cada clip recibe lo limpio como toma nueva (el original queda
 //    como toma alternativa; tecla T).
 class VentanaVoces : VentanaBase
@@ -79,7 +79,7 @@ class VentanaVoces : VentanaBase
         Texto("Resultado", Tema.Negrita, Tema.Texto, m, y + 8, 90, 20);
         Pos(segModo, m + 90, y, 300, 34);
         segModo.Seleccion = config.VocesModo == "clip" ? 1 : 0;
-        Texto("Una pista: un archivo limpio por voz; los clips quedan silenciados debajo. Por clip: toma nueva en cada uno.",
+        Texto("Una pista: pista nueva «· limpia» debajo de cada voz y la original silenciada. Por clip: toma nueva en cada uno.",
               Tema.Pequena, Tema.TextoSuave, m + 400, y, w - 400, 34);
         y += 42;
         Texto("Ruido", Tema.Negrita, Tema.Texto, m, y + 8, 90, 20);
@@ -161,10 +161,17 @@ class VentanaVoces : VentanaBase
         Mostrar();
     }
 
+    // Las pistas de voz elegidas (si eliges una limpia, cuenta su original).
     List<AudioTrack> Elegidas()
     {
         List<AudioTrack> r = new List<AudioTrack>();
-        foreach (Boton c in chips) if (c.Activo) r.Add(((InfoPista)c.Tag).Pista);
+        foreach (Boton c in chips)
+        {
+            if (!c.Activo) continue;
+            AudioTrack t = ((InfoPista)c.Tag).Pista;
+            if (EsPistaLimpia(t)) t = OriginalDe(t);
+            if (t != null && !r.Contains(t)) r.Add(t);
+        }
         return r;
     }
 
@@ -179,8 +186,27 @@ class VentanaVoces : VentanaBase
         catch { return false; }
     }
 
-    // Modo pista: el evento con el archivo limpio de toda la pista.
-    bool EsPistaLimpia(TrackEvent e) { return EsLimpio(e.ActiveTake) && e.Takes.Count == 1; }
+    public const string SufijoLimpia = " · limpia";
+
+    // Modo pista: la pista nueva con el archivo limpio (va justo debajo de su original).
+    bool EsPistaLimpia(Track t)
+    {
+        if (!t.IsAudio() || !(t.Name ?? "").EndsWith(SufijoLimpia)) return false;
+        foreach (TrackEvent e in t.Events) if (!EsLimpio(e.ActiveTake)) return false;
+        return true;
+    }
+
+    AudioTrack OriginalDe(Track limpia)
+    {
+        foreach (Track t in vegas.Project.Tracks) if (t.IsAudio() && t.Index == limpia.Index - 1) return (AudioTrack)t;
+        return null;
+    }
+
+    AudioTrack LimpiaDe(Track original)
+    {
+        foreach (Track t in vegas.Project.Tracks) if (t.Index == original.Index + 1 && EsPistaLimpia(t)) return (AudioTrack)t;
+        return null;
+    }
 
     Take Original(TrackEvent e)
     {
@@ -198,65 +224,28 @@ class VentanaVoces : VentanaBase
     bool HayLimpias()
     {
         foreach (Track t in vegas.Project.Tracks)
-            if (t.IsAudio()) foreach (TrackEvent e in t.Events) if (TomaLimpia(e) != null) return true;
+        {
+            if (!t.IsAudio()) continue;
+            if (EsPistaLimpia(t)) return true;
+            foreach (TrackEvent e in t.Events) if (TomaLimpia(e) != null) return true;
+        }
         return false;
     }
 
-    // Clips que este script silencio en modo pista (por pista: inicio|largo en ms).
-    string RutaEstado { get { return Path.Combine(carpeta, "silenciados.json"); } }
-
-    Dictionary<string, List<string>> LeerEstado()
+    // Deja la pista como antes de limpiarla: sin su pista limpia, sin tomas
+    // limpias y sonando otra vez.
+    void Restaurar(AudioTrack pista)
     {
-        Dictionary<string, List<string>> r = new Dictionary<string, List<string>>();
-        try
-        {
-            if (!File.Exists(RutaEstado)) return r;
-            Dictionary<string, object> o = Json.Leer(File.ReadAllText(RutaEstado)) as Dictionary<string, object>;
-            if (o != null)
-                foreach (KeyValuePair<string, object> kv in o)
-                {
-                    List<string> l = new List<string>();
-                    foreach (object x in Json.Lista(o, kv.Key)) if (x is string) l.Add((string)x);
-                    r[kv.Key] = l;
-                }
-        }
-        catch { }
-        return r;
-    }
-
-    void GuardarEstado(Dictionary<string, List<string>> estado)
-    {
-        Dictionary<string, object> o = new Dictionary<string, object>();
-        foreach (KeyValuePair<string, List<string>> kv in estado) o[kv.Key] = new List<object>(kv.Value.ConvertAll(delegate (string x) { return (object)x; }));
-        try { Directory.CreateDirectory(carpeta); File.WriteAllText(RutaEstado, Json.Escribir(o)); } catch { }
-    }
-
-    static string Clave(TrackEvent e)
-    {
-        return ((long)Math.Round(e.Start.ToMilliseconds())).ToString(CultureInfo.InvariantCulture) + "|" +
-               ((long)Math.Round(e.Length.ToMilliseconds())).ToString(CultureInfo.InvariantCulture);
-    }
-
-    // Deja la pista como antes de limpiarla: sin el evento limpio, sin tomas
-    // limpias y con los clips que se silenciaron sonando otra vez.
-    void Restaurar(AudioTrack pista, Dictionary<string, List<string>> estado)
-    {
-        List<TrackEvent> quitar = new List<TrackEvent>();
+        AudioTrack limpia = LimpiaDe(pista);
+        if (limpia != null) { vegas.Project.Tracks.Remove(limpia); pista.Mute = false; }
         foreach (TrackEvent e in pista.Events)
         {
-            if (EsPistaLimpia(e)) { quitar.Add(e); continue; }
             Take o = Original(e);
             List<Take> limpias = new List<Take>();
             foreach (Take t in e.Takes) if (EsLimpio(t)) limpias.Add(t);
             if (limpias.Count > 0 && o != null) e.ActiveTake = o;
             foreach (Take t in limpias) try { e.Takes.Remove(t); } catch { }
         }
-        foreach (TrackEvent e in quitar) pista.Events.Remove(e);
-        List<string> silenciados;
-        if (estado.TryGetValue(Etiqueta(pista), out silenciados))
-            foreach (TrackEvent e in pista.Events)
-                if (silenciados.Contains(Clave(e))) e.Mute = false;
-        estado.Remove(Etiqueta(pista));
     }
 
     // Pista de audio que usa la toma dentro de su archivo (0 = la primera). Se
@@ -306,18 +295,12 @@ class VentanaVoces : VentanaBase
 
         // Lo que usa cada clip (en este hilo: la API de Vegas no es para otros
         // hilos). Si ya se habia limpiado, se parte de los originales.
-        Dictionary<string, List<string>> estado = LeerEstado();
-        List<string> yaSilenciados = new List<string>();
-        foreach (List<string> l in estado.Values) yaSilenciados.AddRange(l);
         List<Clip> clips = new List<Clip>();
         foreach (AudioTrack pista in sel)
         {
-            List<string> nuestros;
-            estado.TryGetValue(Etiqueta(pista), out nuestros);
             foreach (TrackEvent e in pista.Events)
             {
-                if (EsPistaLimpia(e)) continue;
-                if (e.Mute && (nuestros == null || !nuestros.Contains(Clave(e)))) continue; // silenciado por ti (p. ej. lo acelerado)
+                if (e.Mute) continue; // silenciado por ti (p. ej. lo acelerado)
                 Take t = Original(e);
                 if (t == null || t.Media == null || String.IsNullOrEmpty(t.Media.FilePath) || !File.Exists(t.Media.FilePath)) continue;
                 double off = t.Offset.ToMilliseconds() / 1000.0, largo = e.Length.ToMilliseconds() / 1000.0;
@@ -518,10 +501,12 @@ class VentanaVoces : VentanaBase
                Dictionary<string, double> ganancias, OpcionesVoces op, bool sinRuido, TimeSpan tardo)
     {
         int n = 0, faltan = 0;
-        Dictionary<string, List<string>> estado = LeerEstado();
+        // La etiqueta de cada pista al empezar (al quitar o agregar pistas cambia el numero).
+        Dictionary<AudioTrack, string> etiqueta = new Dictionary<AudioTrack, string>();
+        foreach (Clip c in clips) etiqueta[c.Pista] = c.Uso.Pista;
         using (UndoBlock u = new UndoBlock("Limpiar voces"))
         {
-            foreach (AudioTrack pista in sel) Restaurar(pista, estado);
+            foreach (AudioTrack pista in sel) Restaurar(pista);
             if (op.PorClip)
             {
                 Dictionary<string, Media> medios = new Dictionary<string, Media>();
@@ -545,27 +530,26 @@ class VentanaVoces : VentanaBase
                 foreach (AudioTrack pista in sel)
                 {
                     KeyValuePair<string, double> a;
-                    if (!archivos.TryGetValue(Etiqueta(pista), out a) || !File.Exists(a.Key)) continue;
+                    string et;
+                    if (!etiqueta.TryGetValue(pista, out et) || !archivos.TryGetValue(et, out a) || !File.Exists(a.Key)) continue;
+                    // Pista nueva justo debajo, con el mismo volumen; la original queda silenciada.
+                    string nombre = (String.IsNullOrEmpty(pista.Name) ? et : pista.Name) + SufijoLimpia;
+                    AudioTrack nueva = new AudioTrack(pista.Index + 1, nombre);
+                    vegas.Project.Tracks.Add(nueva);
+                    try { nueva.Volume = pista.Volume; } catch { }
                     Media md = new Media(a.Key);
                     double largo = md.Length.ToMilliseconds() / 1000.0;
-                    AudioEvent ev = pista.AddAudioEvent(Timecode.FromMilliseconds(a.Value * 1000), Timecode.FromMilliseconds(largo * 1000));
+                    AudioEvent ev = nueva.AddAudioEvent(Timecode.FromMilliseconds(a.Value * 1000), Timecode.FromMilliseconds(largo * 1000));
                     ev.AddTake(md.Streams.GetItemByMediaType(MediaType.Audio, 0));
-                    List<string> silenciados = new List<string>();
-                    foreach (Clip c in clips)
-                    {
-                        if (c.Pista != pista || Math.Abs(c.Velocidad - 1) > 0.001) continue;
-                        if (!c.Evento.Mute) { c.Evento.Mute = true; silenciados.Add(Clave(c.Evento)); }
-                        n++;
-                    }
-                    estado[Etiqueta(pista)] = silenciados;
+                    pista.Mute = true;
+                    foreach (Clip c in clips) if (c.Pista == pista && Math.Abs(c.Velocidad - 1) <= 0.001) n++;
                 }
             }
         }
-        GuardarEstado(estado);
         List<string> g = new List<string>();
         foreach (KeyValuePair<string, double> kv in ganancias)
             g.Add(kv.Key + " " + (kv.Value >= 0 ? "+" : "") + kv.Value.ToString("0.#") + " dB");
-        Estado("✔ " + (op.PorClip ? n + " clips con la voz limpia" : archivos.Count + " pistas limpias (" + n + " clips debajo, silenciados)") +
+        Estado("✔ " + (op.PorClip ? n + " clips con la voz limpia" : archivos.Count + " pistas «· limpia» nuevas (" + n + " clips; las originales quedaron silenciadas)") +
                (sinRuido ? ", sin ruido" : "") + ", en " + Formato.Tiempo(tardo.TotalSeconds) + ". Volumen: " + String.Join(", ", g.ToArray()) +
                (faltan > 0 ? ". " + faltan + " clips se quedaron como estaban" : "") +
                ". Ahora vuelve a TRANSCRIBIR (sobre lo limpio) y después censura. «Escuchar originales» compara; Ctrl+Z lo deshace.", faltan > 0);
@@ -574,22 +558,25 @@ class VentanaVoces : VentanaBase
         btnAlternar.Text = "Escuchar originales";
     }
 
-    // Cambia las pistas elegidas entre lo limpio y lo original.
+    // Cambia entre lo limpio y lo original (pistas limpias y tomas limpias).
     void Alternar()
     {
         bool aOriginal = btnAlternar.Text.StartsWith("Escuchar originales");
-        Dictionary<string, List<string>> estado = LeerEstado();
         int n = 0;
         using (UndoBlock u = new UndoBlock(aOriginal ? "Voces originales" : "Voces limpias"))
             foreach (Track tr in vegas.Project.Tracks)
             {
                 if (!tr.IsAudio()) continue;
-                List<string> silenciados;
-                estado.TryGetValue(Etiqueta(tr), out silenciados);
+                if (EsPistaLimpia(tr))
+                {
+                    tr.Mute = aOriginal;
+                    AudioTrack o = OriginalDe(tr);
+                    if (o != null) o.Mute = !aOriginal;
+                    n++;
+                    continue;
+                }
                 foreach (TrackEvent e in tr.Events)
                 {
-                    if (EsPistaLimpia(e)) { e.Mute = aOriginal; n++; continue; }
-                    if (silenciados != null && silenciados.Contains(Clave(e))) { e.Mute = !aOriginal; continue; }
                     Take l = TomaLimpia(e), o = Original(e);
                     if (l == null) continue;
                     if (aOriginal && o != null && e.ActiveTake != o) { e.ActiveTake = o; n++; }
@@ -597,6 +584,6 @@ class VentanaVoces : VentanaBase
                 }
             }
         btnAlternar.Text = aOriginal ? "Escuchar limpias" : "Escuchar originales";
-        Estado((aOriginal ? "Suenan los originales" : "Suena lo limpio") + " (" + n + " eventos).", false);
+        Estado((aOriginal ? "Suenan los originales" : "Suena lo limpio") + " (" + n + ").", false);
     }
 }

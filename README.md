@@ -602,9 +602,10 @@ balancear la música → *Censurar*.
 1. Elige las **pistas de voz** (tu micrófono, Discord, la de cada amigo). Se recuerdan. Si varias
    pistas salen del mismo archivo de OBS, cada una usa su propia pista de audio del archivo.
 2. **Resultado**:
-   - **Una pista limpia** (recomendado): un solo archivo limpio por pista de voz, en un evento en
-     esa misma pista, alineado con todo. Los clips originales quedan **silenciados debajo** (no se
-     borran). Si después vuelves a cortar o mover, esa pista no te sigue: límpiala otra vez.
+   - **Una pista limpia** (recomendado): un solo archivo limpio por pista de voz, en una **pista
+     nueva «… · limpia»** justo debajo de la original, alineado con todo. La pista original queda
+     **silenciada** (no se borra nada). Si después vuelves a cortar o mover, la pista limpia no te
+     sigue: límpiala otra vez (reemplaza la anterior).
    - **Por clip**: cada clip recibe lo limpio como toma nueva; el original queda como toma
      alternativa (tecla **T**). Sigue los cortes que hagas después.
 3. **Ruido**: *Suave* (solo lo más molesto), *Medio* (recomendado), *Fuerte* (todo lo que no es
