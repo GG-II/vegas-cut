@@ -8,7 +8,8 @@ El plan completo está en [`docs/plan.md`](docs/plan.md).
 | `PrepararEpisodio.cs` | De una pasada: quita silencios, transcribe, guarda la copia BASE y abre MomentosIA. |
 | `ProducirCapitulo.cs` | Del material a un capítulo de serie: análisis, 3 propuestas, propuesta final y armado. |
 | `PulirEpisodio.cs` | Mide el ritmo contra la serie, estructura y narración provisional, placeholders. |
-| `PasoFinal.cs` | Lo último: rellenar la música, bajar el juego bajo la narración, balancear y censurar. |
+| `PasoFinal.cs` | Lo último: limpiar voces, rellenar la música, memes, bajar el juego bajo la narración, balancear y censurar. |
+| `LimpiarVoces.cs` | Quita el ruido de las voces y las deja todas al mismo volumen, solo en lo que quedó (también es el paso 1 de *PasoFinal*). |
 | `VariosPOV.cs` | El video de otro jugador: sincronizarlo por el audio y mostrarlo en los mejores momentos. |
 | `programas/Memes.exe` | Programa aparte (fuera de Vegas) para tu biblioteca de memes: clasificar una carpeta deslizando como en Tinder y corregir lo que ya tienes. |
 | `LimpiarVegasCut.cs` | Manda a la Papelera lo que se junta al trabajar y ningún proyecto usa (temporales, narración provisional, renders). |
@@ -31,7 +32,7 @@ BASE) → grabar la narración con el guion → *Reemplazar placeholders* (Pulir
 **Flujo sugerido para un gameplay (o cualquier video):** (*VariosPOV* si hay otro POV, antes de
 quitar silencios) → *PrepararEpisodio* (quita silencios, transcribe, guarda la BASE y abre
 *MomentosIA*) → *Aplicar corte* → tus ajustes a mano → *Textos desde marcadores* (opcional) →
-*PasoFinal*: rellenar música, memes, balancear la música y censurar → exportar →
+*PasoFinal*: limpiar voces, rellenar música, memes, balancear la música y censurar → exportar →
 *LimpiarVegasCut* cuando ya no lo vayas a tocar. La transcripción sigue los cortes, también los
 que haces a mano, así que **no hace falta volver a transcribir** (solo si agregas audio nuevo,
 como una narración). Los memes se preparan aparte con `programas/Memes.exe`.
@@ -528,7 +529,10 @@ dejaste.
 
 Lo último antes de exportar, con la narración ya grabada:
 
-1. **Rellenar la música**: para cuando ya cortaste, editaste y reordenaste el capítulo producido.
+1. **Limpiar voces**: quita el ruido y deja todas las voces al mismo volumen, solo en lo que quedó
+   (ver [`LimpiarVoces.cs`](#limpiarvocescs)). Va primero para que el balance de la música y la
+   censura trabajen con las voces ya limpias.
+2. **Rellenar la música**: para cuando ya cortaste, editaste y reordenaste el capítulo producido.
 
    ![Rellenar la música](docs/img/rellenar-musica.png)
 
@@ -545,7 +549,7 @@ Lo último antes de exportar, con la narración ya grabada:
    - Revisa, desmarca lo que no quieras y pulsa **Colocar**: los temas van a la pista de música
      con fundidos y a −21 dB. **Lo que ya estaba no se toca.** Si un tema dura menos que su hueco,
      queda el resto libre y puedes volver a buscar.
-2. **Memes**: imágenes, gifs, videos cortos y sonidos de tu carpeta de memes, donde mejor quedan.
+3. **Memes**: imágenes, gifs, videos cortos y sonidos de tu carpeta de memes, donde mejor quedan.
    Sirve para **cualquier video**, no solo gameplays: un video ensayo, un vlog, una explicación.
    Los memes se describen por lo que son y la emoción o situación en que quedan, no por un juego.
 
@@ -579,10 +583,38 @@ Lo último antes de exportar, con la narración ya grabada:
    - **Colocar**: las imágenes y videos van a la pista «vegas-cut · Memes», arriba de todo, y los
      sonidos (y el audio de los videos) a «vegas-cut · Memes (audio)». Cada meme usado queda
      anotado con su video para no repetirlo en los siguientes.
-3. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
+4. **Bajar el juego bajo la narración**: las voces y el sonido de las grabaciones bajan los dB
    que elijas mientras narras (la pista del narrador no se toca).
-4. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
-5. **Censurar palabrotas**: abre *Censurar palabrotas*.
+5. **Balancear la música**: abre *Música que baja sola*; incluye la narración entre las voces.
+6. **Censurar palabrotas**: abre *Censurar palabrotas*.
+
+### `LimpiarVoces.cs`
+
+![Limpiar voces](docs/img/limpiar-voces.png)
+
+Va **al final**, ya cortado y reordenado, antes de balancear la música y de censurar: así solo se
+limpia lo que se va a ver. También es el paso 1 de *PasoFinal*. Necesita **DeepFilterNet** para
+quitar el ruido y **ffmpeg** para el volumen: [`docs/instalar-deepfilter.md`](docs/instalar-deepfilter.md).
+
+1. Elige las **pistas de voz** (tu micrófono, Discord, la de cada amigo). Se recuerdan.
+2. **Ruido**: *Suave* (solo lo más molesto), *Medio* (recomendado), *Fuerte* (todo lo que no es
+   voz; puede comerse respiraciones o risas bajitas) o *No quitar* (solo volumen).
+3. **Volumen**: todas las pistas elegidas quedan al mismo nivel (-16 LUFS, lo de YouTube), con un
+   tope para que los gritos no saturen. **Emparejar frase por frase** corrige lo que se grabó bajo
+   o alto en distintos momentos (o un amigo que en Discord se oye más que otro) sin aplastar gritos
+   ni susurros.
+4. **Limpiar voces**: por cada archivo saca solo los pedazos que usan los eventos (con un segundo de
+   margen), les quita el ruido, empareja el volumen y los pone como **toma nueva** de cada evento,
+   en el mismo lugar. Nada se mueve; fundidos y envolventes se quedan. Al final dice cuánto subió o
+   bajó cada pista (si una sube mucho, ese micrófono graba bajo).
+   - Los archivos de OBS con varias pistas de audio funcionan: usa la pista que usa cada evento.
+   - Los eventos silenciados (como lo acelerado) no se tocan.
+5. **Escuchar originales / limpias** cambia todas de una vez; en un evento suelto, la tecla **T**
+   de Vegas cambia de toma. Ctrl+Z lo deshace.
+
+Lo limpio queda en `<proyecto>.vegascut-voces\`, junto al proyecto. Los tiempos no cambian, así que
+la transcripción sigue sirviendo; si el ruido tapaba palabras, vuelve a transcribir para que la
+censura encuentre más.
 
 ### `VariosPOV.cs`
 

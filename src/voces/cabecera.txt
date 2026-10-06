@@ -1,0 +1,8 @@
+// LimpiarVoces.cs
+// Script para VEGAS Pro 20 (Herramientas > Secuencias de comandos > Ejecutar).
+// Quita el ruido de las pistas de voz (DeepFilterNet) y empareja su volumen
+// (ffmpeg), solo de lo que quedo en el video. Lo limpio entra como toma nueva
+// de cada evento, en el mismo lugar; el original queda como toma alternativa.
+// Va al final: despues de cortar y reordenar, antes de censurar.
+//
+// Escrito en C# 5 porque Vegas compila los scripts con el compilador clasico.

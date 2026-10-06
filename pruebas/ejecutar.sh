@@ -18,7 +18,7 @@ REF="-r:$T/ScriptPortal.Vegas.dll -r:System.Windows.Forms.dll -r:System.Drawing.
 NET48=/usr/lib/mono/4.8-api
 NET48_REF="-nostdlib -noconfig -r:$NET48/mscorlib.dll -r:$NET48/System.dll -r:$NET48/System.Drawing.dll -r:$NET48/System.Windows.Forms.dll"
 VEGAS_REF="$NET48_REF -r:$T/ScriptPortal.Vegas.dll"
-for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs ../scripts/LimpiarVegasCut.cs ../scripts/VariosPOV.cs; do
+for s in ../scripts/QuitarSilencios.cs ../scripts/ConfigurarVegasCut.cs ../scripts/Transcribir.cs ../scripts/MomentosIA.cs ../scripts/ReubicarMarcadores.cs ../scripts/TextosDesdeMarcadores.cs ../scripts/MusicaAutomatica.cs ../scripts/CensurarPalabrotas.cs ../scripts/DesenlazarClips.cs ../scripts/Anteriormente.cs ../scripts/Series.cs ../scripts/PrepararEpisodio.cs ../scripts/PulirEpisodio.cs ../scripts/ProducirCapitulo.cs ../scripts/PasoFinal.cs ../scripts/LimpiarVegasCut.cs ../scripts/VariosPOV.cs ../scripts/LimpiarVoces.cs; do
     mcs -langversion:5 -nowarn:414,169,649,219 -target:library $VEGAS_REF -out:"$T/$(basename "$s" .cs).dll" "$s"
 done
 # El programa aparte se compila igual que en Windows (csc de .NET Framework 4, C# 5).
@@ -36,6 +36,7 @@ mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/produ
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/preparar.exe" PruebaPreparar.cs ../scripts/PrepararEpisodio.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/limpiar.exe" PruebaLimpiar.cs ../scripts/LimpiarVegasCut.cs
 mcs -langversion:5 -nowarn:414,169,649,219 $REF -r:System.Net.dll -out:"$T/pov.exe" PruebaPov.cs ../scripts/VariosPOV.cs
+mcs -langversion:5 -nowarn:414,169,649,219 $REF -out:"$T/voces.exe" PruebaVoces.cs ../scripts/LimpiarVoces.cs
 EJEMPLOS="$(cd .. && pwd)/ejemplos/jojmania"
 MUSICA="$(cd .. && pwd)/ejemplos/musica/musica.csv"
 cd "$T"
@@ -52,3 +53,4 @@ echo "== Serie de TV y musica"; XDG_CONFIG_HOME="$T/config" mono serietv.exe "$M
 echo "== Producir capitulo y paso final"; XDG_CONFIG_HOME="$T/config" mono produccion.exe "$EJEMPLOS" "$MUSICA"
 echo "== Limpiar"; XDG_CONFIG_HOME="$T/config" mono limpiar.exe
 echo "== Varios POV"; XDG_CONFIG_HOME="$T/config" mono pov.exe
+echo "== Limpiar voces"; XDG_CONFIG_HOME="$T/config" mono voces.exe

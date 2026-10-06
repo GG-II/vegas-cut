@@ -26,6 +26,12 @@ public class Configuracion
     public string MemesOrden = "recientes";      // orden de lo que falta revisar: "recientes" o "nombre"
     public string MemesOrdenLista = "recientes"; // orden de la biblioteca: "recientes", "nombre" o "usados"
     public string MemesSubcarpeta = "";          // subcarpeta donde se guardo el ultimo meme
+    public string DeepFilterExe = "";            // deep-filter-...-windows-msvc.exe (quitar ruido de las voces)
+    public string FfmpegExe = "";                // "" = el de Whisper o el del PATH
+    public string VocesPistas = "";              // etiquetas de las pistas de voz a limpiar ("A2,A3")
+    public string VocesRuido = "24";             // dB que puede bajar el ruido (0, 12, 24, 100)
+    public string VocesNivelar = "si";
+    public string VocesObjetivo = "-16";         // LUFS
 
     public static string Carpeta
     {
@@ -59,6 +65,12 @@ public class Configuracion
             c.MemesOrden = Valor(Json.Texto(o, "memesOrden"), c.MemesOrden);
             c.MemesOrdenLista = Valor(Json.Texto(o, "memesOrdenLista"), c.MemesOrdenLista);
             c.MemesSubcarpeta = Json.Texto(o, "memesSubcarpeta");
+            c.DeepFilterExe = Json.Texto(o, "deepFilterExe");
+            c.FfmpegExe = Json.Texto(o, "ffmpegExe");
+            c.VocesPistas = Json.Texto(o, "vocesPistas");
+            c.VocesRuido = Valor(Json.Texto(o, "vocesRuido"), c.VocesRuido);
+            c.VocesNivelar = Valor(Json.Texto(o, "vocesNivelar"), c.VocesNivelar);
+            c.VocesObjetivo = Valor(Json.Texto(o, "vocesObjetivo"), c.VocesObjetivo);
         }
         catch { }
         return c;
@@ -84,6 +96,12 @@ public class Configuracion
         d["memesOrden"] = MemesOrden;
         d["memesOrdenLista"] = MemesOrdenLista;
         d["memesSubcarpeta"] = MemesSubcarpeta;
+        d["deepFilterExe"] = DeepFilterExe;
+        d["ffmpegExe"] = FfmpegExe;
+        d["vocesPistas"] = VocesPistas;
+        d["vocesRuido"] = VocesRuido;
+        d["vocesNivelar"] = VocesNivelar;
+        d["vocesObjetivo"] = VocesObjetivo;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 

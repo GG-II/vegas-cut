@@ -49,8 +49,9 @@ class VentanaPasoFinal : VentanaBase
     readonly Vegas vegas;
     Transcripcion trans;
     string narrador = "Narrador";
-    Etiqueta lbl1, lbl2, lbl3, lbl0, lblM, lblEstado;
+    Etiqueta lblV, lbl1, lbl2, lbl3, lbl0, lblM, lblEstado;
     CampoNumero numDb = new CampoNumero();
+    Boton btnV = new Boton("Limpiar voces\u2026", EstiloBoton.Secundario);
     Boton btn0 = new Boton("Rellenar la m\u00fasica\u2026", EstiloBoton.Secundario);
     Boton btnM = new Boton("Memes\u2026", EstiloBoton.Secundario);
     Boton btn1 = new Boton("Bajar el juego", EstiloBoton.Secundario);
@@ -62,24 +63,27 @@ class VentanaPasoFinal : VentanaBase
     {
         this.vegas = vegas;
         int m = Margen, w = Ancho;
-        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: m\u00fasica, memes, balance y censura.");
+        Encabezado("Paso final", "Lo \u00faltimo antes de exportar, con la narraci\u00f3n ya grabada: voces, m\u00fasica, memes, balance y censura.");
         int y = 96;
-        lbl0 = Paso(1, "Rellenar la m\u00fasica", "Ya cortado y reordenado: pone OST en los huecos de la m\u00fasica seg\u00fan lo que pasa (no toca lo que ya est\u00e1).", y);
+        lblV = Paso(1, "Limpiar voces", "Quita el ruido y deja todas las voces al mismo volumen, solo en lo que qued\u00f3 del video.", y);
+        Pos(btnV, m + w - 210, y + 4, 210, 32);
+        y += 86;
+        lbl0 = Paso(2, "Rellenar la m\u00fasica", "Ya cortado y reordenado: pone OST en los huecos de la m\u00fasica seg\u00fan lo que pasa (no toca lo que ya est\u00e1).", y);
         Pos(btn0, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lblM = Paso(2, "Memes", "Im\u00e1genes, gifs, videos y sonidos de tu biblioteca donde mejor quedan, por ritmo y sin repetir entre cap\u00edtulos.", y);
+        lblM = Paso(3, "Memes", "Im\u00e1genes, gifs, videos y sonidos de tu biblioteca donde mejor quedan, por ritmo y sin repetir entre cap\u00edtulos.", y);
         Pos(btnM, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl1 = Paso(3, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
+        lbl1 = Paso(4, "Bajar el juego bajo la narraci\u00f3n", "Las voces y el sonido de las grabaciones bajan mientras narras (la pista del narrador no se toca).", y);
         numDb.Sufijo = "dB"; numDb.Minimo = -30; numDb.Maximo = 0; numDb.Paso = 1;
         Pos(numDb, m + w - 330, y + 4, 110, 32);
         numDb.Valor = -10;
         Pos(btn1, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl2 = Paso(4, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
+        lbl2 = Paso(5, "Balancear la m\u00fasica", "La m\u00fasica baja sola bajo las voces; incluye la pista de narraci\u00f3n entre las voces.", y);
         Pos(btn2, m + w - 210, y + 4, 210, 32);
         y += 86;
-        lbl3 = Paso(5, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
+        lbl3 = Paso(6, "Censurar palabrotas", "Busca las palabrotas en la transcripci\u00f3n y las tapa con el efecto que elijas.", y);
         Pos(btn3, m + w - 210, y + 4, 210, 32);
         y += 92;
         lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w - 160, 40);
@@ -112,6 +116,11 @@ class VentanaPasoFinal : VentanaBase
             using (UndoBlock u = new UndoBlock("Bajar el juego bajo la narraci\u00f3n"))
                 n = LogicaPasoFinal.BajarJuego(vegas.Project, trans, narrador, numDb.Valor);
             Hecho(lbl1, n == 0 ? "No encontr\u00e9 narraci\u00f3n ni pistas de grabaci\u00f3n." : "\u2714 " + n + " pistas bajan " + numDb.Valor + " dB mientras narras.", n > 0);
+        };
+        btnV.Click += delegate
+        {
+            using (VentanaVoces v = new VentanaVoces(vegas)) v.ShowDialog(this);
+            Hecho(lblV, "Hecho (si cambi\u00f3 mucho, vuelve a transcribir para que la censura encuentre m\u00e1s).", true);
         };
         btn0.Click += delegate
         {
@@ -151,6 +160,650 @@ class VentanaPasoFinal : VentanaBase
     {
         l.Text = t;
         l.ForeColor = ok ? Color.FromArgb(120, 220, 150) : Tema.AcentoHover;
+    }
+}
+
+// ---- src/voces/Voces.cs ----
+
+// Ventana de Limpiar voces (tambien es el primer paso de PasoFinal).
+class VentanaVoces : VentanaBase
+{
+    readonly Vegas vegas;
+    readonly Configuracion config = Configuracion.Cargar();
+    readonly List<InfoPista> pistas;
+    readonly List<Boton> chips = new List<Boton>();
+    readonly string carpeta;
+
+    Etiqueta lblDf, lblFf, lblEstado;
+    Boton btnDf = new Boton("Elegir\u2026", EstiloBoton.Secundario), btnFf = new Boton("Elegir\u2026", EstiloBoton.Secundario);
+    Segmentado segRuido = new Segmentado(new string[] { "No quitar", "Suave", "Medio", "Fuerte" });
+    Boton chipNivelar = new Boton("Emparejar frase por frase", EstiloBoton.Chip);
+    CampoNumero numObjetivo = new CampoNumero();
+    BarraProgreso barra = new BarraProgreso();
+    Boton btnLimpiar = new Boton("Limpiar voces", EstiloBoton.Primario);
+    Boton btnAlternar = new Boton("Escuchar originales", EstiloBoton.Secundario);
+    Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
+    static readonly double[] Limites = { 0, 12, 24, 100 };
+
+    volatile bool cancelar;
+    bool trabajando;
+
+    public VentanaVoces(Vegas vegas) : base("Limpiar voces", 760)
+    {
+        this.vegas = vegas;
+        StartPosition = FormStartPosition.CenterParent;
+        string veg = vegas.Project.FilePath ?? "";
+        carpeta = veg.Length > 0 ? Path.Combine(Path.GetDirectoryName(veg), Path.GetFileNameWithoutExtension(veg) + ".vegascut-voces") : "";
+        pistas = PistasVegas.Listar(vegas.Project);
+        int m = Margen, w = Ancho;
+        Encabezado("Limpiar voces", "Quita el ruido y empareja el volumen de lo que qued\u00f3 en el video. Despu\u00e9s de cortar, antes de censurar.");
+        int y = 92;
+        Texto("QUITAR RUIDO", Tema.Pequena, Tema.TextoSuave, m, y + 8, 110, 18);
+        lblDf = Texto("", Tema.Normal, Tema.Texto, m + 112, y + 6, w - 112 - 90, 20);
+        Pos(btnDf, m + w - 80, y, 80, 30);
+        y += 36;
+        Texto("FFMPEG", Tema.Pequena, Tema.TextoSuave, m, y + 8, 110, 18);
+        lblFf = Texto("", Tema.Normal, Tema.Texto, m + 112, y + 6, w - 112 - 90, 20);
+        Pos(btnFf, m + w - 80, y, 80, 30);
+        y += 46;
+
+        Texto("Pistas de voz", Tema.Negrita, Tema.Texto, m, y, w, 20);
+        y += 24;
+        List<string> elegidas = new List<string>(config.VocesPistas.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
+        int cx = m;
+        foreach (InfoPista p in pistas)
+        {
+            Boton c = new Boton(p.Nombre, EstiloBoton.Chip);
+            int cw = Math.Min(w, TextRenderer.MeasureText(c.Text, Tema.Normal).Width + 26);
+            if (cx + cw > m + w) { cx = m; y += 34; }
+            Pos(c, cx, y, cw, 28);
+            c.Tag = p;
+            c.Activo = elegidas.Count > 0 ? elegidas.Contains(p.Etiqueta) : PareceVoz(p);
+            c.Click += delegate { c.Activo = !c.Activo; };
+            chips.Add(c);
+            cx += cw + 6;
+        }
+        y += 44;
+
+        Texto("Ruido", Tema.Negrita, Tema.Texto, m, y + 8, 90, 20);
+        Pos(segRuido, m + 90, y, 420, 34);
+        double lim;
+        double.TryParse(config.VocesRuido, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out lim);
+        segRuido.Seleccion = Math.Max(0, Array.IndexOf(Limites, lim));
+        y += 42;
+        Texto("Volumen", Tema.Negrita, Tema.Texto, m, y + 8, 90, 20);
+        numObjetivo.Sufijo = ""; numObjetivo.Minimo = -24; numObjetivo.Maximo = -10; numObjetivo.Paso = 1;
+        int obj;
+        numObjetivo.Valor = int.TryParse(config.VocesObjetivo, out obj) ? obj : -16;
+        Pos(numObjetivo, m + 90, y, 100, 34);
+        Texto("LUFS", Tema.Pequena, Tema.TextoSuave, m + 196, y + 9, 40, 18);
+        Pos(chipNivelar, m + 244, y + 3, 220, 28);
+        chipNivelar.Activo = config.VocesNivelar != "no";
+        chipNivelar.Click += delegate { chipNivelar.Activo = !chipNivelar.Activo; };
+        Texto("-16 LUFS es lo de YouTube; todas las pistas elegidas quedan a ese volumen. \u00abFrase por frase\u00bb sube lo que se grab\u00f3 bajo y baja lo que se grab\u00f3 alto.",
+              Tema.Pequena, Tema.TextoSuave, m + 90, y + 40, w - 90, 32);
+        y += 82;
+
+        Pos(barra, m, y, w, 8);
+        y += 16;
+        lblEstado = Texto("", Tema.Pequena, Tema.TextoSuave, m, y, w, 54);
+        y += 62;
+        Pos(btnAlternar, m, y, 190, 40);
+        Pos(btnCerrar, m + w - 330, y, 130, 40);
+        Pos(btnLimpiar, m + w - 190, y, 190, 40);
+        ClientSize = new Size(ClientSize.Width, y + 40 + 24);
+
+        btnDf.Click += delegate { ElegirExe(true); };
+        btnFf.Click += delegate { ElegirExe(false); };
+        btnLimpiar.Click += delegate { if (trabajando) cancelar = true; else Limpiar(); };
+        btnAlternar.Click += delegate { Alternar(); };
+        btnCerrar.Click += delegate { Close(); };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) { cancelar = true; e.Cancel = true; } };
+        Mostrar();
+        if (carpeta.Length == 0) { btnLimpiar.Enabled = false; Estado("Guarda el proyecto primero (los archivos limpios van junto a \u00e9l).", true); }
+    }
+
+    static bool PareceVoz(InfoPista p)
+    {
+        string n = (p.Pista.Name + " " + p.Archivo).ToLowerInvariant();
+        foreach (string k in new string[] { "voz", "voice", "mic", "discord", "llamada", "narr" }) if (n.Contains(k)) return true;
+        return false;
+    }
+
+    void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
+
+    string Ffmpeg() { return LogicaVoces.BuscarFfmpeg(config.FfmpegExe, config.WhisperExe); }
+
+    void Mostrar()
+    {
+        bool df = config.DeepFilterExe.Length > 0 && File.Exists(config.DeepFilterExe);
+        lblDf.Text = df ? Path.GetFileName(config.DeepFilterExe) : "Falta DeepFilterNet: elige deep-filter-\u2026-windows-msvc.exe (sin \u00e9l solo se empareja el volumen).";
+        lblDf.ForeColor = df ? Tema.Texto : Tema.AcentoHover;
+        string ff = Ffmpeg();
+        lblFf.Text = ff.Length > 0 ? ff : "No encontr\u00e9 ffmpeg: elige ffmpeg.exe.";
+        lblFf.ForeColor = ff.Length > 0 ? Tema.Texto : Tema.Silencio;
+        btnAlternar.Enabled = HayLimpias();
+    }
+
+    void ElegirExe(bool deepFilter)
+    {
+        using (OpenFileDialog d = new OpenFileDialog())
+        {
+            d.Filter = "Programa (*.exe)|*.exe";
+            d.Title = deepFilter ? "deep-filter-\u2026-x86_64-pc-windows-msvc.exe" : "ffmpeg.exe";
+            if (d.ShowDialog(this) != DialogResult.OK) return;
+            if (deepFilter) config.DeepFilterExe = d.FileName; else config.FfmpegExe = d.FileName;
+        }
+        try { config.Guardar(); } catch { }
+        Mostrar();
+    }
+
+    List<AudioTrack> Elegidas()
+    {
+        List<AudioTrack> r = new List<AudioTrack>();
+        foreach (Boton c in chips) if (c.Activo) r.Add(((InfoPista)c.Tag).Pista);
+        return r;
+    }
+
+    // ------------------------------------------------- tomas
+
+    bool EsLimpia(Take t)
+    {
+        try { return t != null && t.Media != null && t.Media.FilePath != null && carpeta.Length > 0 &&
+                     t.Media.FilePath.StartsWith(carpeta, StringComparison.OrdinalIgnoreCase); }
+        catch { return false; }
+    }
+
+    Take Original(TrackEvent e)
+    {
+        if (!EsLimpia(e.ActiveTake)) return e.ActiveTake;
+        foreach (Take t in e.Takes) if (!EsLimpia(t)) return t;
+        return null;
+    }
+
+    Take Limpia(TrackEvent e)
+    {
+        foreach (Take t in e.Takes) if (EsLimpia(t)) return t;
+        return null;
+    }
+
+    bool HayLimpias()
+    {
+        foreach (Track t in vegas.Project.Tracks)
+            if (t.IsAudio()) foreach (TrackEvent e in t.Events) if (Limpia(e) != null) return true;
+        return false;
+    }
+
+    // Pista de audio que usa la toma dentro de su archivo (0 = la primera).
+    static int IndiceAudio(Take t)
+    {
+        try
+        {
+            object flujo = t.GetType().GetProperty("MediaStream").GetValue(t, null);
+            int n = 0;
+            foreach (MediaStream s in t.Media.Streams)
+            {
+                if (s.MediaType != MediaType.Audio) continue;
+                if (Object.ReferenceEquals(s, flujo)) return n;
+                n++;
+            }
+        }
+        catch { }
+        return 0;
+    }
+
+    // ------------------------------------------------- limpiar
+
+    void Limpiar()
+    {
+        List<AudioTrack> sel = Elegidas();
+        if (sel.Count == 0) { Estado("Elige al menos una pista de voz.", true); return; }
+        string ffmpeg = Ffmpeg();
+        if (ffmpeg.Length == 0) { Estado("Falta ffmpeg: pulsa \u00abElegir\u2026\u00bb y busca ffmpeg.exe.", true); return; }
+        OpcionesVoces op = new OpcionesVoces();
+        op.LimiteRuido = Limites[segRuido.Seleccion];
+        op.Nivelar = chipNivelar.Activo;
+        op.Objetivo = numObjetivo.Valor;
+        string df = config.DeepFilterExe.Length > 0 && File.Exists(config.DeepFilterExe) ? config.DeepFilterExe : "";
+        List<string> etiquetas = new List<string>();
+        foreach (AudioTrack t in sel) etiquetas.Add("A" + (t.Index + 1));
+        config.VocesPistas = String.Join(",", etiquetas.ToArray());
+        config.VocesRuido = op.LimiteRuido.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        config.VocesNivelar = op.Nivelar ? "si" : "no";
+        config.VocesObjetivo = numObjetivo.Valor.ToString();
+        try { config.Guardar(); } catch { }
+
+        // Lo que usa cada evento (en este hilo: la API de Vegas no es para otros hilos).
+        List<KeyValuePair<TrackEvent, UsoVoz>> usos = new List<KeyValuePair<TrackEvent, UsoVoz>>();
+        foreach (AudioTrack pista in sel)
+            foreach (TrackEvent e in pista.Events)
+            {
+                if (e.Mute) continue;
+                Take t = Original(e);
+                if (t == null || t.Media == null || String.IsNullOrEmpty(t.Media.FilePath) || !File.Exists(t.Media.FilePath)) continue;
+                double off = t.Offset.ToMilliseconds() / 1000.0, largo = e.Length.ToMilliseconds() / 1000.0 * e.PlaybackRate;
+                usos.Add(new KeyValuePair<TrackEvent, UsoVoz>(e, new UsoVoz
+                {
+                    Archivo = t.Media.FilePath, Flujo = IndiceAudio(t), A = off, B = off + largo, Pista = "A" + (pista.Index + 1)
+                }));
+            }
+        if (usos.Count == 0) { Estado("Esas pistas no tienen eventos con audio.", true); return; }
+        List<UsoVoz> lista = new List<UsoVoz>();
+        foreach (KeyValuePair<TrackEvent, UsoVoz> kv in usos) lista.Add(kv.Value);
+        List<TrozoVoz> trozos = LogicaVoces.Trozos(lista, 1.0, 3.0);
+        LogicaVoces.Nombrar(trozos, carpeta);
+        double total = 0;
+        foreach (TrozoVoz t in trozos) total += t.Duracion;
+
+        trabajando = true; cancelar = false;
+        btnLimpiar.Text = "Cancelar";
+        foreach (Control c in new Control[] { btnAlternar, btnCerrar, btnDf, btnFf, segRuido, chipNivelar, numObjetivo }) c.Enabled = false;
+        barra.Valor = 0;
+        DateTime inicio = DateTime.Now;
+        Thread hilo = new Thread(delegate ()
+        {
+            string error = null;
+            Dictionary<string, double> ganancias = new Dictionary<string, double>();
+            try { Procesar(ffmpeg, df, op, trozos, total, ganancias, inicio); }
+            catch (Exception ex) { error = ex.Message; }
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    trabajando = false;
+                    btnLimpiar.Text = "Limpiar voces";
+                    foreach (Control c in new Control[] { btnAlternar, btnCerrar, btnDf, btnFf, segRuido, chipNivelar, numObjetivo }) c.Enabled = true;
+                    if (cancelar) { Estado("Cancelado: no se cambi\u00f3 nada.", true); Mostrar(); return; }
+                    if (error != null) { Estado("No se pudo: " + error, true); Mostrar(); return; }
+                    Poner(usos, trozos, ganancias, df.Length > 0 && op.LimiteRuido > 0, DateTime.Now - inicio);
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
+    }
+
+    void Avance(string texto, double f)
+    {
+        try { BeginInvoke((MethodInvoker)delegate { Estado(texto, false); barra.Valor = f; }); } catch { }
+    }
+
+    string Correr(string exe, string args, string que)
+    {
+        int codigo;
+        string salida = LogicaVoces.Ejecutar(exe, args, out codigo, delegate { return cancelar; });
+        if (cancelar) throw new OperationCanceledException();
+        if (codigo != 0)
+        {
+            string[] l = salida.Trim().Split('\n');
+            throw new Exception(que + " fall\u00f3: " + (l.Length > 0 ? l[l.Length - 1].Trim() : "c\u00f3digo " + codigo));
+        }
+        return salida;
+    }
+
+    // En otro hilo: sacar, quitar ruido, nivelar y dejar todo al mismo volumen.
+    void Procesar(string ffmpeg, string df, OpcionesVoces op, List<TrozoVoz> trozos, double total, Dictionary<string, double> ganancias, DateTime inicio)
+    {
+        Directory.CreateDirectory(Path.Combine(carpeta, "tmp"));
+        int i = 0;
+        foreach (TrozoVoz t in trozos)
+        {
+            Avance("Sacando lo que qued\u00f3 en el video\u2026 (" + (++i) + " de " + trozos.Count + ")", 0.08 * i / trozos.Count);
+            Correr(ffmpeg, LogicaVoces.ArgsExtraer(t), "Sacar el audio de " + Path.GetFileName(t.Archivo));
+        }
+
+        bool quitar = df.Length > 0 && op.LimiteRuido > 0;
+        if (quitar)
+        {
+            // Varios deep-filter a la vez (cada uno usa un nucleo), de a pocos archivos.
+            string salida = Path.Combine(Path.Combine(carpeta, "tmp"), "df");
+            Directory.CreateDirectory(salida);
+            List<List<TrozoVoz>> grupos = new List<List<TrozoVoz>>();
+            List<TrozoVoz> g = null;
+            double enGrupo = 0;
+            foreach (TrozoVoz t in trozos)
+            {
+                if (g == null || g.Count >= 8 || enGrupo > 300) { g = new List<TrozoVoz>(); grupos.Add(g); enGrupo = 0; }
+                g.Add(t); enGrupo += t.Duracion;
+            }
+            int hechos = 0;
+            double segHechos = 0;
+            int siguiente = 0;
+            string fallo = null;
+            object candado = new object();
+            int hilos = Math.Max(1, Math.Min(4, Environment.ProcessorCount / 2));
+            List<Thread> trabajadores = new List<Thread>();
+            for (int k = 0; k < hilos; k++)
+            {
+                Thread th = new Thread(delegate ()
+                {
+                    while (true)
+                    {
+                        List<TrozoVoz> mio;
+                        lock (candado)
+                        {
+                            if (siguiente >= grupos.Count || fallo != null || cancelar) return;
+                            mio = grupos[siguiente++];
+                        }
+                        try { Correr(df, LogicaVoces.ArgsDeepFilter(mio, op.LimiteRuido, salida), "DeepFilterNet"); }
+                        catch (Exception ex) { lock (candado) { if (fallo == null) fallo = ex.Message; } return; }
+                        lock (candado)
+                        {
+                            hechos++;
+                            foreach (TrozoVoz t in mio) segHechos += t.Duracion;
+                            double f = segHechos / Math.Max(1, total);
+                            double pasado = (DateTime.Now - inicio).TotalSeconds;
+                            string falta = f > 0.03 ? " \u00b7 faltan ~" + Formato.Tiempo(pasado / f * (1 - f)) : "";
+                            Avance("Quitando el ruido: " + Formato.Tiempo(segHechos) + " de " + Formato.Tiempo(total) + falta, 0.08 + 0.77 * f);
+                        }
+                    }
+                });
+                th.IsBackground = true;
+                trabajadores.Add(th);
+                th.Start();
+            }
+            foreach (Thread th in trabajadores) th.Join();
+            if (cancelar) throw new OperationCanceledException();
+            if (fallo != null) throw new Exception(fallo);
+        }
+
+        i = 0;
+        foreach (TrozoVoz t in trozos)
+        {
+            Avance("Emparejando el volumen\u2026 (" + (++i) + " de " + trozos.Count + ")", 0.85 + 0.08 * i / trozos.Count);
+            string entrada = quitar && File.Exists(t.Sinruido) ? t.Sinruido : t.Entrada;
+            t.Lufs = LogicaVoces.LeerLufs(Correr(ffmpeg, LogicaVoces.ArgsNivelar(entrada, t, op), "Nivelar"));
+        }
+        Dictionary<string, List<TrozoVoz>> porPista = new Dictionary<string, List<TrozoVoz>>();
+        foreach (TrozoVoz t in trozos)
+        {
+            if (!porPista.ContainsKey(t.Pista)) porPista[t.Pista] = new List<TrozoVoz>();
+            porPista[t.Pista].Add(t);
+        }
+        foreach (KeyValuePair<string, List<TrozoVoz>> kv in porPista)
+            ganancias[kv.Key] = LogicaVoces.Ganancia(LogicaVoces.LufsPista(kv.Value), op.Objetivo);
+        i = 0;
+        foreach (TrozoVoz t in trozos)
+        {
+            Avance("Dejando todas al mismo volumen\u2026 (" + (++i) + " de " + trozos.Count + ")", 0.93 + 0.07 * i / trozos.Count);
+            Correr(ffmpeg, LogicaVoces.ArgsFinal(t, ganancias[t.Pista]), "Volumen final");
+        }
+        try { Directory.Delete(Path.Combine(carpeta, "tmp"), true); } catch { }
+    }
+
+    // De vuelta en el hilo de Vegas: cada evento usa lo limpio como toma nueva.
+    void Poner(List<KeyValuePair<TrackEvent, UsoVoz>> usos, List<TrozoVoz> trozos, Dictionary<string, double> ganancias, bool sinRuido, TimeSpan tardo)
+    {
+        int n = 0, faltan = 0;
+        Dictionary<string, Media> medios = new Dictionary<string, Media>();
+        using (UndoBlock u = new UndoBlock("Limpiar voces"))
+            foreach (KeyValuePair<TrackEvent, UsoVoz> kv in usos)
+            {
+                TrozoVoz t = LogicaVoces.Buscar(trozos, kv.Value);
+                if (t == null || !File.Exists(t.Final)) { faltan++; continue; }
+                try
+                {
+                    TrackEvent e = kv.Key;
+                    Take orig = Original(e);
+                    List<Take> viejas = new List<Take>();
+                    foreach (Take x in e.Takes) if (EsLimpia(x)) viejas.Add(x);
+                    if (orig != null) e.ActiveTake = orig;
+                    foreach (Take x in viejas) try { e.Takes.Remove(x); } catch { }
+                    Media md;
+                    if (!medios.TryGetValue(t.Final, out md)) { md = new Media(t.Final); medios[t.Final] = md; }
+                    Take nueva = e.AddTake(md.Streams.GetItemByMediaType(MediaType.Audio, 0), true);
+                    nueva.Offset = Timecode.FromMilliseconds((kv.Value.A - t.A) * 1000);
+                    n++;
+                }
+                catch { faltan++; }
+            }
+        List<string> g = new List<string>();
+        foreach (KeyValuePair<string, double> kv in ganancias)
+            g.Add(kv.Key + " " + (kv.Value >= 0 ? "+" : "") + kv.Value.ToString("0.#") + " dB");
+        Estado("\u2714 " + n + " eventos con la voz limpia" + (sinRuido ? " (sin ruido)" : "") + " en " + Formato.Tiempo(tardo.TotalSeconds) +
+               ". Volumen corregido: " + String.Join(", ", g.ToArray()) + "." + (faltan > 0 ? " " + faltan + " eventos se quedaron como estaban." : "") +
+               " El original queda como toma alternativa (tecla T o \u00abEscuchar originales\u00bb). Ctrl+Z lo deshace.", faltan > 0);
+        barra.Valor = 1;
+        Mostrar();
+        btnAlternar.Text = "Escuchar originales";
+    }
+
+    // Cambia todas las pistas elegidas entre lo limpio y lo original.
+    void Alternar()
+    {
+        bool aOriginal = btnAlternar.Text.StartsWith("Escuchar originales");
+        int n = 0;
+        using (UndoBlock u = new UndoBlock(aOriginal ? "Voces originales" : "Voces limpias"))
+            foreach (Track tr in vegas.Project.Tracks)
+            {
+                if (!tr.IsAudio()) continue;
+                foreach (TrackEvent e in tr.Events)
+                {
+                    Take l = Limpia(e), o = Original(e);
+                    if (l == null) continue;
+                    if (aOriginal && o != null && e.ActiveTake != o) { e.ActiveTake = o; n++; }
+                    if (!aOriginal && e.ActiveTake != l) { e.ActiveTake = l; n++; }
+                }
+            }
+        btnAlternar.Text = aOriginal ? "Escuchar limpias" : "Escuchar originales";
+        Estado(n + " eventos con la voz " + (aOriginal ? "original" : "limpia") + ".", false);
+    }
+}
+
+// ---- src/voces/LogicaVoces.cs ----
+
+// =====================================================================
+// Limpiar voces: quita el ruido (DeepFilterNet) y empareja el volumen
+// (ffmpeg) SOLO de lo que quedo en el video. Por cada archivo de voz se
+// sacan los pedazos que usan los eventos (con un margen), se limpian y se
+// ponen como toma nueva de cada evento, en el mismo lugar: nada se mueve y
+// el original queda como toma alternativa (tecla T en Vegas).
+// =====================================================================
+
+// Lo que un evento usa de su archivo (segundos del archivo).
+public class UsoVoz
+{
+    public string Archivo = "";
+    public int Flujo;          // pista de audio dentro del archivo (OBS graba varias)
+    public double A, B;
+    public string Pista = "";  // etiqueta de la pista de Vegas ("A2")
+}
+
+// Un pedazo continuo de un archivo que se limpia de una vez.
+public class TrozoVoz
+{
+    public string Archivo = "", Pista = "";
+    public int Flujo;
+    public double A, B;
+    public string Entrada = "", Sinruido = "", Nivelado = "", Final = "";
+    public double Lufs = double.NaN;   // volumen medido despues de nivelar
+    public double Duracion { get { return B - A; } }
+}
+
+public class OpcionesVoces
+{
+    public double LimiteRuido = 24;    // dB que puede bajar el ruido (0 = no quitar; 100 = todo)
+    public bool Nivelar = true;        // emparejar frase por frase
+    public double Objetivo = -16;      // LUFS de todas las voces
+    public double Graves = 80;         // Hz: corta golpes y retumbes
+}
+
+public static class LogicaVoces
+{
+    static string F(double v) { return v.ToString("0.###", CultureInfo.InvariantCulture); }
+
+    // Junta lo que usan los eventos en pedazos por archivo: con un margen a cada
+    // lado (para que el filtro tenga contexto) y unidos si quedan cerca.
+    public static List<TrozoVoz> Trozos(List<UsoVoz> usos, double margen, double unir)
+    {
+        Dictionary<string, List<UsoVoz>> porArchivo = new Dictionary<string, List<UsoVoz>>();
+        foreach (UsoVoz u in usos)
+        {
+            if (u.B - u.A < 0.01) continue;
+            string k = u.Pista + "|" + u.Archivo.ToLowerInvariant() + "|" + u.Flujo;
+            if (!porArchivo.ContainsKey(k)) porArchivo[k] = new List<UsoVoz>();
+            porArchivo[k].Add(u);
+        }
+        List<TrozoVoz> r = new List<TrozoVoz>();
+        foreach (List<UsoVoz> l in porArchivo.Values)
+        {
+            l.Sort(delegate (UsoVoz x, UsoVoz y) { return x.A.CompareTo(y.A); });
+            TrozoVoz t = null;
+            foreach (UsoVoz u in l)
+            {
+                double a = Math.Max(0, u.A - margen), b = u.B + margen;
+                if (t != null && a <= t.B + unir) { t.B = Math.Max(t.B, b); continue; }
+                t = new TrozoVoz { Archivo = u.Archivo, Flujo = u.Flujo, Pista = u.Pista, A = a, B = b };
+                r.Add(t);
+            }
+        }
+        return r;
+    }
+
+    // El pedazo que contiene lo que usa un evento.
+    public static TrozoVoz Buscar(List<TrozoVoz> trozos, UsoVoz u)
+    {
+        foreach (TrozoVoz t in trozos)
+            if (t.Pista == u.Pista && t.Flujo == u.Flujo && String.Equals(t.Archivo, u.Archivo, StringComparison.OrdinalIgnoreCase) &&
+                u.A >= t.A - 0.001 && u.B <= t.B + 0.001) return t;
+        return null;
+    }
+
+    // Nombres de los archivos de cada pedazo, dentro de la carpeta de trabajo.
+    public static void Nombrar(List<TrozoVoz> trozos, string carpeta)
+    {
+        for (int i = 0; i < trozos.Count; i++)
+        {
+            TrozoVoz t = trozos[i];
+            string baseNombre = Limpio(t.Pista + " " + Path.GetFileNameWithoutExtension(t.Archivo)) + " " + (i + 1).ToString("000") +
+                                " " + ((int)t.A) + "s";
+            t.Entrada = Path.Combine(carpeta, "tmp", baseNombre + ".wav");
+            t.Sinruido = Path.Combine(carpeta, "tmp", "df", baseNombre + ".wav");
+            t.Nivelado = Path.Combine(carpeta, "tmp", baseNombre + " nivelado.wav");
+            t.Final = Path.Combine(carpeta, baseNombre + ".wav");
+        }
+    }
+
+    static string Limpio(string s)
+    {
+        foreach (char c in Path.GetInvalidFileNameChars()) s = s.Replace(c.ToString(), "");
+        foreach (char c in "<>:\"|?*") s = s.Replace(c.ToString(), "");
+        return s.Trim();
+    }
+
+    static string Q(string ruta) { return "\"" + ruta + "\""; }
+
+    // 1) Sacar el pedazo: mono, 48 kHz (lo que usa DeepFilterNet).
+    public static string ArgsExtraer(TrozoVoz t)
+    {
+        return "-hide_banner -v error -y -ss " + F(t.A) + " -t " + F(t.Duracion) + " -i " + Q(t.Archivo) +
+               " -map 0:a:" + t.Flujo + " -ac 1 -ar 48000 -c:a pcm_s16le " + Q(t.Entrada);
+    }
+
+    // 2) Quitar el ruido (varios archivos de una vez; -D: sin retraso).
+    public static string ArgsDeepFilter(List<TrozoVoz> trozos, double limite, string salida)
+    {
+        StringBuilder sb = new StringBuilder("-D -a " + F(limite) + " -o " + Q(salida));
+        foreach (TrozoVoz t in trozos) sb.Append(" " + Q(t.Entrada));
+        return sb.ToString();
+    }
+
+    // 3) Graves fuera y volumen parejo frase por frase; al final mide el volumen.
+    public static string ArgsNivelar(string entrada, TrozoVoz t, OpcionesVoces op)
+    {
+        List<string> f = new List<string>();
+        if (op.Graves > 0) f.Add("highpass=f=" + F(op.Graves));
+        // Ventanas de ~0.2 s suavizadas en ~6 s: sube lo bajo y baja lo alto sin
+        // aplastar gritos ni susurros; como mucho x8 (no sube el ruido de fondo).
+        if (op.Nivelar) f.Add("dynaudnorm=f=200:g=31:p=0.9:m=8");
+        f.Add("ebur128=framelog=quiet");
+        return "-hide_banner -nostats -y -i " + Q(entrada) + " -af " + String.Join(",", f.ToArray()) +
+               " -ar 48000 -c:a pcm_s16le " + Q(t.Nivelado);
+    }
+
+    // 4) La misma ganancia a todos los pedazos de la pista (para llegar al
+    // objetivo), un tope para los picos y exactamente la duracion original.
+    public static string ArgsFinal(TrozoVoz t, double ganancia)
+    {
+        return "-hide_banner -v error -y -i " + Q(t.Nivelado) + " -af volume=" + F(ganancia) + "dB,alimiter=limit=0.84:level=false,apad" +
+               " -t " + F(t.Duracion) + " -ar 48000 -c:a pcm_s16le " + Q(t.Final);
+    }
+
+    // El "I: -23.4 LUFS" del resumen de ebur128.
+    public static double LeerLufs(string salida)
+    {
+        MatchCollection ms = Regex.Matches(salida ?? "", @"I:\s*(-?\d+(?:\.\d+)?)\s*LUFS");
+        if (ms.Count == 0) return double.NaN;
+        double v = double.Parse(ms[ms.Count - 1].Groups[1].Value, CultureInfo.InvariantCulture);
+        return v <= -69 ? double.NaN : v;
+    }
+
+    // Volumen de toda la pista: promedio de energia pesado por duracion.
+    public static double LufsPista(List<TrozoVoz> trozos)
+    {
+        double e = 0, d = 0;
+        foreach (TrozoVoz t in trozos)
+        {
+            if (double.IsNaN(t.Lufs)) continue;
+            e += t.Duracion * Math.Pow(10, t.Lufs / 10);
+            d += t.Duracion;
+        }
+        return d <= 0 ? double.NaN : 10 * Math.Log10(e / d);
+    }
+
+    // Cuanto subir o bajar para llegar al objetivo (con limites razonables).
+    public static double Ganancia(double lufs, double objetivo)
+    {
+        if (double.IsNaN(lufs)) return 0;
+        return Math.Max(-20, Math.Min(30, objetivo - lufs));
+    }
+
+    // ------------------------------------------------- programas externos
+
+    // ffmpeg: el configurado, el que viene con Whisper o el del PATH.
+    public static string BuscarFfmpeg(string configurado, string whisperExe)
+    {
+        List<string> c = new List<string>();
+        if (!String.IsNullOrEmpty(configurado)) c.Add(configurado);
+        if (!String.IsNullOrEmpty(whisperExe))
+        {
+            string d = Path.GetDirectoryName(whisperExe) ?? "";
+            c.Add(Path.Combine(d, "ffmpeg.exe"));
+            c.Add(Path.Combine(Path.Combine(d, "_xxl_data"), "ffmpeg.exe"));
+        }
+        foreach (string dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
+        {
+            if (dir.Trim().Length == 0) continue;
+            try { c.Add(Path.Combine(dir.Trim().Trim('"'), "ffmpeg.exe")); c.Add(Path.Combine(dir.Trim().Trim('"'), "ffmpeg")); } catch { }
+        }
+        foreach (string f in c) if (File.Exists(f)) return f;
+        return "";
+    }
+
+    // Ejecuta un programa sin ventana; devuelve lo que escribio (salida y errores).
+    public static string Ejecutar(string exe, string args, out int codigo, Func<bool> cancelar)
+    {
+        ProcessStartInfo info = new ProcessStartInfo(exe, args);
+        info.UseShellExecute = false;
+        info.CreateNoWindow = true;
+        info.RedirectStandardError = true;
+        info.RedirectStandardOutput = true;
+        StringBuilder sb = new StringBuilder();
+        using (Process p = new Process())
+        {
+            p.StartInfo = info;
+            p.OutputDataReceived += delegate (object s, DataReceivedEventArgs e) { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
+            p.ErrorDataReceived += delegate (object s, DataReceivedEventArgs e) { if (e.Data != null) lock (sb) sb.AppendLine(e.Data); };
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            while (!p.WaitForExit(200))
+                if (cancelar != null && cancelar()) { try { p.Kill(); } catch { } p.WaitForExit(); codigo = -1; return "cancelado"; }
+            p.WaitForExit();
+            codigo = p.ExitCode;
+        }
+        lock (sb) return sb.ToString();
     }
 }
 
@@ -9042,6 +9695,12 @@ public class Configuracion
     public string MemesOrden = "recientes";      // orden de lo que falta revisar: "recientes" o "nombre"
     public string MemesOrdenLista = "recientes"; // orden de la biblioteca: "recientes", "nombre" o "usados"
     public string MemesSubcarpeta = "";          // subcarpeta donde se guardo el ultimo meme
+    public string DeepFilterExe = "";            // deep-filter-...-windows-msvc.exe (quitar ruido de las voces)
+    public string FfmpegExe = "";                // "" = el de Whisper o el del PATH
+    public string VocesPistas = "";              // etiquetas de las pistas de voz a limpiar ("A2,A3")
+    public string VocesRuido = "24";             // dB que puede bajar el ruido (0, 12, 24, 100)
+    public string VocesNivelar = "si";
+    public string VocesObjetivo = "-16";         // LUFS
 
     public static string Carpeta
     {
@@ -9075,6 +9734,12 @@ public class Configuracion
             c.MemesOrden = Valor(Json.Texto(o, "memesOrden"), c.MemesOrden);
             c.MemesOrdenLista = Valor(Json.Texto(o, "memesOrdenLista"), c.MemesOrdenLista);
             c.MemesSubcarpeta = Json.Texto(o, "memesSubcarpeta");
+            c.DeepFilterExe = Json.Texto(o, "deepFilterExe");
+            c.FfmpegExe = Json.Texto(o, "ffmpegExe");
+            c.VocesPistas = Json.Texto(o, "vocesPistas");
+            c.VocesRuido = Valor(Json.Texto(o, "vocesRuido"), c.VocesRuido);
+            c.VocesNivelar = Valor(Json.Texto(o, "vocesNivelar"), c.VocesNivelar);
+            c.VocesObjetivo = Valor(Json.Texto(o, "vocesObjetivo"), c.VocesObjetivo);
         }
         catch { }
         return c;
@@ -9100,6 +9765,12 @@ public class Configuracion
         d["memesOrden"] = MemesOrden;
         d["memesOrdenLista"] = MemesOrdenLista;
         d["memesSubcarpeta"] = MemesSubcarpeta;
+        d["deepFilterExe"] = DeepFilterExe;
+        d["ffmpegExe"] = FfmpegExe;
+        d["vocesPistas"] = VocesPistas;
+        d["vocesRuido"] = VocesRuido;
+        d["vocesNivelar"] = VocesNivelar;
+        d["vocesObjetivo"] = VocesObjetivo;
         File.WriteAllText(Ruta, Json.Escribir(d), new UTF8Encoding(false));
     }
 
