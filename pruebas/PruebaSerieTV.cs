@@ -17,6 +17,16 @@ class PruebaSerieTV
 
     static int Main(string[] args)
     {
+        // El mismo capitulo con otro sufijo de copia (S01E05 MOM en la serie, se abre S01E05 o su BASE).
+        SerieProyecto sc = new SerieProyecto();
+        string dc = Path.Combine(Path.GetTempPath(), "SCR");
+        sc.Episodios.Add(Path.Combine(dc, "S01E04 SCR.veg"));
+        sc.Episodios.Add(Path.Combine(dc, "S01E05 MOM.veg"));
+        Verificar(sc.IndiceDe(Path.Combine(dc, "S01E05.veg")) == 1 && sc.IndiceDe(Path.Combine(dc, "S01E05 BASE.veg")) == 1 &&
+                  sc.IndiceDe(Path.Combine(dc, "S01E04 SCR MOM 2.veg")) == 0 && sc.IndiceDe(Path.Combine(dc, "S01E06.veg")) < 0 &&
+                  sc.IndiceDe(Path.Combine(Path.GetTempPath(), "S01E05.veg")) < 0,
+                  "Serie: reconoce el capítulo aunque se abra la copia (MOM, BASE, CAP) o el original");
+
         string csv = args.Length > 0 ? args[0] : "../ejemplos/musica/musica.csv";
         string dir = Path.Combine(Path.GetTempPath(), "vc-tv-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);

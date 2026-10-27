@@ -1016,7 +1016,19 @@ public class SerieProyecto
     {
         for (int i = 0; i < Episodios.Count; i++)
             if (String.Equals(Episodios[i], veg, StringComparison.OrdinalIgnoreCase)) return i;
+        // El mismo capitulo con otro sufijo de copia: \u00abS01E05 MOM\u00bb es \u00abS01E05\u00bb (y su BASE o CAP).
+        string base_ = SinCopia(veg);
+        for (int i = 0; i < Episodios.Count; i++)
+            if (String.Equals(SinCopia(Episodios[i]), base_, StringComparison.OrdinalIgnoreCase)) return i;
         return -1;
+    }
+
+    // La ruta sin \u00ab BASE\u00bb, \u00ab CAP\u00bb ni \u00ab MOM\u00bb (\u00ab MOM 2\u00bb...) al final del nombre.
+    public static string SinCopia(string veg)
+    {
+        if (String.IsNullOrEmpty(veg)) return "";
+        string n = Regex.Replace(Path.GetFileNameWithoutExtension(veg), @"\s+(BASE|CAP|MOM( \d+)?)$", "", RegexOptions.IgnoreCase);
+        return Path.Combine(Path.GetDirectoryName(veg) ?? "", n + ".veg");
     }
 
     // Agrega un capitulo en su lugar: por temporada y numero si el nombre los
