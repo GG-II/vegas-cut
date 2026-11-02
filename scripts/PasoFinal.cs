@@ -1843,6 +1843,14 @@ class VentanaRelleno : VentanaBase
     List<ArchivoMusica> candidatos = new List<ArchivoMusica>();
     List<HuecoMusica> huecos = new List<HuecoMusica>();
     bool trabajando, cargando;
+    // Variedad: lo que se uso en capitulos anteriores y lo que ya se propuso en esta ventana no se vuelve a ofrecer.
+    List<ArchivoMusica> todos = new List<ArchivoMusica>();
+    List<UsoTema> historial = new List<UsoTema>();
+    Dictionary<string, int> conteo = new Dictionary<string, int>();
+    List<string> propuestos = new List<string>(), orden = new List<string>();
+    readonly Random azar = new Random();
+    string claveSerie = "", capitulo = "";
+    CampoNumero numRecientes = new CampoNumero();
 
     Etiqueta lblInfo, lblEstado;
     CampoNumero numMin = new CampoNumero();
@@ -1877,7 +1885,13 @@ class VentanaRelleno : VentanaBase
         cargando = true; numMin.Valor = 8; cargando = false;
         Pos(btnBuscar, m + w - 310, y, 130, 32);
         Pos(btnIA, m + w - 170, y, 170, 32);
-        y += 46;
+        y += 40;
+        Texto("NO REPETIR LOS TEMAS DE LOS", Tema.Pequena, Tema.TextoSuave, m, y + 8, 180, 18);
+        numRecientes.Sufijo = ""; numRecientes.Minimo = 0; numRecientes.Maximo = 30; numRecientes.Paso = 1;
+        Pos(numRecientes, m + 184, y, 80, 32);
+        Texto("CAP\u00cdTULOS ANTERIORES (los menos usados salen primero)", Tema.Pequena, Tema.TextoSuave, m + 270, y + 8, 420, 18);
+        cargando = true; numRecientes.Valor = 3; cargando = false;
+        y += 42;
         int sb = SystemInformation.VerticalScrollBarWidth + 4;
         lst.Columns.Add("Hueco", 130);
         lst.Columns.Add("Dura", 56);
@@ -1900,11 +1914,16 @@ class VentanaRelleno : VentanaBase
             if (musica != null && musica.Carpeta.Length > 0 && Directory.Exists(musica.Carpeta)) biblioteca = BibliotecaMusica.Cargar(musica.Carpeta);
         }
         catch { biblioteca = null; }
-        if (biblioteca != null) candidatos = MusicaSerie.Candidatos(biblioteca);
+        if (biblioteca != null) todos = MusicaSerie.Candidatos(biblioteca);
         LogicaRelleno.CarpetaMusica = musica != null ? musica.Carpeta : "";
-        if (candidatos.Count > 300) candidatos = candidatos.GetRange(0, 300);
-        lblInfo.Text = biblioteca == null ? "Sin biblioteca de m\u00fasica: el\u00edgela en Series \u2192 M\u00fasica\u2026 (con la serie de este cap\u00edtulo)."
-                                          : "Biblioteca: " + candidatos.Count + " temas que sirven" + (trans == null ? " \u00b7 sin transcripci\u00f3n (la IA solo ve los bloques)" : "");
+        claveSerie = serie != null ? serie.Nombre : "";
+        capitulo = NombreCap(veg);
+        if (serie != null) foreach (string ep in serie.Episodios) orden.Add(NombreCap(ep));
+        historial = HistorialMusica.Cargar(claveSerie);
+        Variedad();
+        candidatos = Muestra(LogicaRelleno.MuestraApi);
+        numRecientes.Cambio += delegate { if (!cargando) { Variedad(); } };
+        Shown += delegate { AprenderDeProyectos(); };
 
         btnBuscar.Click += delegate { Buscar(); };
         btnIA.Click += delegate { ConIA(); };
@@ -1929,6 +1948,61 @@ class VentanaRelleno : VentanaBase
         Buscar();
     }
 
+    static string NombreCap(string veg) { return Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(veg ?? "")); }
+
+    // Lo que no se ofrece: lo de los capitulos anteriores y lo que ya se propuso en esta ventana.
+    List<string> Evitar()
+    {
+        List<string> r = HistorialMusica.Recientes(historial, capitulo, numRecientes.Valor, orden);
+        r.AddRange(propuestos);
+        return r;
+    }
+
+    List<ArchivoMusica> Muestra(int max) { return LogicaRelleno.Muestra(todos, Evitar(), conteo, max, azar); }
+
+    void Variedad()
+    {
+        conteo = HistorialMusica.Conteo(historial, capitulo);
+        if (biblioteca == null) { lblInfo.Text = "Sin biblioteca de m\u00fasica: el\u00edgela en Series \u2192 M\u00fasica\u2026 (con la serie de este cap\u00edtulo)."; return; }
+        int fuera = 0;
+        List<string> rec = Evitar();
+        foreach (ArchivoMusica a in todos) if (rec.Contains(a.Ruta.ToLowerInvariant())) fuera++;
+        lblInfo.Text = "Biblioteca: " + todos.Count + " temas que sirven" + (fuera > 0 ? " (" + fuera + " ya usados o propuestos, no se ofrecen)" : "") +
+                       (trans == null ? " \u00b7 sin transcripci\u00f3n (la IA solo ve los bloques)" : "");
+    }
+
+    // Los capitulos de la serie que nunca se leyeron: sus .veg dicen que musica llevan (una sola vez).
+    void AprenderDeProyectos()
+    {
+        if (biblioteca == null || serie == null || todos.Count == 0) return;
+        List<string> faltan = new List<string>();
+        foreach (string ep in serie.Episodios)
+        {
+            string n = NombreCap(ep);
+            if (n == capitulo || !File.Exists(ep)) continue;
+            if (historial.Exists(delegate (UsoTema u) { return String.Equals(u.Capitulo, n, StringComparison.OrdinalIgnoreCase); })) continue;
+            faltan.Add(ep);
+        }
+        if (faltan.Count == 0) return;
+        Estado("Leyendo qu\u00e9 m\u00fasica llevan " + faltan.Count + " cap\u00edtulos anteriores (solo esta vez)\u2026", false);
+        Cursor = Cursors.WaitCursor;
+        Application.DoEvents();
+        int temas = 0;
+        try
+        {
+            foreach (KeyValuePair<string, List<string>> kv in HistorialMusica.DeProyectos(faltan, todos))
+            {
+                HistorialMusica.Registrar(claveSerie, kv.Key, kv.Value);
+                temas += kv.Value.Count;
+            }
+        }
+        catch { }
+        Cursor = Cursors.Default;
+        historial = HistorialMusica.Cargar(claveSerie);
+        Variedad();
+        Estado("\u2714 " + faltan.Count + " cap\u00edtulos anteriores le\u00eddos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), false);
+    }
+
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
 
     void Habilitar()
@@ -1944,6 +2018,9 @@ class VentanaRelleno : VentanaBase
     void Buscar()
     {
         huecos = LogicaRelleno.Huecos(vegas.Project, trans, numMin.Valor);
+        propuestos.Clear();
+        btnIA.Text = "Elegir temas con IA";
+        Variedad();
         Llenar();
         double total = 0;
         foreach (HuecoMusica h in huecos) total += h.Duracion;
@@ -1976,8 +2053,10 @@ class VentanaRelleno : VentanaBase
     {
         List<HuecoMusica> pedir = huecos.FindAll(delegate (HuecoMusica h) { return h.Elegido; });
         if (pedir.Count == 0) { Estado("Marca al menos un hueco.", true); return; }
+        // Otra muestra cada vez, sin lo que ya se propuso: asi re-elegir da temas distintos.
+        candidatos = Muestra(LogicaRelleno.MuestraApi);
         string instr = LogicaRelleno.Instrucciones();
-        string msg = LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project));
+        string msg = LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project), conteo);
         string clave = config.GeminiClave, modelo = config.GeminiModelo;
         trabajando = true;
         Habilitar();
@@ -1985,7 +2064,7 @@ class VentanaRelleno : VentanaBase
         Thread hilo = new Thread(delegate ()
         {
             string resp = null, error = null;
-            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            try { resp = Gemini.Generar(clave, modelo, instr, msg, true, null, LogicaRelleno.Temperatura); } catch (Exception ex) { error = ex.Message; }
             try
             {
                 BeginInvoke((MethodInvoker)delegate
@@ -1995,8 +2074,10 @@ class VentanaRelleno : VentanaBase
                     try
                     {
                         int n = LogicaRelleno.Leer(resp, pedir, candidatos, musica);
+                        Propuestos(pedir);
                         Llenar();
-                        Estado("\u2714 " + n + " huecos con tema (o silencio). Revisa, desmarca lo que no quieras y pulsa \u00abColocar\u00bb.", false);
+                        Estado("\u2714 " + n + " huecos con tema (o silencio). Revisa, desmarca lo que no quieras y pulsa \u00abColocar\u00bb. " +
+                               "Si no te convencen, \u00abElegir otros temas\u00bb ofrece otros distintos.", false);
                     }
                     catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
                     Habilitar();
@@ -2006,6 +2087,15 @@ class VentanaRelleno : VentanaBase
         });
         hilo.IsBackground = true;
         hilo.Start();
+    }
+
+    // Lo propuesto no vuelve a salir al re-elegir (en esta ventana, hasta \u00abBuscar huecos\u00bb).
+    void Propuestos(List<HuecoMusica> pedir)
+    {
+        foreach (HuecoMusica h in pedir)
+            if (h.Archivo != null && !propuestos.Contains(h.Archivo.Ruta.ToLowerInvariant())) propuestos.Add(h.Archivo.Ruta.ToLowerInvariant());
+        btnIA.Text = "Elegir otros temas";
+        Variedad();
     }
 
     // ------------------------------------------------- otra IA (chat)
@@ -2021,8 +2111,9 @@ class VentanaRelleno : VentanaBase
     {
         List<HuecoMusica> pedir = huecos.FindAll(delegate (HuecoMusica h) { return h.Elegido; });
         if (pedir.Count == 0) { Estado("Marca al menos un hueco.", true); return; }
+        candidatos = Muestra(LogicaRelleno.MuestraChat);
         string texto = ChatIA.Archivo("Rellenar la m\u00fasica", LogicaRelleno.Instrucciones(),
-                                      LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project)),
+                                      LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project), conteo),
                                       "Responde SOLO con el JSON {\"huecos\": [...]}: un elemento por hueco con su \"n\", el \"id\" del tema " +
                                       "de la BIBLIOTECA (o \"personaje\", o \"silencio\": true) y el \"motivo\". Solo ids de la lista.");
         try
@@ -2034,6 +2125,10 @@ class VentanaRelleno : VentanaBase
             List<object> ns = new List<object>();
             foreach (HuecoMusica h in pedir) ns.Add((double)h.N);
             info["huecos"] = ns;
+            // Los temas ofrecidos, en orden: el id de la respuesta es la posicion en esta lista.
+            List<object> temas = new List<object>();
+            foreach (ArchivoMusica a in candidatos) temas.Add(a.Ruta);
+            info["temas"] = temas;
             File.WriteAllText(rutaPedidoInfo, Json.Escribir(info), new System.Text.UTF8Encoding(false));
         }
         catch (Exception ex) { Estado("No se pudo guardar el archivo: " + ex.Message, true); return; }
@@ -2068,6 +2163,14 @@ class VentanaRelleno : VentanaBase
                 }
                 cargando = true; numMin.Valor = (int)Json.Numero(info, "minimo", numMin.Valor); cargando = false;
                 foreach (object x in Json.Lista(info, "huecos")) if (x is double) pedidos.Add((int)(double)x);
+                // Los temas que se ofrecieron al exportar (la muestra de ahora seria otra).
+                List<ArchivoMusica> ofrecidos = new List<ArchivoMusica>();
+                foreach (object x in Json.Lista(info, "temas"))
+                {
+                    ArchivoMusica a = todos.Find(delegate (ArchivoMusica y) { return String.Equals(y.Ruta, x as string, StringComparison.OrdinalIgnoreCase); });
+                    if (a != null) ofrecidos.Add(a);
+                }
+                if (ofrecidos.Count > 0) candidatos = ofrecidos;
             }
         }
         catch { }
@@ -2077,6 +2180,7 @@ class VentanaRelleno : VentanaBase
         try
         {
             int n = LogicaRelleno.Leer(json, pedir, candidatos, musica);
+            Propuestos(pedir);
             Llenar();
             Estado("\u2714 " + n + " huecos con tema (o silencio) de la otra IA. Revisa, desmarca lo que no quieras y pulsa \u00abColocar\u00bb.", false);
         }
@@ -2088,8 +2192,20 @@ class VentanaRelleno : VentanaBase
     {
         List<string> avisos = new List<string>();
         int n;
+        List<string> usadas = LogicaRelleno.Colocados(huecos, candidatos);
         using (UndoBlock u = new UndoBlock("Rellenar la m\u00fasica"))
             n = LogicaRelleno.Colocar(vegas.Project, huecos, candidatos, musica, biblioteca, avisos);
+        // Se anota lo de este capitulo para no repetirlo en los siguientes (lo de antes de este capitulo se conserva).
+        try
+        {
+            List<string> previas = new List<string>();
+            foreach (UsoTema u in historial) if (String.Equals(u.Capitulo, capitulo, StringComparison.OrdinalIgnoreCase) && u.Ruta.Length > 0) previas.Add(u.Ruta);
+            foreach (string r in usadas) if (!previas.Contains(r)) previas.Add(r);
+            if (n > 0) HistorialMusica.Registrar(claveSerie, capitulo, previas);
+            historial = HistorialMusica.Cargar(claveSerie);
+            Variedad();
+        }
+        catch { }
         Estado("\u2714 " + n + " temas colocados en \u00ab" + LogicaRelleno.PistaMusica + "\u00bb (sin balancear)." +
                (avisos.Count > 0 ? " Avisos: " + String.Join(" ", avisos.ToArray()) : ""), avisos.Count > 0);
         foreach (HuecoMusica h in huecos) if (h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0)) h.Elegido = false;
@@ -2112,14 +2228,206 @@ public class HuecoMusica
     public double Inicio, Fin;
     public string Dicho = "", Bloque = "", Antes = "", Despues = "", Marcas = "";
     public int Tema = -1;              // id del candidato
+    public ArchivoMusica Archivo;      // el tema elegido (cada pedido tiene su propia muestra: el id solo vale en ella)
     public string Personaje = "", Motivo = "";
     public bool Silencio;              // la IA prefiere dejarlo sin musica
     public bool Elegido = true;
     public double Duracion { get { return Fin - Inicio; } }
 }
 
+// Que musica se uso en cada capitulo, para no repetirla (por serie).
+public class UsoTema { public string Capitulo = "", Fecha = "", Ruta = ""; }
+
+public static class HistorialMusica
+{
+    static string Archivo { get { return Path.Combine(Configuracion.Carpeta, "musica-usos.json"); } }
+
+    public static List<UsoTema> Cargar(string serie)
+    {
+        List<UsoTema> r = new List<UsoTema>();
+        try
+        {
+            if (!File.Exists(Archivo)) return r;
+            foreach (object x in Json.Lista(Json.Leer(File.ReadAllText(Archivo, Encoding.UTF8)), serie.Length == 0 ? "general" : "serie:" + serie))
+                r.Add(new UsoTema { Capitulo = Json.Texto(x, "capitulo"), Fecha = Json.Texto(x, "fecha"), Ruta = Json.Texto(x, "ruta") });
+        }
+        catch { }
+        return r;
+    }
+
+    // Anota lo que se coloco en un capitulo (si ya habia algo de ese capitulo, se reemplaza).
+    public static void Registrar(string serie, string capitulo, List<string> rutas)
+    {
+        Dictionary<string, object> todo = null;
+        try { if (File.Exists(Archivo)) todo = Json.Leer(File.ReadAllText(Archivo, Encoding.UTF8)) as Dictionary<string, object>; } catch { }
+        if (todo == null) todo = new Dictionary<string, object>();
+        string clave = serie.Length == 0 ? "general" : "serie:" + serie;
+        List<UsoTema> usos = Cargar(serie);
+        usos.RemoveAll(delegate (UsoTema u) { return String.Equals(u.Capitulo, capitulo, StringComparison.OrdinalIgnoreCase); });
+        string fecha = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        foreach (string r in rutas) usos.Add(new UsoTema { Capitulo = capitulo, Fecha = fecha, Ruta = r });
+        if (rutas.Count == 0) usos.Add(new UsoTema { Capitulo = capitulo, Fecha = fecha, Ruta = "" });   // revisado, sin musica de la biblioteca
+        List<object> l = new List<object>();
+        foreach (UsoTema u in usos)
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            d["capitulo"] = u.Capitulo; d["fecha"] = u.Fecha; d["ruta"] = u.Ruta;
+            l.Add(d);
+        }
+        todo[clave] = l;
+        Directory.CreateDirectory(Configuracion.Carpeta);
+        File.WriteAllText(Archivo, Json.Escribir(todo), new UTF8Encoding(false));
+    }
+
+    // Rutas (en minusculas) usadas en los "n" capitulos anteriores al actual. Con el orden de la serie
+    // son los n que van justo antes; sin el, los ultimos n que se trabajaron (por fecha).
+    public static List<string> Recientes(List<UsoTema> usos, string actual, int n, List<string> orden)
+    {
+        List<string> capitulos = new List<string>();
+        int i = orden == null ? -1 : orden.FindIndex(delegate (string x) { return String.Equals(x, actual, StringComparison.OrdinalIgnoreCase); });
+        if (i >= 0)
+            for (int k = i - 1; k >= 0 && capitulos.Count < n; k--) capitulos.Add(orden[k]);
+        else
+        {
+            List<UsoTema> otros = usos.FindAll(delegate (UsoTema u) { return !String.Equals(u.Capitulo, actual, StringComparison.OrdinalIgnoreCase); });
+            otros.Sort(delegate (UsoTema a, UsoTema b) { return String.CompareOrdinal(b.Fecha, a.Fecha); });
+            foreach (UsoTema u in otros) { if (!capitulos.Contains(u.Capitulo) && capitulos.Count < n) capitulos.Add(u.Capitulo); }
+        }
+        List<string> r = new List<string>();
+        foreach (UsoTema u in usos)
+            if (u.Ruta.Length > 0 && capitulos.Exists(delegate (string c) { return String.Equals(c, u.Capitulo, StringComparison.OrdinalIgnoreCase); }))
+                r.Add(u.Ruta.ToLowerInvariant());
+        return r;
+    }
+
+    static readonly System.Text.RegularExpressions.Regex Audios = new System.Text.RegularExpressions.Regex(
+        @"([^\\/:*?""<>|\x00-\x1f]*)[\\/]([^\\/:*?""<>|\x00-\x1f]+\.(?:mp3|wav|flac|ogg|m4a|aac|wma|opus))", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    // Que temas de la biblioteca usa cada proyecto, leyendo los .veg (guardan las rutas de sus archivos en UTF-16,
+    // a veces en UTF-8). Es aproximado: tambien cuenta lo que quedo en los medios del proyecto sin usarse.
+    public static Dictionary<string, List<string>> DeProyectos(List<string> vegs, List<ArchivoMusica> todos)
+    {
+        Dictionary<string, int> repetidos = new Dictionary<string, int>();
+        foreach (ArchivoMusica a in todos)
+        {
+            string n = Path.GetFileName(a.Ruta).ToLowerInvariant();
+            int c; repetidos.TryGetValue(n, out c); repetidos[n] = c + 1;
+        }
+        Dictionary<string, List<string>> r = new Dictionary<string, List<string>>();
+        foreach (string veg in vegs)
+        {
+            List<string> usados = new List<string>();
+            r[Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(veg))] = usados;
+            Dictionary<string, List<string>> nombres = new Dictionary<string, List<string>>();
+            try
+            {
+                byte[] b = File.ReadAllBytes(veg);
+                foreach (string texto in new string[] { Encoding.Unicode.GetString(b), Encoding.UTF8.GetString(b) })
+                    foreach (System.Text.RegularExpressions.Match m in Audios.Matches(texto))
+                    {
+                        string n = m.Groups[2].Value.ToLowerInvariant();
+                        if (!nombres.ContainsKey(n)) nombres[n] = new List<string>();
+                        nombres[n].Add(m.Groups[1].Value.ToLowerInvariant());
+                    }
+            }
+            catch { continue; }
+            foreach (ArchivoMusica a in todos)
+            {
+                string n = Path.GetFileName(a.Ruta).ToLowerInvariant();
+                List<string> dirs;
+                if (!nombres.TryGetValue(n, out dirs)) continue;
+                // Un nombre que se repite en la biblioteca (01.mp3) solo cuenta si coincide su carpeta.
+                string carpeta = Path.GetFileName(Path.GetDirectoryName(a.Ruta) ?? "").ToLowerInvariant();
+                if (repetidos[n] > 1 && (carpeta.Length == 0 || !dirs.Exists(delegate (string d) { return d.EndsWith(carpeta); }))) continue;
+                if (!usados.Contains(a.Ruta)) usados.Add(a.Ruta);
+            }
+        }
+        return r;
+    }
+
+    // Cuantas veces se uso cada tema en los capitulos de la serie (sin contar el actual).
+    public static Dictionary<string, int> Conteo(List<UsoTema> usos, string actual)
+    {
+        Dictionary<string, int> r = new Dictionary<string, int>();
+        foreach (UsoTema u in usos)
+        {
+            if (u.Ruta.Length == 0 || String.Equals(u.Capitulo, actual, StringComparison.OrdinalIgnoreCase)) continue;
+            string k = u.Ruta.ToLowerInvariant();
+            int c; r.TryGetValue(k, out c); r[k] = c + 1;
+        }
+        return r;
+    }
+}
+
 public static class LogicaRelleno
 {
+    public const int MuestraApi = 250, MuestraChat = 400;
+    public const double Temperatura = 1.0;   // mas variado que el 0.4 de siempre
+
+    static void Mezclar<T>(List<T> l, Random rnd)
+    {
+        for (int i = l.Count - 1; i > 0; i--) { int j = rnd.Next(i + 1); T t = l[i]; l[i] = l[j]; l[j] = t; }
+    }
+
+    // Los temas que se le ofrecen a la IA en este pedido. Antes siempre iban los mismos 300 en el mismo
+    // orden, asi que elegia lo mismo. Ahora: sin lo que se uso hace poco o ya se propuso, con todos los
+    // animos representados, los menos usados primero y en otro orden cada vez.
+    public static List<ArchivoMusica> Muestra(List<ArchivoMusica> todos, List<string> evitar, Dictionary<string, int> usos, int max, Random rnd)
+    {
+        Dictionary<string, bool> fuera = new Dictionary<string, bool>();
+        foreach (string e in evitar) fuera[e.ToLowerInvariant()] = true;
+        List<ArchivoMusica> libres = new List<ArchivoMusica>(), evitados = new List<ArchivoMusica>();
+        foreach (ArchivoMusica a in todos) (fuera.ContainsKey(a.Ruta.ToLowerInvariant()) ? evitados : libres).Add(a);
+        // Si casi no queda nada, vuelven algunos de los evitados (mejor repetir que quedarse sin opciones).
+        int minimo = Math.Min(60, todos.Count);
+        Mezclar(evitados, rnd);
+        while (libres.Count < minimo && evitados.Count > 0) { libres.Add(evitados[0]); evitados.RemoveAt(0); }
+
+        Dictionary<string, List<ArchivoMusica>> grupos = new Dictionary<string, List<ArchivoMusica>>();
+        foreach (ArchivoMusica a in libres)
+        {
+            string g = a.Animos.Count > 0 ? a.Animos[0] : "?";
+            if (!grupos.ContainsKey(g)) grupos[g] = new List<ArchivoMusica>();
+            grupos[g].Add(a);
+        }
+        List<List<ArchivoMusica>> listas = new List<List<ArchivoMusica>>();
+        foreach (List<ArchivoMusica> g in grupos.Values)
+        {
+            // Al azar, y de ahi los menos usados primero.
+            Dictionary<ArchivoMusica, double> suerte = new Dictionary<ArchivoMusica, double>();
+            foreach (ArchivoMusica a in g) suerte[a] = rnd.NextDouble();
+            g.Sort(delegate (ArchivoMusica a, ArchivoMusica b)
+            {
+                int ua, ub; usos.TryGetValue(a.Ruta.ToLowerInvariant(), out ua); usos.TryGetValue(b.Ruta.ToLowerInvariant(), out ub);
+                return ua != ub ? ua.CompareTo(ub) : suerte[a].CompareTo(suerte[b]);
+            });
+            listas.Add(g);
+        }
+        Mezclar(listas, rnd);
+        List<ArchivoMusica> r = new List<ArchivoMusica>();
+        for (int i = 0; r.Count < max; i++)
+        {
+            bool alguno = false;
+            foreach (List<ArchivoMusica> g in listas) if (i < g.Count && r.Count < max) { r.Add(g[i]); alguno = true; }
+            if (!alguno) break;
+        }
+        Mezclar(r, rnd);
+        return r;
+    }
+
+    // Lo que se va a colocar y se anota en el historial (los temas de personaje no: esos se repiten a proposito).
+    public static List<string> Colocados(List<HuecoMusica> huecos, List<ArchivoMusica> candidatos)
+    {
+        List<string> r = new List<string>();
+        foreach (HuecoMusica h in huecos)
+            if (h.Elegido && !h.Silencio && h.Personaje.Length == 0)
+            {
+                ArchivoMusica a = h.Archivo != null ? h.Archivo : (h.Tema >= 0 && h.Tema < candidatos.Count ? candidatos[h.Tema] : null);
+                if (a != null && !r.Contains(a.Ruta)) r.Add(a.Ruta);
+            }
+        return r;
+    }
+
     public const string PistaMusica = "vegas-cut \u00b7 M\u00fasica";
     public const double MaximoHueco = 120;   // un hueco mas largo se parte: un tema dura 1\u20133 min
 
@@ -2277,12 +2585,21 @@ public static class LogicaRelleno
                "cuando algo no cuadra, pelea en la acci\u00f3n, \u00e9pico o victoria en los logros, tristeza en lo emotivo.\n" +
                "- El tema de un personaje cuando ese personaje se luce (\"personaje\": nombre).\n" +
                "- No repitas lo que ya suena en el cap\u00edtulo ni el mismo tema en dos huecos; que no sea igual al de antes o despu\u00e9s.\n" +
+               "- VAR\u00cdA: no elijas siempre los m\u00e1s obvios ni los del principio de la lista. Entre varios temas que sirven, prefiere los " +
+               "que dicen menos \"usado N veces\" y alterna \u00e1lbumes y fuentes; una elecci\u00f3n menos esperada pero que le quede a la escena " +
+               "vale m\u00e1s que la de siempre.\n" +
                "- Si un hueco queda mejor SIN m\u00fasica (un silencio dram\u00e1tico, el remate de un chiste, un momento muy hablado y " +
                "corto), pon \"silencio\": true.\n- Solo ids de la lista.\n" +
                "Responde SOLO con JSON: {\"huecos\": [{\"n\": n, \"id\": n, \"personaje\": \"\", \"silencio\": false, \"motivo\": \"...\"}]}";
     }
 
     public static string Mensaje(List<HuecoMusica> huecos, List<ArchivoMusica> candidatos, MusicaSerie m, List<string> yaSuena)
+    {
+        return Mensaje(huecos, candidatos, m, yaSuena, null);
+    }
+
+    public static string Mensaje(List<HuecoMusica> huecos, List<ArchivoMusica> candidatos, MusicaSerie m, List<string> yaSuena,
+                                 Dictionary<string, int> usos)
     {
         StringBuilder sb = new StringBuilder();
         if (m != null)
@@ -2303,9 +2620,15 @@ public static class LogicaRelleno
             ArchivoMusica a = candidatos[i];
             sb.Append("[" + i + "] " + a.Titulo + " (" + (a.Parte.Length > 0 ? a.Parte : a.Fuente) + ") | " + String.Join(", ", a.Animos.ToArray()) +
                       (a.Momento.Length > 0 ? " | " + a.Momento : "") + (!a.ConUso && a.Descripcion.Length > 0 ? " | " + a.Descripcion : "") +
-                      (a.Duracion > 0 ? " | " + Math.Round(a.Duracion) + " s" : "") + "\n");
+                      (a.Duracion > 0 ? " | " + Math.Round(a.Duracion) + " s" : "") + UsadoTexto(a, usos) + "\n");
         }
         return sb.ToString();
+    }
+
+    static string UsadoTexto(ArchivoMusica a, Dictionary<string, int> usos)
+    {
+        int n;
+        return usos != null && usos.TryGetValue(a.Ruta.ToLowerInvariant(), out n) && n > 0 ? " | usado " + n + (n == 1 ? " vez" : " veces") + " en la serie" : "";
     }
 
     // Pone en cada hueco el tema de la respuesta (sin repetir); devuelve cuantos.
@@ -2319,7 +2642,7 @@ public static class LogicaRelleno
             int k = (int)Json.Numero(x, "n", -1);
             HuecoMusica h = huecos.Find(delegate (HuecoMusica y) { return y.N == k; });
             if (h == null) continue;
-            h.Tema = -1; h.Personaje = ""; h.Silencio = false;
+            h.Tema = -1; h.Archivo = null; h.Personaje = ""; h.Silencio = false;
             h.Motivo = Json.Texto(x, "motivo");
             object si = Json.Valor(x, "silencio");
             if (si is bool && (bool)si) { h.Silencio = true; h.Elegido = false; n++; continue; }
@@ -2329,6 +2652,7 @@ public static class LogicaRelleno
             if (id < 0 || id >= candidatos.Count || usados.ContainsKey(id)) continue;
             usados[id] = true;
             h.Tema = id;
+            h.Archivo = candidatos[id];
             n++;
         }
         return n;
@@ -2338,6 +2662,7 @@ public static class LogicaRelleno
     {
         string ruta = null;
         if (h.Personaje.Length > 0 && m != null && m.Personajes.ContainsKey(h.Personaje)) ruta = m.Personajes[h.Personaje].Archivo;
+        else if (h.Archivo != null) ruta = h.Archivo.Ruta;
         else if (h.Tema >= 0 && h.Tema < candidatos.Count) ruta = candidatos[h.Tema].Ruta;
         if (ruta != null && !Path.IsPathRooted(ruta) && b != null) ruta = b.Completa(ruta);
         return ruta;
@@ -2347,6 +2672,7 @@ public static class LogicaRelleno
     {
         if (h.Silencio) return "(mejor en silencio)";
         if (h.Personaje.Length > 0) return "Tema de " + h.Personaje;
+        if (h.Archivo != null) return h.Archivo.Titulo;
         if (h.Tema >= 0 && h.Tema < candidatos.Count) return candidatos[h.Tema].Titulo;
         return "";
     }
@@ -11066,6 +11392,13 @@ public static class Gemini
     public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
                                  List<KeyValuePair<string, byte[]>> imagenes)
     {
+        return Generar(clave, modelo, instrucciones, mensaje, json, imagenes, 0.4);
+    }
+
+    // "temperatura" mas alta (hasta 1.5) = respuestas mas variadas; baja = mas fiel y repetible.
+    public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
+                                 List<KeyValuePair<string, byte[]>> imagenes, double temperatura)
+    {
         Dictionary<string, object> cuerpo = new Dictionary<string, object>();
         if (!String.IsNullOrEmpty(instrucciones))
             cuerpo["systemInstruction"] = Partes(instrucciones, null);
@@ -11081,7 +11414,7 @@ public static class Gemini
             }
         cuerpo["contents"] = new List<object> { usuario };
         Dictionary<string, object> config = new Dictionary<string, object>();
-        config["temperature"] = 0.4;
+        config["temperature"] = temperatura;
         if (json) config["responseMimeType"] = "application/json";
         cuerpo["generationConfig"] = config;
 

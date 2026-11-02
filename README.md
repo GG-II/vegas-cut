@@ -544,6 +544,19 @@ Lo último antes de exportar, con la narración ya grabada:
      «BGM», y cualquier pista cuyos audios vengan de la carpeta de la biblioteca. Por defecto busca huecos de 8 s o más; los
      de más de 2 min se parten, en el borde de un bloque si hay uno cerca.
    - Cada hueco muestra lo que se dice ahí (la transcripción sigue tus cortes) y su bloque.
+   - **Variedad** (para que no elija siempre lo mismo): cada pedido le ofrece a la IA **otra
+     muestra** de tu biblioteca, no la misma lista cortada a los primeros 300 temas:
+     - con todos los ánimos representados y los **menos usados primero**;
+     - **sin los temas que ya usaste** en los N capítulos anteriores de la serie (**No repetir
+       los temas de los … capítulos anteriores**, 3 por defecto);
+     - a la IA se le pide que varíe y que prefiera lo poco usado, y responde con más libertad.
+
+     Lo colocado se anota solo al pulsar **Colocar** (`%APPDATA%\vegas-cut\musica-usos.json`, por
+     serie). La primera vez, lee los `.veg` de los capítulos anteriores de la serie para saber qué
+     música llevan, así que no tienes que sacar ninguna lista (es aproximado: también cuenta lo que
+     quedó en sus medios sin usarse). Los temas de personaje no cuentan, se repiten a propósito.
+     **Re-elegir** (el botón pasa a **Elegir otros temas**) no vuelve a ofrecer lo ya propuesto en
+     esa ventana; **Buscar huecos** reinicia esa lista.
    - **Elegir temas con IA**: Gemini elige un tema de tu biblioteca para cada hueco según lo que
      pasa, lo que suena antes y después, y lo que ya suena en el capítulo (sin repetir). Usa el
      tema del personaje cuando ese personaje se luce. Si un hueco queda mejor en silencio (un

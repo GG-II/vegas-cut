@@ -554,6 +554,63 @@ class PruebaProduccion
                       "Memes: mover los etiquetados a otra carpeta (con subcarpetas, tags e historial); los sin etiquetar se quedan para revisar");
             try { Directory.Delete(mvA, true); Directory.Delete(mvB, true); } catch { }
 
+            // ---- variedad en la musica: muestra distinta, historial por capitulo y lectura de los .veg
+            List<ArchivoMusica> bibM = new List<ArchivoMusica>();
+            string[] animosM = { "calma", "épico", "pelea", "tristeza", "comedia" };
+            for (int i = 0; i < 400; i++)
+                bibM.Add(new ArchivoMusica { Ruta = "Album" + (i % 8) + "\\tema" + i + ".mp3", Titulo = "T" + i, Animos = new List<string> { animosM[i % 5] } });
+            Dictionary<string, int> sinUsos = new Dictionary<string, int>();
+            List<ArchivoMusica> m1 = LogicaRelleno.Muestra(bibM, new List<string>(), sinUsos, 250, new Random(1));
+            List<ArchivoMusica> m2 = LogicaRelleno.Muestra(bibM, new List<string>(), sinUsos, 250, new Random(2));
+            int distintos = 0, igualPos = 0;
+            for (int i = 0; i < 250; i++) { if (!m2.Contains(m1[i])) distintos++; if (m1[i] == m2[i]) igualPos++; }
+            int[] porAnimo = new int[5];
+            foreach (ArchivoMusica am in m1) porAnimo[Array.IndexOf(animosM, am.Animos[0])]++;
+            // Sin lo evitado, y los menos usados primero.
+            List<string> evitar = new List<string>();
+            for (int i = 0; i < 100; i++) evitar.Add(bibM[i].Ruta.ToUpperInvariant());
+            Dictionary<string, int> usosM = new Dictionary<string, int>();
+            for (int i = 100; i < 300; i++) usosM[bibM[i].Ruta.ToLowerInvariant()] = 3;
+            List<ArchivoMusica> m3 = LogicaRelleno.Muestra(bibM, evitar, usosM, 100, new Random(3));
+            bool sinEvitados = true, pocoUsados = true;
+            foreach (ArchivoMusica am in m3) { if (evitar.Contains(am.Ruta.ToUpperInvariant())) sinEvitados = false; if (usosM.ContainsKey(am.Ruta.ToLowerInvariant())) pocoUsados = false; }
+            List<ArchivoMusica> chica = new List<ArchivoMusica>(bibM.GetRange(0, 20));
+            List<string> todasEv = new List<string>(); foreach (ArchivoMusica am in chica) todasEv.Add(am.Ruta);
+            List<ArchivoMusica> m4 = LogicaRelleno.Muestra(chica, todasEv, sinUsos, 250, new Random(4));
+            Verificar(m1.Count == 250 && distintos > 30 && igualPos < 40 && porAnimo[0] > 30 && porAnimo[4] > 30 && sinEvitados && pocoUsados && m4.Count == 20,
+                      "Música: cada pedido ofrece otra muestra (con todos los ánimos, sin lo usado hace poco ni lo ya propuesto, los menos usados primero y sin quedarse sin opciones)");
+
+            string serieM = "SerieDePrueba";
+            HistorialMusica.Registrar(serieM, "S01E01", new List<string> { "A\\uno.mp3", "A\\dos.mp3" });
+            System.Threading.Thread.Sleep(1100);
+            HistorialMusica.Registrar(serieM, "S01E02", new List<string> { "A\\dos.mp3", "B\\tres.mp3" });
+            System.Threading.Thread.Sleep(1100);
+            HistorialMusica.Registrar(serieM, "S01E03", new List<string>());
+            System.Threading.Thread.Sleep(1100);
+            HistorialMusica.Registrar(serieM, "S01E02", new List<string> { "A\\dos.mp3", "B\\tres.mp3", "C\\cuatro.mp3" });
+            List<UsoTema> us = HistorialMusica.Cargar(serieM);
+            List<string> ult1 = HistorialMusica.Recientes(us, "S01E04", 1, new List<string> { "S01E01", "S01E02", "S01E03", "S01E04" });
+            List<string> ult2 = HistorialMusica.Recientes(us, "S01E04", 2, new List<string> { "S01E01", "S01E02", "S01E03", "S01E04" });
+            List<string> sinOrden = HistorialMusica.Recientes(us, "S01E05", 1, null);
+            Dictionary<string, int> cnt = HistorialMusica.Conteo(us, "S01E01");
+            Verificar(us.Count == 6 && ult1.Count == 0 && ult2.Count == 3 && ult2.Contains("c\\cuatro.mp3") && !ult2.Contains("a\\uno.mp3") &&
+                      sinOrden.Count == 3 && sinOrden.Contains("c\\cuatro.mp3") && cnt["a\\dos.mp3"] == 1 && !cnt.ContainsKey("a\\uno.mp3") && HistorialMusica.Cargar("Otra").Count == 0,
+                      "Música: se anota lo colocado por capítulo (volver a colocar lo reemplaza), cuenta los últimos N capítulos según el orden de la serie y no mezcla series");
+
+            // Que musica lleva cada capitulo, leyendo sus .veg (rutas en UTF-16; un nombre repetido solo cuenta con su carpeta).
+            string carpV = Path.Combine(dir, "series"); Directory.CreateDirectory(carpV);
+            string vegA = Path.Combine(carpV, "S01E01 SCR.veg");
+            File.WriteAllBytes(vegA, System.Text.Encoding.Unicode.GetBytes("\u0001\u0002 K:\\Musica\\Album3\\tema3.mp3 \u0003 K:\\Musica\\Album9\\01.mp3 \u0001 K:\\otra\\Intro.WAV"));
+            List<ArchivoMusica> bib2 = new List<ArchivoMusica>
+            {
+                new ArchivoMusica { Ruta = "Album3/tema3.mp3" }, new ArchivoMusica { Ruta = "Album9/01.mp3" }, new ArchivoMusica { Ruta = "Album4/01.mp3" },
+                new ArchivoMusica { Ruta = "Album5/nada.mp3" }
+            };
+            Dictionary<string, List<string>> dv = HistorialMusica.DeProyectos(new List<string> { vegA, Path.Combine(carpV, "no existe.veg") }, bib2);
+            Verificar(dv.ContainsKey("S01E01 SCR") && dv["S01E01 SCR"].Count == 2 && dv["S01E01 SCR"].Contains("Album3/tema3.mp3") && dv["S01E01 SCR"].Contains("Album9/01.mp3") &&
+                      !dv["S01E01 SCR"].Contains("Album4/01.mp3") && !dv["S01E01 SCR"].Contains("Album5/nada.mp3"),
+                      "Música: lee qué temas de la biblioteca lleva cada capítulo anterior en sus .veg, sin confundir nombres repetidos de otro álbum");
+
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
             be.Archivos.Add(new ArchivoMusica { Ruta = "Juegos/Minecraft/Sweden.mp3", Titulo = "Sweden", Album = "Minecraft - Volume Alpha" });

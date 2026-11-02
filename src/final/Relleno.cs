@@ -18,6 +18,14 @@ class VentanaRelleno : VentanaBase
     List<ArchivoMusica> candidatos = new List<ArchivoMusica>();
     List<HuecoMusica> huecos = new List<HuecoMusica>();
     bool trabajando, cargando;
+    // Variedad: lo que se uso en capitulos anteriores y lo que ya se propuso en esta ventana no se vuelve a ofrecer.
+    List<ArchivoMusica> todos = new List<ArchivoMusica>();
+    List<UsoTema> historial = new List<UsoTema>();
+    Dictionary<string, int> conteo = new Dictionary<string, int>();
+    List<string> propuestos = new List<string>(), orden = new List<string>();
+    readonly Random azar = new Random();
+    string claveSerie = "", capitulo = "";
+    CampoNumero numRecientes = new CampoNumero();
 
     Etiqueta lblInfo, lblEstado;
     CampoNumero numMin = new CampoNumero();
@@ -52,7 +60,13 @@ class VentanaRelleno : VentanaBase
         cargando = true; numMin.Valor = 8; cargando = false;
         Pos(btnBuscar, m + w - 310, y, 130, 32);
         Pos(btnIA, m + w - 170, y, 170, 32);
-        y += 46;
+        y += 40;
+        Texto("NO REPETIR LOS TEMAS DE LOS", Tema.Pequena, Tema.TextoSuave, m, y + 8, 180, 18);
+        numRecientes.Sufijo = ""; numRecientes.Minimo = 0; numRecientes.Maximo = 30; numRecientes.Paso = 1;
+        Pos(numRecientes, m + 184, y, 80, 32);
+        Texto("CAPÍTULOS ANTERIORES (los menos usados salen primero)", Tema.Pequena, Tema.TextoSuave, m + 270, y + 8, 420, 18);
+        cargando = true; numRecientes.Valor = 3; cargando = false;
+        y += 42;
         int sb = SystemInformation.VerticalScrollBarWidth + 4;
         lst.Columns.Add("Hueco", 130);
         lst.Columns.Add("Dura", 56);
@@ -75,11 +89,16 @@ class VentanaRelleno : VentanaBase
             if (musica != null && musica.Carpeta.Length > 0 && Directory.Exists(musica.Carpeta)) biblioteca = BibliotecaMusica.Cargar(musica.Carpeta);
         }
         catch { biblioteca = null; }
-        if (biblioteca != null) candidatos = MusicaSerie.Candidatos(biblioteca);
+        if (biblioteca != null) todos = MusicaSerie.Candidatos(biblioteca);
         LogicaRelleno.CarpetaMusica = musica != null ? musica.Carpeta : "";
-        if (candidatos.Count > 300) candidatos = candidatos.GetRange(0, 300);
-        lblInfo.Text = biblioteca == null ? "Sin biblioteca de música: elígela en Series → Música… (con la serie de este capítulo)."
-                                          : "Biblioteca: " + candidatos.Count + " temas que sirven" + (trans == null ? " · sin transcripción (la IA solo ve los bloques)" : "");
+        claveSerie = serie != null ? serie.Nombre : "";
+        capitulo = NombreCap(veg);
+        if (serie != null) foreach (string ep in serie.Episodios) orden.Add(NombreCap(ep));
+        historial = HistorialMusica.Cargar(claveSerie);
+        Variedad();
+        candidatos = Muestra(LogicaRelleno.MuestraApi);
+        numRecientes.Cambio += delegate { if (!cargando) { Variedad(); } };
+        Shown += delegate { AprenderDeProyectos(); };
 
         btnBuscar.Click += delegate { Buscar(); };
         btnIA.Click += delegate { ConIA(); };
@@ -104,6 +123,61 @@ class VentanaRelleno : VentanaBase
         Buscar();
     }
 
+    static string NombreCap(string veg) { return Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(veg ?? "")); }
+
+    // Lo que no se ofrece: lo de los capitulos anteriores y lo que ya se propuso en esta ventana.
+    List<string> Evitar()
+    {
+        List<string> r = HistorialMusica.Recientes(historial, capitulo, numRecientes.Valor, orden);
+        r.AddRange(propuestos);
+        return r;
+    }
+
+    List<ArchivoMusica> Muestra(int max) { return LogicaRelleno.Muestra(todos, Evitar(), conteo, max, azar); }
+
+    void Variedad()
+    {
+        conteo = HistorialMusica.Conteo(historial, capitulo);
+        if (biblioteca == null) { lblInfo.Text = "Sin biblioteca de música: elígela en Series → Música… (con la serie de este capítulo)."; return; }
+        int fuera = 0;
+        List<string> rec = Evitar();
+        foreach (ArchivoMusica a in todos) if (rec.Contains(a.Ruta.ToLowerInvariant())) fuera++;
+        lblInfo.Text = "Biblioteca: " + todos.Count + " temas que sirven" + (fuera > 0 ? " (" + fuera + " ya usados o propuestos, no se ofrecen)" : "") +
+                       (trans == null ? " · sin transcripción (la IA solo ve los bloques)" : "");
+    }
+
+    // Los capitulos de la serie que nunca se leyeron: sus .veg dicen que musica llevan (una sola vez).
+    void AprenderDeProyectos()
+    {
+        if (biblioteca == null || serie == null || todos.Count == 0) return;
+        List<string> faltan = new List<string>();
+        foreach (string ep in serie.Episodios)
+        {
+            string n = NombreCap(ep);
+            if (n == capitulo || !File.Exists(ep)) continue;
+            if (historial.Exists(delegate (UsoTema u) { return String.Equals(u.Capitulo, n, StringComparison.OrdinalIgnoreCase); })) continue;
+            faltan.Add(ep);
+        }
+        if (faltan.Count == 0) return;
+        Estado("Leyendo qué música llevan " + faltan.Count + " capítulos anteriores (solo esta vez)…", false);
+        Cursor = Cursors.WaitCursor;
+        Application.DoEvents();
+        int temas = 0;
+        try
+        {
+            foreach (KeyValuePair<string, List<string>> kv in HistorialMusica.DeProyectos(faltan, todos))
+            {
+                HistorialMusica.Registrar(claveSerie, kv.Key, kv.Value);
+                temas += kv.Value.Count;
+            }
+        }
+        catch { }
+        Cursor = Cursors.Default;
+        historial = HistorialMusica.Cargar(claveSerie);
+        Variedad();
+        Estado("✔ " + faltan.Count + " capítulos anteriores leídos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), false);
+    }
+
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
 
     void Habilitar()
@@ -119,6 +193,9 @@ class VentanaRelleno : VentanaBase
     void Buscar()
     {
         huecos = LogicaRelleno.Huecos(vegas.Project, trans, numMin.Valor);
+        propuestos.Clear();
+        btnIA.Text = "Elegir temas con IA";
+        Variedad();
         Llenar();
         double total = 0;
         foreach (HuecoMusica h in huecos) total += h.Duracion;
@@ -151,8 +228,10 @@ class VentanaRelleno : VentanaBase
     {
         List<HuecoMusica> pedir = huecos.FindAll(delegate (HuecoMusica h) { return h.Elegido; });
         if (pedir.Count == 0) { Estado("Marca al menos un hueco.", true); return; }
+        // Otra muestra cada vez, sin lo que ya se propuso: asi re-elegir da temas distintos.
+        candidatos = Muestra(LogicaRelleno.MuestraApi);
         string instr = LogicaRelleno.Instrucciones();
-        string msg = LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project));
+        string msg = LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project), conteo);
         string clave = config.GeminiClave, modelo = config.GeminiModelo;
         trabajando = true;
         Habilitar();
@@ -160,7 +239,7 @@ class VentanaRelleno : VentanaBase
         Thread hilo = new Thread(delegate ()
         {
             string resp = null, error = null;
-            try { resp = Gemini.Generar(clave, modelo, instr, msg, true); } catch (Exception ex) { error = ex.Message; }
+            try { resp = Gemini.Generar(clave, modelo, instr, msg, true, null, LogicaRelleno.Temperatura); } catch (Exception ex) { error = ex.Message; }
             try
             {
                 BeginInvoke((MethodInvoker)delegate
@@ -170,8 +249,10 @@ class VentanaRelleno : VentanaBase
                     try
                     {
                         int n = LogicaRelleno.Leer(resp, pedir, candidatos, musica);
+                        Propuestos(pedir);
                         Llenar();
-                        Estado("✔ " + n + " huecos con tema (o silencio). Revisa, desmarca lo que no quieras y pulsa «Colocar».", false);
+                        Estado("✔ " + n + " huecos con tema (o silencio). Revisa, desmarca lo que no quieras y pulsa «Colocar». " +
+                               "Si no te convencen, «Elegir otros temas» ofrece otros distintos.", false);
                     }
                     catch (Exception ex) { Estado("La respuesta no se pudo leer (" + ex.Message + "). Intenta de nuevo.", true); }
                     Habilitar();
@@ -181,6 +262,15 @@ class VentanaRelleno : VentanaBase
         });
         hilo.IsBackground = true;
         hilo.Start();
+    }
+
+    // Lo propuesto no vuelve a salir al re-elegir (en esta ventana, hasta «Buscar huecos»).
+    void Propuestos(List<HuecoMusica> pedir)
+    {
+        foreach (HuecoMusica h in pedir)
+            if (h.Archivo != null && !propuestos.Contains(h.Archivo.Ruta.ToLowerInvariant())) propuestos.Add(h.Archivo.Ruta.ToLowerInvariant());
+        btnIA.Text = "Elegir otros temas";
+        Variedad();
     }
 
     // ------------------------------------------------- otra IA (chat)
@@ -196,8 +286,9 @@ class VentanaRelleno : VentanaBase
     {
         List<HuecoMusica> pedir = huecos.FindAll(delegate (HuecoMusica h) { return h.Elegido; });
         if (pedir.Count == 0) { Estado("Marca al menos un hueco.", true); return; }
+        candidatos = Muestra(LogicaRelleno.MuestraChat);
         string texto = ChatIA.Archivo("Rellenar la música", LogicaRelleno.Instrucciones(),
-                                      LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project)),
+                                      LogicaRelleno.Mensaje(pedir, candidatos, musica, LogicaRelleno.YaSuena(vegas.Project), conteo),
                                       "Responde SOLO con el JSON {\"huecos\": [...]}: un elemento por hueco con su \"n\", el \"id\" del tema " +
                                       "de la BIBLIOTECA (o \"personaje\", o \"silencio\": true) y el \"motivo\". Solo ids de la lista.");
         try
@@ -209,6 +300,10 @@ class VentanaRelleno : VentanaBase
             List<object> ns = new List<object>();
             foreach (HuecoMusica h in pedir) ns.Add((double)h.N);
             info["huecos"] = ns;
+            // Los temas ofrecidos, en orden: el id de la respuesta es la posicion en esta lista.
+            List<object> temas = new List<object>();
+            foreach (ArchivoMusica a in candidatos) temas.Add(a.Ruta);
+            info["temas"] = temas;
             File.WriteAllText(rutaPedidoInfo, Json.Escribir(info), new System.Text.UTF8Encoding(false));
         }
         catch (Exception ex) { Estado("No se pudo guardar el archivo: " + ex.Message, true); return; }
@@ -243,6 +338,14 @@ class VentanaRelleno : VentanaBase
                 }
                 cargando = true; numMin.Valor = (int)Json.Numero(info, "minimo", numMin.Valor); cargando = false;
                 foreach (object x in Json.Lista(info, "huecos")) if (x is double) pedidos.Add((int)(double)x);
+                // Los temas que se ofrecieron al exportar (la muestra de ahora seria otra).
+                List<ArchivoMusica> ofrecidos = new List<ArchivoMusica>();
+                foreach (object x in Json.Lista(info, "temas"))
+                {
+                    ArchivoMusica a = todos.Find(delegate (ArchivoMusica y) { return String.Equals(y.Ruta, x as string, StringComparison.OrdinalIgnoreCase); });
+                    if (a != null) ofrecidos.Add(a);
+                }
+                if (ofrecidos.Count > 0) candidatos = ofrecidos;
             }
         }
         catch { }
@@ -252,6 +355,7 @@ class VentanaRelleno : VentanaBase
         try
         {
             int n = LogicaRelleno.Leer(json, pedir, candidatos, musica);
+            Propuestos(pedir);
             Llenar();
             Estado("✔ " + n + " huecos con tema (o silencio) de la otra IA. Revisa, desmarca lo que no quieras y pulsa «Colocar».", false);
         }
@@ -263,8 +367,20 @@ class VentanaRelleno : VentanaBase
     {
         List<string> avisos = new List<string>();
         int n;
+        List<string> usadas = LogicaRelleno.Colocados(huecos, candidatos);
         using (UndoBlock u = new UndoBlock("Rellenar la música"))
             n = LogicaRelleno.Colocar(vegas.Project, huecos, candidatos, musica, biblioteca, avisos);
+        // Se anota lo de este capitulo para no repetirlo en los siguientes (lo de antes de este capitulo se conserva).
+        try
+        {
+            List<string> previas = new List<string>();
+            foreach (UsoTema u in historial) if (String.Equals(u.Capitulo, capitulo, StringComparison.OrdinalIgnoreCase) && u.Ruta.Length > 0) previas.Add(u.Ruta);
+            foreach (string r in usadas) if (!previas.Contains(r)) previas.Add(r);
+            if (n > 0) HistorialMusica.Registrar(claveSerie, capitulo, previas);
+            historial = HistorialMusica.Cargar(claveSerie);
+            Variedad();
+        }
+        catch { }
         Estado("✔ " + n + " temas colocados en «" + LogicaRelleno.PistaMusica + "» (sin balancear)." +
                (avisos.Count > 0 ? " Avisos: " + String.Join(" ", avisos.ToArray()) : ""), avisos.Count > 0);
         foreach (HuecoMusica h in huecos) if (h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0)) h.Elegido = false;

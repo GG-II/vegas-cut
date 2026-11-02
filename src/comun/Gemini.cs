@@ -134,6 +134,13 @@ public static class Gemini
     public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
                                  List<KeyValuePair<string, byte[]>> imagenes)
     {
+        return Generar(clave, modelo, instrucciones, mensaje, json, imagenes, 0.4);
+    }
+
+    // "temperatura" mas alta (hasta 1.5) = respuestas mas variadas; baja = mas fiel y repetible.
+    public static string Generar(string clave, string modelo, string instrucciones, string mensaje, bool json,
+                                 List<KeyValuePair<string, byte[]>> imagenes, double temperatura)
+    {
         Dictionary<string, object> cuerpo = new Dictionary<string, object>();
         if (!String.IsNullOrEmpty(instrucciones))
             cuerpo["systemInstruction"] = Partes(instrucciones, null);
@@ -149,7 +156,7 @@ public static class Gemini
             }
         cuerpo["contents"] = new List<object> { usuario };
         Dictionary<string, object> config = new Dictionary<string, object>();
-        config["temperature"] = 0.4;
+        config["temperature"] = temperatura;
         if (json) config["responseMimeType"] = "application/json";
         cuerpo["generationConfig"] = config;
 
