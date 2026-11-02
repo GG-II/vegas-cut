@@ -104,6 +104,20 @@ public class TareaWhisper
         try { if (proceso != null && !proceso.HasExited) proceso.Kill(); } catch { }
     }
 
+    // Lo que conviene hacer ante los errores conocidos de Whisper.
+    public static string Consejo(string registro)
+    {
+        string r = (registro ?? "").ToLowerInvariant();
+        if (r.Contains("cuda out of memory") || r.Contains("cuda failed with error out of memory"))
+            return "La tarjeta de video se quedó sin memoria: cierra lo que la use (juegos, OBS, otro Whisper) o en " +
+                   "ConfigurarVegasCut usa un modelo más chico o «procesador».\n\n";
+        if (r.Contains("failed to allocate memory") || r.Contains("memoryerror") || r.Contains("out of memory") || r.Contains("bad_alloc"))
+            return "Al PC le faltó memoria RAM para cargar Whisper. Guarda el proyecto, cierra y vuelve a abrir Vegas (después de " +
+                   "mucho rato o de renderizar ocupa cada vez más), cierra otros programas pesados y revisa en el Administrador de " +
+                   "tareas que no quede un «faster-whisper-xxl» de antes. Si sigue, reinicia el PC.\n\n";
+        return "";
+    }
+
     // JSON resultante; lanza un error con el final del registro si fallo.
     public string Resultado()
     {
@@ -115,7 +129,7 @@ public class TareaWhisper
         {
             string r = Registro.Trim();
             if (r.Length > 1200) r = "…" + r.Substring(r.Length - 1200);
-            throw new Exception("Whisper no generó la transcripción (código " + Codigo + ").\n\n" + r);
+            throw new Exception(Consejo(Registro) + "Whisper no generó la transcripción (código " + Codigo + ").\n\n" + r);
         }
         return File.ReadAllText(ruta, Encoding.UTF8);
     }

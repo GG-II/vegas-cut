@@ -9148,6 +9148,20 @@ public class TareaWhisper
         try { if (proceso != null && !proceso.HasExited) proceso.Kill(); } catch { }
     }
 
+    // Lo que conviene hacer ante los errores conocidos de Whisper.
+    public static string Consejo(string registro)
+    {
+        string r = (registro ?? "").ToLowerInvariant();
+        if (r.Contains("cuda out of memory") || r.Contains("cuda failed with error out of memory"))
+            return "La tarjeta de video se qued\u00f3 sin memoria: cierra lo que la use (juegos, OBS, otro Whisper) o en " +
+                   "ConfigurarVegasCut usa un modelo m\u00e1s chico o \u00abprocesador\u00bb.\n\n";
+        if (r.Contains("failed to allocate memory") || r.Contains("memoryerror") || r.Contains("out of memory") || r.Contains("bad_alloc"))
+            return "Al PC le falt\u00f3 memoria RAM para cargar Whisper. Guarda el proyecto, cierra y vuelve a abrir Vegas (despu\u00e9s de " +
+                   "mucho rato o de renderizar ocupa cada vez m\u00e1s), cierra otros programas pesados y revisa en el Administrador de " +
+                   "tareas que no quede un \u00abfaster-whisper-xxl\u00bb de antes. Si sigue, reinicia el PC.\n\n";
+        return "";
+    }
+
     // JSON resultante; lanza un error con el final del registro si fallo.
     public string Resultado()
     {
@@ -9159,7 +9173,7 @@ public class TareaWhisper
         {
             string r = Registro.Trim();
             if (r.Length > 1200) r = "\u2026" + r.Substring(r.Length - 1200);
-            throw new Exception("Whisper no gener\u00f3 la transcripci\u00f3n (c\u00f3digo " + Codigo + ").\n\n" + r);
+            throw new Exception(Consejo(Registro) + "Whisper no gener\u00f3 la transcripci\u00f3n (c\u00f3digo " + Codigo + ").\n\n" + r);
         }
         return File.ReadAllText(ruta, Encoding.UTF8);
     }

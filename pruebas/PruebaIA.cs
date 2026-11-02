@@ -263,6 +263,11 @@ class PruebaIA
         srv2.Stop();
         Gemini.Pausas = new int[] { 5, 15, 30 }; Gemini.LimiteSegundos = 240;
 
+        // Errores de memoria de Whisper: un consejo claro antes del registro.
+        Verificar(TareaWhisper.Consejo("RuntimeError: mkl_malloc: failed to allocate memory").Contains("RAM") &&
+                  TareaWhisper.Consejo("CUDA out of memory").Contains("tarjeta de video") && TareaWhisper.Consejo("otra cosa") == "",
+                  "Whisper: si falta memoria (RAM o tarjeta) dice qué hacer");
+
         // ------------------------------------- Otra IA por chat (sin API)
         string archivoChat = PeticionIA.ArchivoChat(t4, 26.7, op);
         string charla = "¡Claro! Aquí está el corte:\n\n```json\n{\"resumen\": \"x\", \"corte\": [{\"inicio\": 11, \"fin\": 20, \"titulo\": \"A\"}]}\n```\n\nEspero que te sirva.";
