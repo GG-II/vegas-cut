@@ -1944,7 +1944,7 @@ class VentanaRelleno : VentanaBase
             }
             catch { }
         };
-        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; else cerrando = true; };
         Buscar();
     }
 
@@ -1972,6 +1972,10 @@ class VentanaRelleno : VentanaBase
     }
 
     // Los capitulos de la serie que nunca se leyeron: sus .veg dicen que musica llevan (una sola vez).
+    // En segundo plano: la ventana se puede usar (o cerrar) mientras tanto.
+    volatile bool cerrando;
+    bool leyendo;
+
     void AprenderDeProyectos()
     {
         if (biblioteca == null || serie == null || todos.Count == 0) return;
@@ -1984,23 +1988,44 @@ class VentanaRelleno : VentanaBase
             faltan.Add(ep);
         }
         if (faltan.Count == 0) return;
-        Estado("Leyendo qu\u00e9 m\u00fasica llevan " + faltan.Count + " cap\u00edtulos anteriores (solo esta vez)\u2026", false);
-        Cursor = Cursors.WaitCursor;
-        Application.DoEvents();
-        int temas = 0;
-        try
+        leyendo = true;
+        Habilitar();
+        Estado("Leyendo qu\u00e9 m\u00fasica llevan " + faltan.Count + " cap\u00edtulos anteriores (solo esta vez, puedes seguir)\u2026", false);
+        List<ArchivoMusica> copia = new List<ArchivoMusica>(todos);
+        string serieClave = claveSerie;
+        Thread hilo = new Thread(delegate ()
         {
-            foreach (KeyValuePair<string, List<string>> kv in HistorialMusica.DeProyectos(faltan, todos))
+            int temas = 0;
+            Dictionary<string, List<string>> leidos = null;
+            try
             {
-                HistorialMusica.Registrar(claveSerie, kv.Key, kv.Value);
-                temas += kv.Value.Count;
+                leidos = HistorialMusica.DeProyectos(faltan, copia,
+                    delegate (int h, int t)
+                    {
+                        try { BeginInvoke((MethodInvoker)delegate { Estado("Leyendo qu\u00e9 m\u00fasica llevan los cap\u00edtulos anteriores\u2026 (" + (h + 1) + " de " + t + ")", false); }); } catch { }
+                    },
+                    delegate { return cerrando; });
+                // Un capitulo que se pudo leer queda anotado (aunque no lleve musica de la biblioteca) para no releerlo.
+                foreach (KeyValuePair<string, List<string>> kv in leidos) { HistorialMusica.Registrar(serieClave, kv.Key, kv.Value); temas += kv.Value.Count; }
             }
-        }
-        catch { }
-        Cursor = Cursors.Default;
-        historial = HistorialMusica.Cargar(claveSerie);
-        Variedad();
-        Estado("\u2714 " + faltan.Count + " cap\u00edtulos anteriores le\u00eddos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), false);
+            catch { }
+            if (cerrando) return;
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    leyendo = false;
+                    historial = HistorialMusica.Cargar(claveSerie);
+                    Variedad();
+                    Habilitar();
+                    Estado(leidos == null ? "No se pudieron leer los cap\u00edtulos anteriores." :
+                           "\u2714 " + leidos.Count + " cap\u00edtulos anteriores le\u00eddos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), leidos == null);
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
     }
 
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
@@ -2008,8 +2033,8 @@ class VentanaRelleno : VentanaBase
     void Habilitar()
     {
         btnBuscar.Enabled = !trabajando;
-        btnIA.Enabled = !trabajando && huecos.Count > 0 && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
-        btnExportar.Enabled = !trabajando && huecos.Count > 0 && candidatos.Count > 0 && rutaPedido.Length > 0;
+        btnIA.Enabled = !trabajando && !leyendo && huecos.Count > 0 && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
+        btnExportar.Enabled = !trabajando && !leyendo && huecos.Count > 0 && candidatos.Count > 0 && rutaPedido.Length > 0;
         btnImportar.Enabled = !trabajando && rutaPedido.Length > 0;
         btnColocar.Enabled = !trabajando && huecos.Exists(delegate (HuecoMusica h) { return h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0); });
         btnCerrar.Enabled = !trabajando;
@@ -2300,12 +2325,46 @@ public static class HistorialMusica
         return r;
     }
 
-    static readonly System.Text.RegularExpressions.Regex Audios = new System.Text.RegularExpressions.Regex(
-        @"([^\\/:*?""<>|\x00-\x1f]*)[\\/]([^\\/:*?""<>|\x00-\x1f]+\.(?:mp3|wav|flac|ogg|m4a|aac|wma|opus))", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly string[] ExtAudio = { ".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac", ".wma", ".opus" };
+
+    static bool EsNombre(char c) { return c >= ' ' && "\\/:*?\"<>|".IndexOf(c) < 0; }
+
+    // Rutas de audio dentro de un texto: nombre -> carpetas donde aparece. Es lineal; con expresiones
+    // regulares los restos binarios de un .veg la volvian lentisima (y congelaba Vegas).
+    static void BuscarAudios(string texto, Dictionary<string, List<string>> nombres)
+    {
+        int n = texto.Length;
+        for (int i = 1; i < n - 3; i++)
+        {
+            if (texto[i] != '.') continue;
+            int fin = -1;
+            foreach (string e in ExtAudio)
+                if (i + e.Length <= n && String.Compare(texto, i, e, 0, e.Length, StringComparison.OrdinalIgnoreCase) == 0 &&
+                    (i + e.Length == n || !char.IsLetterOrDigit(texto[i + e.Length]))) { fin = i + e.Length; break; }
+            if (fin < 0) continue;
+            int j = i - 1;
+            while (j >= 0 && i - j <= 255 && EsNombre(texto[j])) j--;
+            if (j < 0 || (texto[j] != '\\' && texto[j] != '/') || i - j <= 1) continue;   // j: el separador antes del nombre
+            string nombre = texto.Substring(j + 1, fin - j - 1).ToLowerInvariant();
+            int k = j - 1;
+            while (k >= 0 && j - k <= 120 && EsNombre(texto[k])) k--;
+            string dir = texto.Substring(k + 1, j - k - 1).ToLowerInvariant();
+            List<string> l;
+            if (!nombres.TryGetValue(nombre, out l)) { l = new List<string>(); nombres[nombre] = l; }
+            if (l.Count < 20 && !l.Contains(dir)) l.Add(dir);
+            i = fin - 1;
+        }
+    }
+
+    public static Dictionary<string, List<string>> DeProyectos(List<string> vegs, List<ArchivoMusica> todos)
+    {
+        return DeProyectos(vegs, todos, null, null);
+    }
 
     // Que temas de la biblioteca usa cada proyecto, leyendo los .veg (guardan las rutas de sus archivos en UTF-16,
     // a veces en UTF-8). Es aproximado: tambien cuenta lo que quedo en los medios del proyecto sin usarse.
-    public static Dictionary<string, List<string>> DeProyectos(List<string> vegs, List<ArchivoMusica> todos)
+    // "progreso(hechos, total)" y "cancelar" son opcionales (se usa desde otro hilo).
+    public static Dictionary<string, List<string>> DeProyectos(List<string> vegs, List<ArchivoMusica> todos, Action<int, int> progreso, Func<bool> cancelar)
     {
         Dictionary<string, int> repetidos = new Dictionary<string, int>();
         foreach (ArchivoMusica a in todos)
@@ -2314,21 +2373,19 @@ public static class HistorialMusica
             int c; repetidos.TryGetValue(n, out c); repetidos[n] = c + 1;
         }
         Dictionary<string, List<string>> r = new Dictionary<string, List<string>>();
+        int hechos = 0;
         foreach (string veg in vegs)
         {
+            if (cancelar != null && cancelar()) break;
+            if (progreso != null) progreso(hechos++, vegs.Count);
             List<string> usados = new List<string>();
-            r[Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(veg))] = usados;
             Dictionary<string, List<string>> nombres = new Dictionary<string, List<string>>();
             try
             {
                 byte[] b = File.ReadAllBytes(veg);
-                foreach (string texto in new string[] { Encoding.Unicode.GetString(b), Encoding.UTF8.GetString(b) })
-                    foreach (System.Text.RegularExpressions.Match m in Audios.Matches(texto))
-                    {
-                        string n = m.Groups[2].Value.ToLowerInvariant();
-                        if (!nombres.ContainsKey(n)) nombres[n] = new List<string>();
-                        nombres[n].Add(m.Groups[1].Value.ToLowerInvariant());
-                    }
+                BuscarAudios(Encoding.Unicode.GetString(b), nombres);
+                if (cancelar != null && cancelar()) break;
+                BuscarAudios(Encoding.UTF8.GetString(b), nombres);
             }
             catch { continue; }
             foreach (ArchivoMusica a in todos)
@@ -2341,6 +2398,7 @@ public static class HistorialMusica
                 if (repetidos[n] > 1 && (carpeta.Length == 0 || !dirs.Exists(delegate (string d) { return d.EndsWith(carpeta); }))) continue;
                 if (!usados.Contains(a.Ruta)) usados.Add(a.Ruta);
             }
+            r[Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(veg))] = usados;
         }
         return r;
     }

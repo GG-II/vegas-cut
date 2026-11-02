@@ -119,7 +119,7 @@ class VentanaRelleno : VentanaBase
             }
             catch { }
         };
-        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; };
+        FormClosing += delegate (object s, FormClosingEventArgs e) { if (trabajando) e.Cancel = true; else cerrando = true; };
         Buscar();
     }
 
@@ -147,6 +147,10 @@ class VentanaRelleno : VentanaBase
     }
 
     // Los capitulos de la serie que nunca se leyeron: sus .veg dicen que musica llevan (una sola vez).
+    // En segundo plano: la ventana se puede usar (o cerrar) mientras tanto.
+    volatile bool cerrando;
+    bool leyendo;
+
     void AprenderDeProyectos()
     {
         if (biblioteca == null || serie == null || todos.Count == 0) return;
@@ -159,23 +163,44 @@ class VentanaRelleno : VentanaBase
             faltan.Add(ep);
         }
         if (faltan.Count == 0) return;
-        Estado("Leyendo qué música llevan " + faltan.Count + " capítulos anteriores (solo esta vez)…", false);
-        Cursor = Cursors.WaitCursor;
-        Application.DoEvents();
-        int temas = 0;
-        try
+        leyendo = true;
+        Habilitar();
+        Estado("Leyendo qué música llevan " + faltan.Count + " capítulos anteriores (solo esta vez, puedes seguir)…", false);
+        List<ArchivoMusica> copia = new List<ArchivoMusica>(todos);
+        string serieClave = claveSerie;
+        Thread hilo = new Thread(delegate ()
         {
-            foreach (KeyValuePair<string, List<string>> kv in HistorialMusica.DeProyectos(faltan, todos))
+            int temas = 0;
+            Dictionary<string, List<string>> leidos = null;
+            try
             {
-                HistorialMusica.Registrar(claveSerie, kv.Key, kv.Value);
-                temas += kv.Value.Count;
+                leidos = HistorialMusica.DeProyectos(faltan, copia,
+                    delegate (int h, int t)
+                    {
+                        try { BeginInvoke((MethodInvoker)delegate { Estado("Leyendo qué música llevan los capítulos anteriores… (" + (h + 1) + " de " + t + ")", false); }); } catch { }
+                    },
+                    delegate { return cerrando; });
+                // Un capitulo que se pudo leer queda anotado (aunque no lleve musica de la biblioteca) para no releerlo.
+                foreach (KeyValuePair<string, List<string>> kv in leidos) { HistorialMusica.Registrar(serieClave, kv.Key, kv.Value); temas += kv.Value.Count; }
             }
-        }
-        catch { }
-        Cursor = Cursors.Default;
-        historial = HistorialMusica.Cargar(claveSerie);
-        Variedad();
-        Estado("✔ " + faltan.Count + " capítulos anteriores leídos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), false);
+            catch { }
+            if (cerrando) return;
+            try
+            {
+                BeginInvoke((MethodInvoker)delegate
+                {
+                    leyendo = false;
+                    historial = HistorialMusica.Cargar(claveSerie);
+                    Variedad();
+                    Habilitar();
+                    Estado(leidos == null ? "No se pudieron leer los capítulos anteriores." :
+                           "✔ " + leidos.Count + " capítulos anteriores leídos: " + temas + " temas que ya usaste" + (temas > 0 ? " (se ofrecen menos)." : "."), leidos == null);
+                });
+            }
+            catch { }
+        });
+        hilo.IsBackground = true;
+        hilo.Start();
     }
 
     void Estado(string t, bool error) { lblEstado.Text = t; lblEstado.ForeColor = error ? Tema.Silencio : Tema.TextoSuave; }
@@ -183,8 +208,8 @@ class VentanaRelleno : VentanaBase
     void Habilitar()
     {
         btnBuscar.Enabled = !trabajando;
-        btnIA.Enabled = !trabajando && huecos.Count > 0 && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
-        btnExportar.Enabled = !trabajando && huecos.Count > 0 && candidatos.Count > 0 && rutaPedido.Length > 0;
+        btnIA.Enabled = !trabajando && !leyendo && huecos.Count > 0 && candidatos.Count > 0 && !String.IsNullOrEmpty(config.GeminiClave);
+        btnExportar.Enabled = !trabajando && !leyendo && huecos.Count > 0 && candidatos.Count > 0 && rutaPedido.Length > 0;
         btnImportar.Enabled = !trabajando && rutaPedido.Length > 0;
         btnColocar.Enabled = !trabajando && huecos.Exists(delegate (HuecoMusica h) { return h.Elegido && !h.Silencio && (h.Tema >= 0 || h.Personaje.Length > 0); });
         btnCerrar.Enabled = !trabajando;

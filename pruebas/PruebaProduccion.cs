@@ -90,6 +90,8 @@ class PruebaProduccion
   ""textos"": [], ""musica"": [], ""narracion"": [{""en"": 365, ""texto"": ""Seguíamos atrapados.""}], ""recursos"": []}]}";
     }
 
+    static List<ArchivoMusica> bibM2() { return new List<ArchivoMusica> { new ArchivoMusica { Ruta = "Album3/tema3.mp3" }, new ArchivoMusica { Ruta = "Album5/nada.mp3" } }; }
+
     static int Main(string[] args)
     {
         string carpeta = args.Length > 0 ? args[0] : "../ejemplos/jojmania";
@@ -610,6 +612,22 @@ class PruebaProduccion
             Verificar(dv.ContainsKey("S01E01 SCR") && dv["S01E01 SCR"].Count == 2 && dv["S01E01 SCR"].Contains("Album3/tema3.mp3") && dv["S01E01 SCR"].Contains("Album9/01.mp3") &&
                       !dv["S01E01 SCR"].Contains("Album4/01.mp3") && !dv["S01E01 SCR"].Contains("Album5/nada.mp3"),
                       "Música: lee qué temas de la biblioteca lleva cada capítulo anterior en sus .veg, sin confundir nombres repetidos de otro álbum");
+
+            // Un .veg grande (30 MB de restos binarios) no tiene que tardar ni congelar nada.
+            string vegG = Path.Combine(carpV, "S01E02 SCR.veg");
+            byte[] basura = new byte[30 * 1024 * 1024];
+            new Random(5).NextBytes(basura);
+            byte[] rutaG = System.Text.Encoding.Unicode.GetBytes(" K:\\Musica\\Album3\\tema3.mp3 ");
+            Array.Copy(rutaG, 0, basura, 12345678, rutaG.Length);
+            File.WriteAllBytes(vegG, basura);
+            System.Diagnostics.Stopwatch reloj = new System.Diagnostics.Stopwatch();
+            reloj.Start();
+            int avances = 0;
+            Dictionary<string, List<string>> dg = HistorialMusica.DeProyectos(new List<string> { vegG }, bibM2(), delegate (int hecho1, int total1) { avances++; }, null);
+            reloj.Stop();
+            Dictionary<string, List<string>> dc = HistorialMusica.DeProyectos(new List<string> { vegG, vegA }, bibM2(), null, delegate { return true; });
+            Verificar(reloj.Elapsed.TotalSeconds < 10 && dg.ContainsKey("S01E02 SCR") && dg["S01E02 SCR"].Contains("Album3/tema3.mp3") && avances == 1 && dc.Count == 0,
+                      "Música: leer un .veg de 30 MB con restos binarios es rápido (" + reloj.Elapsed.TotalSeconds.ToString("0.0") + " s), avisa su avance y se puede cancelar");
 
             // ---- etiquetar audios que no son del anime
             BibliotecaMusica be = new BibliotecaMusica { Carpeta = dir };
