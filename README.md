@@ -215,7 +215,10 @@ y la ventana muestra un selector de capítulo (cada uno con su duración, se pue
 *Crear N capítulos* guarda BASE, y por cada capítulo reabre el proyecto original, aplica su corte y lo
 guarda como archivo aparte. Los nombres **continúan la numeración** del proyecto: `S02E03 SCR` partido
 en 3 da `S02E03 SCR MOM`, `S02E04 SCR MOM` y `S02E05 SCR MOM` (también con «Parte 3», «Cap 3»; sin
-número: `MOM`, `MOM 2`…). Nunca pisa un archivo existente y avisa si la serie ya tiene esos números.
+número: `MOM`, `MOM 2`…). Si el proyecto está en una carpeta con el mismo número de episodio
+(`S02E03/S02E03 SCR.veg`; la carpeta y el video no tienen que llamarse igual), cada capítulo va en
+su carpeta hermana con su propio número (`S02E04/S02E04 SCR MOM.veg`…), que se crea si no existe.
+Nunca pisa un archivo existente y avisa si la serie ya tiene esos números.
 Si tu Vegas no deja reabrir el proyecto desde un script, usa *Solo este capítulo* y repite con cada uno.
 
 **Marcadores anclados:** los marcadores y regiones que crea MomentosIA guardan a qué archivo y a

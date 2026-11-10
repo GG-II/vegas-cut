@@ -656,6 +656,16 @@ class PruebaIA
         File.WriteAllText(Path.Combine(ndir, "S02E04 SCR MOM.veg"), "x");
         List<string> rutasE = CopiaBase.RutasCapitulos(Path.Combine(ndir, "S02E03 SCR.veg"), 2, out nums);
         Verificar(Path.GetFileName(rutasE[1]) == "S02E04 SCR MOM 2.veg", "Capítulos: no pisa un archivo que ya existe");
+        // Carpeta por episodio: la carpeta y el video no se llaman igual pero llevan el mismo numero.
+        string cdir = Path.Combine(Path.Combine(tmp, "scr"), "S02E03"); Directory.CreateDirectory(cdir);
+        List<string> rutasC = CopiaBase.RutasCapitulos(Path.Combine(cdir, "S02E03 SCR.veg"), 3, out nums);
+        Verificar(Path.GetFileName(Path.GetDirectoryName(rutasC[0])) == "S02E03" && Path.GetFileName(Path.GetDirectoryName(rutasC[1])) == "S02E04" &&
+                  Path.GetFileName(rutasC[2]) == "S02E05 SCR MOM.veg" && Path.GetFileName(Path.GetDirectoryName(rutasC[2])) == "S02E05" &&
+                  Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(rutasC[1]))) == "scr",
+            "Capítulos: cada uno en su carpeta hermana con su número (S02E03 / S02E03 SCR)");
+        string cdir2 = Path.Combine(Path.Combine(tmp, "scr"), "Temporada 2"); Directory.CreateDirectory(cdir2);
+        List<string> rutasC2 = CopiaBase.RutasCapitulos(Path.Combine(cdir2, "S02E03 SCR.veg"), 2, out nums);
+        Verificar(Path.GetFileName(Path.GetDirectoryName(rutasC2[1])) == "Temporada 2", "Capítulos: si la carpeta no lleva el número, se quedan juntos");
         List<string> rutasS = CopiaBase.RutasCapitulos(Path.Combine(ndir, "Ensayo.veg"), 2, out nums);
         Verificar(nums == null && Path.GetFileName(rutasS[0]) == "Ensayo MOM.veg" && Path.GetFileName(rutasS[1]) == "Ensayo MOM 2.veg",
             "Capítulos: sin número en el nombre, MOM y MOM 2");

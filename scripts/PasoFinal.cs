@@ -12556,12 +12556,24 @@ public static class CopiaBase
         int primero = int.Parse(m.Groups[2].Value), ancho = Math.Max(2, m.Groups[2].Value.Length);
         List<string> r = new List<string>();
         numeros = new List<int>();
+        // La carpeta cuenta solo si trae el mismo numero que el video (mismo patron: S02E03 o Parte 3).
+        string carpeta = Path.GetFileName(dir);
+        System.Text.RegularExpressions.Match mc = m.Value.StartsWith("S", StringComparison.OrdinalIgnoreCase) && NumTemporada.IsMatch(nombre)
+            ? NumTemporada.Match(carpeta) : NumParte.Match(carpeta);
+        if (!mc.Success || int.Parse(mc.Groups[2].Value) != primero || String.IsNullOrEmpty(Path.GetDirectoryName(dir))) carpeta = null;
         for (int k = 0; k < n; k++)
         {
             string num = (primero + k).ToString().PadLeft(ancho, '0');
             string nom = nombre.Substring(0, m.Groups[2].Index) + num + nombre.Substring(m.Groups[2].Index + m.Groups[2].Length);
-            string c = Path.Combine(dir, nom + " MOM.veg");
-            for (int i = 2; File.Exists(c) || r.Contains(c); i++) c = Path.Combine(dir, nom + " MOM " + i + ".veg");
+            // Si el proyecto vive en una carpeta con el mismo numero de episodio (aunque se llame distinto al
+            // video: \u00abS02E03\u00bb / \u00abS02E03 SCR\u00bb), cada capitulo va en su carpeta hermana con su numero.
+            string dirK = dir;
+            if (k > 0 && carpeta != null)
+                dirK = Path.Combine(Path.GetDirectoryName(dir),
+                    carpeta.Substring(0, mc.Groups[2].Index) + num.PadLeft(Math.Max(2, mc.Groups[2].Value.Length), '0') +
+                    carpeta.Substring(mc.Groups[2].Index + mc.Groups[2].Length));
+            string c = Path.Combine(dirK, nom + " MOM.veg");
+            for (int i = 2; File.Exists(c) || r.Contains(c); i++) c = Path.Combine(dirK, nom + " MOM " + i + ".veg");
             r.Add(c);
             numeros.Add(primero + k);
         }
@@ -12588,6 +12600,8 @@ public static class CopiaBase
     public static void GuardarComo(Vegas vegas, string destino)
     {
         string desde = vegas.Project.FilePath;
+        string carp = Path.GetDirectoryName(destino);
+        if (!String.IsNullOrEmpty(carp) && !Directory.Exists(carp)) Directory.CreateDirectory(carp);
         vegas.SaveProject(destino);
         CopiarAnexos(desde, destino);
     }
