@@ -6298,11 +6298,73 @@ public static class ChatIA
         return sb.ToString();
     }
 
+    // Los objetos { \u2026 } de primer nivel que hay en el texto (con comillas y escapes respetados).
+    static List<string> ObjetosJson(string t)
+    {
+        List<string> r = new List<string>();
+        int prof = 0, ini = -1;
+        bool enTexto = false, esc = false;
+        for (int i = 0; i < t.Length; i++)
+        {
+            char c = t[i];
+            if (enTexto) { if (esc) esc = false; else if (c == '\\') esc = true; else if (c == '"') enTexto = false; continue; }
+            if (c == '"' && prof > 0) { enTexto = true; continue; }
+            if (c == '{') { if (prof == 0) ini = i; prof++; }
+            else if (c == '}' && prof > 0) { prof--; if (prof == 0) r.Add(t.Substring(ini, i - ini + 1)); }
+        }
+        return r;
+    }
+
+    // Si la IA entrego VARIOS JSON (uno por capitulo, en bloques o archivos distintos) y se pegaron juntos, los une
+    // en uno solo con "capitulos". Devuelve null si no hay al menos dos con "corte".
+    public static string UnirRespuestas(string texto)
+    {
+        List<object> objs = new List<object>();
+        foreach (string j in ObjetosJson(texto ?? ""))
+        {
+            try
+            {
+                object o = Json.Leer(j);
+                if (Json.Lista(o, "corte").Count > 0) objs.Add(o);
+                else if (Json.Lista(o, "capitulos").Count > 0) return null;   // ya viene unido
+            }
+            catch { }
+        }
+        if (objs.Count < 2) return null;
+        List<object> caps = new List<object>(), secciones = new List<object>(), momentos = new List<object>(),
+                     shorts = new List<object>(), textos = new List<object>(), titulos = new List<object>();
+        StringBuilder resumen = new StringBuilder();
+        for (int i = 0; i < objs.Count; i++)
+        {
+            object o = objs[i];
+            string tit = Json.Texto(o, "titulo");
+            List<object> ts = Json.Lista(o, "titulos");
+            if (tit.Length == 0 && ts.Count > 0 && ts[0] is string) tit = (string)ts[0];
+            if (tit.Length == 0) tit = "Cap\u00edtulo " + (i + 1);
+            Dictionary<string, object> c = new Dictionary<string, object>();
+            c["titulo"] = tit;
+            c["resumen"] = Json.Texto(o, "resumen");
+            c["corte"] = Json.Lista(o, "corte");
+            caps.Add(c);
+            if (resumen.Length > 0) resumen.Append("\n\n");
+            resumen.Append(tit + ": " + Json.Texto(o, "resumen"));
+            secciones.AddRange(Json.Lista(o, "secciones")); momentos.AddRange(Json.Lista(o, "momentos"));
+            shorts.AddRange(Json.Lista(o, "shorts")); textos.AddRange(Json.Lista(o, "textos")); titulos.AddRange(ts);
+        }
+        Dictionary<string, object> r = new Dictionary<string, object>();
+        r["resumen"] = resumen.ToString();
+        r["secciones"] = secciones; r["momentos"] = momentos; r["shorts"] = shorts; r["textos"] = textos; r["titulos"] = titulos;
+        r["corte"] = new List<object>();
+        r["capitulos"] = caps;
+        return Json.Escribir(r);
+    }
+
     // Saca el JSON de lo que devolvio el chat: tolera texto alrededor y bloques ```json.
     public static string ExtraerJson(string texto, string clave)
     {
         string s = (texto ?? "").Trim();
         if (s.Length == 0) throw new FormatException("est\u00e1 vac\u00eda.");
+        if (clave.Contains("capitulos")) { string unido = UnirRespuestas(s); if (unido != null) return unido; }
         int bloque = s.IndexOf("```");
         if (bloque >= 0)
         {
@@ -6351,7 +6413,7 @@ class DialogoRespuestaIA : VentanaBase
         this.clave = clave;
         StartPosition = FormStartPosition.CenterParent;
         int m = Margen, w = Ancho;
-        Encabezado("Importar respuesta", "Pega lo que respondi\u00f3 la IA (puede traer texto alrededor) o abre el archivo que te dio.");
+        Encabezado("Importar respuesta", "Pega lo que respondi\u00f3 la IA (puede traer texto alrededor) o abre el archivo que te dio. Si te dio varios (uno por cap\u00edtulo), p\u00e9galos juntos o el\u00edgelos a la vez.");
         int y = 92;
         txt.Multilinea = true;
         Pos(txt, m, y, w, 330);
@@ -6370,9 +6432,15 @@ class DialogoRespuestaIA : VentanaBase
             using (OpenFileDialog d = new OpenFileDialog())
             {
                 d.Filter = "Respuesta (*.json;*.txt;*.md)|*.json;*.txt;*.md|Todos|*.*";
+                d.Multiselect = true;   // un archivo por capitulo: se unen
                 if (Directory.Exists(carpeta)) d.InitialDirectory = carpeta;
                 if (d.ShowDialog(this) != DialogResult.OK) return;
-                try { txt.Text = File.ReadAllText(d.FileName, Encoding.UTF8); } catch (Exception ex) { Error("No se pudo leer: " + ex.Message); return; }
+                try
+                {
+                    StringBuilder todo = new StringBuilder();
+                    foreach (string f in d.FileNames) todo.Append(File.ReadAllText(f, Encoding.UTF8)).Append("\n\n");
+                    txt.Text = todo.ToString();
+                } catch (Exception ex) { Error("No se pudo leer: " + ex.Message); return; }
             }
             Importar();
         };

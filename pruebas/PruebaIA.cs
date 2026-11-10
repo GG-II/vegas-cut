@@ -640,6 +640,12 @@ class PruebaIA
         Verificar(inf3.Contains("Primero") && inf3.Contains("Tercero") && rc3.Corte[0].Inicio == 200, "Capítulos: el informe los trae todos y deja la selección como estaba");
         string jx = null; try { jx = ChatIA.ExtraerJson("aqui va: " + jcaps + " listo", "corte|capitulos"); } catch { }
         Verificar(jx != null && jx.Contains("Segundo"), "Chat externo: acepta 'capitulos' con 'corte' vacío");
+        string tres = "Aquí van:\n```json\n{\"resumen\": \"uno {con llaves}\", \"corte\": [{\"inicio\": 0, \"fin\": 100}], \"titulos\": [\"Primero\"]}\n```\n" +
+                      "```json\n{\"resumen\": \"dos\", \"corte\": [{\"inicio\": 200, \"fin\": 300}]}\n```\n" +
+                      "{\"resumen\": \"tres\", \"corte\": [{\"inicio\": 400, \"fin\": 500}]}";
+        ResultadoIA ru = null; try { ru = ResultadoIA.Leer(ChatIA.ExtraerJson(tres, "corte|capitulos"), 600); } catch { }
+        Verificar(ru != null && ru.Capitulos.Count == 3 && ru.Capitulos[0].Titulo == "Primero" && ru.Capitulos[2].Titulo == "Capítulo 3" &&
+                  Cerca(ru.Capitulos[1].Corte[0].Inicio, 200), "Chat externo: varios JSON pegados juntos se unen como capítulos");
         OpcionesIA opc = new OpcionesIA();
         Verificar(!PeticionIA.Instrucciones(opc).Contains("capitulos"), "Capítulos: sin la opción, el prompt no los pide");
         opc.PartirEnCapitulos = true;

@@ -219,6 +219,9 @@ número: `MOM`, `MOM 2`…). Si el proyecto está en una carpeta con el mismo n�
 (`S02E03/S02E03 SCR.veg`; la carpeta y el video no tienen que llamarse igual), cada capítulo va en
 su carpeta hermana con su propio número (`S02E04/S02E04 SCR MOM.veg`…), que se crea si no existe.
 Nunca pisa un archivo existente y avisa si la serie ya tiene esos números.
+Con la IA externa, si te devuelve **un JSON por capítulo** (varios bloques o archivos), pégalos todos
+juntos en *Importar respuesta* (o elige todos los archivos a la vez en *Abrir archivo…*): se unen solos
+como capítulos, en el orden en que vienen.
 Si tu Vegas no deja reabrir el proyecto desde un script, usa *Solo este capítulo* y repite con cada uno.
 
 **Marcadores anclados:** los marcadores y regiones que crea MomentosIA guardan a qué archivo y a
