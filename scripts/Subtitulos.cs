@@ -3741,6 +3741,19 @@ public static class CopiaBase
             File.Copy(serie, Path.Combine(Path.GetDirectoryName(hacia), Path.GetFileNameWithoutExtension(hacia) + ".vegascut-proyecto-serie.json"), true);
     }
 
+    // Copia del material sin cortar ("desde", ya guardado en disco) como "hacia", con su transcripcion, su serie y la
+    // ultima respuesta de la IA: al abrirla, MomentosIA muestra los capitulos y se aplica el que toque.
+    public static void CopiarSinCortar(string desde, string hacia)
+    {
+        string carp = Path.GetDirectoryName(hacia);
+        if (!String.IsNullOrEmpty(carp) && !Directory.Exists(carp)) Directory.CreateDirectory(carp);
+        File.Copy(desde, hacia, false);
+        CopiarAnexos(desde, hacia);
+        string ia = Path.Combine(Path.GetDirectoryName(desde), Path.GetFileNameWithoutExtension(desde) + ".vegascut-ia.json");
+        if (File.Exists(ia))
+            File.Copy(ia, Path.Combine(carp, Path.GetFileNameWithoutExtension(hacia) + ".vegascut-ia.json"), true);
+    }
+
     // Guarda el proyecto abierto como "destino" (con su transcripcion y su serie) y se queda en el.
     public static void GuardarComo(Vegas vegas, string destino)
     {

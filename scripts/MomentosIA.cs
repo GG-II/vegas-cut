@@ -1197,7 +1197,8 @@ class VentanaMomentos : VentanaBase
         btnSolo.Enabled = false;
         StringBuilder r = new StringBuilder();
         for (int i = 0; i < creados.Count; i++) r.Append("\u00ab" + Path.GetFileName(creados[i]) + "\u00bb (" + Formato.Tiempo(duraciones[i]) + ") ");
-        Estado("\u2714 " + creados.Count + " de " + caps.Count + " cap\u00edtulos creados: " + r + ". \u00c1brelos desde Archivo \u25b8 Abrir; el proyecto abierto es el material sin cortar." +
+        Estado("\u2714 " + creados.Count + " de " + caps.Count + " cap\u00edtulos creados: " + r + ". \u00c1brelos desde Archivo \u25b8 Abrir; " +
+               (AplicarCorteIA.sinCortar > 0 ? "el proyecto abierto es el cap\u00edtulo 1." : "el proyecto abierto es el material sin cortar.") +
                (avisos.Count > 0 ? " Avisos: " + String.Join("; ", avisos.ToArray()) + "." : ""), creados.Count < caps.Count || avisos.Count > 0);
     }
 
@@ -1466,18 +1467,34 @@ public static class AplicarCorteIA
         return aviso.Replace("\n", " ");
     }
 
-    // Reabre un proyecto desde el script (sin preguntar por cambios). Falso si Vegas no lo permite.
-    public static bool Reabrir(Vegas vegas, string ruta)
+    // Reabre un proyecto desde el script (sin preguntar por cambios). "motivo" dice por que no se pudo.
+    public static bool Reabrir(Vegas vegas, string ruta, out string motivo)
     {
+        motivo = "";
         try
         {
             System.Reflection.MethodInfo m = vegas.GetType().GetMethod("OpenProject", new Type[] { typeof(string), typeof(bool) });
-            if (m == null) return false;
-            m.Invoke(vegas, new object[] { ruta, true });
-            return String.Equals(vegas.Project.FilePath, ruta, StringComparison.OrdinalIgnoreCase);
+            if (m != null) m.Invoke(vegas, new object[] { ruta, true });
+            else
+            {
+                m = vegas.GetType().GetMethod("OpenProject", new Type[] { typeof(string) });
+                if (m == null) { motivo = "esta versi\u00f3n de Vegas no tiene OpenProject"; return false; }
+                m.Invoke(vegas, new object[] { ruta });
+            }
+            string ahora = vegas.Project.FilePath ?? "";
+            if (String.Equals(Path.GetFileName(ahora), Path.GetFileName(ruta), StringComparison.OrdinalIgnoreCase)) return true;
+            motivo = "OpenProject no abri\u00f3 el archivo (sigue abierto \u00ab" + Path.GetFileName(ahora) + "\u00bb)";
+            return false;
         }
-        catch { return false; }
+        catch (Exception ex)
+        {
+            Exception e = ex.InnerException ?? ex;
+            motivo = e.GetType().Name + ": " + e.Message;
+            return false;
+        }
     }
+
+    public static bool Reabrir(Vegas vegas, string ruta) { string m; return Reabrir(vegas, ruta, out m); }
 
     // Un archivo por capitulo ("<original> MOM", "MOM 2"...), cada uno cortado desde el material sin cortar
     // ("fuente": el proyecto abierto ahora, que no se modifica). Devuelve las rutas creadas; si no se pudo
@@ -1488,6 +1505,9 @@ public static class AplicarCorteIA
         return Capitulos(vegas, resultado, transcripcion, total, silenciar, avisos, duraciones, null);
     }
 
+    // Cuantos archivos quedaron como copia sin cortar la ultima vez (si no se pudo reabrir el material).
+    public static int sinCortar;
+
     // "destinos": los archivos de cada capitulo marcado (null: los que continuan la numeracion, ver CopiaBase.RutasCapitulos).
     public static List<string> Capitulos(Vegas vegas, ResultadoIA resultado, Transcripcion transcripcion, double total, bool silenciar,
                                          List<string> avisos, List<double> duraciones, List<string> destinos)
@@ -1497,12 +1517,23 @@ public static class AplicarCorteIA
         List<CapituloIA> caps = resultado.Capitulos.FindAll(delegate (CapituloIA c) { return c.Elegido; });
         if (destinos == null) { List<int> nums; destinos = CopiaBase.RutasCapitulos(fuente, caps.Count, out nums); }
         int actual = resultado.Actual;
+        sinCortar = 0;
         for (int i = 0; i < caps.Count; i++)
         {
-            if (i > 0 && !Reabrir(vegas, fuente))
+            string motivo;
+            if (i > 0 && !Reabrir(vegas, fuente, out motivo))
             {
-                avisos.Add("Vegas no deja reabrir el material desde un script: se crearon " + i + " de " + caps.Count + " cap\u00edtulos. " +
-                           "Abre \u00ab" + Path.GetFileName(fuente) + "\u00bb, elige el siguiente cap\u00edtulo y usa \u00abSolo este cap\u00edtulo\u00bb");
+                // No se puede reabrir desde un script: los que faltan se dejan como copias del material sin cortar
+                // (con la respuesta de la IA), para aplicarles su capitulo con \u00abSolo este capitulo\u00bb.
+                List<string> copias = new List<string>();
+                for (int j = i; j < caps.Count; j++)
+                {
+                    try { CopiaBase.CopiarSinCortar(fuente, destinos[j]); copias.Add(Path.GetFileNameWithoutExtension(destinos[j]) + " \u2192 cap\u00edtulo " + (resultado.Capitulos.IndexOf(caps[j]) + 1)); }
+                    catch (Exception ex) { avisos.Add("No se pudo copiar para \u00ab" + caps[j].Titulo + "\u00bb: " + ex.Message); }
+                }
+                avisos.Add("Vegas no dej\u00f3 reabrir el material (" + motivo + "). " + copias.Count + " archivo(s) quedaron como copia SIN cortar: " +
+                           String.Join(", ", copias.ToArray()) + ". \u00c1brelos, abre MomentosIA, elige ese cap\u00edtulo y usa \u00abSolo este cap\u00edtulo\u00bb");
+                sinCortar = copias.Count;
                 break;
             }
             resultado.Elegir(resultado.Capitulos.IndexOf(caps[i]));
@@ -9962,6 +9993,19 @@ public static class CopiaBase
         string serie = Path.Combine(dir, Path.GetFileNameWithoutExtension(desde) + ".vegascut-proyecto-serie.json");
         if (File.Exists(serie))
             File.Copy(serie, Path.Combine(Path.GetDirectoryName(hacia), Path.GetFileNameWithoutExtension(hacia) + ".vegascut-proyecto-serie.json"), true);
+    }
+
+    // Copia del material sin cortar ("desde", ya guardado en disco) como "hacia", con su transcripcion, su serie y la
+    // ultima respuesta de la IA: al abrirla, MomentosIA muestra los capitulos y se aplica el que toque.
+    public static void CopiarSinCortar(string desde, string hacia)
+    {
+        string carp = Path.GetDirectoryName(hacia);
+        if (!String.IsNullOrEmpty(carp) && !Directory.Exists(carp)) Directory.CreateDirectory(carp);
+        File.Copy(desde, hacia, false);
+        CopiarAnexos(desde, hacia);
+        string ia = Path.Combine(Path.GetDirectoryName(desde), Path.GetFileNameWithoutExtension(desde) + ".vegascut-ia.json");
+        if (File.Exists(ia))
+            File.Copy(ia, Path.Combine(carp, Path.GetFileNameWithoutExtension(hacia) + ".vegascut-ia.json"), true);
     }
 
     // Guarda el proyecto abierto como "destino" (con su transcripcion y su serie) y se queda en el.

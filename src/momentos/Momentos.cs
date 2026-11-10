@@ -1138,7 +1138,8 @@ class VentanaMomentos : VentanaBase
         btnSolo.Enabled = false;
         StringBuilder r = new StringBuilder();
         for (int i = 0; i < creados.Count; i++) r.Append("«" + Path.GetFileName(creados[i]) + "» (" + Formato.Tiempo(duraciones[i]) + ") ");
-        Estado("✔ " + creados.Count + " de " + caps.Count + " capítulos creados: " + r + ". Ábrelos desde Archivo ▸ Abrir; el proyecto abierto es el material sin cortar." +
+        Estado("✔ " + creados.Count + " de " + caps.Count + " capítulos creados: " + r + ". Ábrelos desde Archivo ▸ Abrir; " +
+               (AplicarCorteIA.sinCortar > 0 ? "el proyecto abierto es el capítulo 1." : "el proyecto abierto es el material sin cortar.") +
                (avisos.Count > 0 ? " Avisos: " + String.Join("; ", avisos.ToArray()) + "." : ""), creados.Count < caps.Count || avisos.Count > 0);
     }
 
