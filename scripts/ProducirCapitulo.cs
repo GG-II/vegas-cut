@@ -9754,7 +9754,10 @@ public static class ChatIA
         object o;
         try { o = Json.Leer(s); }
         catch (Exception ex) { throw new FormatException("el JSON est\u00e1 mal formado o cortado (" + ex.Message + ")."); }
-        if (clave.Length > 0 && Json.Lista(o, clave).Count == 0) throw new FormatException("no trae la lista \"" + clave + "\"" + (clave == "corte" ? " con los tramos a conservar." : "."));
+        // "clave" puede ser varias separadas por | (basta con que una traiga datos): "corte|capitulos".
+        bool alguna = clave.Length == 0;
+        foreach (string k in clave.Split('|')) if (k.Length > 0 && Json.Lista(o, k).Count > 0) alguna = true;
+        if (!alguna) throw new FormatException("no trae la lista \"" + clave.Replace("|", "\" ni \"") + "\"" + (clave.StartsWith("corte") ? " con los tramos a conservar." : "."));
         return s;
     }
 
@@ -9776,9 +9779,9 @@ class DialogoRespuestaIA : VentanaBase
     readonly Boton btnCorregir = new Boton("Copiar mensaje para que la corrija", EstiloBoton.Secundario);
     readonly Boton btnImportar = new Boton("Importar", EstiloBoton.Primario);
     readonly Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
-    string problema = "", clave = "corte";
+    string problema = "", clave = "corte|capitulos";
 
-    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte") { }
+    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte|capitulos") { }
 
     public DialogoRespuestaIA(string carpeta, string clave) : base("Importar respuesta", 760)
     {
@@ -9992,6 +9995,50 @@ public static class CopiaBase
         string o = Original(veg), dir = Path.GetDirectoryName(o), n = Path.GetFileNameWithoutExtension(o);
         string r = Path.Combine(dir, n + " MOM.veg");
         for (int i = 2; File.Exists(r); i++) r = Path.Combine(dir, n + " MOM " + i + ".veg");
+        return r;
+    }
+
+    // Las rutas de "n" copias de corte seguidas ("MOM", "MOM 2"...), saltando las que ya existen.
+    public static List<string> RutasCorte(string veg, int n)
+    {
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        List<string> r = new List<string>();
+        for (int i = 1; r.Count < n; i++)
+        {
+            string c = Path.Combine(dir, nombre + (i == 1 ? " MOM" : " MOM " + i) + ".veg");
+            if (!File.Exists(c)) r.Add(c);
+        }
+        return r;
+    }
+
+    static readonly System.Text.RegularExpressions.Regex NumTemporada = new System.Text.RegularExpressions.Regex(
+        @"(S\d{1,2}\s*[-_ ]?\s*E)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly System.Text.RegularExpressions.Regex NumParte = new System.Text.RegularExpressions.Regex(
+        @"(\b(?:parte|part|cap(?:itulo|\u00edtulo)?|ep(?:isodio)?|episode)\s*[-_ ]?\s*)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    // Los archivos de "n" capitulos seguidos que salen de un video partido: continuan la numeracion del proyecto
+    // (\u00abS02E03 SCR\u00bb -> \u00abS02E03 SCR MOM\u00bb, \u00abS02E04 SCR MOM\u00bb, \u00abS02E05 SCR MOM\u00bb; tambien \u00abParte 3\u00bb, \u00abCap 3\u00bb\u2026). Con el
+    // sufijo MOM la serie los reconoce como el capitulo 3, 4 y 5. Si el nombre no trae numero: MOM, MOM 2...
+    // Los que ya existen se saltan (agregando \u00ab 2\u00bb). "numeros": los numeros usados, en orden (null: no se sabe).
+    public static List<string> RutasCapitulos(string veg, int n, out List<int> numeros)
+    {
+        numeros = null;
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        System.Text.RegularExpressions.Match m = NumTemporada.Match(nombre);
+        if (!m.Success) m = NumParte.Match(nombre);
+        if (!m.Success) return RutasCorte(veg, n);
+        int primero = int.Parse(m.Groups[2].Value), ancho = Math.Max(2, m.Groups[2].Value.Length);
+        List<string> r = new List<string>();
+        numeros = new List<int>();
+        for (int k = 0; k < n; k++)
+        {
+            string num = (primero + k).ToString().PadLeft(ancho, '0');
+            string nom = nombre.Substring(0, m.Groups[2].Index) + num + nombre.Substring(m.Groups[2].Index + m.Groups[2].Length);
+            string c = Path.Combine(dir, nom + " MOM.veg");
+            for (int i = 2; File.Exists(c) || r.Contains(c); i++) c = Path.Combine(dir, nom + " MOM " + i + ".veg");
+            r.Add(c);
+            numeros.Add(primero + k);
+        }
         return r;
     }
 

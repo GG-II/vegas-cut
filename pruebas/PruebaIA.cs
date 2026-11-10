@@ -625,6 +625,41 @@ class PruebaIA
         ta.Segmentos.Add(sa); ta.Segmentos.Add(sb2);
         Verificar(ta.SegmentosActuales().Count == 1, "No se le mandan a Gemini");
 
+        // ------------------------------------------- partir en varios capitulos
+        string jcaps = @"{""corte"": [], ""capitulos"": [
+          {""titulo"": ""Primero"", ""resumen"": ""A"", ""corte"": [{""inicio"": 0, ""fin"": 100, ""titulo"": ""x"", ""motivo"": ""m""}]},
+          {""titulo"": ""Segundo"", ""resumen"": ""B"", ""corte"": [{""inicio"": 200, ""fin"": 300, ""titulo"": ""y"", ""motivo"": ""m""}]},
+          {""titulo"": ""Tercero"", ""resumen"": ""C"", ""corte"": [{""inicio"": 400, ""fin"": 500, ""titulo"": ""z"", ""motivo"": ""m""}]}]}";
+        ResultadoIA rc3 = ResultadoIA.Leer(jcaps, 600);
+        Verificar(rc3.VariosCapitulos && rc3.Capitulos.Count == 3 && rc3.Capitulos[1].Titulo == "Segundo", "Capítulos: lee la lista \"capitulos\"");
+        rc3.Elegir(1);
+        Verificar(rc3.Corte.Count == 1 && Cerca(rc3.Corte[0].Inicio, 200) && rc3.EnCorte(250) && !rc3.EnCorte(50),
+            "Capítulos: Elegir apunta al corte de ese capítulo");
+        Verificar(!ResultadoIA.Leer("{\"corte\": [{\"inicio\": 0, \"fin\": 10}]}", 100).VariosCapitulos, "Capítulos: sin la lista, un solo corte");
+        string inf3 = rc3.Informe("S02E03 SCR.veg", new OpcionesIA(), 600);
+        Verificar(inf3.Contains("Primero") && inf3.Contains("Tercero") && rc3.Corte[0].Inicio == 200, "Capítulos: el informe los trae todos y deja la selección como estaba");
+        string jx = null; try { jx = ChatIA.ExtraerJson("aqui va: " + jcaps + " listo", "corte|capitulos"); } catch { }
+        Verificar(jx != null && jx.Contains("Segundo"), "Chat externo: acepta 'capitulos' con 'corte' vacío");
+        OpcionesIA opc = new OpcionesIA();
+        Verificar(!PeticionIA.Instrucciones(opc).Contains("capitulos"), "Capítulos: sin la opción, el prompt no los pide");
+        opc.PartirEnCapitulos = true;
+        Verificar(PeticionIA.Instrucciones(opc).Contains("capitulos"), "Capítulos: con la opción, el prompt los pide");
+
+        // Numeracion: S02E03 partido en 3 -> E03, E04, E05
+        string ndir = Path.Combine(tmp, "serie"); Directory.CreateDirectory(ndir);
+        List<int> nums;
+        List<string> rutasN = CopiaBase.RutasCapitulos(Path.Combine(ndir, "S02E03 SCR.veg"), 3, out nums);
+        Verificar(rutasN.Count == 3 && Path.GetFileName(rutasN[0]) == "S02E03 SCR MOM.veg" && Path.GetFileName(rutasN[1]) == "S02E04 SCR MOM.veg" &&
+                  Path.GetFileName(rutasN[2]) == "S02E05 SCR MOM.veg" && nums[2] == 5, "Capítulos: continúan la numeración (S02E03-05)");
+        List<string> rutasB = CopiaBase.RutasCapitulos(Path.Combine(ndir, "S01E09 SCR BASE.veg"), 2, out nums);
+        Verificar(Path.GetFileName(rutasB[1]) == "S01E10 SCR MOM.veg", "Capítulos: de una copia BASE parte del nombre original (E09 -> E10)");
+        File.WriteAllText(Path.Combine(ndir, "S02E04 SCR MOM.veg"), "x");
+        List<string> rutasE = CopiaBase.RutasCapitulos(Path.Combine(ndir, "S02E03 SCR.veg"), 2, out nums);
+        Verificar(Path.GetFileName(rutasE[1]) == "S02E04 SCR MOM 2.veg", "Capítulos: no pisa un archivo que ya existe");
+        List<string> rutasS = CopiaBase.RutasCapitulos(Path.Combine(ndir, "Ensayo.veg"), 2, out nums);
+        Verificar(nums == null && Path.GetFileName(rutasS[0]) == "Ensayo MOM.veg" && Path.GetFileName(rutasS[1]) == "Ensayo MOM 2.veg",
+            "Capítulos: sin número en el nombre, MOM y MOM 2");
+
         try { Directory.Delete(tmp, true); } catch { }
         Console.WriteLine(fallos == 0 ? "\nTodo bien." : "\n" + fallos + " fallos.");
         return fallos;

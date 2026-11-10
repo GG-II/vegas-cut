@@ -62,6 +62,16 @@ public class OpcionesIA
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
     public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
     public bool FijosCuentan = true;              // si cuentan para la duracion minima y maxima
+    public bool PartirEnCapitulos;                // la IA puede partir un video largo en varios capitulos (un archivo cada uno)
+}
+
+// Un capitulo del resultado cuando la IA parte el video en varios: su propio corte.
+public class CapituloIA
+{
+    public string Titulo = "", Resumen = "";
+    public List<Tramo> Corte = new List<Tramo>();
+    public bool Montaje;          // su corte va en orden libre (ver ResultadoIA.Montaje)
+    public bool Elegido = true;   // se crea al aplicar
 }
 
 public class ResultadoIA
@@ -81,6 +91,25 @@ public class ResultadoIA
     // El corte no va en el orden del video (teaser, flashback, clips repetidos,
     // tarjetas): se arma copiando cada pieza en su lugar en vez de quitar lo demas.
     public bool Montaje;
+    // Varios capitulos (cada uno su corte): "Corte" y "Montaje" son los del capitulo elegido (Elegir).
+    public List<CapituloIA> Capitulos = new List<CapituloIA>();
+    public int Actual = -1;
+    public bool VariosCapitulos { get { return Capitulos.Count > 1; } }
+
+    public void Elegir(int i)
+    {
+        if (i < 0 || i >= Capitulos.Count) return;
+        Actual = i;
+        Corte = Capitulos[i].Corte;
+        Montaje = Capitulos[i].Montaje;
+    }
+
+    // Un instante del video original cae dentro de un clip elegido del corte actual.
+    public bool EnCorte(double s)
+    {
+        foreach (Tramo t in Corte) if (t.Elegido && t.EsClip && s >= t.Inicio - 0.05 && s <= t.Fin + 0.05) return true;
+        return false;
+    }
 
     public double DuracionFijos
     {
@@ -142,13 +171,27 @@ public class ResultadoIA
         r.Momentos = Tramos(o, "momentos", total);
         r.Momentos.Sort(delegate (Tramo a, Tramo b) { return b.Puntuacion.CompareTo(a.Puntuacion); });
         r.Shorts = Tramos(o, "shorts", total);
-        List<Tramo> piezas = Piezas(o, total);
-        r.Montaje = EsMontaje(piezas);
-        if (r.Montaje) r.Corte = piezas;
+        // Si la IA parte el video en varios capitulos, cada uno trae su "corte" (y el de arriba se ignora).
+        foreach (object x in Json.Lista(o, "capitulos"))
+        {
+            CapituloIA c = new CapituloIA();
+            c.Titulo = Json.Texto(x, "titulo");
+            c.Resumen = Json.Texto(x, "resumen");
+            if (c.Resumen.Length == 0) c.Resumen = Json.Texto(x, "descripcion");
+            List<Tramo> pz = Piezas(x, total);
+            if (pz.Count == 0) continue;
+            c.Montaje = EsMontaje(pz);
+            c.Corte = c.Montaje ? pz : Ordenar(pz);
+            if (c.Titulo.Length == 0) c.Titulo = "Capítulo " + (r.Capitulos.Count + 1);
+            r.Capitulos.Add(c);
+        }
+        if (r.Capitulos.Count > 1) r.Elegir(0);
         else
         {
-            piezas.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
-            r.Corte = UnirSolapados(piezas);
+            List<Tramo> piezas = r.Capitulos.Count == 1 ? r.Capitulos[0].Corte : Piezas(o, total);
+            r.Capitulos.Clear();
+            r.Montaje = EsMontaje(piezas);
+            r.Corte = r.Montaje ? piezas : Ordenar(piezas);
         }
         r.Candidatos = Tramos(o, "candidatos", total);
         foreach (object x in Json.Lista(o, "textos"))
@@ -163,6 +206,12 @@ public class ResultadoIA
         foreach (object x in Json.Lista(o, "titulos"))
             if (x is string && ((string)x).Length > 0) r.Titulos.Add((string)x);
         return r;
+    }
+
+    static List<Tramo> Ordenar(List<Tramo> piezas)
+    {
+        piezas.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+        return UnirSolapados(piezas);
     }
 
     // El corte tal como viene (sin ordenar), con tarjetas, negros y notas.
@@ -506,6 +555,19 @@ public class ResultadoIA
 
     // ------------------------------------------------------------ informe
 
+    void InformeCorte(StringBuilder sb)
+    {
+        if (Montaje) sb.Append("_Montaje en orden libre: las piezas van en este orden._\n\n");
+        foreach (Tramo t in Corte)
+            if (!t.EsClip)
+                sb.Append("- [" + (t.Elegido ? "x" : " ") + "] **" + t.Tipo.ToUpperInvariant() + "**" + (t.Texto.Length > 0 ? " «" + t.Texto + "»" : "") +
+                          (t.Segundos > 0 ? " (" + t.Segundos.ToString("0.#", CultureInfo.InvariantCulture) + " s)" : "") + "\n");
+            else
+            sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "–" + Formato.Tiempo(t.Fin) +
+                      " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado ×" + t.Velocidad + " → " + Formato.Tiempo(t.DuracionFinal) : "") +
+                      ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
+    }
+
     public string Informe(string proyecto, OpcionesIA op, double total)
     {
         StringBuilder sb = new StringBuilder();
@@ -521,16 +583,24 @@ public class ResultadoIA
                 sb.Append("- **" + Formato.Tiempo(t.Inicio) + "–" + Formato.Tiempo(t.Fin) + " " + t.Titulo + "**: " + t.Motivo + "\n");
             sb.Append("\n");
         }
-        sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
-        if (Montaje) sb.Append("_Montaje en orden libre: las piezas van en este orden._\n\n");
-        foreach (Tramo t in Corte)
-            if (!t.EsClip)
-                sb.Append("- [" + (t.Elegido ? "x" : " ") + "] **" + t.Tipo.ToUpperInvariant() + "**" + (t.Texto.Length > 0 ? " «" + t.Texto + "»" : "") +
-                          (t.Segundos > 0 ? " (" + t.Segundos.ToString("0.#", CultureInfo.InvariantCulture) + " s)" : "") + "\n");
-            else
-            sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "–" + Formato.Tiempo(t.Fin) +
-                      " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado ×" + t.Velocidad + " → " + Formato.Tiempo(t.DuracionFinal) : "") +
-                      ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
+        if (VariosCapitulos)
+        {
+            int actual = Actual;
+            for (int i = 0; i < Capitulos.Count; i++)
+            {
+                Elegir(i);
+                sb.Append("## Cap\u00edtulo " + (i + 1) + ": " + Capitulos[i].Titulo + " (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
+                if (Capitulos[i].Resumen.Length > 0) sb.Append(Capitulos[i].Resumen + "\n\n");
+                InformeCorte(sb);
+                sb.Append("\n");
+            }
+            Elegir(actual < 0 ? 0 : actual);
+        }
+        else
+        {
+            sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
+            InformeCorte(sb);
+        }
         sb.Append("\n## Momentos destacados\n\n");
         foreach (Tramo t in Momentos)
             sb.Append("- " + t.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + "/10 · " + Formato.Tiempo(t.Inicio) + "–" +
@@ -707,6 +777,21 @@ public static class PeticionIA
         "  \"titulos\": [\"título para el video\", \"...\"]\n" +
         "}\n\n";
 
+    // Si el video da para mas de un capitulo (solo cuando el editor lo permite).
+    static string ReglasCapitulos(OpcionesIA op)
+    {
+        if (!op.PartirEnCapitulos) return "";
+        return "- VARIOS CAPÍTULOS (el editor lo permite): si hay material para MÁS de un capítulo (más del máximo de buen " +
+               "contenido, o historias que se separan solas), parte el video en capítulos; si cabe en uno, haz uno solo. En ese caso " +
+               "la clave \"corte\" va VACÍA ([]) y se agrega \"capitulos\": [{\"titulo\": \"...\", \"resumen\": \"qué pasa en este " +
+               "capítulo\", \"corte\": [mismo formato que arriba, sus tiempos son del video original]}, ...], en el orden en que " +
+               "irán. Reglas: cada capítulo dura entre la duración mínima y la máxima (suma antes de responder; el límite es POR " +
+               "CAPÍTULO); parten la historia en orden, sin repetir tramos entre capítulos (a menos que sea un recuerdo corto a " +
+               "propósito); cada uno empieza con algo que enganche y cierra con un remate o un gancho al siguiente; lo que se " +
+               "dice de las REGLAS DEL CANAL aplica a todos. \"secciones\", \"momentos\", \"textos\", \"shorts\" y \"titulos\" van " +
+               "como siempre, con los tiempos del video original.\n";
+    }
+
     const string ReglasResto =
         "- \"textos\": frases muy cortas tipo \"Construimos la base\" o \"3 horas después…\" para explicar lo que " +
         "el corte se salta; \"posicion\" es el inicio del tramo conservado donde conviene mostrarlo. Solo donde " +
@@ -725,7 +810,7 @@ public static class PeticionIA
         return Rol + EsquemaFinal + "Reglas:\n" + ReglasCorte +
                "- El corte completo debe durar entre la duración mínima y la máxima (apunta a la ideal). Antes de " +
                "responder, suma las duraciones de los tramos (los acelerados cuentan duración/velocidad) y corrige si te pasas.\n" +
-               (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasResto;
+               (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasCapitulos(op) + ReglasResto;
     }
 
     static void Cabecera(StringBuilder sb, Transcripcion t, double duracionActual, OpcionesIA op)
@@ -734,6 +819,8 @@ public static class PeticionIA
         sb.Append("Duración actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
         sb.Append("Duración del corte: mínimo " + S(op.MinutosMin * 60) + " s, máximo " + S(op.MinutosMax * 60) +
                   " s, ideal " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosMin + " a " + op.MinutosMax + " min)\n");
+        if (op.PartirEnCapitulos) sb.Append("Partir en varios capítulos: SÍ si hay material (cada capítulo dura entre " + op.MinutosMin + " y " +
+                                            op.MinutosMax + " min).\n");
         if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + ConSegundos(op.ReglasCanal.Trim()) + "\n");
         if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + ConSegundos(op.Instrucciones.Trim()) + "\n");
         Fijos_(sb, op);
@@ -818,13 +905,14 @@ public static class PeticionIA
         sb.Append("Responde SOLO con el objeto JSON con las claves indicadas (resumen, secciones, momentos, corte, textos, " +
                   "shorts, titulos). Tiempos en segundos de la transcripción. El \"corte\" va en el orden en que se verá: si " +
                   "quieres un teaser, saltos o clips repetidos, ponlos así en la lista (con tarjetas, negros y notas si hacen " +
-                  "falta), no aparte. Suma las duraciones del corte y corrige " +
+                  "falta), no aparte. " + (op.PartirEnCapitulos ? "Si el material da para varios capítulos, ponlos en \"capitulos\" " +
+                  "(cada uno con su \"corte\", entre el mínimo y el máximo) y deja \"corte\" vacío. " : "") + "Suma las duraciones del corte y corrige " +
                   "antes de responder si no queda entre " + op.MinutosMin + " y " + op.MinutosMax + " minutos.\n");
         return sb.ToString();
     }
 
     // Lo que devolvio el chat: el JSON con la lista "corte" (ver ChatIA).
-    public static string ExtraerJson(string texto) { return ChatIA.ExtraerJson(texto, "corte"); }
+    public static string ExtraerJson(string texto) { return ChatIA.ExtraerJson(texto, "corte|capitulos"); }
 
     public static string MensajeCorreccion(string problema) { return ChatIA.MensajeCorreccion(problema); }
 
@@ -915,7 +1003,7 @@ public static class PeticionIA
             "Cada tramo lleva \"importancia\" de 1 a 10. Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias. " +
             "Que la historia completa se entienda de principio a fin: no te saltes objetivos, decisiones ni " +
             "resultados importantes. Prefiere los de mayor importancia, pero mantén el ritmo y la variedad.\n" +
-            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) +
+            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasCapitulos(op) +
             "- \"secciones\": cubren todo el video original (una por etapa de la historia).\n" + ReglasResto;
     }
 

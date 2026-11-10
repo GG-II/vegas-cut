@@ -75,6 +75,9 @@ public class Renderer { public string FileExtension="*.wav"; public List<RenderT
 public class RenderArgs { public string OutputFile; public RenderTemplate RenderTemplate; public Timecode Start, Length; }
 public class Vegas { public Project Project=new Project(); public PlugInNode Generators=new PlugInNode(); public Transport Transport=new Transport(); public List<Renderer> Renderers=new List<Renderer>{new Renderer()};
   public List<string> Guardados=new List<string>(); public Func<string,bool> AlGuardar;
+  // Reabrir un proyecto: el "Abridor" de la prueba arma el proyecto que hay en esa ruta.
+  public Func<string, Project> Abridor; public List<string> Abiertos = new List<string>();
+  public bool OpenProject(string ruta, bool forzar){ if (Abridor == null) throw new InvalidOperationException("sin abridor"); Abiertos.Add(ruta); Project = Abridor(ruta); Project.FilePath = ruta; return true; }
   public bool SaveProject(string ruta){ Project.FilePath=ruta; Guardados.Add(ruta); if (AlGuardar!=null) AlGuardar(ruta); return true; }
   public Func<RenderArgs,RenderStatus> OnRender; public RenderStatus Render(RenderArgs a){return OnRender(a);} }
 public class UndoBlock : IDisposable { public UndoBlock(string s){} public void Dispose(){} }

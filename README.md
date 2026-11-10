@@ -209,6 +209,15 @@ en segundos, que es como ve la transcripción. Las frases que Whisper inventa en
 cualquier anterior. Si el proyecto cambió desde esa respuesta (por ejemplo, aplicaste el corte),
 se puede revisar pero no aplicar; deshaz con Ctrl+Z y vuelve a abrir para aplicarla otra vez.
 
+**Partir en varios capítulos:** marca *Partir en varios capítulos* (funciona con la API y con la IA
+externa). Si el video da para más de uno, la IA contesta con `"capitulos": [{titulo, resumen, corte}]`
+y la ventana muestra un selector de capítulo (cada uno con su duración, se puede desmarcar alguno).
+*Crear N capítulos* guarda BASE, y por cada capítulo reabre el proyecto original, aplica su corte y lo
+guarda como archivo aparte. Los nombres **continúan la numeración** del proyecto: `S02E03 SCR` partido
+en 3 da `S02E03 SCR MOM`, `S02E04 SCR MOM` y `S02E05 SCR MOM` (también con «Parte 3», «Cap 3»; sin
+número: `MOM`, `MOM 2`…). Nunca pisa un archivo existente y avisa si la serie ya tiene esos números.
+Si tu Vegas no deja reabrir el proyecto desde un script, usa *Solo este capítulo* y repite con cada uno.
+
 **Marcadores anclados:** los marcadores y regiones que crea MomentosIA guardan a qué archivo y a
 qué segundo del archivo corresponden (`<proyecto>.vegascut-marcas.json`). Si mueves, cortas o
 reordenas clips, ejecuta **ReubicarMarcadores** y vuelven a quedar sobre su clip. En el plan gratuito de Gemini, Google puede usar

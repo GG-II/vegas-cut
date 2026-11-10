@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using ScriptPortal.Vegas;
 
@@ -32,6 +33,50 @@ public static class CopiaBase
         string o = Original(veg), dir = Path.GetDirectoryName(o), n = Path.GetFileNameWithoutExtension(o);
         string r = Path.Combine(dir, n + " MOM.veg");
         for (int i = 2; File.Exists(r); i++) r = Path.Combine(dir, n + " MOM " + i + ".veg");
+        return r;
+    }
+
+    // Las rutas de "n" copias de corte seguidas ("MOM", "MOM 2"...), saltando las que ya existen.
+    public static List<string> RutasCorte(string veg, int n)
+    {
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        List<string> r = new List<string>();
+        for (int i = 1; r.Count < n; i++)
+        {
+            string c = Path.Combine(dir, nombre + (i == 1 ? " MOM" : " MOM " + i) + ".veg");
+            if (!File.Exists(c)) r.Add(c);
+        }
+        return r;
+    }
+
+    static readonly System.Text.RegularExpressions.Regex NumTemporada = new System.Text.RegularExpressions.Regex(
+        @"(S\d{1,2}\s*[-_ ]?\s*E)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly System.Text.RegularExpressions.Regex NumParte = new System.Text.RegularExpressions.Regex(
+        @"(\b(?:parte|part|cap(?:itulo|ítulo)?|ep(?:isodio)?|episode)\s*[-_ ]?\s*)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    // Los archivos de "n" capitulos seguidos que salen de un video partido: continuan la numeracion del proyecto
+    // («S02E03 SCR» -> «S02E03 SCR MOM», «S02E04 SCR MOM», «S02E05 SCR MOM»; tambien «Parte 3», «Cap 3»…). Con el
+    // sufijo MOM la serie los reconoce como el capitulo 3, 4 y 5. Si el nombre no trae numero: MOM, MOM 2...
+    // Los que ya existen se saltan (agregando « 2»). "numeros": los numeros usados, en orden (null: no se sabe).
+    public static List<string> RutasCapitulos(string veg, int n, out List<int> numeros)
+    {
+        numeros = null;
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        System.Text.RegularExpressions.Match m = NumTemporada.Match(nombre);
+        if (!m.Success) m = NumParte.Match(nombre);
+        if (!m.Success) return RutasCorte(veg, n);
+        int primero = int.Parse(m.Groups[2].Value), ancho = Math.Max(2, m.Groups[2].Value.Length);
+        List<string> r = new List<string>();
+        numeros = new List<int>();
+        for (int k = 0; k < n; k++)
+        {
+            string num = (primero + k).ToString().PadLeft(ancho, '0');
+            string nom = nombre.Substring(0, m.Groups[2].Index) + num + nombre.Substring(m.Groups[2].Index + m.Groups[2].Length);
+            string c = Path.Combine(dir, nom + " MOM.veg");
+            for (int i = 2; File.Exists(c) || r.Contains(c); i++) c = Path.Combine(dir, nom + " MOM " + i + ".veg");
+            r.Add(c);
+            numeros.Add(primero + k);
+        }
         return r;
     }
 

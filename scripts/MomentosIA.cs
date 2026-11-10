@@ -203,6 +203,12 @@ class VentanaMomentos : VentanaBase
     Boton btnCortar = new Boton("Aplicar corte", EstiloBoton.Primario);
     Boton btnFijar = new Boton("Conservar tramo\u2026", EstiloBoton.Secundario);
     Boton chipCuentan = new Boton("Los fijos cuentan en la duraci\u00f3n", EstiloBoton.Chip);
+    // Si la IA parte el video en varios capitulos: elegir cual ver, si se crea y aplicar solo ese.
+    Boton chipPartir = new Boton("Puede partirlo en varios cap\u00edtulos", EstiloBoton.Chip);
+    Etiqueta lblCap;
+    Combo comboCap = new Combo();
+    Boton chipIncluir = new Boton("Se crea este cap\u00edtulo", EstiloBoton.Chip);
+    Boton btnSolo = new Boton("Solo este cap\u00edtulo", EstiloBoton.Secundario);
     bool fijosCuentan = true;
     List<Tramo> fijos = new List<Tramo>();   // tramos elegidos a mano (selecci\u00f3n de tiempo)
     Boton btnCerrar = new Boton("Cerrar", EstiloBoton.Secundario);
@@ -255,7 +261,9 @@ class VentanaMomentos : VentanaBase
         y += 42;
         Texto("Audio acelerado", Tema.Negrita, Tema.Texto, m, y + 8, 120, 20);
         Pos(segAudio, m + 120, y, ci - 120, 34);
-        y += 46;
+        y += 42;
+        Pos(chipPartir, m, y, ci, 28);
+        y += 38;
         Texto("Nombres de las personas", Tema.Negrita, Tema.Texto, m, y, ci, 20);
         y += 24;
         foreach (Hablante h in t.Hablantes)
@@ -299,6 +307,12 @@ class VentanaMomentos : VentanaBase
         dy += 42;
         Pos(pestanas, dx, dy, dw, 34);
         dy += 44;
+        lblCap = Texto("CAP\u00cdTULO", Tema.Pequena, Tema.TextoSuave, dx, dy + 8, 70, 18);
+        Pos(comboCap, dx + 72, dy, 250, 30);
+        Pos(chipIncluir, dx + 330, dy + 1, 150, 28);
+        Pos(btnSolo, dx + 488, dy - 1, dw - 488, 32);
+        foreach (Control c in new Control[] { lblCap, comboCap, chipIncluir, btnSolo }) c.Visible = false;
+        dy += 38;
         int alto = Math.Max(420, fondoIzq - dy - 40);
         ConfigurarListas();
         foreach (Control c in new Control[] { lstCorte, lstMomentos, lstTextos, lstShorts, txtResumen }) Pos(c, dx, dy, dw, alto);
@@ -331,7 +345,21 @@ class VentanaMomentos : VentanaBase
         btnMarcar.Click += delegate { CrearMarcas(); };
         btnFijar.Click += delegate { Fijar(); };
         chipCuentan.Click += delegate { CambiarCuentan(); };
-        btnCortar.Click += delegate { AplicarCorte(); };
+        btnCortar.Click += delegate { if (resultado != null && resultado.VariosCapitulos) AplicarCapitulos(); else AplicarCorte(); };
+        btnSolo.Click += delegate { AplicarCorte(); };
+        chipPartir.Click += delegate { chipPartir.Activo = !chipPartir.Activo; };
+        comboCap.SelectedIndexChanged += delegate
+        {
+            if (cargando || resultado == null || comboCap.SelectedIndex < 0) return;
+            resultado.Elegir(comboCap.SelectedIndex);
+            MostrarResultado();
+        };
+        chipIncluir.Click += delegate
+        {
+            if (resultado == null || !resultado.VariosCapitulos) return;
+            resultado.Capitulos[resultado.Actual].Elegido = !resultado.Capitulos[resultado.Actual].Elegido;
+            LlenarCapitulos();
+        };
         btnCerrar.Click += delegate { Close(); };
         btnReglas.Click += delegate { EditarReglas(); };
         btnContexto.Click += delegate { ElegirContexto(); };
@@ -412,6 +440,7 @@ class VentanaMomentos : VentanaBase
                 opciones.Instrucciones = Json.Texto(op, "instrucciones");
                 opciones.PermitirAcelerar = Json.Texto(op, "acelerar") != "False";
                 opciones.SilenciarAcelerado = Json.Texto(op, "silenciarAcelerado") != "False";
+                opciones.PartirEnCapitulos = Json.Texto(op, "partir") == "True";
             }
         }
         catch { }
@@ -422,6 +451,7 @@ class VentanaMomentos : VentanaBase
         segAcelerar.Seleccion = opciones.PermitirAcelerar ? 1 : 0;
         segAudio.Seleccion = opciones.SilenciarAcelerado ? 0 : 1;
         segAudio.Enabled = opciones.PermitirAcelerar;
+        chipPartir.Activo = opciones.PartirEnCapitulos;
         MostrarContexto();
     }
 
@@ -433,6 +463,7 @@ class VentanaMomentos : VentanaBase
         opciones.Instrucciones = txtInstrucciones.Text;
         opciones.PermitirAcelerar = segAcelerar.Seleccion == 1;
         opciones.SilenciarAcelerado = segAudio.Seleccion == 0;
+        opciones.PartirEnCapitulos = chipPartir.Activo;
         opciones.ReglasCanal = config.ReglasCanal.Length > 0 ? config.ReglasCanal : PeticionIA.ReglasPorDefecto;
         opciones.Contexto = Serie.Contexto(serie, capitulos);
         opciones.Fijos = new List<Tramo>(fijos);
@@ -515,8 +546,29 @@ class VentanaMomentos : VentanaBase
     ResultadoIA Construir(string respuesta, string revision, double duracion, double min, double max, out string nota)
     {
         ResultadoIA r = ResultadoIA.Leer(respuesta, duracion);
-        r.AjustarAPalabras(transcripcion.SegmentosActuales());
         nota = "";
+        if (r.VariosCapitulos)
+        {
+            // Cada capitulo se ajusta por su cuenta (limites POR capitulo). Sin revision ni tramos fijos, y sin
+            // completar con candidatos (podrian ser de otro capitulo).
+            List<Tramo> candidatos = r.Candidatos;
+            r.Candidatos = new List<Tramo>();
+            List<string> ajustes = new List<string>();
+            for (int i = 0; i < r.Capitulos.Count; i++)
+            {
+                r.Elegir(i);
+                r.AjustarAPalabras(transcripcion.SegmentosActuales());
+                r.Capitulos[i].Corte = r.Corte;
+                r.FijosCuentan = true;
+                string aj = r.AjustarDuracion(min * 60, max * 60);
+                if (aj.Length > 0) ajustes.Add("cap. " + (i + 1) + ": " + aj);
+            }
+            r.Candidatos = candidatos;
+            r.Elegir(0);
+            nota = "la IA parti\u00f3 el video en " + r.Capitulos.Count + " cap\u00edtulos" + (ajustes.Count > 0 ? "; " + String.Join("; ", ajustes.ToArray()) : "");
+            return r;
+        }
+        r.AjustarAPalabras(transcripcion.SegmentosActuales());
         if (!String.IsNullOrEmpty(revision))
         {
             try
@@ -603,8 +655,11 @@ class VentanaMomentos : VentanaBase
                 respuesta = asistente.Ejecutar(t, duracion, op);
                 // Segunda pasada: revisa el corte contra las reglas.
                 ResultadoIA previo = ResultadoIA.Leer(respuesta, duracion);
-                previo.AjustarAPalabras(t.SegmentosActuales());
-                revision = asistente.Revisar(t, previo, op);
+                if (!previo.VariosCapitulos)   // con varios capitulos no hay revision automatica
+                {
+                    previo.AjustarAPalabras(t.SegmentosActuales());
+                    revision = asistente.Revisar(t, previo, op);
+                }
             }
             catch (Exception ex) { error = ex.Message; }
             try
@@ -662,6 +717,7 @@ class VentanaMomentos : VentanaBase
         op["instrucciones"] = opciones.Instrucciones;
         op["acelerar"] = opciones.PermitirAcelerar;
         op["silenciarAcelerado"] = opciones.SilenciarAcelerado;
+        op["partir"] = opciones.PartirEnCapitulos;
         op["reglasCanal"] = opciones.ReglasCanal;
         List<object> ctx = new List<object>();
         foreach (CapSerie c in capitulos) if (c.Elegido && c.Relacion != 0 && c.TieneFicha) ctx.Add(c.Nombre);
@@ -772,6 +828,7 @@ class VentanaMomentos : VentanaBase
         else txtResumen.Text = "";
         cargando = false;
 
+        LlenarCapitulos();
         btnInforme.Enabled = hay;
         btnMarcar.Enabled = hay && vigente;
         btnCortar.Enabled = hay && vigente && !aplicado;
@@ -793,6 +850,30 @@ class VentanaMomentos : VentanaBase
         lstCorte.Items[j].Selected = true;
         lstCorte.Items[j].Focused = true;
         lstCorte.EnsureVisible(j);
+    }
+
+    // El selector de capitulos (solo si la IA partio el video) y el texto del boton de aplicar.
+    void LlenarCapitulos()
+    {
+        bool varios = resultado != null && resultado.VariosCapitulos;
+        foreach (Control c in new Control[] { lblCap, comboCap, chipIncluir, btnSolo }) c.Visible = varios;
+        if (!varios) { btnCortar.Text = "Aplicar corte"; return; }
+        bool antes = cargando;
+        cargando = true;
+        comboCap.Items.Clear();
+        int crear = 0;
+        for (int i = 0; i < resultado.Capitulos.Count; i++)
+        {
+            CapituloIA c = resultado.Capitulos[i];
+            double d = 0;
+            foreach (Tramo t in c.Corte) if (t.Elegido) d += t.DuracionFinal;
+            comboCap.Items.Add((i + 1) + " \u00b7 " + c.Titulo + " (" + Formato.Tiempo(d) + ")" + (c.Elegido ? "" : " \u00b7 no se crea"));
+            if (c.Elegido) crear++;
+        }
+        comboCap.SelectedIndex = Math.Max(0, resultado.Actual);
+        chipIncluir.Activo = resultado.Capitulos[Math.Max(0, resultado.Actual)].Elegido;
+        btnCortar.Text = "Crear " + crear + (crear == 1 ? " cap\u00edtulo" : " cap\u00edtulos");
+        cargando = antes;
     }
 
     static string Velocidad(Tramo t)
@@ -968,8 +1049,14 @@ class VentanaMomentos : VentanaBase
         int n = 0;
         using (UndoBlock deshacer = new UndoBlock("Momentos con IA: marcas"))
         {
-            foreach (Tramo t in resultado.Corte)
-                if (t.Elegido && t.EsClip) { anclas.Add(Regiones(p, t.Inicio, t.Fin, (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo)); n++; }
+            for (int ci = 0; ci < (resultado.VariosCapitulos ? resultado.Capitulos.Count : 1); ci++)
+                foreach (Tramo t in resultado.VariosCapitulos ? resultado.Capitulos[ci].Corte : resultado.Corte)
+                    if (t.Elegido && t.EsClip)
+                    {
+                        string cap = resultado.VariosCapitulos ? "Cap " + (ci + 1) + " \u00b7 " : "";
+                        anclas.Add(Regiones(p, t.Inicio, t.Fin, cap + (t.Acelerar ? "Acelerar \u00d7" + t.Velocidad.ToString("0") : "Conservar") + ": " + t.Titulo));
+                        n++;
+                    }
             foreach (Tramo t in resultado.Momentos)
                 if (t.Elegido) { anclas.Add(Marcador(p, t.Inicio, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo)); n++; }
             foreach (TextoResumen t in resultado.Textos)
@@ -1048,35 +1135,70 @@ class VentanaMomentos : VentanaBase
         string copia;
         if (!CopiaAntes(out copia)) return;
 
-        Project p = vegas.Project;
-        List<Track> todas = new List<Track>();
-        foreach (Track t in p.Tracks) todas.Add(t);
-        List<Ancla> anclas = new List<Ancla>();
-        double trasCortar;
-        using (UndoBlock deshacer = new UndoBlock("Momentos con IA: corte"))
-        {
-            if (quitar.Count > 0) Editor.Eliminar(p, todas, quitar, true, true, 0.02);
-            trasCortar = p.Length.ToMilliseconds() / 1000.0;
-            if (acelerar.Count > 0) Editor.Acelerar(p, todas, acelerar, silenciar, true, 0.02);
-            foreach (TextoResumen t in resultado.Textos)
-                if (t.Elegido) anclas.Add(Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto));
-            foreach (Tramo t in resultado.Momentos)
-            {
-                if (!t.Elegido || Dentro(t.Inicio, quitar)) continue;
-                double nuevo = Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Inicio, quitar), acelerar);
-                anclas.Add(Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo));
-            }
-        }
-        Anclas.Guardar(p.FilePath, anclas);
-        double despues = p.Length.ToMilliseconds() / 1000.0;
-        string aviso = "";
-        if (quitar.Count > 0) aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, trasCortar);
-        if (acelerar.Count > 0) aviso = Transcripcion.RegistrarAceleracion(p.FilePath, acelerar, trasCortar, despues);
+        List<string> avisos = new List<string>();
+        double despues;
+        string aviso = AplicarCorteIA.Aplicar(vegas, resultado, transcripcion, total, silenciar, resultado.VariosCapitulos, avisos, out despues);
         aplicado = true;
         btnCortar.Enabled = false;
         btnMarcar.Enabled = false;
-        Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + aviso.Replace("\n", " ") +
+        Estado("\u2714 Corte aplicado: el video dura ahora " + Formato.Tiempo(despues) + "." + (aviso.Length > 0 ? " " + aviso : "") +
                " Si lo deshaces (Ctrl+Z), al volver a abrir esta ventana la respuesta aparece lista otra vez." + copia, false);
+    }
+
+    // ------------------------------------------------------- varios capitulos
+
+    // Un archivo por capitulo, cada uno cortado desde el material sin cortar.
+    void AplicarCapitulos()
+    {
+        List<CapituloIA> caps = resultado.Capitulos.FindAll(delegate (CapituloIA c) { return c.Elegido; });
+        if (caps.Count == 0) { Estado("No hay ning\u00fan cap\u00edtulo marcado para crear.", true); return; }
+        string veg = vegas.Project.FilePath ?? "";
+        if (veg.Length == 0) { Estado("Guarda el proyecto primero.", true); return; }
+        // Los archivos continuan la numeracion del proyecto (S02E03 -> S02E03, S02E04, S02E05).
+        List<int> numeros;
+        List<string> destinos = CopiaBase.RutasCapitulos(veg, caps.Count, out numeros);
+        StringBuilder lista = new StringBuilder();
+        List<string> yaEnSerie = new List<string>();
+        for (int i = 0; i < caps.Count; i++)
+        {
+            CapituloIA c = caps[i];
+            double d = 0;
+            foreach (Tramo t in c.Corte) if (t.Elegido) d += t.DuracionFinal;
+            lista.Append("  " + Path.GetFileNameWithoutExtension(destinos[i]) + " \u2014 " + c.Titulo + " (" + Formato.Tiempo(d) + ")\n");
+            // Un capitulo de la serie con ese numero que no es este proyecto: se pisarian los numeros.
+            if (serie != null && numeros != null && i > 0)
+                foreach (string ep in serie.Episodios)
+                    if (String.Equals(SerieProyecto.SinCopia(ep), SerieProyecto.SinCopia(destinos[i]), StringComparison.OrdinalIgnoreCase))
+                        yaEnSerie.Add(Path.GetFileNameWithoutExtension(SerieProyecto.SinCopia(ep)));
+        }
+        if (MessageBox.Show(this,
+                "La IA parti\u00f3 el video en " + resultado.Capitulos.Count + " cap\u00edtulos. Se crea UN ARCHIVO por cada uno de los " + caps.Count +
+                " marcados, junto al proyecto (\u00ab\u2026 MOM\u00bb, \u00ab\u2026 MOM 2\u00bb\u2026), cada uno cortado desde el material sin cortar:\n\n" + lista +
+                (numeros == null ? "\nEl nombre del proyecto no trae n\u00famero de cap\u00edtulo, as\u00ed que se llaman \u00abMOM\u00bb, \u00abMOM 2\u00bb\u2026\n" :
+                                   "\nContin\u00faan la numeraci\u00f3n del proyecto.\n") +
+                (yaEnSerie.Count > 0 ? "\n\u26a0 La serie ya tiene " + String.Join(", ", yaEnSerie.ToArray()) + ": los n\u00fameros se repetir\u00edan.\n" : "") +
+                "\nEntre uno y otro se vuelve a abrir el material (lo que no hayas guardado se guarda antes).\n\n\u00bfCrear los cap\u00edtulos?",
+                "Crear cap\u00edtulos", MessageBoxButtons.OKCancel) != DialogResult.OK) return;
+        List<string> avisos = new List<string>();
+        List<double> duraciones = new List<double>();
+        List<string> creados;
+        try
+        {
+            // El material sin cortar queda guardado: la BASE (si hace falta) y el proyecto tal como esta.
+            if (!CopiaBase.EsBase(veg) && !Path.GetFileNameWithoutExtension(veg).EndsWith(" CAP") && !CopiaBase.EsCorte(veg) && !File.Exists(CopiaBase.RutaPara(veg)))
+                CopiaBase.Guardar(vegas);
+            vegas.SaveProject(veg);
+            creados = AplicarCorteIA.Capitulos(vegas, resultado, transcripcion, total, segAudio.Seleccion == 0, avisos, duraciones, destinos);
+        }
+        catch (Exception ex) { Estado("No se pudieron crear los cap\u00edtulos: " + ex.Message, true); return; }
+        aplicado = true;
+        btnCortar.Enabled = false;
+        btnMarcar.Enabled = false;
+        btnSolo.Enabled = false;
+        StringBuilder r = new StringBuilder();
+        for (int i = 0; i < creados.Count; i++) r.Append("\u00ab" + Path.GetFileName(creados[i]) + "\u00bb (" + Formato.Tiempo(duraciones[i]) + ") ");
+        Estado("\u2714 " + creados.Count + " de " + caps.Count + " cap\u00edtulos creados: " + r + ". \u00c1brelos desde Archivo \u25b8 Abrir; el proyecto abierto es el material sin cortar." +
+               (avisos.Count > 0 ? " Avisos: " + String.Join("; ", avisos.ToArray()) + "." : ""), creados.Count < caps.Count || avisos.Count > 0);
     }
 
     // ------------------------------------------------------- montaje en orden libre
@@ -1266,6 +1388,139 @@ public static class ArmarMontaje
     }
 }
 
+// ---- src/momentos/AplicarCorteIA.cs ----
+
+// =====================================================================
+// Aplica el resultado de MomentosIA al proyecto abierto: un corte (quitar y
+// acelerar, o armar en orden libre) o, si la IA partio el video en varios
+// capitulos, un archivo por capitulo partiendo siempre del material sin cortar.
+// =====================================================================
+
+public static class AplicarCorteIA
+{
+    static Ancla Marcador(Project p, double t, string texto)
+    {
+        p.Markers.Add(new Marker(Timecode.FromMilliseconds(t * 1000), texto));
+        return Anclas.Crear(p, t, -1, texto);
+    }
+
+    static bool Dentro(double t, List<Rango> rangos)
+    {
+        foreach (Rango r in rangos) if (t > r.Inicio && t < r.Fin) return true;
+        return false;
+    }
+
+    // Aplica el corte elegido ("resultado.Corte") al proyecto abierto, sin preguntar nada.
+    // "filtrar": solo los textos y momentos que caen en este corte (cuando hay varios capitulos).
+    // Devuelve el aviso sobre la transcripcion ("" si no hay).
+    public static string Aplicar(Vegas vegas, ResultadoIA resultado, Transcripcion transcripcion, double total, bool silenciar,
+                                 bool filtrar, List<string> avisos, out double despues)
+    {
+        Project p = vegas.Project;
+        if (resultado.Montaje)
+        {
+            List<Ancla> anclasM;
+            double dM;
+            using (UndoBlock u = new UndoBlock("Momentos con IA: montaje"))
+                ArmarMontaje.Armar(vegas, resultado, transcripcion, silenciar, avisos, out anclasM, out dM);
+            Anclas.Guardar(vegas.Project.FilePath, anclasM);
+            despues = dM;
+            return transcripcion.TieneFuentes ? "" : "La transcripci\u00f3n es de antes de que guardara de d\u00f3nde sale cada clip: vuelve a transcribir para lo que sigue.";
+        }
+
+        double fps = p.Video.FrameRate;
+        List<Rango> quitar = Editor.AjustarAFotogramas(resultado.Quitar(total), fps);
+        List<Acelerado> acelerar = new List<Acelerado>();
+        foreach (Acelerado a in resultado.Acelerados(quitar))
+        {
+            Acelerado f = new Acelerado(Math.Round(a.Inicio * fps) / fps, Math.Round(a.Fin * fps) / fps, a.Factor);
+            if (f.Fin - f.Inicio >= 2 / fps) acelerar.Add(f);
+        }
+        if (quitar.Count == 0 && acelerar.Count == 0) { despues = p.Length.ToMilliseconds() / 1000.0; return "El corte no cambia nada."; }
+        List<Track> todas = new List<Track>();
+        foreach (Track t in p.Tracks) todas.Add(t);
+        List<Ancla> anclas = new List<Ancla>();
+        double trasCortar;
+        using (UndoBlock deshacer = new UndoBlock("Momentos con IA: corte"))
+        {
+            if (quitar.Count > 0) Editor.Eliminar(p, todas, quitar, true, true, 0.02);
+            trasCortar = p.Length.ToMilliseconds() / 1000.0;
+            if (acelerar.Count > 0) Editor.Acelerar(p, todas, acelerar, silenciar, true, 0.02);
+            foreach (TextoResumen t in resultado.Textos)
+            {
+                if (!t.Elegido || (filtrar && !resultado.EnCorte(t.Posicion))) continue;
+                anclas.Add(Marcador(p, Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Posicion, quitar), acelerar), "TEXTO: " + t.Texto));
+            }
+            foreach (Tramo t in resultado.Momentos)
+            {
+                if (!t.Elegido || Dentro(t.Inicio, quitar) || (filtrar && !resultado.EnCorte(t.Inicio))) continue;
+                double nuevo = Acelerado.Posicion(Editor.PosicionTrasQuitar(t.Inicio, quitar), acelerar);
+                anclas.Add(Marcador(p, nuevo, "\u2605" + t.Puntuacion.ToString("0") + " " + t.Titulo));
+            }
+        }
+        Anclas.Guardar(p.FilePath, anclas);
+        despues = p.Length.ToMilliseconds() / 1000.0;
+        string aviso = "";
+        if (quitar.Count > 0) aviso = Transcripcion.RegistrarCortes(p.FilePath, quitar, total, trasCortar);
+        if (acelerar.Count > 0) aviso = Transcripcion.RegistrarAceleracion(p.FilePath, acelerar, trasCortar, despues);
+        return aviso.Replace("\n", " ");
+    }
+
+    // Reabre un proyecto desde el script (sin preguntar por cambios). Falso si Vegas no lo permite.
+    public static bool Reabrir(Vegas vegas, string ruta)
+    {
+        try
+        {
+            System.Reflection.MethodInfo m = vegas.GetType().GetMethod("OpenProject", new Type[] { typeof(string), typeof(bool) });
+            if (m == null) return false;
+            m.Invoke(vegas, new object[] { ruta, true });
+            return String.Equals(vegas.Project.FilePath, ruta, StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
+    // Un archivo por capitulo ("<original> MOM", "MOM 2"...), cada uno cortado desde el material sin cortar
+    // ("fuente": el proyecto abierto ahora, que no se modifica). Devuelve las rutas creadas; si no se pudo
+    // reabrir el material entre uno y otro, solo las que alcanzaron.
+    public static List<string> Capitulos(Vegas vegas, ResultadoIA resultado, Transcripcion transcripcion, double total, bool silenciar,
+                                         List<string> avisos, List<double> duraciones)
+    {
+        return Capitulos(vegas, resultado, transcripcion, total, silenciar, avisos, duraciones, null);
+    }
+
+    // "destinos": los archivos de cada capitulo marcado (null: los que continuan la numeracion, ver CopiaBase.RutasCapitulos).
+    public static List<string> Capitulos(Vegas vegas, ResultadoIA resultado, Transcripcion transcripcion, double total, bool silenciar,
+                                         List<string> avisos, List<double> duraciones, List<string> destinos)
+    {
+        List<string> creados = new List<string>();
+        string fuente = vegas.Project.FilePath;
+        List<CapituloIA> caps = resultado.Capitulos.FindAll(delegate (CapituloIA c) { return c.Elegido; });
+        if (destinos == null) { List<int> nums; destinos = CopiaBase.RutasCapitulos(fuente, caps.Count, out nums); }
+        int actual = resultado.Actual;
+        for (int i = 0; i < caps.Count; i++)
+        {
+            if (i > 0 && !Reabrir(vegas, fuente))
+            {
+                avisos.Add("Vegas no deja reabrir el material desde un script: se crearon " + i + " de " + caps.Count + " cap\u00edtulos. " +
+                           "Abre \u00ab" + Path.GetFileName(fuente) + "\u00bb, elige el siguiente cap\u00edtulo y usa \u00abSolo este cap\u00edtulo\u00bb");
+                break;
+            }
+            resultado.Elegir(resultado.Capitulos.IndexOf(caps[i]));
+            CopiaBase.GuardarComo(vegas, destinos[i]);
+            double d;
+            string aviso = Aplicar(vegas, resultado, transcripcion, total, silenciar, true, avisos, out d);
+            if (aviso.Length > 0 && !avisos.Contains(aviso)) avisos.Add("\u00ab" + caps[i].Titulo + "\u00bb: " + aviso);
+            vegas.SaveProject(destinos[i]);   // se guarda: el siguiente capitulo reabre el material
+            creados.Add(destinos[i]);
+            duraciones.Add(d);
+        }
+        // De vuelta en el material, para poder seguir.
+        if (creados.Count > 1 || (creados.Count == 1 && caps.Count > 1)) Reabrir(vegas, fuente);
+        resultado.Elegir(actual);
+        return creados;
+    }
+}
+
 // ---- src/momentos/LogicaMomentos.cs ----
 
 // =====================================================================
@@ -1325,6 +1580,16 @@ public class OpcionesIA
     public bool SilenciarAcelerado = true; // audio mudo en lo acelerado
     public List<Tramo> Fijos = new List<Tramo>(); // tramos que el editor ya eligio
     public bool FijosCuentan = true;              // si cuentan para la duracion minima y maxima
+    public bool PartirEnCapitulos;                // la IA puede partir un video largo en varios capitulos (un archivo cada uno)
+}
+
+// Un capitulo del resultado cuando la IA parte el video en varios: su propio corte.
+public class CapituloIA
+{
+    public string Titulo = "", Resumen = "";
+    public List<Tramo> Corte = new List<Tramo>();
+    public bool Montaje;          // su corte va en orden libre (ver ResultadoIA.Montaje)
+    public bool Elegido = true;   // se crea al aplicar
 }
 
 public class ResultadoIA
@@ -1344,6 +1609,25 @@ public class ResultadoIA
     // El corte no va en el orden del video (teaser, flashback, clips repetidos,
     // tarjetas): se arma copiando cada pieza en su lugar en vez de quitar lo demas.
     public bool Montaje;
+    // Varios capitulos (cada uno su corte): "Corte" y "Montaje" son los del capitulo elegido (Elegir).
+    public List<CapituloIA> Capitulos = new List<CapituloIA>();
+    public int Actual = -1;
+    public bool VariosCapitulos { get { return Capitulos.Count > 1; } }
+
+    public void Elegir(int i)
+    {
+        if (i < 0 || i >= Capitulos.Count) return;
+        Actual = i;
+        Corte = Capitulos[i].Corte;
+        Montaje = Capitulos[i].Montaje;
+    }
+
+    // Un instante del video original cae dentro de un clip elegido del corte actual.
+    public bool EnCorte(double s)
+    {
+        foreach (Tramo t in Corte) if (t.Elegido && t.EsClip && s >= t.Inicio - 0.05 && s <= t.Fin + 0.05) return true;
+        return false;
+    }
 
     public double DuracionFijos
     {
@@ -1405,13 +1689,27 @@ public class ResultadoIA
         r.Momentos = Tramos(o, "momentos", total);
         r.Momentos.Sort(delegate (Tramo a, Tramo b) { return b.Puntuacion.CompareTo(a.Puntuacion); });
         r.Shorts = Tramos(o, "shorts", total);
-        List<Tramo> piezas = Piezas(o, total);
-        r.Montaje = EsMontaje(piezas);
-        if (r.Montaje) r.Corte = piezas;
+        // Si la IA parte el video en varios capitulos, cada uno trae su "corte" (y el de arriba se ignora).
+        foreach (object x in Json.Lista(o, "capitulos"))
+        {
+            CapituloIA c = new CapituloIA();
+            c.Titulo = Json.Texto(x, "titulo");
+            c.Resumen = Json.Texto(x, "resumen");
+            if (c.Resumen.Length == 0) c.Resumen = Json.Texto(x, "descripcion");
+            List<Tramo> pz = Piezas(x, total);
+            if (pz.Count == 0) continue;
+            c.Montaje = EsMontaje(pz);
+            c.Corte = c.Montaje ? pz : Ordenar(pz);
+            if (c.Titulo.Length == 0) c.Titulo = "Cap\u00edtulo " + (r.Capitulos.Count + 1);
+            r.Capitulos.Add(c);
+        }
+        if (r.Capitulos.Count > 1) r.Elegir(0);
         else
         {
-            piezas.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
-            r.Corte = UnirSolapados(piezas);
+            List<Tramo> piezas = r.Capitulos.Count == 1 ? r.Capitulos[0].Corte : Piezas(o, total);
+            r.Capitulos.Clear();
+            r.Montaje = EsMontaje(piezas);
+            r.Corte = r.Montaje ? piezas : Ordenar(piezas);
         }
         r.Candidatos = Tramos(o, "candidatos", total);
         foreach (object x in Json.Lista(o, "textos"))
@@ -1426,6 +1724,12 @@ public class ResultadoIA
         foreach (object x in Json.Lista(o, "titulos"))
             if (x is string && ((string)x).Length > 0) r.Titulos.Add((string)x);
         return r;
+    }
+
+    static List<Tramo> Ordenar(List<Tramo> piezas)
+    {
+        piezas.Sort(delegate (Tramo a, Tramo b) { return a.Inicio.CompareTo(b.Inicio); });
+        return UnirSolapados(piezas);
     }
 
     // El corte tal como viene (sin ordenar), con tarjetas, negros y notas.
@@ -1769,6 +2073,19 @@ public class ResultadoIA
 
     // ------------------------------------------------------------ informe
 
+    void InformeCorte(StringBuilder sb)
+    {
+        if (Montaje) sb.Append("_Montaje en orden libre: las piezas van en este orden._\n\n");
+        foreach (Tramo t in Corte)
+            if (!t.EsClip)
+                sb.Append("- [" + (t.Elegido ? "x" : " ") + "] **" + t.Tipo.ToUpperInvariant() + "**" + (t.Texto.Length > 0 ? " \u00ab" + t.Texto + "\u00bb" : "") +
+                          (t.Segundos > 0 ? " (" + t.Segundos.ToString("0.#", CultureInfo.InvariantCulture) + " s)" : "") + "\n");
+            else
+            sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "\u2013" + Formato.Tiempo(t.Fin) +
+                      " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado \u00d7" + t.Velocidad + " \u2192 " + Formato.Tiempo(t.DuracionFinal) : "") +
+                      ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
+    }
+
     public string Informe(string proyecto, OpcionesIA op, double total)
     {
         StringBuilder sb = new StringBuilder();
@@ -1784,16 +2101,24 @@ public class ResultadoIA
                 sb.Append("- **" + Formato.Tiempo(t.Inicio) + "\u2013" + Formato.Tiempo(t.Fin) + " " + t.Titulo + "**: " + t.Motivo + "\n");
             sb.Append("\n");
         }
-        sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
-        if (Montaje) sb.Append("_Montaje en orden libre: las piezas van en este orden._\n\n");
-        foreach (Tramo t in Corte)
-            if (!t.EsClip)
-                sb.Append("- [" + (t.Elegido ? "x" : " ") + "] **" + t.Tipo.ToUpperInvariant() + "**" + (t.Texto.Length > 0 ? " \u00ab" + t.Texto + "\u00bb" : "") +
-                          (t.Segundos > 0 ? " (" + t.Segundos.ToString("0.#", CultureInfo.InvariantCulture) + " s)" : "") + "\n");
-            else
-            sb.Append("- [" + (t.Elegido ? "x" : " ") + "] " + Formato.Tiempo(t.Inicio) + "\u2013" + Formato.Tiempo(t.Fin) +
-                      " (" + Formato.Tiempo(t.Duracion) + (t.Acelerar ? ", acelerado \u00d7" + t.Velocidad + " \u2192 " + Formato.Tiempo(t.DuracionFinal) : "") +
-                      ") **" + t.Titulo + "**: " + t.Motivo + (t.Nota.Length > 0 ? " _(" + t.Nota + ")_" : "") + "\n");
+        if (VariosCapitulos)
+        {
+            int actual = Actual;
+            for (int i = 0; i < Capitulos.Count; i++)
+            {
+                Elegir(i);
+                sb.Append("## Cap\u00edtulo " + (i + 1) + ": " + Capitulos[i].Titulo + " (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
+                if (Capitulos[i].Resumen.Length > 0) sb.Append(Capitulos[i].Resumen + "\n\n");
+                InformeCorte(sb);
+                sb.Append("\n");
+            }
+            Elegir(actual < 0 ? 0 : actual);
+        }
+        else
+        {
+            sb.Append("## Corte sugerido (" + Formato.Tiempo(DuracionCorte) + ")\n\n");
+            InformeCorte(sb);
+        }
         sb.Append("\n## Momentos destacados\n\n");
         foreach (Tramo t in Momentos)
             sb.Append("- " + t.Puntuacion.ToString("0", CultureInfo.InvariantCulture) + "/10 \u00b7 " + Formato.Tiempo(t.Inicio) + "\u2013" +
@@ -1970,6 +2295,21 @@ public static class PeticionIA
         "  \"titulos\": [\"t\u00edtulo para el video\", \"...\"]\n" +
         "}\n\n";
 
+    // Si el video da para mas de un capitulo (solo cuando el editor lo permite).
+    static string ReglasCapitulos(OpcionesIA op)
+    {
+        if (!op.PartirEnCapitulos) return "";
+        return "- VARIOS CAP\u00cdTULOS (el editor lo permite): si hay material para M\u00c1S de un cap\u00edtulo (m\u00e1s del m\u00e1ximo de buen " +
+               "contenido, o historias que se separan solas), parte el video en cap\u00edtulos; si cabe en uno, haz uno solo. En ese caso " +
+               "la clave \"corte\" va VAC\u00cdA ([]) y se agrega \"capitulos\": [{\"titulo\": \"...\", \"resumen\": \"qu\u00e9 pasa en este " +
+               "cap\u00edtulo\", \"corte\": [mismo formato que arriba, sus tiempos son del video original]}, ...], en el orden en que " +
+               "ir\u00e1n. Reglas: cada cap\u00edtulo dura entre la duraci\u00f3n m\u00ednima y la m\u00e1xima (suma antes de responder; el l\u00edmite es POR " +
+               "CAP\u00cdTULO); parten la historia en orden, sin repetir tramos entre cap\u00edtulos (a menos que sea un recuerdo corto a " +
+               "prop\u00f3sito); cada uno empieza con algo que enganche y cierra con un remate o un gancho al siguiente; lo que se " +
+               "dice de las REGLAS DEL CANAL aplica a todos. \"secciones\", \"momentos\", \"textos\", \"shorts\" y \"titulos\" van " +
+               "como siempre, con los tiempos del video original.\n";
+    }
+
     const string ReglasResto =
         "- \"textos\": frases muy cortas tipo \"Construimos la base\" o \"3 horas despu\u00e9s\u2026\" para explicar lo que " +
         "el corte se salta; \"posicion\" es el inicio del tramo conservado donde conviene mostrarlo. Solo donde " +
@@ -1988,7 +2328,7 @@ public static class PeticionIA
         return Rol + EsquemaFinal + "Reglas:\n" + ReglasCorte +
                "- El corte completo debe durar entre la duraci\u00f3n m\u00ednima y la m\u00e1xima (apunta a la ideal). Antes de " +
                "responder, suma las duraciones de los tramos (los acelerados cuentan duraci\u00f3n/velocidad) y corrige si te pasas.\n" +
-               (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasResto;
+               (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasCapitulos(op) + ReglasResto;
     }
 
     static void Cabecera(StringBuilder sb, Transcripcion t, double duracionActual, OpcionesIA op)
@@ -1997,6 +2337,8 @@ public static class PeticionIA
         sb.Append("Duraci\u00f3n actual: " + S(duracionActual) + " s (" + Formato.Tiempo(duracionActual) + ")\n");
         sb.Append("Duraci\u00f3n del corte: m\u00ednimo " + S(op.MinutosMin * 60) + " s, m\u00e1ximo " + S(op.MinutosMax * 60) +
                   " s, ideal " + S(op.MinutosObjetivo * 60) + " s (" + op.MinutosMin + " a " + op.MinutosMax + " min)\n");
+        if (op.PartirEnCapitulos) sb.Append("Partir en varios cap\u00edtulos: S\u00cd si hay material (cada cap\u00edtulo dura entre " + op.MinutosMin + " y " +
+                                            op.MinutosMax + " min).\n");
         if (!String.IsNullOrEmpty(op.ReglasCanal)) sb.Append("\nREGLAS DEL CANAL (siempre):\n" + ConSegundos(op.ReglasCanal.Trim()) + "\n");
         if (!String.IsNullOrEmpty(op.Instrucciones)) sb.Append("\nINDICACIONES DEL EPISODIO:\n" + ConSegundos(op.Instrucciones.Trim()) + "\n");
         Fijos_(sb, op);
@@ -2081,13 +2423,14 @@ public static class PeticionIA
         sb.Append("Responde SOLO con el objeto JSON con las claves indicadas (resumen, secciones, momentos, corte, textos, " +
                   "shorts, titulos). Tiempos en segundos de la transcripci\u00f3n. El \"corte\" va en el orden en que se ver\u00e1: si " +
                   "quieres un teaser, saltos o clips repetidos, ponlos as\u00ed en la lista (con tarjetas, negros y notas si hacen " +
-                  "falta), no aparte. Suma las duraciones del corte y corrige " +
+                  "falta), no aparte. " + (op.PartirEnCapitulos ? "Si el material da para varios cap\u00edtulos, ponlos en \"capitulos\" " +
+                  "(cada uno con su \"corte\", entre el m\u00ednimo y el m\u00e1ximo) y deja \"corte\" vac\u00edo. " : "") + "Suma las duraciones del corte y corrige " +
                   "antes de responder si no queda entre " + op.MinutosMin + " y " + op.MinutosMax + " minutos.\n");
         return sb.ToString();
     }
 
     // Lo que devolvio el chat: el JSON con la lista "corte" (ver ChatIA).
-    public static string ExtraerJson(string texto) { return ChatIA.ExtraerJson(texto, "corte"); }
+    public static string ExtraerJson(string texto) { return ChatIA.ExtraerJson(texto, "corte|capitulos"); }
 
     public static string MensajeCorreccion(string problema) { return ChatIA.MensajeCorreccion(problema); }
 
@@ -2178,7 +2521,7 @@ public static class PeticionIA
             "Cada tramo lleva \"importancia\" de 1 a 10. Las REGLAS DEL CANAL y las INDICACIONES DEL EPISODIO son obligatorias. " +
             "Que la historia completa se entienda de principio a fin: no te saltes objetivos, decisiones ni " +
             "resultados importantes. Prefiere los de mayor importancia, pero mant\u00e9n el ritmo y la variedad.\n" +
-            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) +
+            (op.PermitirAcelerar ? ReglasAcelerar : SinAcelerar) + ReglasCapitulos(op) +
             "- \"secciones\": cubren todo el video original (una por etapa de la historia).\n" + ReglasResto;
     }
 
@@ -8858,7 +9201,10 @@ public static class ChatIA
         object o;
         try { o = Json.Leer(s); }
         catch (Exception ex) { throw new FormatException("el JSON est\u00e1 mal formado o cortado (" + ex.Message + ")."); }
-        if (clave.Length > 0 && Json.Lista(o, clave).Count == 0) throw new FormatException("no trae la lista \"" + clave + "\"" + (clave == "corte" ? " con los tramos a conservar." : "."));
+        // "clave" puede ser varias separadas por | (basta con que una traiga datos): "corte|capitulos".
+        bool alguna = clave.Length == 0;
+        foreach (string k in clave.Split('|')) if (k.Length > 0 && Json.Lista(o, k).Count > 0) alguna = true;
+        if (!alguna) throw new FormatException("no trae la lista \"" + clave.Replace("|", "\" ni \"") + "\"" + (clave.StartsWith("corte") ? " con los tramos a conservar." : "."));
         return s;
     }
 
@@ -8880,9 +9226,9 @@ class DialogoRespuestaIA : VentanaBase
     readonly Boton btnCorregir = new Boton("Copiar mensaje para que la corrija", EstiloBoton.Secundario);
     readonly Boton btnImportar = new Boton("Importar", EstiloBoton.Primario);
     readonly Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
-    string problema = "", clave = "corte";
+    string problema = "", clave = "corte|capitulos";
 
-    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte") { }
+    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte|capitulos") { }
 
     public DialogoRespuestaIA(string carpeta, string clave) : base("Importar respuesta", 760)
     {
@@ -9475,6 +9821,50 @@ public static class CopiaBase
         string o = Original(veg), dir = Path.GetDirectoryName(o), n = Path.GetFileNameWithoutExtension(o);
         string r = Path.Combine(dir, n + " MOM.veg");
         for (int i = 2; File.Exists(r); i++) r = Path.Combine(dir, n + " MOM " + i + ".veg");
+        return r;
+    }
+
+    // Las rutas de "n" copias de corte seguidas ("MOM", "MOM 2"...), saltando las que ya existen.
+    public static List<string> RutasCorte(string veg, int n)
+    {
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        List<string> r = new List<string>();
+        for (int i = 1; r.Count < n; i++)
+        {
+            string c = Path.Combine(dir, nombre + (i == 1 ? " MOM" : " MOM " + i) + ".veg");
+            if (!File.Exists(c)) r.Add(c);
+        }
+        return r;
+    }
+
+    static readonly System.Text.RegularExpressions.Regex NumTemporada = new System.Text.RegularExpressions.Regex(
+        @"(S\d{1,2}\s*[-_ ]?\s*E)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly System.Text.RegularExpressions.Regex NumParte = new System.Text.RegularExpressions.Regex(
+        @"(\b(?:parte|part|cap(?:itulo|\u00edtulo)?|ep(?:isodio)?|episode)\s*[-_ ]?\s*)(\d{1,3})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    // Los archivos de "n" capitulos seguidos que salen de un video partido: continuan la numeracion del proyecto
+    // (\u00abS02E03 SCR\u00bb -> \u00abS02E03 SCR MOM\u00bb, \u00abS02E04 SCR MOM\u00bb, \u00abS02E05 SCR MOM\u00bb; tambien \u00abParte 3\u00bb, \u00abCap 3\u00bb\u2026). Con el
+    // sufijo MOM la serie los reconoce como el capitulo 3, 4 y 5. Si el nombre no trae numero: MOM, MOM 2...
+    // Los que ya existen se saltan (agregando \u00ab 2\u00bb). "numeros": los numeros usados, en orden (null: no se sabe).
+    public static List<string> RutasCapitulos(string veg, int n, out List<int> numeros)
+    {
+        numeros = null;
+        string o = Original(veg), dir = Path.GetDirectoryName(o), nombre = Path.GetFileNameWithoutExtension(o);
+        System.Text.RegularExpressions.Match m = NumTemporada.Match(nombre);
+        if (!m.Success) m = NumParte.Match(nombre);
+        if (!m.Success) return RutasCorte(veg, n);
+        int primero = int.Parse(m.Groups[2].Value), ancho = Math.Max(2, m.Groups[2].Value.Length);
+        List<string> r = new List<string>();
+        numeros = new List<int>();
+        for (int k = 0; k < n; k++)
+        {
+            string num = (primero + k).ToString().PadLeft(ancho, '0');
+            string nom = nombre.Substring(0, m.Groups[2].Index) + num + nombre.Substring(m.Groups[2].Index + m.Groups[2].Length);
+            string c = Path.Combine(dir, nom + " MOM.veg");
+            for (int i = 2; File.Exists(c) || r.Contains(c); i++) c = Path.Combine(dir, nom + " MOM " + i + ".veg");
+            r.Add(c);
+            numeros.Add(primero + k);
+        }
         return r;
     }
 

@@ -6300,7 +6300,10 @@ public static class ChatIA
         object o;
         try { o = Json.Leer(s); }
         catch (Exception ex) { throw new FormatException("el JSON est\u00e1 mal formado o cortado (" + ex.Message + ")."); }
-        if (clave.Length > 0 && Json.Lista(o, clave).Count == 0) throw new FormatException("no trae la lista \"" + clave + "\"" + (clave == "corte" ? " con los tramos a conservar." : "."));
+        // "clave" puede ser varias separadas por | (basta con que una traiga datos): "corte|capitulos".
+        bool alguna = clave.Length == 0;
+        foreach (string k in clave.Split('|')) if (k.Length > 0 && Json.Lista(o, k).Count > 0) alguna = true;
+        if (!alguna) throw new FormatException("no trae la lista \"" + clave.Replace("|", "\" ni \"") + "\"" + (clave.StartsWith("corte") ? " con los tramos a conservar." : "."));
         return s;
     }
 
@@ -6322,9 +6325,9 @@ class DialogoRespuestaIA : VentanaBase
     readonly Boton btnCorregir = new Boton("Copiar mensaje para que la corrija", EstiloBoton.Secundario);
     readonly Boton btnImportar = new Boton("Importar", EstiloBoton.Primario);
     readonly Boton btnCancelar = new Boton("Cancelar", EstiloBoton.Secundario);
-    string problema = "", clave = "corte";
+    string problema = "", clave = "corte|capitulos";
 
-    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte") { }
+    public DialogoRespuestaIA(string carpeta) : this(carpeta, "corte|capitulos") { }
 
     public DialogoRespuestaIA(string carpeta, string clave) : base("Importar respuesta", 760)
     {
